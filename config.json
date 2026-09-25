@@ -1,14 +1,20 @@
 {
-  "spoof_domains": ["vidaahub.com", "www.vidaahub.com"],
+  "spoof_domains": [
+    "vidaahub.com",
+    "www.vidaahub.com"
+  ],
   "dns_port": 53,
   "https_port": 443,
   "http_port": 8080,
-  "upstream_dns": ["1.1.1.1", "8.8.8.8"],
+  "upstream_dns": [
+    "1.1.1.1",
+    "8.8.8.8"
+  ],
   "nuvio": {
     "app_id": "nuviodebug",
     "app_name": "Nuvio TV",
-    "app_url": "https://nuviotvsmart.vercel.app/?wrapper=vidaa",
-    "icon_url": "https://nuviotvsmart.vercel.app/assets/images/icon.png",
+    "app_url": "",
+    "icon_url": "",
     "store_type": "store"
   }
 }

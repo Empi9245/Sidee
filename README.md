@@ -77,7 +77,7 @@ After testing, restore the TV DNS to Automatic.
 
 ## Nuvio target
 
-`config.json` contains a default Nuvio profile. The URL and icon can also be changed directly from the Sidee TV interface and saved back to the host.
+`config.json` contains the Nuvio app ID/name profile. The deployment URL and icon are intentionally left blank until you enter the current Nuvio host. They can be entered directly from the Sidee TV interface and saved back to the host.
 
 If your current Nuvio deployment uses a different URL, change it before pressing Install.
 

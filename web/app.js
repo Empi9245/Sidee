@@ -181,7 +181,8 @@
       const finish = (value) => { if (!done) { done = true; resolve(value); } };
       const timer = setTimeout(() => finish({available:true,ok:true,returnValue:null,callbackTimedOut:true}), 1200);
       try {
-        const ret = fn(function () {
+        let ret;
+        ret = fn(function () {
           clearTimeout(timer);
           finish({available:true,ok:true,returnValue:safeValue(ret),callback:Array.from(arguments).map(safeValue)});
         });
