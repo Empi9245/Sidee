@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1">
+  <title>Sidee — VIDAA 9 Lab</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">VIDAA LOCAL LAB</p>
+        <h1>Sidee</h1>
+        <p class="lead">Inspect first. Install only when the TV tells us what it actually supports.</p>
+      </div>
+      <div id="deviceBadge" class="badge">Detecting TV…</div>
+    </header>
+
+    <section class="grid">
+      <article class="card primary">
+        <div class="cardHead">
+          <div>
+            <p class="kicker">01 · SAFE START</p>
+            <h2>Read-only VIDAA scan</h2>
+          </div>
+          <button id="scanBtn">Run scan</button>
+        </div>
+        <p>Finds exposed Hisense / VIDAA / OMI / HiUtils APIs and reads basic device information. It does not write system files.</p>
+        <div class="stats">
+          <div><b id="fnCount">—</b><span>APIs found</span></div>
+          <div><b id="firmware">—</b><span>Firmware</span></div>
+          <div><b id="model">—</b><span>Model</span></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <p class="kicker">02 · NUVIO TARGET</p>
+        <h2>Install profile</h2>
+        <label>App ID<input id="appId"></label>
+        <label>Name<input id="appName"></label>
+        <label>Web app URL<input id="appUrl"></label>
+        <label>Icon URL<input id="iconUrl"></label>
+        <div class="row">
+          <button id="saveBtn" class="secondary">Save target</button>
+          <button id="verifyBtn" class="secondary">Verify only</button>
+        </div>
+      </article>
+
+      <article class="card">
+        <p class="kicker">03 · INSTALL</p>
+        <h2>Launcher test</h2>
+        <p>Uses the exposed <code>Hisense_installApp</code> API. Callback <code>0</code> is treated only as “request accepted” until Sidee can verify the app.</p>
+        <div class="row">
+          <button id="installBtn">Install Nuvio</button>
+          <button id="uninstallBtn" class="danger">Uninstall</button>
+        </div>
+        <div id="installState" class="state">No install attempt yet.</div>
+      </article>
+
+      <article class="card">
+        <p class="kicker">04 · DEEP READ-ONLY</p>
+        <h2>Installed-app evidence</h2>
+        <p>Checks <code>Hisense_getInstalledApps</code> when available and can read <code>websdk/Appinfo.json</code> through HiUtils if the firmware exposes read access. No file writes.</p>
+        <button id="deepBtn" class="secondary">Run deep verification</button>
+        <pre id="verifyOutput">No verification result yet.</pre>
+      </article>
+
+      <article class="card wide">
+        <div class="cardHead">
+          <div>
+            <p class="kicker">DIAGNOSTICS</p>
+            <h2>VIDAA 9 report</h2>
+          </div>
+          <button id="reportBtn" class="secondary">Save report</button>
+        </div>
+        <pre id="console"></pre>
+      </article>
+    </section>
+
+    <footer>Sidee only targets TVs you control. Direct Appinfo.json writes are intentionally disabled in this build.</footer>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
