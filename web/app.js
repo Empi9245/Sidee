@@ -1695,13 +1695,28 @@
     const result = buildRuntimeIdentityResult();
     const init = result.vowOSContext && result.vowOSContext.methods && result.vowOSContext.methods.init;
     state.report.runtimeIdentityProbe = safeValue(result);
-    state.report.runtimeContextInitialization = {
+    const initializationInspection = {
       inspectedAt:result.timestamp,
       available:Boolean(init && init.available),
       called:runtimeContextInitCalled,
       eligible:Boolean(init && init.manualCallEligible),
       reason:init ? init.notCalledReason : "vowOSContext.init is unavailable."
     };
+    if (
+      runtimeContextInitCalled &&
+      state.report.runtimeContextInitialization &&
+      state.report.runtimeContextInitialization.called
+    ) {
+      state.report.runtimeContextInitialization = {
+        ...state.report.runtimeContextInitialization,
+        postProbeAt:result.timestamp,
+        currentAvailable:initializationInspection.available,
+        currentEligible:initializationInspection.eligible,
+        currentReason:initializationInspection.reason
+      };
+    } else {
+      state.report.runtimeContextInitialization = initializationInspection;
+    }
 
     renderRuntimeIdentityProbe(result);
     if (stateEl) {
