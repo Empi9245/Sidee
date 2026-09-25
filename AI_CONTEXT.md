@@ -287,3 +287,383 @@ Before making changes:
 8. Keep Sidee standalone from Nuvio.
 
 When a new report is provided, compare it against the known baseline above rather than restarting the investigation.
+
+
+---
+
+## UPDATE RICERCA — 2026-09-25, dopo analisi AppConfig/Permission
+
+Questa sezione documenta tutto ciò che è stato verificato nella chat successiva all'ultimo aggiornamento del file.
+
+### Stato Git reale prima di questa ricerca
+
+Al momento della verifica, `main` era ancora esattamente su:
+
+`f2beaae5dbcb30fd85c0a0220f58b292f5ad4d50`
+
+commit:
+
+`docs: add VIDAA AI research context`
+
+Non risultavano commit successivi.
+
+IMPORTANTE: durante questa chat sono state preparate idee/modifiche per il nuovo probe/UI/report, ma NON erano ancora state applicate a `main` prima di questo aggiornamento del contesto. Quindi la prossima AI deve prima controllare lo stato reale del branch e non assumere che il refactor diagnostico sia già presente.
+
+### Ricerca pubblica ricontrollata
+
+È stata ricontrollata la issue:
+
+`weinzii/vidaa-edge#30`
+
+Titolo:
+
+`client request permission check error on firmware V0000.09.60F.Q0528 (May 2026)`
+
+Stato verificato il 2026-09-25:
+
+- issue ancora aperta;
+- ultimo aggiornamento pubblico trovato: 2026-09-09;
+- continua a non esserci una soluzione pubblica/documentata al controllo AppConfig/client permission.
+
+Commenti rilevanti confermati:
+
+1. 2026-08-23, maintainer `weinzii`:
+   sostiene che su firmware >= v9 `vidaahub.com` possa funzionare senza DNS rewrite.
+
+   Per Sidee questo non cambia la priorità:
+   sulla TV reale Sidee gira già correttamente sotto `https://vidaahub.com` con origin corretto, quindi il DNS non è il blocker attuale.
+
+2. 2026-08-26, firmware:
+
+   `V0000.09.60C.Q0516`
+
+   stesso errore con e senza DNS rewrite.
+
+3. 2026-09-09, firmware:
+
+   `V0000.09.60A.Q0602`
+
+   vengono caricate correttamente circa 104 funzioni, ma l'installazione fallisce ancora con:
+
+   `client request permission check error, please check appconfig`
+
+   In quel caso viene anche segnalata assenza di `Hisense_FileRead`, mentre sulla TV usata per Sidee il read-only di Appinfo via HiUtils è già stato verificato come funzionante.
+
+Conclusione aggiornata:
+
+il comportamento continua a essere coerente con una restrizione della famiglia firmware VIDAA 9.60, non con un problema specifico di Nuvio o del DNS.
+
+### Ricerca su `Hisense_SupportAppConfig`
+
+Nel repository `weinzii/vidaa-edge`, `Hisense_SupportAppConfig` compare nell'inventario delle funzioni Hisense in:
+
+`src/global.d.ts`
+
+ma non è stato trovato un uso concreto pubblico che spieghi:
+
+- parametri;
+- formato del risultato;
+- relazione con `installApplication`;
+- relazione con il controllo client/appconfig;
+- eventuale modo supportato per ottenere privilegi aggiuntivi.
+
+Quindi rimane una funzione da analizzare direttamente sul runtime della TV.
+
+### Altri nomi API trovati che potrebbero essere collegati a sicurezza/client identity
+
+Nell'inventario pubblico delle funzioni VIDAA sono stati confermati anche nomi potenzialmente interessanti:
+
+- `Hisense_HiSdkSignCreate`
+- `Hisense_HiSdkSignCreateSoundbar`
+- `Hisense_HiSdkJsonVerifyHeap`
+- `Hisense_CheckAccessCode`
+- `Hisense_CheckCodeValid`
+- `Hisense_GetRoleID`
+- `Hisense_SetRoleID`
+- `Hisense_GetCustomerID`
+- `Hisense_SetCustomerID`
+- `Hisense_Encrypt`
+- `Hisense_Decrypt`
+- `Hisense_RSADecrypt`
+
+Questi nomi NON provano che siano collegati al blocco AppConfig.
+
+Policy per Sidee:
+
+- possono essere enumerati;
+- possono essere ispezionati via descriptor/source quando possibile;
+- NON devono essere chiamati automaticamente se possono cambiare stato o richiedere credenziali/firme;
+- in particolare `SetRoleID`, `SetCustomerID`, funzioni di firma/access code, reset e write restano fuori dal probe automatico.
+
+### `HiUtils_createRequest`
+
+Rimane confermato sul firmware reale che:
+
+`HiUtils_createRequest(type, msg)`
+
+wrappa essenzialmente:
+
+`vowOS.service.syncExecute('hiutils', { api: type, args: msg })`
+
+Nuova conclusione operativa:
+
+non è stato trovato un elenco pubblico affidabile di nomi HiUtils read-only specifici per AppConfig/permission.
+
+Quindi Sidee NON deve:
+
+- inventare nomi di API HiUtils;
+- brute-forzare stringhe;
+- chiamare automaticamente API sconosciute.
+
+Può invece:
+
+- ispezionare il source di `HiUtils_createRequest`;
+- ispezionare `vowOS` e proprietà correlate senza invocare getter sconosciuti;
+- estrarre nomi/stringhe concrete trovate nel source/runtime;
+- testare solo richieste read-only già note o scoperte con alta confidenza;
+- continuare a usare il `fileRead` già verificato per `websdk/Appinfo.json`.
+
+### Direzione del nuovo Permission/AppConfig Probe
+
+Il matcher di `enumerateInterestingGlobals()` deve essere esteso almeno a:
+
+- `appconfig`
+- `appConfig`
+- `permission`
+- `permissions`
+- `access`
+- `client`
+- `whitelist`
+- `domain`
+- `origin`
+- `security`
+- `installApplication`
+- `config`
+- `capability`
+- `privilege`
+- `auth`
+- `certificate`
+- `signature`
+- `sign`
+- `vowOS`
+- `hiutils`
+- `Hisense_SupportAppConfig`
+
+Il probe non deve limitarsi ai nomi globali.
+
+Deve poter ispezionare in modo sicuro proprietà di oggetti interessanti, salvando quando possibile:
+
+- path completo;
+- nome proprietà;
+- tipo;
+- valore primitivo se già presente come data property;
+- descriptor;
+- source delle funzioni;
+- source dei getter/setter SENZA invocarli;
+- errori di accesso;
+- info sul prototype;
+- proprietà enumerate;
+- riferimenti interessanti trovati nel source.
+
+Devono esserci limiti rigidi a:
+
+- profondità;
+- numero proprietà;
+- numero totale entry;
+- lunghezza stringhe;
+- lunghezza source;
+- circular references.
+
+### Chiamate che il nuovo probe può eseguire
+
+Nuova proposta sicura:
+
+1. i getter VIDAA già considerati read-only e già usati nello scan;
+2. `Hisense_SupportAppConfig()` senza parametri, se presente;
+3. `HiUtils_createRequest('fileRead', {path:'websdk/Appinfo.json', mode:6})` nella fase di verification, perché già verificato sulla TV reale.
+
+Il Permission/AppConfig probe NON deve eseguire automaticamente:
+
+- getter/accessor sconosciuti;
+- nomi HiUtils inventati;
+- `Hisense_HiSdkSignCreate*`;
+- `Hisense_CheckAccessCode`;
+- `Hisense_CheckCodeValid`;
+- `Hisense_FileWrite`;
+- `fileWrite`;
+- `Set*`;
+- reset;
+- install/uninstall.
+
+Install e uninstall restano azioni esplicite separate dal probe.
+
+### Nuova ipotesi concreta sul controllo AppConfig
+
+La migliore ipotesi attuale, da trattare ancora come ipotesi e non come fatto provato, è:
+
+1. il browser/origin espone correttamente le funzioni JavaScript Hisense;
+2. il wrapper nativo riceve la richiesta;
+3. `installApplication` arriva al servizio interno HiUtils;
+4. prima dell'operazione di scrittura/registrazione viene eseguito un controllo sul client;
+5. il client corrente non possiede una permission/AppConfig richiesta;
+6. il firmware risponde quindi con code 503 e:
+   `client request permission check error, please check appconfig`.
+
+La parte ancora sconosciuta è:
+
+- quale metadata identifica il client;
+- dove si trova l'AppConfig effettivo;
+- se il browser `odin` carica un permission set specifico;
+- se origin/domain/signature/role/customer id partecipano al controllo;
+- se esiste una API read-only che esponga tali informazioni;
+- se `Hisense_SupportAppConfig` restituisce dati utili.
+
+### Architettura report proposta
+
+La prossima implementazione dovrebbe sostituire i molti report quasi duplicati con:
+
+`una sessione diagnostica = un report principale`
+
+Formato session ID suggerito:
+
+`sidee-YYYYMMDD-HHMMSS-xxxx`
+
+Nome file suggerito:
+
+`sidee-session-YYYYMMDD-HHMMSS-xxxx.json`
+
+Backend proposto:
+
+`POST /api/reports/session`
+
+con:
+
+- validazione stretta di `sessionId`;
+- filename derivato server-side;
+- nessun path arbitrario accettato;
+- scrittura atomica;
+- update/sovrascrittura dello stesso JSON;
+- compatibilità mantenuta con `/api/reports/latest`;
+- lista report ancora disponibile.
+
+Struttura report proposta:
+
+- `sessionId`
+- `startedAt`
+- `updatedAt`
+- `summary`
+- `environment`
+- `permissionProbe`
+- `target`
+- `installDiagnostic`
+- `verification`
+- `raw.snapshots`
+
+### Compact Installed Apps / Appinfo
+
+Per evitare report enormi:
+
+`Hisense_getInstalledApps` e `websdk/Appinfo.json` dovrebbero avere una vista compatta con:
+
+- count;
+- id;
+- name/title;
+- URL/start command;
+- store type;
+- matchedTarget.
+
+I raw completi dovrebbero essere conservati una sola volta per snapshot significativo, per esempio:
+
+- `installedAppsBefore`
+- `installedAppsAfter`
+- `appInfoBefore`
+- `appInfoAfter`
+
+e non duplicati dentro ogni step.
+
+### Regola false positive da mantenere assolutamente
+
+Callback JavaScript `0` NON equivale mai a successo.
+
+Se il trace interno mostra:
+
+- `ret:false`
+- `code:503`
+- `client request permission check error, please check appconfig`
+
+la classificazione deve essere:
+
+`REJECTED`
+
+L'unico successo finale valido deve essere:
+
+`VERIFIED INSTALLED`
+
+quando la verifica trova realmente l'app.
+
+### UI proposta
+
+Workflow TV lineare da implementare:
+
+1. Device / Environment Scan
+2. Permission & AppConfig Probe
+3. Target App Configuration
+4. Install Diagnostic
+5. Verification
+6. Export Report
+
+Summary sempre visibile con almeno:
+
+- Environment
+- Origin
+- Install API
+- AppConfig probe
+- Install request
+- Internal reason
+- Permission code
+- Verification
+
+Legacy/V2 devono diventare controlli diagnostici secondari/advanced.
+
+L'azione principale dovrebbe essere:
+
+`Run install diagnostic`
+
+che può fare:
+
+Legacy -> verification -> V2 -> verification
+
+senza presentare V2 come "soluzione alternativa".
+
+### Stato implementazione alla fine di questa ricerca
+
+IMPORTANTE PER LA PROSSIMA CHAT:
+
+la ricerca sopra è stata completata, ma il refactor del codice NON era ancora stato pubblicato su `main` al momento di questa nota.
+
+Quindi prima di continuare:
+
+1. leggere questo file;
+2. controllare l'HEAD reale di `main`;
+3. controllare `web/app.js`, `web/index.html`, `web/style.css`, `sidee.py`;
+4. verificare quali parti del nuovo probe/report/UI risultano effettivamente presenti;
+5. implementare solo ciò che manca;
+6. non rifare la ricerca già documentata qui.
+
+### Prossimo test reale consigliato sulla Hisense
+
+Quando il nuovo probe sarà effettivamente implementato:
+
+1. avvia Sidee sul PC;
+2. imposta il DNS della TV sul PC;
+3. apri `https://vidaahub.com`;
+4. esegui Device / Environment Scan;
+5. esegui Permission & AppConfig Probe;
+6. controlla soprattutto `Hisense_SupportAppConfig`, `vowOS`, `HiUtils_createRequest` e riferimenti permission/client/security;
+7. configura Nuvio se necessario;
+8. esegui Run Install Diagnostic;
+9. lascia completare Legacy + V2 + verification;
+10. esporta il report;
+11. invia il singolo `sidee-session-....json` della sessione.
+
+Non serve committare i report generati.
