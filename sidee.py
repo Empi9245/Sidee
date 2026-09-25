@@ -22,6 +22,7 @@ import mimetypes
 import os
 import pathlib
 import signal
+import shutil
 import socket
 import ssl
 import struct
@@ -71,22 +72,30 @@ def generate_cert():
     if cert.exists() and key.exists():
         return cert, key
 
+    openssl = shutil.which("openssl")
+    if not openssl and os.name == "nt":
+        candidates = [
+            r"C:\\Program Files\\Git\\usr\\bin\\openssl.exe",
+            r"C:\\Program Files\\OpenSSL-Win64\\bin\\openssl.exe",
+            r"C:\\Program Files (x86)\\OpenSSL-Win32\\bin\\openssl.exe",
+        ]
+        openssl = next((p for p in candidates if os.path.isfile(p)), None)
+    if not openssl:
+        raise RuntimeError(
+            "OpenSSL was not found. Install Git for Windows or OpenSSL, then run Sidee again."
+        )
+
     cmd = [
-        "openssl", "req", "-x509", "-newkey", "rsa:2048",
+        openssl, "req", "-x509", "-newkey", "rsa:2048",
         "-keyout", str(key), "-out", str(cert), "-days", "30", "-nodes",
         "-subj", "/CN=vidaahub.com",
         "-addext", "subjectAltName=DNS:vidaahub.com,DNS:www.vidaahub.com",
     ]
     try:
         subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except FileNotFoundError as exc:
-        raise RuntimeError(
-            "OpenSSL was not found. Install OpenSSL (or Git for Windows with OpenSSL) "
-            "and run Sidee again."
-        ) from exc
     except subprocess.CalledProcessError:
         fallback = [
-            "openssl", "req", "-x509", "-newkey", "rsa:2048",
+            openssl, "req", "-x509", "-newkey", "rsa:2048",
             "-keyout", str(key), "-out", str(cert), "-days", "30", "-nodes",
             "-subj", "/CN=vidaahub.com",
         ]
