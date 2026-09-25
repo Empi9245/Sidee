@@ -3,14 +3,53 @@
 
   const $ = (id) => document.getElementById(id);
   const logBox = $("console");
+  const SESSION_ID_RE = /^sidee-\d{8}-\d{6}-[a-f0-9]{4}$/;
+
+  function pad2(value) {
+    return String(value).padStart(2, "0");
+  }
+
+  function createSessionId() {
+    const now = new Date();
+    const stamp =
+      String(now.getFullYear()) +
+      pad2(now.getMonth() + 1) +
+      pad2(now.getDate()) + "-" +
+      pad2(now.getHours()) +
+      pad2(now.getMinutes()) +
+      pad2(now.getSeconds());
+    let suffix = "";
+    try {
+      const bytes = new Uint8Array(2);
+      crypto.getRandomValues(bytes);
+      suffix = Array.from(bytes).map((value) => value.toString(16).padStart(2, "0")).join("");
+    } catch (_) {
+      suffix = Math.floor(Math.random() * 65536).toString(16).padStart(4, "0");
+    }
+    return "sidee-" + stamp + "-" + suffix;
+  }
+
+  function createSessionReport() {
+    const now = new Date().toISOString();
+    return {
+      sessionId:createSessionId(),
+      startedAt:now,
+      updatedAt:now,
+      summary:{},
+      environment:{},
+      permissionProbe:{},
+      target:{},
+      installDiagnostic:{attempts:[]},
+      verification:{},
+      raw:{snapshots:{}}
+    };
+  }
+
   const state = {
-    config: null,
-    scan: null,
-    permissionProbe: null,
-    verification: null,
-    installAttempts: [],
-    startedAt: new Date().toISOString()
+    config:null,
+    report:createSessionReport()
   };
+  let reportSaveChain = Promise.resolve();
 
   const KNOWN = [
     "Hisense_LoginWithVIDAA","Hisense_installApp_V2","Hisense_installApp",
@@ -47,6 +86,14 @@
     maxGlobalMatches: 320,
     maxPrototypeProperties: 50,
     maxSourceReferences: 50
+  });
+
+  const SERIALIZE_LIMITS = Object.freeze({
+    maxDepth: PROBE_LIMITS.maxDepth + 3,
+    maxPropertiesPerObject: PROBE_LIMITS.maxPropertiesPerObject,
+    maxEntries: PROBE_LIMITS.maxEntries,
+    maxArrayItems: 250,
+    maxStringLength: PROBE_LIMITS.maxFunctionSourceLength
   });
 
   const PERMISSION_PROBE_MATCHER = /(hisense|vidaa|hiutils|vowos|omi|install(application)?|uninstall|appinfo|appconfig|permission(s)?|access|client|whitelist|domain|origin|security|config|capabilit(y|ies)|privilege|auth|certificate|signature|sign|file(read|write)|debug|api(version|list)|platform)/i;
@@ -424,14 +471,211 @@
     logBox.scrollTop = logBox.scrollHeight;
   }
 
+  function safeSerialize(value) {
+    const budget = {entries:0};
+    const seen = typeof WeakSet === "function" ? new WeakSet() : [];
+
+    const markSeen = (candidate) => {
+      if (candidate === null || !["object","function"].includes(typeof candidate)) return false;
+      if (seen instanceof WeakSet) {
+        if (seen.has(candidate)) return true;
+        seen.add(candidate);
+        return false;
+      }
+      if (seen.indexOf(candidate) >= 0) return true;
+      seen.push(candidate);
+      return false;
+    };
+
+    const walk = (candidate, depth) => {
+      if (candidate === undefined) return "[undefined]";
+      if (candidate === null || ["string","number","boolean"].includes(typeof candidate)) {
+        return typeof candidate === "string"
+          ? truncateText(candidate, SERIALIZE_LIMITS.maxStringLength)
+          : candidate;
+      }
+      if (typeof candidate === "bigint" || typeof candidate === "symbol") {
+        return truncateText(String(candidate), SERIALIZE_LIMITS.maxStringLength);
+      }
+      if (typeof candidate === "function") {
+        return "[Function" + (candidate.name ? ": " + truncateText(candidate.name, 120) : "") + "]";
+      }
+      if (candidate instanceof Error) {
+        return {
+          name:truncateText(candidate.name || "Error", 120),
+          message:truncateText(candidate.message || "", SERIALIZE_LIMITS.maxStringLength),
+          stack:candidate.stack ? truncateText(candidate.stack, SERIALIZE_LIMITS.maxStringLength) : null
+        };
+      }
+      if (candidate instanceof Date) return candidate.toISOString();
+      if (typeof Node !== "undefined" && candidate instanceof Node) {
+        return "[DOM " + truncateText(candidate.nodeName || "Node", 120) + "]";
+      }
+      if (depth >= SERIALIZE_LIMITS.maxDepth) {
+        let name = "Object";
+        try { name = candidate.constructor && candidate.constructor.name || name; } catch (_) {}
+        return "[MaxDepth: " + truncateText(name, 120) + "]";
+      }
+      if (markSeen(candidate)) return "[Circular]";
+      if (budget.entries >= SERIALIZE_LIMITS.maxEntries) return "[EntryLimit]";
+
+      if (Array.isArray(candidate)) {
+        const result = [];
+        const length = Math.min(candidate.length, SERIALIZE_LIMITS.maxArrayItems);
+        for (let i = 0; i < length; i++) {
+          if (budget.entries >= SERIALIZE_LIMITS.maxEntries) {
+            result.push("[EntryLimit]");
+            break;
+          }
+          budget.entries += 1;
+          let descriptor = null;
+          try { descriptor = Object.getOwnPropertyDescriptor(candidate, String(i)); } catch (_) {}
+          if (!descriptor) {
+            result.push("[missing]");
+          } else if (Object.prototype.hasOwnProperty.call(descriptor, "value")) {
+            result.push(walk(descriptor.value, depth + 1));
+          } else {
+            result.push("[Accessor]");
+          }
+        }
+        if (candidate.length > length) result.push("[+" + (candidate.length - length) + " items truncated]");
+        return result;
+      }
+
+      const result = {};
+      let names = [];
+      try { names = Object.getOwnPropertyNames(candidate); } catch (error) {
+        return "[Uninspectable: " + errorText(error) + "]";
+      }
+      const selected = names.slice(0, SERIALIZE_LIMITS.maxPropertiesPerObject);
+      for (const name of selected) {
+        if (budget.entries >= SERIALIZE_LIMITS.maxEntries) {
+          result.__truncated = "[EntryLimit]";
+          break;
+        }
+        budget.entries += 1;
+        let descriptor = null;
+        try { descriptor = Object.getOwnPropertyDescriptor(candidate, name); } catch (error) {
+          result[name] = "[Descriptor error: " + errorText(error) + "]";
+          continue;
+        }
+        if (!descriptor) continue;
+        if (!Object.prototype.hasOwnProperty.call(descriptor, "value")) {
+          result[name] = "[Accessor]";
+          continue;
+        }
+        result[name] = walk(descriptor.value, depth + 1);
+      }
+      if (names.length > selected.length) result.__truncatedProperties = names.length - selected.length;
+      return result;
+    };
+
+    try {
+      return walk(value, 0);
+    } catch (error) {
+      return {serializationError:errorText(error)};
+    }
+  }
+
   function safeJson(value) {
-    try { return JSON.stringify(value, null, 2); } catch (_) { return String(value); }
+    try { return JSON.stringify(safeSerialize(value), null, 2); } catch (error) {
+      return JSON.stringify({serializationError:errorText(error)});
+    }
   }
 
   function safeValue(value) {
-    if (value == null || ["string","number","boolean"].includes(typeof value)) return value;
-    if (typeof value === "function") return "[function]";
-    try { return JSON.parse(JSON.stringify(value)); } catch (_) { return String(value); }
+    return safeSerialize(value);
+  }
+
+  function syncTargetToReport() {
+    state.report.target = safeValue(currentTarget());
+    return state.report.target;
+  }
+
+  function captureRawSnapshot(name, value, replaceExisting) {
+    const snapshots = state.report.raw.snapshots;
+    if (replaceExisting || !Object.prototype.hasOwnProperty.call(snapshots, name)) {
+      snapshots[name] = safeValue(value);
+    }
+  }
+
+  function getterValue(device, name) {
+    const entry = device && device[name];
+    return entry && entry.ok ? entry.value : null;
+  }
+
+  function compactSupportAppConfigResult(result) {
+    if (!result) return null;
+    const compact = {status:result.status || null};
+    if (result.resultType) compact.type = result.resultType;
+    if (Object.prototype.hasOwnProperty.call(result, "resultValue")) compact.value = safeValue(result.resultValue);
+    if (result.error) compact.error = truncateText(result.error, PROBE_LIMITS.maxStringLength);
+    return compact;
+  }
+
+  function updateSummaryFromEnvironment(environment) {
+    const device = environment.device || {};
+    const capabilities = environment.capabilities || {};
+    Object.assign(state.report.summary, {
+      firmware:getterValue(device, "Hisense_GetFirmWareVersion"),
+      model:getterValue(device, "Hisense_GetModelName"),
+      OS:getterValue(device, "Hisense_GetOSVersion"),
+      apiVersion:getterValue(device, "Hisense_GetApiVersion"),
+      browser:getterValue(device, "Hisense_GetCurrentBrowser") || device.userAgent || null,
+      origin:device.origin || null,
+      legacyAvailable:Boolean(capabilities.installApp),
+      v2Available:Boolean(capabilities.installAppV2),
+      getInstalledAppsAvailable:Boolean(capabilities.getInstalledApps),
+      supportAppConfigAvailable:Boolean(environment.supportAppConfigAvailable)
+    });
+  }
+
+  function findFirstValueByKeys(value, keys) {
+    const wanted = new Set(keys.map((key) => key.toLowerCase()));
+    const queue = [value];
+    const seen = new Set();
+    let visited = 0;
+    while (queue.length && visited < 300) {
+      const current = queue.shift();
+      visited += 1;
+      if (current === null || typeof current !== "object") continue;
+      if (seen.has(current)) continue;
+      seen.add(current);
+      for (const key of Object.keys(current)) {
+        if (wanted.has(key.toLowerCase())) return current[key];
+      }
+      for (const child of Object.values(current)) {
+        if (child !== null && typeof child === "object") queue.push(child);
+      }
+    }
+    return null;
+  }
+
+  function updateInstallSummary(attempt) {
+    const installTrace = (attempt.hiUtilsTrace || []).filter((entry) => String(entry.type).toLowerCase() === "installapplication");
+    const latestTrace = installTrace.length ? installTrace[installTrace.length - 1] : null;
+    const traceResult = latestTrace ? (latestTrace.result || latestTrace.error || latestTrace) : null;
+    const internalRet = findFirstValueByKeys(traceResult, ["ret"]);
+    const errorCode = findFirstValueByKeys(traceResult, ["code","errorCode"]);
+    const errorMessage = findFirstValueByKeys(traceResult, ["message","msg","error"]);
+    const verified = Boolean(state.report.verification && state.report.verification.verified);
+
+    state.report.summary.installRequest = attempt.method || null;
+    if (internalRet !== null) state.report.summary.installApplicationRet = internalRet;
+    if (errorCode !== null) state.report.summary.permissionErrorCode = errorCode;
+    if (errorMessage !== null) state.report.summary.permissionError = String(errorMessage);
+
+    if (verified) {
+      state.report.summary.conclusion = "VERIFIED INSTALLED";
+    } else if (internalRet === false || errorCode !== null || /permission|appconfig/i.test(String(errorMessage || ""))) {
+      state.report.summary.conclusion = "REJECTED";
+    } else if (attempt.error) {
+      state.report.summary.conclusion = "INSTALL ERROR";
+    } else if (attempt.callback && Number(attempt.callback.code) === 0) {
+      state.report.summary.conclusion = "REQUEST ACCEPTED, NOT VERIFIED";
+    } else {
+      state.report.summary.conclusion = "NOT VERIFIED";
+    }
   }
 
   function setInstallState(text, type) {
@@ -487,11 +731,17 @@
         const result = original(type, msg);
         entry.result = safeValue(result);
         attempt.hiUtilsTrace.push(entry);
-        log("HiUtils " + String(type), entry);
+        log("HiUtils trace captured: " + String(type) + ".", {
+          type:entry.type,
+          ret:findFirstValueByKeys(entry.result, ["ret"]),
+          code:findFirstValueByKeys(entry.result, ["code","errorCode"]),
+          message:findFirstValueByKeys(entry.result, ["message","msg","error"])
+        });
         return result;
       } catch (e) {
-        entry.error = String(e && e.message || e);
+        entry.error = errorText(e);
         attempt.hiUtilsTrace.push(entry);
+        log("HiUtils trace error: " + String(type) + ".", {error:entry.error});
         throw e;
       }
     };
@@ -502,7 +752,7 @@
         try { window.HiUtils_createRequest = original; } catch (_) {}
       };
     } catch (e) {
-      attempt.hiUtilsTraceError = String(e && e.message || e);
+      attempt.hiUtilsTraceError = errorText(e);
       return function () {};
     }
   }
@@ -513,8 +763,10 @@
       body: JSON.stringify({nuvio: currentTarget()})
     });
     const data = await r.json();
-    log("Target saved on Sidee host.", data);
+    log("Target saved on Sidee host.", {ok:Boolean(data && data.ok)});
     await getConfig();
+    syncTargetToReport();
+    await saveReport("target");
   }
 
   function enumerateInterestingGlobals() {
@@ -556,7 +808,8 @@
     };
     SAFE_GETTERS.forEach((name) => { device[name] = callGetter(name); });
 
-    state.scan = {
+    const supportAppConfigGlobal = inspectGlobal("Hisense_SupportAppConfig");
+    const environment = {
       timestamp:new Date().toISOString(),
       readOnly:true,
       device,
@@ -569,14 +822,26 @@
         hiUtils:typeof window.HiUtils_createRequest === "function",
         omi:Boolean(window.omi_platform && typeof window.omi_platform.sendPlatformMessage === "function"),
         operaOmi:Boolean(window.opera_omi && typeof window.opera_omi.sendPlatformMessage === "function")
-      }
+      },
+      supportAppConfigAvailable:Boolean(supportAppConfigGlobal.available && supportAppConfigGlobal.type === "function")
     };
+    state.report.environment = environment;
+    updateSummaryFromEnvironment(state.report.environment);
+    syncTargetToReport();
 
     $("fnCount").textContent = String(functions.filter((x)=>x.available).length);
-    $("firmware").textContent = device.Hisense_GetFirmWareVersion?.value || "unknown";
-    $("model").textContent = device.Hisense_GetModelName?.value || "unknown";
-    $("deviceBadge").textContent = state.scan.capabilities.installApp ? "VIDAA APIs detected" : "VIDAA detected / install API unavailable";
-    log("Read-only scan complete.", state.scan);
+    $("firmware").textContent = state.report.summary.firmware || "unknown";
+    $("model").textContent = state.report.summary.model || "unknown";
+    $("deviceBadge").textContent = environment.capabilities.installApp ? "VIDAA APIs detected" : "VIDAA detected / install API unavailable";
+    log("Read-only scan complete.", {
+      firmware:state.report.summary.firmware,
+      model:state.report.summary.model,
+      os:state.report.summary.OS,
+      apiVersion:state.report.summary.apiVersion,
+      origin:state.report.summary.origin,
+      legacyAvailable:state.report.summary.legacyAvailable,
+      v2Available:state.report.summary.v2Available
+    });
     await saveReport("scan");
   }
 
@@ -623,7 +888,7 @@
       hiUtils:hiUtils.present ? "found" : "not found"
     };
 
-    state.permissionProbe = {
+    state.report.permissionProbe = {
       timestamp:new Date().toISOString(),
       readOnly:true,
       limits:{...PROBE_LIMITS},
@@ -656,6 +921,8 @@
         writesIssued:false
       }
     };
+    state.report.summary.supportAppConfigAvailable = Boolean(supportAppConfig.present);
+    state.report.summary.supportAppConfigResult = compactSupportAppConfigResult(supportAppConfig);
 
     stateEl.textContent =
       "Probe completed · " + summary.interestingEntries + " interesting entries · " +
@@ -698,15 +965,15 @@
         let ret;
         ret = fn(function () {
           clearTimeout(timer);
-          finish({available:true,ok:true,returnValue:safeValue(ret),callback:Array.from(arguments).map(safeValue)});
+          finish({available:true,ok:true,returnValue:ret,callback:Array.from(arguments)});
         });
         if (ret !== undefined) {
           clearTimeout(timer);
-          finish({available:true,ok:true,returnValue:safeValue(ret)});
+          finish({available:true,ok:true,returnValue:ret});
         }
       } catch (e) {
         clearTimeout(timer);
-        finish({available:true,ok:false,error:String(e && e.message || e)});
+        finish({available:true,ok:false,error:errorText(e)});
       }
     });
   }
@@ -716,36 +983,204 @@
     if (typeof fn !== "function") return {available:false};
     try {
       const result = fn("fileRead", {path:"websdk/Appinfo.json",mode:6});
-      return {available:true,ok:Boolean(result && result.ret),result:safeValue(result)};
+      return {available:true,ok:Boolean(result && result.ret),result};
     } catch (e) {
-      return {available:true,ok:false,error:String(e && e.message || e)};
+      return {available:true,ok:false,error:errorText(e)};
     }
   }
 
-  function containsTarget(value, target) {
-    const haystack = safeJson(value).toLowerCase();
-    return haystack.includes(target.app_id.toLowerCase()) ||
-      haystack.includes(target.app_name.toLowerCase()) ||
-      (target.app_url && haystack.includes(target.app_url.toLowerCase()));
+  function maybeParseJsonString(value) {
+    if (typeof value !== "string") return null;
+    const text = value.trim();
+    if (!text || !((text.startsWith("{") && text.endsWith("}")) || (text.startsWith("[") && text.endsWith("]")))) return null;
+    try { return JSON.parse(text); } catch (_) { return null; }
   }
 
-  async function verify(deep) {
+  function dataPropertyEntries(record) {
+    if (!record || typeof record !== "object") return [];
+    let names = [];
+    try { names = Object.getOwnPropertyNames(record); } catch (_) { return []; }
+    const entries = [];
+    for (const name of names.slice(0, SERIALIZE_LIMITS.maxPropertiesPerObject)) {
+      try {
+        const descriptor = Object.getOwnPropertyDescriptor(record, name);
+        if (descriptor && Object.prototype.hasOwnProperty.call(descriptor, "value")) {
+          entries.push([name, descriptor.value]);
+        }
+      } catch (_) {}
+    }
+    return entries;
+  }
+
+  function pickField(record, names) {
+    const entries = dataPropertyEntries(record);
+    if (!entries.length) return null;
+    const lookup = {};
+    for (const [key, value] of entries) lookup[key.toLowerCase()] = value;
+    for (const name of names) {
+      const value = lookup[name.toLowerCase()];
+      if (value !== undefined && value !== null && value !== "") return value;
+    }
+    return null;
+  }
+
+  function recordMatchesTarget(record, target) {
+    const values = [
+      pickField(record, ["id","appId","applicationId","packageId"]),
+      pickField(record, ["name","appName","title"]),
+      pickField(record, ["url","appUrl","startCommand","startUrl"])
+    ].filter((value) => value !== null).map((value) => String(value).toLowerCase());
+    const needles = [target.app_id, target.app_name, target.app_url]
+      .filter(Boolean).map((value) => String(value).toLowerCase());
+    return needles.some((needle) => values.some((value) => value.includes(needle)));
+  }
+
+  function compactAppRecord(record, target) {
+    const compact = {
+      id:pickField(record, ["id","appId","applicationId","packageId"]),
+      name:pickField(record, ["name","appName","title","AppName","Title"]),
+      url:pickField(record, ["url","appUrl","URL","startUrl"]),
+      startCommand:pickField(record, ["startCommand","StartCommand","command"]),
+      storeType:pickField(record, ["storeType","StoreType","type"]),
+      matchedTarget:recordMatchesTarget(record, target)
+    };
+    const version = pickField(record, ["version","appVersion","Version"]);
+    if (version !== null) compact.version = version;
+    const packageName = pickField(record, ["packageName","package","pkg"]);
+    if (packageName !== null) compact.packageName = packageName;
+    return safeValue(compact);
+  }
+
+  function collectAppRecords(value, target) {
+    const result = [];
+    const dedupe = new Set();
+    const queue = [value];
+    let visited = 0;
+
+    while (queue.length && visited < PROBE_LIMITS.maxEntries && result.length < SERIALIZE_LIMITS.maxArrayItems) {
+      let current = queue.shift();
+      visited += 1;
+      const parsed = maybeParseJsonString(current);
+      if (parsed !== null) current = parsed;
+      if (current === null || current === undefined) continue;
+      if (Array.isArray(current)) {
+        current.slice(0, SERIALIZE_LIMITS.maxArrayItems).forEach((item) => queue.push(item));
+        continue;
+      }
+      if (typeof current !== "object") continue;
+
+      const hasIdentity =
+        pickField(current, ["id","appId","applicationId","packageId"]) !== null ||
+        pickField(current, ["name","appName","title","AppName","Title"]) !== null ||
+        pickField(current, ["url","appUrl","URL","startCommand","StartCommand"]) !== null;
+
+      if (hasIdentity) {
+        const compact = compactAppRecord(current, target);
+        const key = safeJson([compact.id,compact.name,compact.url,compact.startCommand,compact.storeType]);
+        if (!dedupe.has(key)) {
+          dedupe.add(key);
+          result.push(compact);
+        }
+      } else {
+        for (const [, child] of dataPropertyEntries(current)) {
+          if (child !== null && (typeof child === "object" || typeof child === "string")) queue.push(child);
+        }
+      }
+    }
+    return result;
+  }
+
+  function compactInstalledApps(raw, target) {
+    const apps = collectAppRecords(raw, target);
+    return {
+      available:Boolean(raw && raw.available),
+      ok:Boolean(raw && raw.ok),
+      callbackTimedOut:Boolean(raw && raw.callbackTimedOut),
+      count:apps.length,
+      apps
+    };
+  }
+
+  function compactAppInfo(raw, target) {
+    const apps = collectAppRecords(raw, target);
+    return {
+      available:Boolean(raw && raw.available),
+      ok:Boolean(raw && raw.ok),
+      skipped:Boolean(raw && raw.skipped),
+      count:apps.length,
+      apps
+    };
+  }
+
+  function verificationReference(result) {
+    return {
+      timestamp:result.timestamp,
+      verified:result.verified,
+      evidence:result.evidence,
+      installedAppsCount:result.installedApps.count,
+      appInfoCount:result.appInfo.count
+    };
+  }
+
+  async function verify(deep, options) {
+    const opts = options || {};
     const target = currentTarget();
-    const installedApps = await callInstalledApps();
-    const appInfo = deep ? readAppInfo() : {available:typeof window.HiUtils_createRequest === "function",skipped:true};
-    const verifiedByInstalledApps = installedApps.ok && containsTarget(installedApps, target);
-    const verifiedByAppInfo = appInfo.ok && containsTarget(appInfo, target);
+    syncTargetToReport();
+    const installedAppsRaw = await callInstalledApps();
+    const appInfoRaw = deep ? readAppInfo() : {available:typeof window.HiUtils_createRequest === "function",skipped:true};
+
+    const phase = opts.snapshot || ((state.report.installDiagnostic.attempts || []).length ? "after" : "before");
+    if (phase === "before" || phase === "after") {
+      const replaceSnapshot = phase === "after";
+      captureRawSnapshot("installedApps" + (phase === "before" ? "Before" : "After"), installedAppsRaw, replaceSnapshot);
+      if (deep) captureRawSnapshot("appInfo" + (phase === "before" ? "Before" : "After"), appInfoRaw, replaceSnapshot);
+    }
+
+    const installedApps = compactInstalledApps(installedAppsRaw, target);
+    const appInfo = compactAppInfo(appInfoRaw, target);
+    const verifiedByInstalledApps = installedApps.apps.some((app) => app.matchedTarget);
+    const verifiedByAppInfo = appInfo.apps.some((app) => app.matchedTarget);
     const result = {
       timestamp:new Date().toISOString(),
-      target,
+      deep:Boolean(deep),
       installedApps,
       appInfo,
       verified:Boolean(verifiedByInstalledApps || verifiedByAppInfo),
-      evidence: verifiedByInstalledApps ? "Hisense_getInstalledApps" : verifiedByAppInfo ? "websdk/Appinfo.json" : null
+      evidence:verifiedByInstalledApps ? "Hisense_getInstalledApps" : verifiedByAppInfo ? "websdk/Appinfo.json" : null
     };
-    state.verification = result;
-    $("verifyOutput").textContent = safeJson(result);
-    log("Verification complete.", result);
+
+    state.report.verification = safeValue(result);
+    state.report.summary.getInstalledAppsAvailable = installedApps.available;
+    if (deep && appInfo.available) state.report.summary.appInfoReadable = appInfo.ok;
+    state.report.summary.verification = result.verified ? "VERIFIED INSTALLED" : "NOT VERIFIED";
+    if (result.verified) state.report.summary.conclusion = "VERIFIED INSTALLED";
+
+    $("verifyOutput").textContent = safeJson({
+      verified:result.verified,
+      evidence:result.evidence,
+      installedApps:{
+        available:installedApps.available,
+        ok:installedApps.ok,
+        count:installedApps.count,
+        matched:installedApps.apps.filter((app) => app.matchedTarget)
+      },
+      appInfo:{
+        available:appInfo.available,
+        ok:appInfo.ok,
+        skipped:appInfo.skipped,
+        count:appInfo.count,
+        matched:appInfo.apps.filter((app) => app.matchedTarget)
+      }
+    });
+    if (opts.log !== false) {
+      log("Verification complete.", {
+        verified:result.verified,
+        evidence:result.evidence,
+        installedAppsCount:installedApps.count,
+        appInfoCount:appInfo.count
+      });
+    }
+    if (opts.autosave !== false) await saveReport("verification");
     return result;
   }
 
@@ -791,19 +1226,22 @@
       return;
     }
     if ($("iconUrl").value.trim() !== icon) $("iconUrl").value = icon;
+    syncTargetToReport();
 
+    const baseline = await verify(true, {snapshot:"before",autosave:false,log:false});
     const attempt = {
       timestamp:new Date().toISOString(),
       method,
       target:{...target, resolved_icon_url:icon},
-      beforeAppInfo:readAppInfo(),
+      before:verificationReference(baseline),
       callback:null,
       returnValue:null,
       refresh:null,
       verification:null,
       hiUtilsTrace:[]
     };
-    state.installAttempts.push(attempt);
+    state.report.installDiagnostic.attempts.push(attempt);
+    state.report.summary.installRequest = method;
 
     setInstallState("Calling " + (isV2 ? "Hisense_installApp_V2" : "Hisense_installApp") + "…", "warn");
     const restoreTrace = beginHiUtilsTrace(attempt);
@@ -814,30 +1252,30 @@
       callbackFinished = true;
       restoreTrace();
       attempt.callback = {code:safeValue(code),receivedAt:new Date().toISOString()};
-      log((isV2 ? "Hisense_installApp_V2" : "Hisense_installApp") + " callback.", attempt.callback);
+      log((isV2 ? "Hisense_installApp_V2" : "Hisense_installApp") + " callback.", {code:attempt.callback.code});
 
-      attempt.afterCallbackAppInfo = readAppInfo();
       attempt.refresh = refreshLauncher(target.app_id);
-      await new Promise((r)=>setTimeout(r,1500));
-      attempt.afterRefreshAppInfo = readAppInfo();
-      attempt.verification = await verify(true);
+      await new Promise((resolve) => setTimeout(resolve,1500));
+      const verification = await verify(true, {snapshot:"after",autosave:false});
+      attempt.verification = verificationReference(verification);
+      updateInstallSummary(attempt);
 
-      if (attempt.verification.verified) {
-        setInstallState("Verified: Nuvio is present (" + attempt.verification.evidence + "). Restart the TV if the launcher has not refreshed yet.", "good");
+      if (verification.verified) {
+        setInstallState("Verified: Nuvio is present (" + verification.evidence + "). Restart the TV if the launcher has not refreshed yet.", "good");
       } else if (Number(code) === 0) {
-        const installTrace = (attempt.hiUtilsTrace || []).filter((x)=>x.type === "installApplication");
+        const installTrace = (attempt.hiUtilsTrace || []).filter((entry) => entry.type === "installApplication");
         const suffix = installTrace.length ? " Internal installApplication trace captured in the report." : " No installApplication trace was intercepted.";
         setInstallState("VIDAA returned code 0, but Sidee could NOT verify the app. Request accepted ≠ installed." + suffix, "warn");
       } else {
         setInstallState("VIDAA install callback returned: " + String(code) + ".", "bad");
       }
-      await saveReport("install-" + method);
+      await saveReport("install-diagnostic");
     };
 
     try {
       if (isV2) {
         const appInfo = buildV2AppInfo(target, icon);
-        attempt.v2Payload = appInfo;
+        attempt.v2Payload = safeValue(appInfo);
         attempt.returnValue = safeValue(api(appInfo, callback));
       } else {
         attempt.returnValue = safeValue(api(
@@ -848,19 +1286,22 @@
         ));
       }
 
-      setTimeout(function () {
+      setTimeout(async function () {
         if (!callbackFinished) {
           restoreTrace();
           attempt.callbackTimeout = true;
-          setInstallState("The install API did not call back within 5 seconds. Save the report.", "warn");
+          updateInstallSummary(attempt);
+          setInstallState("The install API did not call back within 5 seconds. The session report was updated.", "warn");
+          await saveReport("install-diagnostic-timeout");
         }
       }, 5000);
     } catch (e) {
       restoreTrace();
-      attempt.error = String(e && e.message || e);
+      attempt.error = errorText(e);
+      updateInstallSummary(attempt);
       setInstallState("Install call threw: " + attempt.error, "bad");
-      log("Install exception.", attempt);
-      await saveReport("install-" + method + "-error");
+      log("Install exception.", {method, error:attempt.error});
+      await saveReport("install-diagnostic-error");
     }
   }
 
@@ -883,7 +1324,12 @@
         log("Uninstall callback.", {status:safeValue(status)});
         refreshLauncher("");
         await new Promise((r)=>setTimeout(r,1200));
-        const result = await verify(true);
+        const result = await verify(true, {snapshot:"after",autosave:false});
+        state.report.installDiagnostic.uninstall = {
+          timestamp:new Date().toISOString(),
+          callbackStatus:safeValue(status),
+          verification:verificationReference(result)
+        };
         setInstallState(result.verified ? "Uninstall callback returned, but the app is still visible to verification." : "App is no longer visible to Sidee verification.", result.verified ? "warn" : "good");
         await saveReport("uninstall");
       });
@@ -892,23 +1338,53 @@
     }
   }
 
-  async function saveReport(reason) {
-    const payload = {
-      reason,
-      generatedAt:new Date().toISOString(),
-      state,
-      currentTarget:currentTarget()
-    };
+  function buildSessionReport() {
+    syncTargetToReport();
+    state.report.updatedAt = new Date().toISOString();
     try {
-      const r = await fetch("/api/report", {
-        method:"POST",headers:{"Content-Type":"application/json"},
+      return JSON.parse(JSON.stringify(state.report));
+    } catch (_) {
+      return {
+        sessionId:state.report.sessionId,
+        startedAt:state.report.startedAt,
+        updatedAt:state.report.updatedAt,
+        summary:safeValue(state.report.summary),
+        environment:safeValue(state.report.environment),
+        permissionProbe:safeValue(state.report.permissionProbe),
+        target:safeValue(state.report.target),
+        installDiagnostic:safeValue(state.report.installDiagnostic),
+        verification:safeValue(state.report.verification),
+        raw:{snapshots:safeValue(state.report.raw.snapshots)}
+      };
+    }
+  }
+
+  async function persistReport(reason) {
+    const report = buildSessionReport();
+    const payload = {sessionId:report.sessionId, report};
+    try {
+      const r = await fetch("/api/reports/session", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
         body:JSON.stringify(payload)
       });
       const data = await r.json();
-      log("Report saved on PC: " + (data.file || "unknown"));
+      if (!r.ok || !data.ok) throw new Error(data.error || ("HTTP " + r.status));
+      log(reason === "export"
+        ? "Report export synced: " + data.file
+        : "Session report updated: " + data.file);
+      return data;
     } catch (e) {
-      log("Could not save report.", String(e));
+      log("Could not save session report.", {reason,error:errorText(e)});
+      return {ok:false,error:errorText(e)};
     }
+  }
+
+  function saveReport(reason) {
+    reportSaveChain = reportSaveChain
+      .catch(() => null)
+      .then(() => persistReport(reason));
+    return reportSaveChain;
   }
 
   $("scanBtn").addEventListener("click", scan);
@@ -919,7 +1395,7 @@
   $("installBtn").addEventListener("click", install);
   $("installV2Btn").addEventListener("click", installV2);
   $("uninstallBtn").addEventListener("click", uninstall);
-  $("reportBtn").addEventListener("click", () => saveReport("manual"));
+  $("reportBtn").addEventListener("click", () => saveReport("export"));
 
   window.addEventListener("keydown", (e) => {
     if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
@@ -932,7 +1408,8 @@
   });
 
   getConfig().then(() => {
-    log("Sidee UI ready.");
+    syncTargetToReport();
+    log("Sidee UI ready.", {sessionId:state.report.sessionId});
     $("deviceBadge").textContent = typeof window.Hisense_GetFirmWareVersion === "function" ? "VIDAA browser detected" : "Waiting for VIDAA APIs";
   }).catch((e)=>log("Config load failed.",String(e)));
 })();

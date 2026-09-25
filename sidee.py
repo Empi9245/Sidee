@@ -15,12 +15,12 @@ OpenSSL is used only to generate a temporary self-signed vidaahub.com certificat
 from __future__ import annotations
 
 import argparse
-import datetime as dt
 import http.server
 import json
 import mimetypes
 import os
 import pathlib
+import re
 import signal
 import shutil
 import socket
@@ -39,6 +39,58 @@ CONFIG_PATH = ROOT / "config.json"
 CERT_DIR = ROOT / ".sidee-certs"
 
 stop_event = threading.Event()
+REPORT_WRITE_LOCK = threading.Lock()
+SESSION_ID_RE = re.compile(r"^sidee-\d{8}-\d{6}-[a-f0-9]{4}$")
+
+
+def session_report_filename(session_id):
+    if not isinstance(session_id, str) or not SESSION_ID_RE.fullmatch(session_id):
+        raise ValueError("Invalid sessionId")
+    return "sidee-session-" + session_id[len("sidee-"):] + ".json"
+
+
+def session_report_path(session_id):
+    filename = session_report_filename(session_id)
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    reports_root = REPORTS_DIR.resolve()
+    file_path = (REPORTS_DIR / filename).resolve()
+    if file_path.parent != reports_root:
+        raise ValueError("Invalid report path")
+    return file_path
+
+
+def write_session_report(session_id, report):
+    if not isinstance(report, dict):
+        raise ValueError("Expected report object")
+    if report.get("sessionId") != session_id:
+        raise ValueError("sessionId does not match report.sessionId")
+
+    file_path = session_report_path(session_id)
+    tmp_path = None
+    with REPORT_WRITE_LOCK:
+        try:
+            fd, tmp_name = tempfile.mkstemp(
+                prefix="." + file_path.name + ".",
+                suffix=".tmp",
+                dir=str(REPORTS_DIR),
+            )
+            tmp_path = pathlib.Path(tmp_name)
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(report, f, indent=2, ensure_ascii=False)
+                f.write("\n")
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_path, file_path)
+            tmp_path = None
+        finally:
+            if tmp_path is not None:
+                try:
+                    tmp_path.unlink()
+                except FileNotFoundError:
+                    pass
+    return file_path
+
+
 
 
 def load_config():
@@ -257,19 +309,28 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
         except Exception as exc:
             return self._send_json({"ok": False, "error": str(exc)}, 400)
 
+        if path == "/api/reports/session":
+            if not isinstance(data, dict):
+                return self._send_json({"ok": False, "error": "Expected JSON object"}, 400)
+            session_id = data.get("sessionId")
+            report = data.get("report")
+            try:
+                file_path = write_session_report(session_id, report)
+            except ValueError as exc:
+                return self._send_json({"ok": False, "error": str(exc)}, 400)
+            except OSError as exc:
+                return self._send_json({"ok": False, "error": f"Could not write report: {exc}"}, 500)
+            return self._send_json({
+                "ok": True,
+                "sessionId": session_id,
+                "file": file_path.name,
+            })
+
         if path == "/api/report":
-            REPORTS_DIR.mkdir(parents=True, exist_ok=True)
-            stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-            file_path = REPORTS_DIR / f"vidaa-{stamp}.json"
-            envelope = {
-                "savedAt": dt.datetime.now(dt.timezone.utc).isoformat(),
-                "clientIp": self.client_address[0],
-                "report": data,
-            }
-            with file_path.open("w", encoding="utf-8") as f:
-                json.dump(envelope, f, indent=2)
-                f.write("\n")
-            return self._send_json({"ok": True, "file": file_path.name})
+            return self._send_json({
+                "ok": False,
+                "error": "Legacy report endpoint disabled; use /api/reports/session",
+            }, 410)
 
         if path == "/api/config":
             current = load_config()

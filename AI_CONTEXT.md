@@ -907,3 +907,168 @@ In un browser PC senza API VIDAA il probe deve completare comunque:
 
 Nessuna API VIDAA è richiesta per completare la scansione.
 
+
+
+---
+
+## IMPLEMENTAZIONE — Session report unico + verification compact — 2026-09-25
+
+Questa fase è stata implementata senza ripetere la ricerca VIDAA/AppConfig già documentata.
+
+### Sessione diagnostica
+
+Una pagina Sidee crea un solo `sessionId` nel formato:
+
+`sidee-YYYYMMDD-HHMMSS-xxxx`
+
+Lo stesso ID viene riutilizzato per scan, Permission/AppConfig Probe, target, install diagnostic, verification ed export.
+
+Il filename non viene deciso dal browser. Il backend lo deriva esclusivamente dal session ID:
+
+`sidee-session-YYYYMMDD-HHMMSS-xxxx.json`
+
+### Endpoint report
+
+Nuovo endpoint:
+
+`POST /api/reports/session`
+
+Payload:
+
+- `sessionId`
+- `report`
+
+Il backend:
+
+- valida con regex stretta `^sidee-\d{8}-\d{6}-[a-f0-9]{4}$`;
+- non accetta filename/path dal client;
+- deriva il filename server-side;
+- verifica che il path risolto rimanga direttamente dentro `reports/`;
+- scrive su un file temporaneo nella stessa directory;
+- esegue flush + fsync;
+- usa `os.replace` per l'update atomico;
+- aggiorna sempre lo stesso file della sessione.
+
+`POST /api/report` non genera più file legacy e risponde HTTP 410.
+
+Restano invariati:
+
+- `GET /api/reports/latest`
+- `GET /api/reports`
+
+### Struttura report
+
+Il report principale contiene:
+
+- `sessionId`
+- `startedAt`
+- `updatedAt`
+- `summary`
+- `environment`
+- `permissionProbe`
+- `target`
+- `installDiagnostic`
+- `verification`
+- `raw.snapshots`
+
+La `summary` viene aggiornata progressivamente e può contenere:
+
+- firmware
+- model
+- OS
+- apiVersion
+- browser
+- origin
+- legacyAvailable
+- v2Available
+- getInstalledAppsAvailable
+- appInfoReadable
+- supportAppConfigAvailable
+- supportAppConfigResult
+- installRequest
+- installApplicationRet
+- permissionErrorCode
+- permissionError
+- verification
+- conclusion
+
+### Verification compact
+
+`Hisense_getInstalledApps` e `websdk/Appinfo.json` non vengono più duplicati integralmente dentro ogni verifica.
+
+La vista compact salva:
+
+- count
+- id
+- name/title
+- URL
+- start command
+- StoreType
+- matchedTarget
+- opzionalmente version/packageName quando presenti
+
+Le raw complete, safe-serializzate e limitate, sono conservate al massimo una volta per snapshot significativo:
+
+- `raw.snapshots.installedAppsBefore`
+- `raw.snapshots.installedAppsAfter`
+- `raw.snapshots.appInfoBefore`
+- `raw.snapshots.appInfoAfter`
+
+### Serializzazione robusta
+
+Il salvataggio usa una serializzazione difensiva che gestisce:
+
+- circular references
+- functions
+- `undefined`
+- bigint/symbol
+- `Error`
+- accessor senza invocarli
+- DOM/native objects problematici
+
+I limiti di profondità, proprietà, entry, array e stringhe sono vincolati ai limiti già introdotti dal Permission/AppConfig Probe, così un runtime VIDAA anomalo non può far esplodere `JSON.stringify` o produrre copie illimitate.
+
+### Autosave e log
+
+Lo stesso report viene aggiornato:
+
+- dopo Device Scan;
+- dopo Permission/AppConfig Probe;
+- dopo verification;
+- dopo install diagnostic (successo, rifiuto, errore o timeout);
+- quando viene salvato il target.
+
+`Export Report` sincronizza soltanto l'ultima versione dello stesso file.
+
+Il log TV ora usa risultati sintetici per scan, verification, HiUtils trace e install error; liste installed apps, Appinfo completo e Permission Probe completo restano nel report e non vengono stampati nel log.
+
+### Compatibilità
+
+Non sono stati modificati:
+
+- DNS
+- HTTPS
+- certificate generation
+- DNS forwarding
+
+Il browser PC continua a funzionare anche senza API VIDAA: scan/verification riportano semplicemente le API come non disponibili.
+
+
+### Validazione locale della fase session report
+
+Prima del commit sono stati eseguiti test locali senza TV reale:
+
+- `sidee.py` passa `compile(..., "exec")`;
+- due scritture consecutive con lo stesso `sessionId` producono lo stesso path e lasciano esattamente un file JSON;
+- la seconda scrittura sostituisce correttamente il contenuto della prima;
+- casi di session ID con `../`, slash, prefisso errato o hex maiuscolo vengono respinti;
+- dopo la scrittura atomica non restano file `.tmp`;
+- `web/app.js` passa il parsing JavaScript;
+- una simulazione browser PC con mock delle API VIDAA ha eseguito scan, deep verification, install legacy con trace `installApplication` code 503 ed export;
+- tutti i salvataggi della simulazione hanno usato lo stesso `sessionId`;
+- il report finale simulato contiene solo i quattro raw snapshot previsti;
+- la verification contiene liste compact;
+- il log TV simulato non contiene il dump completo delle installed apps;
+- callback `0` + trace `ret:false/code:503` viene classificato `REJECTED`.
+
+Questi test verificano la logica locale e il formato report. Il prossimo test sulla Hisense reale deve confermare il comportamento con i payload effettivi del firmware.
