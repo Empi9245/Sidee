@@ -66,7 +66,7 @@ sudo ./start-mac-linux.sh
 4. Run **Device / Environment Scan**.
 5. Run **Permission & AppConfig Probe**.
 6. Run **Runtime Identity Probe**.
-7. If useful, press **Read Client Information** once; this is a manual read-only browser-information read.
+7. If Sidee proves a normal runtime read path, **Read Client Information** becomes available for one manual read. If the inspected `vowOSContext.init()` source passes the strict zero-argument safety gate, **Initialize Runtime Context** also appears as a one-shot manual action.
 8. Configure the target app if necessary.
 9. Press **Run Install Diagnostic** only if Runtime Identity found a non-empty app identity. Sidee blocks repeated Legacy/V2 attempts while identity remains empty.
 10. Read the always-visible Summary. A JavaScript callback of `0` is never treated as installation success.
@@ -90,9 +90,9 @@ It records, without setters or security calls:
 - the `vowOSContext` structure, prototype and function sources, including `getAppIdentifier`, `getAppId` and `init`;
 - the existing Role ID / Customer ID read-only snapshots.
 
-`vowOSContext.init()` is **not called**. Sidee only records its descriptor/source. A future manual init action should be added only if the real TV source makes the required arguments and non-destructive behavior clear.
+`vowOSContext.init()` is never automatic. Its manual **Initialize Runtime Context** action is hidden unless the actual runtime source is complete, non-native, explicitly zero-argument, identity-related, and free of HiUtils/native install, write, security, reset, network, navigation, or storage-write references. If the gate passes, Sidee captures BEFORE/AFTER identity and calls `init()` exactly once; it still does not retry installation automatically.
 
-`window.clientInformation` has a separate manual **Read Client Information** action. The web platform defines it as a legacy read-only alias of `window.navigator`; Sidee never calls its setter. Its returned value is still safe-serialized and bounded.
+`window.clientInformation` stays inspect-only by default. Because the Hisense runtime exposes a vendor accessor, Sidee does not rely on generic browser semantics alone: the manual **Read Client Information** action appears only for a normal data property or when inspected `vowOSContext` source demonstrates a normal read path. The getter can then be read exactly once; the setter is never called.
 
 To avoid repeating the already-proven anonymous-client 503 path, Legacy/V2 install diagnostics are blocked until the Runtime Identity Probe finds at least one non-empty app identity field.
 
@@ -138,6 +138,8 @@ The report is organized as:
   "summary": {},
   "environment": {},
   "permissionProbe": {},
+  "runtimeIdentityProbe": {},
+  "runtimeContextInitialization": {},
   "target": {},
   "installDiagnostic": {},
   "verification": {},

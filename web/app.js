@@ -60,7 +60,6 @@
       },
       environment:{},
       permissionProbe:{},
-      clientIdentityProbe:{},
       runtimeIdentityProbe:{},
       runtimeContextInitialization:{called:false,eligible:false,reason:"Runtime init has not been inspected yet."},
       target:{},
@@ -78,6 +77,8 @@
   let reportSaveChain = Promise.resolve();
   let diagnosticRunning = false;
   let clientContextCaptureActive = false;
+  let runtimeContextInitCalled = false;
+  let clientInformationReadCalled = false;
 
   const STATUS = Object.freeze({
     AVAILABLE:"AVAILABLE",
@@ -528,7 +529,7 @@
     return inspectPropertyRecord(service.value,"window.vowOS.service","getIdentifier",4);
   }
 
-  function inspectNavigatorRuntimeIdentity() {
+  function inspectNavigatorAppIdentifierCurrent() {
     const rootPath = "window.navigator";
     const appIdentifier = inspectPropertyRecord(navigator,rootPath,"appIdentifier",5);
     const serviceGetIdentifier = inspectVowOSGetIdentifier();
@@ -570,13 +571,83 @@
       currentValue.error = "Accessor left inspect-only because the normal runtime read path was not proven from source.";
     }
 
+    return {appIdentifier,serviceGetIdentifier,sourceEvidence,currentValue};
+  }
+
+  function inspectNavigatorRuntimeIdentity() {
+    const rootPath = "window.navigator";
+    const current = inspectNavigatorAppIdentifierCurrent();
     return {
       available:true,
       prototype:safePrototypeInfo(navigator),
-      appIdentifier:{...appIdentifier,currentValue},
+      appIdentifier:{...current.appIdentifier,currentValue:current.currentValue},
       relatedProperties:inspectMatchingProperties(navigator,rootPath,NAVIGATOR_IDENTITY_MATCHER,5,120),
-      serviceGetIdentifier,
-      appIdentifierReadPathProvenByServiceSource:sourceEvidence
+      serviceGetIdentifier:current.serviceGetIdentifier,
+      appIdentifierReadPathProvenByServiceSource:current.sourceEvidence
+    };
+  }
+
+  function sourceReadReferences(inspection, token) {
+    if (!inspection || !Array.isArray(inspection.entries)) return [];
+    const needle = String(token).toLowerCase();
+    return inspection.entries
+      .filter((entry) => entry && typeof entry.source === "string" && entry.source.toLowerCase().includes(needle))
+      .filter((entry) => {
+        const source = entry.source || "";
+        if (needle !== "clientinformation") return true;
+        return !/clientInformation\s*=/.test(source) && !/set\s+clientInformation/i.test(source);
+      })
+      .map((entry) => entry.path)
+      .slice(0,20);
+  }
+
+  function assessRuntimeContextInit(init) {
+    const reasons = [];
+    const riskyReferences = [];
+    const source = String(init && init.source || "");
+
+    if (!init || !init.available || init.type !== "function") reasons.push("init function unavailable");
+    if (!source) reasons.push("function source unavailable");
+    if (source.indexOf("[native code]") >= 0) reasons.push("native implementation is not inspectable");
+    if (source.indexOf("…[truncated]") >= 0) reasons.push("function source is truncated");
+    if (!init || init.declaredArgumentCount !== 0) reasons.push("declared argument count is not zero");
+
+    const emptySignature =
+      /^\s*(?:async\s+)?function\b[^\(]*\(\s*\)/.test(source) ||
+      /^\s*(?:async\s+)?\(\s*\)\s*=>/.test(source) ||
+      /^\s*(?:async\s+)?[A-Za-z_$][A-Za-z0-9_$]*\s*\(\s*\)\s*\{/.test(source);
+    if (source && !emptySignature) reasons.push("zero-argument signature is not explicit in source");
+
+    const identitySignals = ["appIdentifier","appId","clientInformation","navigator","getAppIdentifier","getAppId"]
+      .filter((token) => source.indexOf(token) >= 0);
+    if (source && !identitySignals.length) reasons.push("source does not show identity/context initialization");
+
+    const riskyMatchers = [
+      ["HiUtils",/HiUtils/i],
+      ["syncExecute",/syncExecute/i],
+      ["Hisense native API",/Hisense_/i],
+      ["install",/install(Application|App)?/i],
+      ["uninstall",/uninstall/i],
+      ["file write",/(fileWrite|FileWrite|writeFile)/i],
+      ["role/customer setter",/(SetRole|SetCustomer)/i],
+      ["security/signing",/(encrypt|decrypt|rsa|sign|accessCode|CheckCode)/i],
+      ["reset",/reset/i],
+      ["network request",/(XMLHttpRequest|WebSocket|fetch\s*\()/i],
+      ["navigation",/(location\s*\.|window\s*\.\s*open\s*\()/i],
+      ["storage write",/(localStorage|sessionStorage)\s*\.\s*setItem/i]
+    ];
+    riskyMatchers.forEach(([label,matcher]) => {
+      if (matcher.test(source)) riskyReferences.push(label);
+    });
+    if (riskyReferences.length) reasons.push("source contains stateful/security/network references");
+
+    return {
+      eligible:reasons.length === 0,
+      policy:"strict-source-gate",
+      zeroArgument:Boolean(init && init.declaredArgumentCount === 0 && emptySignature),
+      identitySignals,
+      riskyReferences,
+      reasons
     };
   }
 
@@ -616,29 +687,54 @@
 
     const init = result.methods.init;
     if (init) {
+      const assessment = assessRuntimeContextInit(init);
       init.called = false;
-      init.manualCallEligible = false;
-      init.notCalledReason = init.available
-        ? "Source captured for review; Sidee will not call init until its arguments and side effects are proven safe."
-        : "vowOSContext.init is unavailable.";
+      init.manualCallEligible = assessment.eligible;
+      init.safetyAssessment = assessment;
+      init.notCalledReason = assessment.eligible
+        ? "Strict source gate passed; manual one-shot runtime initialization is available."
+        : (assessment.reasons.join("; ") || "vowOSContext.init is unavailable.");
     }
 
     return result;
   }
 
-  function inspectClientInformation() {
+  function inspectClientInformation(vowOSContextInspection) {
     const record = inspectGlobal("clientInformation");
+    const dataValue = getGlobalDataValue("clientInformation");
+    const runtimeReadReferences = sourceReadReferences(vowOSContextInspection,"clientInformation");
+    const manualReadEligible = Boolean(
+      record.available &&
+      (
+        dataValue.data ||
+        (
+          record.type === "accessor" &&
+          record.descriptor &&
+          record.descriptor.hasGetter &&
+          runtimeReadReferences.length
+        )
+      )
+    );
+
+    const reasons = [];
+    if (!record.available) reasons.push("clientInformation unavailable");
+    else if (dataValue.data) reasons.push("normal data property; no accessor invocation required");
+    else if (manualReadEligible) reasons.push("vowOSContext source demonstrates a normal clientInformation read");
+    else reasons.push("accessor remains inspect-only because no normal runtime read path was demonstrated");
+
     return {
       called:false,
-      status:record.available ? "manual-read-ready" : "unavailable",
+      status:!record.available ? "unavailable" : manualReadEligible ? "manual-read-ready" : "inspect-only",
       type:record.type,
       descriptor:record.descriptor || null,
       getterSource:record.descriptor && record.descriptor.getterSource || null,
       setterSource:record.descriptor && record.descriptor.setterSource || null,
       ownerDepth:record.ownerDepth,
       error:record.error || null,
-      readPolicy:"manual-only",
-      webPlatformMeaning:"Window.clientInformation is a read-only legacy alias of Window.navigator."
+      runtimeReadReferences,
+      manualReadEligible,
+      readPolicy:manualReadEligible ? "manual-once" : "inspect-only",
+      reasons
     };
   }
 
@@ -657,6 +753,7 @@
     if (clientContextCaptureActive) {
       return {
         timestamp,
+        navigatorAppIdentifier:unavailableIdentityRecord("Identity capture already in progress"),
         serviceIdentifier:unavailableIdentityRecord("Identity capture already in progress"),
         appIdentifier:unavailableIdentityRecord("Identity capture already in progress"),
         appId:unavailableIdentityRecord("Identity capture already in progress"),
@@ -667,6 +764,7 @@
 
     clientContextCaptureActive = true;
     try {
+      const navigatorAppIdentifier = inspectNavigatorAppIdentifierCurrent().currentValue;
       let serviceIdentifier = unavailableIdentityRecord("vowOS.service.getIdentifier unavailable");
       const vowOSValue = getGlobalDataValue("vowOS");
       if (vowOSValue.data && vowOSValue.value !== null && ["object","function"].includes(typeof vowOSValue.value)) {
@@ -704,13 +802,14 @@
 
       const result = {
         timestamp,
+        navigatorAppIdentifier,
         serviceIdentifier,
         appIdentifier,
         appId,
         roleId:readOnlyGlobalCallRecord("Hisense_GetRoleID"),
         customerId:readOnlyGlobalCallRecord("Hisense_GetCustomerID")
       };
-      if (includeClientInformation) result.clientInformation = inspectClientInformation();
+      if (includeClientInformation) result.clientInformation = inspectClientInformation(null);
       return result;
     } finally {
       clientContextCaptureActive = false;
@@ -726,6 +825,7 @@
   function captureTraceClientContext() {
     const identity = captureClientIdentityContext(false);
     return {
+      navigatorAppIdentifier:traceIdentityValue(identity.navigatorAppIdentifier),
       serviceIdentifier:traceIdentityValue(identity.serviceIdentifier),
       appIdentifier:traceIdentityValue(identity.appIdentifier),
       appId:traceIdentityValue(identity.appId),
@@ -1512,6 +1612,7 @@
     if (record.status !== "returned") return String(record.status || "UNAVAILABLE").toUpperCase();
     if (record.value === null) return "null";
     if (typeof record.value === "object") return truncateText(safeJson(record.value), 180);
+    if (record.value === "") return "EMPTY";
     return String(record.value);
   }
 
@@ -1528,14 +1629,11 @@
     setSummaryValue("appIdValue", identityDisplayValue(result.identity.appId));
     setSummaryValue("roleIdValue", identityDisplayValue(result.identity.roleId));
     setSummaryValue("customerIdValue", identityDisplayValue(result.identity.customerId));
+
+    const init = result.vowOSContext && result.vowOSContext.methods && result.vowOSContext.methods.init;
     setSummaryValue(
       "vowOSInitValue",
-      result.vowOSContext &&
-      result.vowOSContext.methods &&
-      result.vowOSContext.methods.init &&
-      result.vowOSContext.methods.init.available
-        ? "AVAILABLE · INSPECT ONLY"
-        : "NOT AVAILABLE"
+      !init || !init.available ? "NOT AVAILABLE" : init.manualCallEligible ? "AVAILABLE · MANUAL" : "INSPECT ONLY"
     );
 
     const clientInfo = result.clientInformation || {};
@@ -1543,15 +1641,19 @@
       "clientInformationValue",
       clientInfo.called
         ? (clientInfo.sameAsNavigator ? "READ · NAVIGATOR ALIAS" : "READ")
-        : clientInfo.status === "unavailable" ? "UNAVAILABLE" : "MANUAL READ READY"
+        : clientInfo.status === "unavailable"
+          ? "UNAVAILABLE"
+          : clientInfo.manualReadEligible ? "READ AVAILABLE" : "INSPECT ONLY"
     );
+
+    const initBtn = $("runtimeContextInitBtn");
+    if (initBtn) initBtn.hidden = !(init && init.manualCallEligible && !runtimeContextInitCalled);
+    const clientInfoBtn = $("clientInformationBtn");
+    if (clientInfoBtn) clientInfoBtn.hidden = !(clientInfo.manualReadEligible && !clientInformationReadCalled);
   }
 
-  async function runtimeIdentityProbe() {
-    const stateEl = $("clientIdentityProbeState");
-    if (stateEl) stateEl.textContent = "Running read-only runtime identity probe…";
-
-    const identity = captureClientIdentityContext(true);
+  function buildRuntimeIdentityResult() {
+    const identity = captureClientIdentityContext(false);
     identity.readOnly = true;
     identity.comparison = {
       serviceAndAppIdentifierComparable:
@@ -1566,17 +1668,17 @@
 
     const navigatorRuntime = inspectNavigatorRuntimeIdentity();
     const vowOSContext = inspectVowOSContextRuntime();
-    const result = {
+    return {
       timestamp:new Date().toISOString(),
       readOnly:true,
       navigatorAppIdentifier:navigatorRuntime.appIdentifier,
       navigator:navigatorRuntime,
       identity,
       vowOSContext,
-      clientInformation:inspectClientInformation(),
+      clientInformation:inspectClientInformation(vowOSContext.properties),
       safety:{
-        vowOSContextInitCalled:false,
-        clientInformationCalled:false,
+        vowOSContextInitCalled:runtimeContextInitCalled,
+        clientInformationCalled:clientInformationReadCalled,
         stateChangingCallsIssued:false,
         settersCalled:false,
         signingCallsIssued:false,
@@ -1584,39 +1686,143 @@
         installCallsIssued:false
       }
     };
+  }
 
-    state.report.clientIdentityProbe = safeValue(identity);
+  async function runtimeIdentityProbe() {
+    const stateEl = $("clientIdentityProbeState");
+    if (stateEl) stateEl.textContent = "Running read-only runtime identity probe…";
+
+    const result = buildRuntimeIdentityResult();
+    const init = result.vowOSContext && result.vowOSContext.methods && result.vowOSContext.methods.init;
     state.report.runtimeIdentityProbe = safeValue(result);
     state.report.runtimeContextInitialization = {
       inspectedAt:result.timestamp,
-      available:Boolean(
-        vowOSContext.methods &&
-        vowOSContext.methods.init &&
-        vowOSContext.methods.init.available
-      ),
-      called:false,
-      eligible:false,
-      reason:"vowOSContext.init is inspect-only until its source, arguments and side effects are proven safe on the real TV runtime."
+      available:Boolean(init && init.available),
+      called:runtimeContextInitCalled,
+      eligible:Boolean(init && init.manualCallEligible),
+      reason:init ? init.notCalledReason : "vowOSContext.init is unavailable."
     };
 
     renderRuntimeIdentityProbe(result);
     if (stateEl) {
       stateEl.textContent =
         "Probe completed · navigator.appIdentifier " + runtimeNavigatorDisplayValue(result) +
-        " · serviceIdentifier " + identityDisplayValue(identity.serviceIdentifier) +
-        " · appIdentifier " + identityDisplayValue(identity.appIdentifier) +
-        " · init " + (state.report.runtimeContextInitialization.available ? "inspect only" : "not available");
+        " · serviceIdentifier " + identityDisplayValue(result.identity.serviceIdentifier) +
+        " · appIdentifier " + identityDisplayValue(result.identity.appIdentifier) +
+        " · init " + (!init || !init.available ? "not available" : init.manualCallEligible ? "manual available" : "inspect only");
     }
-    log("Runtime identity probe — lifecycle metadata captured; init not called");
+    log("Runtime identity probe — lifecycle metadata captured; no init/install called automatically");
     await saveReport("runtime-identity-probe");
+  }
+
+  function compactRuntimeIdentitySnapshot(result) {
+    return {
+      navigatorAppIdentifier:traceIdentityValue(
+        result && result.navigatorAppIdentifier && result.navigatorAppIdentifier.currentValue
+      ),
+      serviceIdentifier:traceIdentityValue(result && result.identity && result.identity.serviceIdentifier),
+      appIdentifier:traceIdentityValue(result && result.identity && result.identity.appIdentifier),
+      appId:traceIdentityValue(result && result.identity && result.identity.appId),
+      roleId:traceIdentityValue(result && result.identity && result.identity.roleId),
+      customerId:traceIdentityValue(result && result.identity && result.identity.customerId),
+      clientInformation:{
+        status:result && result.clientInformation && result.clientInformation.status || "unavailable",
+        descriptor:result && result.clientInformation && result.clientInformation.descriptor || null,
+        value:result && result.clientInformation && result.clientInformation.called
+          ? safeValue(result.clientInformation.value)
+          : null
+      }
+    };
+  }
+
+  function changedRuntimeIdentityFields(before, after) {
+    const keys = ["navigatorAppIdentifier","serviceIdentifier","appIdentifier","appId","roleId","customerId"];
+    return keys.filter((key) => safeJson(before[key]) !== safeJson(after[key]));
+  }
+
+  async function initializeRuntimeContext() {
+    const stateEl = $("clientIdentityProbeState");
+    if (runtimeContextInitCalled) {
+      if (stateEl) stateEl.textContent = "vowOSContext.init was already called once in this page session.";
+      return;
+    }
+
+    const beforeResult = buildRuntimeIdentityResult();
+    const init = beforeResult.vowOSContext && beforeResult.vowOSContext.methods && beforeResult.vowOSContext.methods.init;
+    if (!init || !init.manualCallEligible) {
+      if (stateEl) stateEl.textContent = "vowOSContext.init remains inspect-only; the strict source gate did not pass.";
+      renderRuntimeIdentityProbe(beforeResult);
+      return;
+    }
+
+    const contextValue = getGlobalDataValue("vowOSContext");
+    const initProperty = contextValue.data && contextValue.value !== null
+      ? getDataPropertyValue(contextValue.value,"init",5)
+      : {data:false};
+    if (!initProperty.data || typeof initProperty.value !== "function") {
+      if (stateEl) stateEl.textContent = "vowOSContext.init is no longer available as a normal function.";
+      return;
+    }
+
+    const before = compactRuntimeIdentitySnapshot(beforeResult);
+    const returnValue = {called:true,status:"called",type:null,value:null,error:null};
+    runtimeContextInitCalled = true;
+    try {
+      let value = initProperty.value.call(contextValue.value);
+      if (value && typeof value.then === "function") value = await value;
+      returnValue.status = "returned";
+      returnValue.type = value === null ? "null" : typeof value;
+      returnValue.value = safeValue(value);
+    } catch (error) {
+      returnValue.status = "error";
+      returnValue.error = errorText(error);
+    }
+
+    const afterResult = buildRuntimeIdentityResult();
+    const after = compactRuntimeIdentitySnapshot(afterResult);
+    const changedFields = changedRuntimeIdentityFields(before,after);
+
+    state.report.runtimeContextInitialization = {
+      inspectedAt:beforeResult.timestamp,
+      called:true,
+      eligible:true,
+      sourceAssessment:safeValue(init.safetyAssessment),
+      before,
+      returnValue,
+      after,
+      changedFields
+    };
+    state.report.runtimeIdentityProbe = safeValue(afterResult);
+    renderRuntimeIdentityProbe(afterResult);
+
+    if (stateEl) {
+      stateEl.textContent = changedFields.length
+        ? "Runtime context initialized once · changed: " + changedFields.join(", ") + " · install remains manual."
+        : "Runtime context initialized once · no identity field changed · no install retried.";
+    }
+    log("vowOSContext.init — one manual call; changed fields: " + (changedFields.join(", ") || "none"));
+    await saveReport("runtime-context-initialization");
   }
 
   async function readClientInformation() {
     const stateEl = $("clientIdentityProbeState");
-    const record = {...inspectClientInformation(),called:true,readAt:new Date().toISOString()};
+    if (clientInformationReadCalled) {
+      if (stateEl) stateEl.textContent = "clientInformation was already read once in this page session.";
+      return;
+    }
 
+    const currentRuntime = buildRuntimeIdentityResult();
+    const baseRecord = currentRuntime.clientInformation || {};
+    if (!baseRecord.manualReadEligible) {
+      if (stateEl) stateEl.textContent = "clientInformation remains inspect-only; no normal runtime read path was demonstrated.";
+      renderRuntimeIdentityProbe(currentRuntime);
+      return;
+    }
+
+    const record = {...baseRecord,called:true,readAt:new Date().toISOString()};
+    clientInformationReadCalled = true;
     try {
-      const value = window.clientInformation;
+      const value = Reflect.get(window,"clientInformation");
       record.status = "returned";
       record.type = value === null ? "null" : typeof value;
       record.sameAsNavigator = value === window.navigator;
@@ -1624,20 +1830,6 @@
     } catch (error) {
       record.status = "error";
       record.error = errorText(error);
-    }
-
-    let currentRuntime = state.report.runtimeIdentityProbe;
-    if (!currentRuntime || !currentRuntime.timestamp) {
-      const navigatorRuntime = inspectNavigatorRuntimeIdentity();
-      currentRuntime = {
-        timestamp:new Date().toISOString(),
-        readOnly:true,
-        navigatorAppIdentifier:navigatorRuntime.appIdentifier,
-        navigator:navigatorRuntime,
-        identity:captureClientIdentityContext(false),
-        vowOSContext:inspectVowOSContextRuntime(),
-        safety:{}
-      };
     }
 
     currentRuntime.clientInformation = safeValue(record);
@@ -1657,7 +1849,7 @@
         ? "clientInformation read once · " + (record.sameAsNavigator ? "same object as navigator" : "value captured")
         : "clientInformation read failed · " + (record.error || record.status);
     }
-    log("clientInformation — manual read " + record.status);
+    log("clientInformation — one gated manual read " + record.status);
     await saveReport("client-information-read");
   }
 
@@ -2268,7 +2460,6 @@
         summary:safeValue(state.report.summary),
         environment:safeValue(state.report.environment),
         permissionProbe:safeValue(state.report.permissionProbe),
-        clientIdentityProbe:safeValue(state.report.clientIdentityProbe),
         runtimeIdentityProbe:safeValue(state.report.runtimeIdentityProbe),
         runtimeContextInitialization:safeValue(state.report.runtimeContextInitialization),
         target:safeValue(state.report.target),
@@ -2315,6 +2506,7 @@
   $("scanBtn").addEventListener("click", scan);
   $("permissionProbeBtn").addEventListener("click", permissionProbe);
   $("clientIdentityProbeBtn").addEventListener("click", runtimeIdentityProbe);
+  $("runtimeContextInitBtn").addEventListener("click", initializeRuntimeContext);
   $("clientInformationBtn").addEventListener("click", readClientInformation);
   $("saveBtn").addEventListener("click", saveTarget);
   $("verifyBtn").addEventListener("click", () => verify(true));

@@ -148,6 +148,8 @@ button:focus,input:focus,summary:focus{
 .advanced[open] summary::after{content:"−"}
 .advancedBody{padding:0 24px 24px}
 .row{justify-content:flex-start;flex-wrap:wrap}
+.runtimeActions{margin-top:14px}
+[hidden]{display:none!important}
 .logHead{margin-top:22px}
 pre{
   white-space:pre-wrap;

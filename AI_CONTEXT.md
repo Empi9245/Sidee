@@ -1492,3 +1492,64 @@ Prima di premere install, leggere il report e verificare soprattutto:
 - eventuale comparsa di una identity non vuota.
 
 Se identity resta vuota, NON serve ripetere install. Se compare, Sidee sblocca il test install controllato.
+
+
+---
+
+## HARDENING — Runtime Identity gates — 2026-09-25
+
+Il commit precedente aveva già introdotto Runtime Identity, il gate install e l'ispezione di `navigator.appIdentifier`. Questa rifinitura corregge tre punti prima del test TV successivo.
+
+### clientInformation: vendor runtime prima del web generico
+
+La documentazione web standard su `Window.clientInformation` non viene più considerata sufficiente, da sola, per leggere il getter sulla Hisense.
+
+Motivo: sul firmware reale la proprietà è un accessor nativo con getter E setter. Quindi Sidee tratta l'implementazione vendor come fonte prioritaria.
+
+Il pulsante `Read Client Information` è ora nascosto salvo:
+
+- data property normale; oppure
+- getter presente + source ispezionato di `vowOSContext` che mostra una normale lettura di `clientInformation`.
+
+La lettura è one-shot per page session. Il setter non viene mai usato.
+
+### vowOSContext.init: gate dinamico e conservativo
+
+`init()` resta non automatico.
+
+Il pulsante `Initialize Runtime Context` compare solo se il source reale supera un gate stretto:
+
+- funzione disponibile come data property;
+- source completo, non nativo e non troncato;
+- declared argument count = 0;
+- firma zero-argument esplicita;
+- riferimenti concreti a identity/context;
+- nessun riferimento a HiUtils/syncExecute, API Hisense native, install/uninstall, file write, role/customer setter, signing/security, reset, rete, navigation o storage write.
+
+Se il gate passa, il click manuale chiama `init()` una sola volta e salva:
+
+- before;
+- returnValue;
+- after;
+- changedFields.
+
+Non parte alcun install automatico dopo init.
+
+### HiUtils trace
+
+`captureTraceClientContext()` include ora anche:
+
+`navigatorAppIdentifier`
+
+oltre a serviceIdentifier/appIdentifier/appId/roleId/customerId.
+
+### Report
+
+La duplicazione `clientIdentityProbe` è stata rimossa dal nuovo report di sessione. La fonte principale diventa:
+
+- `runtimeIdentityProbe`;
+- `runtimeContextInitialization`.
+
+### Ricerca
+
+Nessuna nuova ricerca esterna è stata aggiunta in questa rifinitura: le query mirate della fase precedente non avevano trovato source pubblici utili per il lifecycle VIDAA. La prossima evidenza decisiva deve arrivare dal report reale della TV.
