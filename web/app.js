@@ -79,6 +79,7 @@
   let clientContextCaptureActive = false;
   let runtimeContextInitCalled = false;
   let clientInformationReadCalled = false;
+  let clientInformationReadEvidence = null;
 
   const STATUS = Object.freeze({
     AVAILABLE:"AVAILABLE",
@@ -587,18 +588,44 @@
     };
   }
 
+  function sourceLooksLikeRead(source, token) {
+    if (typeof source !== "string" || !source.toLowerCase().includes(String(token).toLowerCase())) return false;
+    if (String(token).toLowerCase() !== "clientinformation") return true;
+    return !/clientInformation\s*=/.test(source) && !/set\s+clientInformation/i.test(source);
+  }
+
   function sourceReadReferences(inspection, token) {
     if (!inspection || !Array.isArray(inspection.entries)) return [];
-    const needle = String(token).toLowerCase();
-    return inspection.entries
-      .filter((entry) => entry && typeof entry.source === "string" && entry.source.toLowerCase().includes(needle))
-      .filter((entry) => {
-        const source = entry.source || "";
-        if (needle !== "clientinformation") return true;
-        return !/clientInformation\s*=/.test(source) && !/set\s+clientInformation/i.test(source);
-      })
-      .map((entry) => entry.path)
-      .slice(0,20);
+    const references = [];
+    for (const entry of inspection.entries) {
+      if (!entry) continue;
+      if (sourceLooksLikeRead(entry.source, token)) {
+        references.push({path:entry.path,sourceType:"function"});
+      }
+      const getterSource = entry.descriptor && entry.descriptor.getterSource;
+      if (sourceLooksLikeRead(getterSource, token)) {
+        references.push({path:entry.path,sourceType:"getter"});
+      }
+      if (references.length >= 20) break;
+    }
+    return references;
+  }
+
+  function globalSourceReadReferences(token) {
+    const references = [];
+    const globals = enumerateInterestingGlobals();
+    for (const entry of globals) {
+      if (!entry || !entry.available) continue;
+      if (sourceLooksLikeRead(entry.source, token)) {
+        references.push({path:entry.path,sourceType:"function"});
+      }
+      const getterSource = entry.descriptor && entry.descriptor.getterSource;
+      if (sourceLooksLikeRead(getterSource, token)) {
+        references.push({path:entry.path,sourceType:"getter"});
+      }
+      if (references.length >= 30) break;
+    }
+    return references;
   }
 
   function assessRuntimeContextInit(init) {
@@ -681,8 +708,17 @@
 
     const entries = result.properties && result.properties.entries || [];
     result.lifecycleReferences = entries
-      .filter((entry) => entry && entry.sourceReferences && entry.sourceReferences.length)
-      .map((entry) => ({path:entry.path,references:entry.sourceReferences}))
+      .map((entry) => {
+        if (!entry) return null;
+        const references = [];
+        (entry.sourceReferences || []).forEach((value) => references.push(value));
+        const getterSource = entry.descriptor && entry.descriptor.getterSource;
+        extractInterestingReferences(getterSource).forEach((value) => {
+          if (!references.includes(value)) references.push(value);
+        });
+        return references.length ? {path:entry.path,references:references.slice(0,PROBE_LIMITS.maxSourceReferences)} : null;
+      })
+      .filter(Boolean)
       .slice(0,80);
 
     const init = result.methods.init;
@@ -702,7 +738,15 @@
   function inspectClientInformation(vowOSContextInspection) {
     const record = inspectGlobal("clientInformation");
     const dataValue = getGlobalDataValue("clientInformation");
-    const runtimeReadReferences = sourceReadReferences(vowOSContextInspection,"clientInformation");
+    const vowOSContextReadReferences = sourceReadReferences(vowOSContextInspection,"clientInformation");
+    const globalRuntimeReadReferences = globalSourceReadReferences("clientInformation");
+    const runtimeReadReferences = vowOSContextReadReferences.concat(
+      globalRuntimeReadReferences.filter((candidate) =>
+        !vowOSContextReadReferences.some((existing) =>
+          existing.path === candidate.path && existing.sourceType === candidate.sourceType
+        )
+      )
+    ).slice(0,30);
     const manualReadEligible = Boolean(
       record.available &&
       (
@@ -719,7 +763,7 @@
     const reasons = [];
     if (!record.available) reasons.push("clientInformation unavailable");
     else if (dataValue.data) reasons.push("normal data property; no accessor invocation required");
-    else if (manualReadEligible) reasons.push("vowOSContext source demonstrates a normal clientInformation read");
+    else if (manualReadEligible) reasons.push("inspected VIDAA/runtime source demonstrates a normal clientInformation read");
     else reasons.push("accessor remains inspect-only because no normal runtime read path was demonstrated");
 
     return {
@@ -730,7 +774,10 @@
       getterSource:record.descriptor && record.descriptor.getterSource || null,
       setterSource:record.descriptor && record.descriptor.setterSource || null,
       ownerDepth:record.ownerDepth,
+      owner:record.available ? descriptorOwnerSummary(window,"window",record.ownerDepth || 0) : null,
       error:record.error || null,
+      vowOSContextReadReferences,
+      globalRuntimeReadReferences,
       runtimeReadReferences,
       manualReadEligible,
       readPolicy:manualReadEligible ? "manual-once" : "inspect-only",
@@ -1652,6 +1699,71 @@
     if (clientInfoBtn) clientInfoBtn.hidden = !(clientInfo.manualReadEligible && !clientInformationReadCalled);
   }
 
+  function buildRuntimeIdentityAssessment(result) {
+    const identity = result && result.identity || {};
+    const navigatorValue = result && result.navigatorAppIdentifier && result.navigatorAppIdentifier.currentValue;
+    const core = [
+      ["navigator.appIdentifier",navigatorValue],
+      ["serviceIdentifier",identity.serviceIdentifier],
+      ["appIdentifier",identity.appIdentifier],
+      ["appId",identity.appId]
+    ];
+    const identitySignals = core.filter((entry) => hasMeaningfulIdentityValue(entry[1])).map((entry) => entry[0]);
+    const emptyReturnedSignals = core
+      .filter((entry) => entry[1] && entry[1].status === "returned" && !hasMeaningfulIdentityValue(entry[1]))
+      .map((entry) => entry[0]);
+
+    const serviceAppCoreEmpty = ["serviceIdentifier","appIdentifier","appId"].every((key) => {
+      const record = identity[key];
+      return record && record.status === "returned" && !hasMeaningfulIdentityValue(record);
+    });
+    const roleCustomerNull = ["roleId","customerId"].every((key) => {
+      const record = identity[key];
+      return record && record.status === "returned" && (record.value === null || record.value === "");
+    });
+
+    const status = identitySignals.length
+      ? "IDENTITY PRESENT"
+      : serviceAppCoreEmpty && roleCustomerNull
+        ? "ANONYMOUS-LIKE"
+        : "INCOMPLETE";
+
+    const init = result && result.vowOSContext && result.vowOSContext.methods && result.vowOSContext.methods.init;
+    const clientInformation = result && result.clientInformation || {};
+    return {
+      status,
+      installRetestEligible:identitySignals.length > 0,
+      identitySignals,
+      emptyReturnedSignals,
+      browserClientContext:status,
+      navigatorFeedsServiceIdentifier:Boolean(
+        result && result.navigator && result.navigator.appIdentifierReadPathProvenByServiceSource
+      ),
+      runtimeInit:{
+        available:Boolean(init && init.available),
+        manualCallEligible:Boolean(init && init.manualCallEligible),
+        reason:init ? init.notCalledReason : "vowOSContext.init unavailable"
+      },
+      clientInformation:{
+        manualReadEligible:Boolean(clientInformation.manualReadEligible),
+        runtimeReadReferenceCount:Array.isArray(clientInformation.runtimeReadReferences)
+          ? clientInformation.runtimeReadReferences.length
+          : 0,
+        sameAsNavigator:clientInformation.called ? Boolean(clientInformation.sameAsNavigator) : null
+      },
+      identityAssignmentSource:"NOT PROVEN",
+      launcherOrBrowserAssignment:"NOT PROVEN",
+      currentOriginObservation:identitySignals.length
+        ? "Current page exposes at least one non-empty app identity signal."
+        : "Current page exposes no non-empty app identity signal in the fields checked.",
+      unresolved:[
+        "Who assigns navigator.appIdentifier on VIDAA 9.60",
+        "Whether launcher/odin/AppConfig supplies the identity before page execution",
+        "Whether this vidaahub.com browser launch can legitimately obtain a registered app identity"
+      ]
+    };
+  }
+
   function buildRuntimeIdentityResult() {
     const identity = captureClientIdentityContext(false);
     identity.readOnly = true;
@@ -1668,17 +1780,28 @@
 
     const navigatorRuntime = inspectNavigatorRuntimeIdentity();
     const vowOSContext = inspectVowOSContextRuntime();
-    return {
+    const clientInformation = inspectClientInformation(vowOSContext.properties);
+    if (clientInformationReadEvidence) {
+      clientInformation.called = true;
+      clientInformation.status = clientInformationReadEvidence.status;
+      clientInformation.readAt = clientInformationReadEvidence.readAt;
+      clientInformation.sameAsNavigator = clientInformationReadEvidence.sameAsNavigator;
+      clientInformation.value = safeValue(clientInformationReadEvidence.value);
+      clientInformation.lastRead = safeValue(clientInformationReadEvidence);
+    }
+
+    const result = {
       timestamp:new Date().toISOString(),
       readOnly:true,
       navigatorAppIdentifier:navigatorRuntime.appIdentifier,
       navigator:navigatorRuntime,
       identity,
       vowOSContext,
-      clientInformation:inspectClientInformation(vowOSContext.properties),
+      clientInformation,
       safety:{
         vowOSContextInitCalled:runtimeContextInitCalled,
         clientInformationCalled:clientInformationReadCalled,
+        clientInformationSetterCalled:false,
         stateChangingCallsIssued:false,
         settersCalled:false,
         signingCallsIssued:false,
@@ -1686,6 +1809,8 @@
         installCallsIssued:false
       }
     };
+    result.assessment = buildRuntimeIdentityAssessment(result);
+    return result;
   }
 
   async function runtimeIdentityProbe() {
@@ -1718,15 +1843,19 @@
       state.report.runtimeContextInitialization = initializationInspection;
     }
 
+    state.report.summary.runtimeIdentity = result.assessment.status;
+    state.report.summary.identityGate = result.assessment.installRetestEligible ? "UNLOCKED" : "BLOCKED";
     renderRuntimeIdentityProbe(result);
+    renderSummary();
     if (stateEl) {
       stateEl.textContent =
-        "Probe completed · navigator.appIdentifier " + runtimeNavigatorDisplayValue(result) +
+        "Probe completed · context " + result.assessment.status +
+        " · navigator.appIdentifier " + runtimeNavigatorDisplayValue(result) +
         " · serviceIdentifier " + identityDisplayValue(result.identity.serviceIdentifier) +
         " · appIdentifier " + identityDisplayValue(result.identity.appIdentifier) +
         " · init " + (!init || !init.available ? "not available" : init.manualCallEligible ? "manual available" : "inspect only");
     }
-    log("Runtime identity probe — lifecycle metadata captured; no init/install called automatically");
+    log("Runtime identity probe — " + result.assessment.status + " · no init/install called automatically");
     await saveReport("runtime-identity-probe");
   }
 
@@ -1753,6 +1882,21 @@
   function changedRuntimeIdentityFields(before, after) {
     const keys = ["navigatorAppIdentifier","serviceIdentifier","appIdentifier","appId","roleId","customerId"];
     return keys.filter((key) => safeJson(before[key]) !== safeJson(after[key]));
+  }
+
+  async function settleRuntimeInitReturn(value) {
+    if (!value || typeof value.then !== "function") return value;
+    let timer = null;
+    try {
+      return await Promise.race([
+        Promise.resolve(value),
+        new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error("Runtime init promise timed out after 2000 ms")), 2000);
+        })
+      ]);
+    } finally {
+      if (timer !== null) clearTimeout(timer);
+    }
   }
 
   async function initializeRuntimeContext() {
@@ -1784,7 +1928,7 @@
     runtimeContextInitCalled = true;
     try {
       let value = initProperty.value.call(contextValue.value);
-      if (value && typeof value.then === "function") value = await value;
+      value = await settleRuntimeInitReturn(value);
       returnValue.status = "returned";
       returnValue.type = value === null ? "null" : typeof value;
       returnValue.value = safeValue(value);
@@ -1808,7 +1952,10 @@
       changedFields
     };
     state.report.runtimeIdentityProbe = safeValue(afterResult);
+    state.report.summary.runtimeIdentity = afterResult.assessment.status;
+    state.report.summary.identityGate = afterResult.assessment.installRetestEligible ? "UNLOCKED" : "BLOCKED";
     renderRuntimeIdentityProbe(afterResult);
+    renderSummary();
 
     if (stateEl) {
       stateEl.textContent = changedFields.length
@@ -1847,7 +1994,9 @@
       record.error = errorText(error);
     }
 
+    clientInformationReadEvidence = safeValue(record);
     currentRuntime.clientInformation = safeValue(record);
+    currentRuntime.assessment = buildRuntimeIdentityAssessment(currentRuntime);
     currentRuntime.safety = {
       ...(currentRuntime.safety || {}),
       clientInformationCalled:true,

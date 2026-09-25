@@ -96,6 +96,8 @@ It records, without setters or security calls:
 
 To avoid repeating the already-proven anonymous-client 503 path, Legacy/V2 install diagnostics are blocked until the Runtime Identity Probe finds at least one non-empty app identity field.
 
+The report also includes a compact runtime identity assessment: `IDENTITY PRESENT`, `ANONYMOUS-LIKE`, or `INCOMPLETE`. It explicitly keeps the unresolved lifecycle questions as **NOT PROVEN** rather than guessing that the launcher, browser, origin, or AppConfig is responsible. A manual `clientInformation` read is retained across later probe runs instead of being overwritten by a fresh inspect-only snapshot.
+
 ## Target app profile
 
 `config.json` keeps the target generic. The current defaults are app ID `nuviodebug` and name `Nuvio TV`; deployment URL and icon URL remain configurable from the Sidee UI and are not hardcoded to a LAN address.

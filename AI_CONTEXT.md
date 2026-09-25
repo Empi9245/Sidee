@@ -1553,3 +1553,92 @@ La duplicazione `clientIdentityProbe` è stata rimossa dal nuovo report di sessi
 ### Ricerca
 
 Nessuna nuova ricerca esterna è stata aggiunta in questa rifinitura: le query mirate della fase precedente non avevano trovato source pubblici utili per il lifecycle VIDAA. La prossima evidenza decisiva deve arrivare dal report reale della TV.
+
+
+---
+
+## FINAL HARDENING — Runtime Identity evidence persistence — 2026-09-25
+
+Questa rifinitura parte da `3cbe0914de8472c1fc03646607928d7e044e4a8a` e non cambia la strategia di sicurezza.
+
+### Evidenza clientInformation preservata
+
+È stato corretto un caso in cui:
+
+1. l'utente eseguiva il read manuale one-shot di `clientInformation`;
+2. il valore veniva salvato correttamente;
+3. un successivo Runtime Identity Probe ricostruiva un record inspect-only e poteva perdere dal report il valore letto.
+
+Ora il risultato manuale viene mantenuto in memoria della page session e riapplicato ai successivi snapshot Runtime Identity. Il setter resta sempre non chiamato.
+
+### Ricerca riferimenti runtime più completa
+
+La ricerca read-only dei riferimenti a `clientInformation` considera ora:
+
+- source delle normali funzioni;
+- source dei getter ispezionati;
+- funzioni rilevanti dentro `vowOSContext`;
+- globali VIDAA/Hisense già selezionati dal matcher del Permission Probe.
+
+Questo non invoca gli accessor: serve solo a decidere se mostrare il pulsante manuale di lettura.
+
+### Runtime identity assessment
+
+`runtimeIdentityProbe.assessment` sintetizza ora:
+
+- `IDENTITY PRESENT` se compare almeno un app identity signal non vuoto;
+- `ANONYMOUS-LIKE` quando serviceIdentifier/appIdentifier/appId sono realmente ritornati vuoti e Role/Customer sono null;
+- `INCOMPLETE` quando i dati non bastano.
+
+Salva inoltre esplicitamente:
+
+- installRetestEligible;
+- identitySignals;
+- emptyReturnedSignals;
+- se il source di service identifier passa da navigator.appIdentifier;
+- stato/sicurezza di vowOSContext.init;
+- evidenza runtime per clientInformation;
+- `identityAssignmentSource: NOT PROVEN`;
+- `launcherOrBrowserAssignment: NOT PROVEN`;
+- domande lifecycle ancora aperte.
+
+Quindi Sidee non trasforma una forte ipotesi in un fatto.
+
+### Timeout init asincrono
+
+Se il rarissimo gate stretto rende disponibile il test manuale di `vowOSContext.init()` e la funzione restituisce un Promise/thenable, Sidee attende al massimo 2000 ms.
+
+Il timeout:
+
+- non richiama init;
+- non esegue fallback;
+- non avvia install;
+- consente comunque di acquisire lo snapshot AFTER e registrare l'errore/timeout.
+
+### Ricerca esterna verificata in questa fase
+
+Le code search GitHub esatte per:
+
+- `"navigator.appIdentifier" VIDAA`;
+- `"vowOSContext.init"`;
+- `"getAppIdentifier" vowOSContext`;
+
+hanno restituito 0 risultati pubblici utili.
+
+MDN continua a documentare `Window.clientInformation` come alias read-only di `Window.navigator`, ma per Sidee questa evidenza web generica NON basta da sola a leggere l'accessor vendor Hisense: il gate runtime introdotto nel commit precedente resta prioritario.
+
+### Validazione locale richiesta
+
+La versione finale è stata verificata con:
+
+- parsing JavaScript;
+- harness browser PC senza API VIDAA: Runtime Identity completa senza crash;
+- mock `navigator.appIdentifier` data property;
+- mock `vowOS.service.getIdentifier`;
+- mock `vowOSContext.getAppIdentifier/getAppId`;
+- mock `vowOSContext.init` zero-argument: non parte automaticamente e viene chiamato una sola volta solo dal pulsante manuale;
+- mock `clientInformation` accessor con getter/setter: getter non invocato dal probe, setter mai invocato, lettura manuale one-shot;
+- rerun Runtime Identity dopo lettura clientInformation: evidenza manuale preservata;
+- nessuna nuova chiamata a Role/Customer setter, firma/security, fileWrite o install automatico.
+
+Il prossimo passo utile resta il test sulla Hisense reale e l'analisi del singolo report di sessione.
