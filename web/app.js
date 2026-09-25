@@ -29,10 +29,23 @@
     return "sidee-" + stamp + "-" + suffix;
   }
 
+  function getSessionId() {
+    const storageKey = "sidee.sessionId";
+    try {
+      const existing = sessionStorage.getItem(storageKey);
+      if (existing && SESSION_ID_RE.test(existing)) return existing;
+      const created = createSessionId();
+      sessionStorage.setItem(storageKey, created);
+      return created;
+    } catch (_) {
+      return createSessionId();
+    }
+  }
+
   function createSessionReport() {
     const now = new Date().toISOString();
     return {
-      sessionId:createSessionId(),
+      sessionId:getSessionId(),
       startedAt:now,
       updatedAt:now,
       summary:{},

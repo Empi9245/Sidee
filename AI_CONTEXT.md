@@ -1072,3 +1072,8 @@ Prima del commit sono stati eseguiti test locali senza TV reale:
 - callback `0` + trace `ret:false/code:503` viene classificato `REJECTED`.
 
 Questi test verificano la logica locale e il formato report. Il prossimo test sulla Hisense reale deve confermare il comportamento con i payload effettivi del firmware.
+
+
+### Correzione session lifetime — 2026-09-25
+
+Il `sessionId` viene ora conservato in `sessionStorage` e riutilizzato se rispetta la regex prevista. In questo modo un reload/navigazione nella stessa browser session continua a puntare allo stesso filename server-side invece di creare un nuovo ID.

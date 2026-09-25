@@ -86,7 +86,7 @@ If your current Nuvio deployment uses a different URL, change it before pressing
 
 ## Reports
 
-Sidee now uses one report per browser diagnostic session.
+Sidee now uses one report per browser diagnostic session. The session ID is retained in `sessionStorage`, so navigation/reload within the same browser session keeps targeting the same server-side report filename.
 
 Session IDs use:
 
