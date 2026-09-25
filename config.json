@@ -13,8 +13,8 @@
   "nuvio": {
     "app_id": "nuviodebug",
     "app_name": "Nuvio TV",
-    "app_url": "",
-    "icon_url": "",
+    "app_url": "http://192.168.1.5:4173/?wrapper=vidaa",
+    "icon_url": "http://192.168.1.5:4173/assets/images/icon.png",
     "store_type": "store"
   }
 }

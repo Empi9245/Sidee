@@ -7,12 +7,15 @@ if %errorlevel% equ 0 (
   set "SIDEE_PY=py -3"
 ) else (
   where python >nul 2>&1
-  if %errorlevel% neq 0 (
+  if %errorlevel% equ 0 (
+    set "SIDEE_PY=python"
+  ) else if exist "%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe" (
+    set "SIDEE_PY=%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
+  ) else (
     echo Python 3 was not found. Install Python 3 and try again.
     pause
     exit /b 1
   )
-  set "SIDEE_PY=python"
 )
 
 net session >nul 2>&1
@@ -21,6 +24,10 @@ if %errorlevel% neq 0 (
   powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath '%ComSpec%' -ArgumentList '/c','"%~f0"' -WorkingDirectory '"%~dp0"' -Verb RunAs"
   exit /b
 )
+
+netsh advfirewall firewall add rule name="Sidee DNS UDP 53" dir=in action=allow protocol=UDP localport=53 profile=private >nul 2>&1
+netsh advfirewall firewall add rule name="Sidee HTTPS TCP 443" dir=in action=allow protocol=TCP localport=443 profile=private >nul 2>&1
+netsh advfirewall firewall add rule name="Sidee HTTP TCP 8080" dir=in action=allow protocol=TCP localport=8080 profile=private >nul 2>&1
 
 %SIDEE_PY% sidee.py
 pause
