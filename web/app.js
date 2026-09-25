@@ -6,6 +6,7 @@
   const state = {
     config: null,
     scan: null,
+    permissionProbe: null,
     verification: null,
     installAttempts: [],
     startedAt: new Date().toISOString()
@@ -21,7 +22,10 @@
     "Hisense_GetFeatureCode","Hisense_GetCapabilityCode","Hisense_GetBrand",
     "Hisense_GetModelName","Hisense_GetTestApiList","Hisense_SupportAppConfig",
     "Hisense_GetDNS","Hisense_GetMacAddress","Hisense_FileRead","Hisense_FileWrite",
-    "HiUtils_createRequest","omi_platform","opera_omi"
+    "Hisense_HiSdkSignCreate","Hisense_HiSdkSignCreateSoundbar","Hisense_HiSdkJsonVerifyHeap",
+    "Hisense_CheckAccessCode","Hisense_CheckCodeValid","Hisense_GetRoleID","Hisense_SetRoleID",
+    "Hisense_GetCustomerID","Hisense_SetCustomerID","Hisense_Encrypt","Hisense_Decrypt",
+    "Hisense_RSADecrypt","HiUtils_createRequest","vowOS","omi_platform","opera_omi"
   ];
 
   const SAFE_GETTERS = [
@@ -32,6 +36,387 @@
     "Hisense_GetFeatureCode","Hisense_GetCapabilityCode","Hisense_GetBrand",
     "Hisense_GetModelName","Hisense_GetTestApiList"
   ];
+
+  const PROBE_LIMITS = Object.freeze({
+    maxDepth: 3,
+    maxPropertiesPerObject: 80,
+    maxEntries: 700,
+    maxEntriesPerRoot: 220,
+    maxStringLength: 1000,
+    maxFunctionSourceLength: 5000,
+    maxGlobalMatches: 320,
+    maxPrototypeProperties: 50,
+    maxSourceReferences: 50
+  });
+
+  const PERMISSION_PROBE_MATCHER = /(hisense|vidaa|hiutils|vowos|omi|install(application)?|uninstall|appinfo|appconfig|permission(s)?|access|client|whitelist|domain|origin|security|config|capabilit(y|ies)|privilege|auth|certificate|signature|sign|file(read|write)|debug|api(version|list)|platform)/i;
+  const SOURCE_REFERENCE_MATCHER = /(appconfig|permission|access|client|whitelist|domain|origin|security|installapplication|config|capabilit|privilege|auth|certificate|signature|sign|vowos|hiutils|syncexecute|service|role|customer|encrypt|decrypt|rsa|api|args)/i;
+
+  const INSPECT_ONLY_SECURITY_APIS = [
+    "Hisense_HiSdkSignCreate",
+    "Hisense_HiSdkSignCreateSoundbar",
+    "Hisense_HiSdkJsonVerifyHeap",
+    "Hisense_CheckAccessCode",
+    "Hisense_CheckCodeValid",
+    "Hisense_GetRoleID",
+    "Hisense_SetRoleID",
+    "Hisense_GetCustomerID",
+    "Hisense_SetCustomerID",
+    "Hisense_Encrypt",
+    "Hisense_Decrypt",
+    "Hisense_RSADecrypt"
+  ];
+
+  function errorText(error) {
+    return String(error && error.message || error);
+  }
+
+  function truncateText(value, limit) {
+    const text = String(value);
+    return text.length > limit ? text.slice(0, limit) + "…[truncated]" : text;
+  }
+
+  function isPrimitiveValue(value) {
+    return value === null || ["undefined","string","number","boolean","bigint","symbol"].includes(typeof value);
+  }
+
+  function snapshotPrimitive(value) {
+    if (value === undefined) return "[undefined]";
+    if (typeof value === "bigint") return String(value) + "n";
+    if (typeof value === "symbol") return truncateText(String(value), PROBE_LIMITS.maxStringLength);
+    if (typeof value === "string") return truncateText(value, PROBE_LIMITS.maxStringLength);
+    return value;
+  }
+
+  function safeFunctionSource(fn) {
+    if (typeof fn !== "function") return null;
+    try {
+      return truncateText(Function.prototype.toString.call(fn), PROBE_LIMITS.maxFunctionSourceLength);
+    } catch (error) {
+      return "[source unavailable: " + errorText(error) + "]";
+    }
+  }
+
+  function extractInterestingReferences(source) {
+    if (!source) return [];
+    const found = [];
+    const seen = new Set();
+    const add = (value) => {
+      const text = truncateText(value, 180);
+      if (!text || seen.has(text) || !SOURCE_REFERENCE_MATCHER.test(text)) return;
+      seen.add(text);
+      found.push(text);
+    };
+    try {
+      (source.match(/[A-Za-z_$][A-Za-z0-9_$.-]{1,120}/g) || []).forEach(add);
+      (source.match(/["'][^"'\\n]{1,160}["']/g) || []).forEach((quoted) => add(quoted.slice(1, -1)));
+    } catch (_) {}
+    return found.slice(0, PROBE_LIMITS.maxSourceReferences);
+  }
+
+  function descriptorSnapshot(descriptor) {
+    if (!descriptor) return null;
+    const snapshot = {
+      enumerable: Boolean(descriptor.enumerable),
+      configurable: Boolean(descriptor.configurable),
+      hasGetter: typeof descriptor.get === "function",
+      hasSetter: typeof descriptor.set === "function"
+    };
+    if (Object.prototype.hasOwnProperty.call(descriptor, "writable")) {
+      snapshot.writable = Boolean(descriptor.writable);
+    }
+    if (typeof descriptor.get === "function") snapshot.getterSource = safeFunctionSource(descriptor.get);
+    if (typeof descriptor.set === "function") snapshot.setterSource = safeFunctionSource(descriptor.set);
+    return snapshot;
+  }
+
+  function safePrototypeInfo(value) {
+    if (value === null || !["object","function"].includes(typeof value)) return null;
+    try {
+      const prototype = Object.getPrototypeOf(value);
+      if (!prototype) return {isNull:true, ownProperties:[]};
+      let names = [];
+      try { names = Object.getOwnPropertyNames(prototype); } catch (error) {
+        return {isNull:false, error:errorText(error), ownProperties:[]};
+      }
+      let constructorName = null;
+      try {
+        const ctorDescriptor = Object.getOwnPropertyDescriptor(prototype, "constructor");
+        if (ctorDescriptor && typeof ctorDescriptor.value === "function") {
+          const nameDescriptor = Object.getOwnPropertyDescriptor(ctorDescriptor.value, "name");
+          if (nameDescriptor && typeof nameDescriptor.value === "string") {
+            constructorName = truncateText(nameDescriptor.value, 120);
+          }
+        }
+      } catch (_) {}
+      return {
+        isNull:false,
+        constructorName,
+        ownPropertyCount:names.length,
+        ownProperties:names.slice(0, PROBE_LIMITS.maxPrototypeProperties)
+      };
+    } catch (error) {
+      return {error:errorText(error), ownProperties:[]};
+    }
+  }
+
+  function findPropertyDescriptor(root, name, maxDepth) {
+    let cursor = root;
+    for (let depth = 0; cursor && depth <= maxDepth; depth++) {
+      try {
+        const descriptor = Object.getOwnPropertyDescriptor(cursor, name);
+        if (descriptor) return {descriptor, ownerDepth:depth};
+        cursor = Object.getPrototypeOf(cursor);
+      } catch (error) {
+        return {error:errorText(error), ownerDepth:depth};
+      }
+    }
+    return null;
+  }
+
+  function inspectGlobal(name) {
+    const path = "window." + name;
+    const found = findPropertyDescriptor(window, name, 4);
+    if (!found) {
+      return {name, path, propertyName:name, available:false, type:"missing"};
+    }
+    if (found.error) {
+      return {name, path, propertyName:name, available:false, type:"blocked", error:found.error, ownerDepth:found.ownerDepth};
+    }
+
+    const descriptor = found.descriptor;
+    const record = {
+      name,
+      path,
+      propertyName:name,
+      available:true,
+      ownerDepth:found.ownerDepth,
+      descriptor:descriptorSnapshot(descriptor)
+    };
+
+    if (!Object.prototype.hasOwnProperty.call(descriptor, "value")) {
+      record.type = "accessor";
+      record.access = "not invoked";
+      return record;
+    }
+
+    const value = descriptor.value;
+    record.type = value === null ? "null" : typeof value;
+    if (isPrimitiveValue(value)) record.primitiveValue = snapshotPrimitive(value);
+    if (typeof value === "function") {
+      record.source = safeFunctionSource(value);
+      record.sourceReferences = extractInterestingReferences(record.source);
+    }
+    if (value !== null && ["object","function"].includes(typeof value)) {
+      record.prototype = safePrototypeInfo(value);
+    }
+    return record;
+  }
+
+  function getGlobalDataValue(name) {
+    const found = findPropertyDescriptor(window, name, 4);
+    if (!found || found.error) return {found:Boolean(found), error:found && found.error || null, data:false};
+    const descriptor = found.descriptor;
+    if (!Object.prototype.hasOwnProperty.call(descriptor, "value")) {
+      return {found:true, data:false, accessor:true, descriptor};
+    }
+    return {found:true, data:true, value:descriptor.value, descriptor};
+  }
+
+  function createProbeBudget() {
+    return {
+      entries:0,
+      limitReached:false,
+      seen:typeof WeakSet === "function" ? new WeakSet() : []
+    };
+  }
+
+  function wasSeen(budget, value) {
+    if (value === null || !["object","function"].includes(typeof value)) return false;
+    if (budget.seen instanceof WeakSet) {
+      if (budget.seen.has(value)) return true;
+      budget.seen.add(value);
+      return false;
+    }
+    if (budget.seen.indexOf(value) >= 0) return true;
+    budget.seen.push(value);
+    return false;
+  }
+
+  function propertyPath(base, propertyName) {
+    return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(propertyName)
+      ? base + "." + propertyName
+      : base + "[" + JSON.stringify(propertyName) + "]";
+  }
+
+  function inspectObjectTree(rootValue, rootPath, budget) {
+    const result = {
+      rootPath,
+      objects:[],
+      entries:[],
+      circularPaths:[],
+      errors:[],
+      truncated:false
+    };
+    if (rootValue === null || !["object","function"].includes(typeof rootValue)) return result;
+
+    const queue = [{value:rootValue,path:rootPath,depth:0}];
+    let rootEntries = 0;
+
+    while (queue.length) {
+      if (budget.entries >= PROBE_LIMITS.maxEntries || rootEntries >= PROBE_LIMITS.maxEntriesPerRoot) {
+        budget.limitReached = true;
+        result.truncated = true;
+        break;
+      }
+
+      const current = queue.shift();
+      if (wasSeen(budget, current.value)) {
+        result.circularPaths.push(current.path);
+        continue;
+      }
+
+      let propertyNames;
+      try {
+        propertyNames = Object.getOwnPropertyNames(current.value);
+      } catch (error) {
+        result.errors.push({path:current.path,error:errorText(error)});
+        continue;
+      }
+
+      const interesting = propertyNames.filter((name) => PERMISSION_PROBE_MATCHER.test(name) || name === "service");
+      const interestingSet = new Set(interesting);
+      const ordered = interesting.concat(propertyNames.filter((name) => !interestingSet.has(name)));
+      const selected = ordered.slice(0, PROBE_LIMITS.maxPropertiesPerObject);
+
+      result.objects.push({
+        path:current.path,
+        depth:current.depth,
+        propertyCount:propertyNames.length,
+        scannedPropertyCount:selected.length,
+        interestingProperties:interesting.slice(0, PROBE_LIMITS.maxPropertiesPerObject),
+        propertiesTruncated:propertyNames.length > selected.length,
+        prototype:safePrototypeInfo(current.value)
+      });
+
+      for (const propertyName of selected) {
+        if (budget.entries >= PROBE_LIMITS.maxEntries || rootEntries >= PROBE_LIMITS.maxEntriesPerRoot) {
+          budget.limitReached = true;
+          result.truncated = true;
+          break;
+        }
+
+        const entry = {
+          path:propertyPath(current.path, propertyName),
+          propertyName,
+          depth:current.depth + 1
+        };
+        let descriptor;
+        try {
+          descriptor = Object.getOwnPropertyDescriptor(current.value, propertyName);
+        } catch (error) {
+          entry.type = "blocked";
+          entry.error = errorText(error);
+          result.entries.push(entry);
+          budget.entries += 1;
+          rootEntries += 1;
+          continue;
+        }
+
+        if (!descriptor) {
+          entry.type = "missing-descriptor";
+          result.entries.push(entry);
+          budget.entries += 1;
+          rootEntries += 1;
+          continue;
+        }
+
+        entry.descriptor = descriptorSnapshot(descriptor);
+
+        if (!Object.prototype.hasOwnProperty.call(descriptor, "value")) {
+          entry.type = "accessor";
+          entry.access = "not invoked";
+        } else {
+          const value = descriptor.value;
+          entry.type = value === null ? "null" : typeof value;
+          if (isPrimitiveValue(value)) entry.primitiveValue = snapshotPrimitive(value);
+          if (typeof value === "function") {
+            entry.source = safeFunctionSource(value);
+            entry.sourceReferences = extractInterestingReferences(entry.source);
+          }
+          if (value !== null && ["object","function"].includes(typeof value)) {
+            entry.prototype = safePrototypeInfo(value);
+            if (current.depth < PROBE_LIMITS.maxDepth) {
+              queue.push({value,path:entry.path,depth:current.depth + 1});
+            }
+          }
+        }
+
+        result.entries.push(entry);
+        budget.entries += 1;
+        rootEntries += 1;
+      }
+    }
+
+    return result;
+  }
+
+  function analyzeNamedFunction(name) {
+    const globalRecord = inspectGlobal(name);
+    return {
+      name,
+      present:globalRecord.available,
+      type:globalRecord.type,
+      descriptor:globalRecord.descriptor || null,
+      source:globalRecord.source || null,
+      sourceReferences:globalRecord.sourceReferences || [],
+      called:false,
+      error:globalRecord.error || null
+    };
+  }
+
+  function probeSupportAppConfig(budget) {
+    const globalRecord = inspectGlobal("Hisense_SupportAppConfig");
+    const result = {
+      name:"Hisense_SupportAppConfig",
+      present:globalRecord.available,
+      type:globalRecord.type,
+      descriptor:globalRecord.descriptor || null,
+      source:globalRecord.source || null,
+      sourceReferences:globalRecord.sourceReferences || [],
+      called:false,
+      status:globalRecord.available ? "present" : "unavailable"
+    };
+
+    if (!globalRecord.available) return result;
+
+    const dataValue = getGlobalDataValue("Hisense_SupportAppConfig");
+    if (!dataValue.data) {
+      result.status = dataValue.accessor ? "accessor-not-invoked" : "unavailable";
+      if (dataValue.error) result.error = dataValue.error;
+      return result;
+    }
+    if (typeof dataValue.value !== "function") {
+      result.status = "not-a-function";
+      return result;
+    }
+
+    result.called = true;
+    try {
+      const value = dataValue.value();
+      result.status = "returned";
+      result.resultType = value === null ? "null" : typeof value;
+      if (isPrimitiveValue(value)) {
+        result.resultValue = snapshotPrimitive(value);
+      } else {
+        result.resultInspection = inspectObjectTree(value, "Hisense_SupportAppConfig()", budget);
+      }
+    } catch (error) {
+      result.status = "error";
+      result.error = errorText(error);
+    }
+    return result;
+  }
 
   function log(message, data) {
     const line = "[" + new Date().toLocaleTimeString() + "] " + message;
@@ -136,19 +521,14 @@
     const names = new Set(KNOWN);
     let cursor = window;
     for (let depth = 0; cursor && depth < 4; depth++) {
-      try { Object.getOwnPropertyNames(cursor).forEach((n) => names.add(n)); } catch (_) {}
+      try { Object.getOwnPropertyNames(cursor).forEach((name) => names.add(name)); } catch (_) {}
       try { cursor = Object.getPrototypeOf(cursor); } catch (_) { break; }
     }
-    const matcher = /(hisense|vidaa|hiutils|omi|install|uninstall|appinfo|file(read|write)|debug|api(version|list)|platform)/i;
-    return Array.from(names).filter((name) => matcher.test(name)).sort().map((name) => {
-      let value;
-      try { value = window[name]; } catch (e) { return {name, type:"blocked", error:String(e)}; }
-      let source = null;
-      if (typeof value === "function") {
-        try { source = Function.prototype.toString.call(value).slice(0, 1200); } catch (_) {}
-      }
-      return {name, type:typeof value, available:value !== undefined && value !== null, source};
-    });
+    return Array.from(names)
+      .filter((name) => PERMISSION_PROBE_MATCHER.test(name))
+      .sort()
+      .slice(0, PROBE_LIMITS.maxGlobalMatches)
+      .map(inspectGlobal);
   }
 
   function callGetter(name) {
@@ -198,6 +578,93 @@
     $("deviceBadge").textContent = state.scan.capabilities.installApp ? "VIDAA APIs detected" : "VIDAA detected / install API unavailable";
     log("Read-only scan complete.", state.scan);
     await saveReport("scan");
+  }
+
+
+  async function permissionProbe() {
+    const stateEl = $("permissionProbeState");
+    stateEl.textContent = "Running read-only permission probe…";
+
+    const budget = createProbeBudget();
+    const globals = enumerateInterestingGlobals();
+
+    const supportAppConfig = probeSupportAppConfig(budget);
+
+    const vowOSGlobal = inspectGlobal("vowOS");
+    const vowOSValue = getGlobalDataValue("vowOS");
+    let vowOSInspection = null;
+    if (vowOSValue.data && vowOSValue.value !== null && ["object","function"].includes(typeof vowOSValue.value)) {
+      vowOSInspection = inspectObjectTree(vowOSValue.value, "window.vowOS", budget);
+    }
+
+    const hiUtils = analyzeNamedFunction("HiUtils_createRequest");
+    const inspectOnlyApis = INSPECT_ONLY_SECURITY_APIS.map(analyzeNamedFunction);
+
+    const inspectedObjects = [];
+    for (const globalRecord of globals) {
+      if (budget.entries >= PROBE_LIMITS.maxEntries) break;
+      if (globalRecord.name === "vowOS" || globalRecord.name === "Hisense_SupportAppConfig") continue;
+      const dataValue = getGlobalDataValue(globalRecord.name);
+      if (!dataValue.data || dataValue.value === null || typeof dataValue.value !== "object") continue;
+      const inspection = inspectObjectTree(dataValue.value, globalRecord.path, budget);
+      if (inspection.objects.length || inspection.entries.length || inspection.errors.length) {
+        inspectedObjects.push(inspection);
+      }
+    }
+
+    const summary = {
+      status:"completed",
+      interestingEntries:globals.length + budget.entries,
+      globalMatches:globals.length,
+      inspectedPropertyEntries:budget.entries,
+      entryLimitReached:budget.limitReached,
+      supportAppConfig:supportAppConfig.status,
+      vowOS:vowOSGlobal.available ? "found" : "not found",
+      hiUtils:hiUtils.present ? "found" : "not found"
+    };
+
+    state.permissionProbe = {
+      timestamp:new Date().toISOString(),
+      readOnly:true,
+      limits:{...PROBE_LIMITS},
+      environment:{
+        href:location.href,
+        origin:location.origin,
+        host:location.host,
+        userAgent:navigator.userAgent
+      },
+      summary,
+      globals,
+      supportAppConfig,
+      hiUtils,
+      vowOS:{
+        present:vowOSGlobal.available,
+        type:vowOSGlobal.type,
+        descriptor:vowOSGlobal.descriptor || null,
+        inspection:vowOSInspection
+      },
+      inspectOnlyApis,
+      inspectedObjects,
+      calls:{
+        supportAppConfigCalled:supportAppConfig.called,
+        otherVIDAAFunctionsCalled:[]
+      },
+      safety:{
+        gettersInvoked:false,
+        unknownMethodsInvoked:false,
+        hiUtilsRequestsIssued:false,
+        writesIssued:false
+      }
+    };
+
+    stateEl.textContent =
+      "Probe completed · " + summary.interestingEntries + " interesting entries · " +
+      "Hisense_SupportAppConfig: " + summary.supportAppConfig + " · " +
+      "vowOS: " + summary.vowOS + " · " +
+      "HiUtils_createRequest: " + summary.hiUtils;
+
+    log("Permission & AppConfig probe complete.", summary);
+    await saveReport("permission-appconfig-probe");
   }
 
   function refreshLauncher(appId) {
@@ -445,6 +912,7 @@
   }
 
   $("scanBtn").addEventListener("click", scan);
+  $("permissionProbeBtn").addEventListener("click", permissionProbe);
   $("saveBtn").addEventListener("click", saveTarget);
   $("verifyBtn").addEventListener("click", () => verify(false));
   $("deepBtn").addEventListener("click", () => verify(true));
