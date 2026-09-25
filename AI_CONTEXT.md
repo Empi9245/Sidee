@@ -1337,3 +1337,158 @@ Il prossimo JSON deve permettere di confrontare:
 
 Interpretazione corretta se fileRead e installApplication usano la stessa identity ma il primo passa e il secondo viene respinto: forte evidenza di permission per-API associata al client corrente. Non è prova di un bypass e non autorizza modifiche a role/customer/signature.
 
+
+
+---
+
+## IMPLEMENTAZIONE — Runtime Identity / navigator.appIdentifier — 2026-09-25
+
+Questa fase parte dal report reale in cui:
+
+- `vowOS.service.getIdentifier() === ""`;
+- `vowOSContext.getAppIdentifier() === ""`;
+- `vowOSContext.getAppId() === ""`;
+- Role ID / Customer ID sono null;
+- `fileRead("websdk/Appinfo.json")` passa;
+- `installApplication` fallisce con code 503 AppConfig permission check.
+
+### Ricerca esterna mirata
+
+È stata fatta solo la ricerca mirata richiesta su:
+
+- `navigator.appIdentifier`;
+- `vowOSContext.init`;
+- `vowOSContext.getAppIdentifier`;
+- `vowOSContext.getAppId`;
+- `clientInformation`;
+- VIDAA odin/browser app identity.
+
+Non è stata trovata una implementazione pubblica affidabile di `vowOSContext.init()` o del lifecycle VIDAA che assegna `navigator.appIdentifier`. Quindi NON è stato aggiunto alcun tentativo di `init()` e non sono stati inventati parametri.
+
+Nuova evidenza web standard utile:
+
+- MDN / HTML Window API documentano `Window.clientInformation` come alias legacy read-only di `Window.navigator`.
+- Riferimenti: https://developer.mozilla.org/docs/Web/API/Window e https://html.spec.whatwg.org/multipage/nav-history-apis.html#the-window-object
+
+Implicazione concreta: leggere manualmente `window.clientInformation` una volta è una normale lettura informativa del browser; non è una prova di privilege VIDAA e non autorizza l'uso di setter.
+
+### Runtime Identity Probe
+
+Il vecchio Client Identity Probe è stato esteso/rinominato in UI come `Runtime Identity Probe`.
+
+Salva nello stesso report di sessione:
+
+- `runtimeIdentityProbe.navigatorAppIdentifier`;
+- descriptor di `navigator.appIdentifier`;
+- owner/prototype depth;
+- getter/setter source senza invocare setter;
+- proprietà Navigator correlate a app/identifier/client/context/VIDA/vow;
+- source di `vowOS.service.getIdentifier`;
+- struttura completa limitata di `vowOSContext`;
+- descriptor/source di `getAppIdentifier`, `getAppId`, `init`;
+- lifecycle/source references interessanti;
+- snapshot identity già esistente (serviceIdentifier/appIdentifier/appId/roleId/customerId);
+- metadata `clientInformation`.
+
+### Lettura navigator.appIdentifier
+
+Sidee NON invoca alla cieca un accessor `navigator.appIdentifier`.
+
+Regola:
+
+- se è una data property, salva il valore dal descriptor;
+- se è un accessor, lo legge una sola volta solo quando il source runtime di `vowOS.service.getIdentifier` dimostra concretamente che il normale path VIDAA legge `navigator.appIdentifier`;
+- altrimenti resta inspect-only.
+
+Questo evita getter sconosciuti e usa come evidenza prioritaria il source della TV reale.
+
+### vowOSContext.init
+
+`vowOSContext.init` viene ispezionato ma NON chiamato.
+
+Il report contiene:
+
+- availability;
+- descriptor;
+- function source se disponibile;
+- declared argument count;
+- references interessanti;
+- `called:false`;
+- `manualCallEligible:false`.
+
+`runtimeContextInitialization` resta con `called:false` e `eligible:false` finché il prossimo report reale non dimostra source/argomenti/side effect sufficientemente chiari.
+
+### clientInformation
+
+È stato aggiunto un pulsante manuale:
+
+`Read Client Information`
+
+Fa una sola lettura di:
+
+`window.clientInformation`
+
+e salva:
+
+- status;
+- type;
+- `sameAsNavigator`;
+- valore safe-serializzato con limiti già esistenti;
+- descriptor/getter/setter source.
+
+Il setter non viene mai chiamato.
+
+### Gate install diagnostic
+
+Per rispettare il risultato già dimostrato e non ripetere tentativi inutili:
+
+- `Run Install Diagnostic`;
+- `Legacy only`;
+- `V2 only`
+
+sono ora bloccati finché Runtime Identity non trova almeno un valore non vuoto tra:
+
+- `navigator.appIdentifier`;
+- `serviceIdentifier`;
+- `appIdentifier`;
+- `appId`.
+
+Se tutti restano vuoti, Sidee salva il motivo del blocco nel report e NON esegue Legacy/V2.
+
+Se compare una vera identity, il workflow install già esistente resta disponibile e continua a fare verification + HiUtils trace + classificazione 503 corretta.
+
+### Vincoli di sicurezza mantenuti
+
+Questa fase NON chiama:
+
+- `Hisense_SetRoleID`;
+- `Hisense_SetCustomerID`;
+- setter `clientInformation`;
+- setter `navigator.appIdentifier`;
+- `Hisense_HiSdkSignCreate*`;
+- access-code/security API;
+- fileWrite/Appinfo write;
+- reset;
+- `vowOSContext.init()`;
+- install automatico dopo il probe.
+
+### Prossimo test reale TV
+
+Eseguire:
+
+1. Device / Environment Scan;
+2. Permission & AppConfig Probe;
+3. Runtime Identity Probe;
+4. opzionale: Read Client Information;
+5. Export Report.
+
+Prima di premere install, leggere il report e verificare soprattutto:
+
+- descriptor/value reale di `navigator.appIdentifier`;
+- source reale di `vowOS.service.getIdentifier`;
+- source/arity reale di `vowOSContext.init`;
+- eventuali funzioni lifecycle trovate dentro `vowOSContext`;
+- `clientInformation.sameAsNavigator`;
+- eventuale comparsa di una identity non vuota.
+
+Se identity resta vuota, NON serve ripetere install. Se compare, Sidee sblocca il test install controllato.

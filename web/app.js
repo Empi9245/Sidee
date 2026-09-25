@@ -61,6 +61,8 @@
       environment:{},
       permissionProbe:{},
       clientIdentityProbe:{},
+      runtimeIdentityProbe:{},
+      runtimeContextInitialization:{called:false,eligible:false,reason:"Runtime init has not been inspected yet."},
       target:{},
       installDiagnostic:{status:"UNKNOWN",attempts:[]},
       verification:{},
@@ -132,7 +134,8 @@
   });
 
   const PERMISSION_PROBE_MATCHER = /(hisense|vidaa|hiutils|vowos|omi|install(application)?|uninstall|appinfo|appconfig|permission(s)?|access|client|whitelist|domain|origin|security|config|capabilit(y|ies)|privilege|auth|certificate|signature|sign|file(read|write)|debug|api(version|list)|platform)/i;
-  const SOURCE_REFERENCE_MATCHER = /(appconfig|permission|access|client|whitelist|domain|origin|security|installapplication|config|capabilit|privilege|auth|certificate|signature|sign|vowos|hiutils|syncexecute|service|role|customer|encrypt|decrypt|rsa|api|args)/i;
+  const SOURCE_REFERENCE_MATCHER = /(appconfig|permission|access|client|clientinformation|identifier|appidentifier|whitelist|domain|origin|security|installapplication|config|capabilit|privilege|auth|certificate|signature|sign|vowos|hiutils|syncexecute|service|role|customer|encrypt|decrypt|rsa|init|launcher|browsercontext|api|args)/i;
+  const NAVIGATOR_IDENTITY_MATCHER = /(app|identifier|client|context|vida|vow)/i;
 
   const INSPECT_ONLY_SECURITY_APIS = [
     "Hisense_HiSdkSignCreate",
@@ -397,15 +400,245 @@
     return record;
   }
 
+  function descriptorOwnerSummary(root, rootPath, ownerDepth) {
+    let owner = root;
+    try {
+      for (let depth = 0; owner && depth < ownerDepth; depth++) owner = Object.getPrototypeOf(owner);
+    } catch (error) {
+      return {depth:ownerDepth,path:rootPath + ".[[Prototype]]",error:errorText(error)};
+    }
+    return {
+      depth:ownerDepth,
+      path:ownerDepth === 0 ? rootPath : rootPath + ".[[Prototype]] x" + ownerDepth,
+      prototype:safePrototypeInfo(owner)
+    };
+  }
+
+  function inspectPropertyRecord(root, rootPath, name, maxDepth) {
+    const path = propertyPath(rootPath, name);
+    const found = findPropertyDescriptor(root, name, maxDepth === undefined ? 4 : maxDepth);
+    if (!found) return {name,path,available:false,type:"missing"};
+    if (found.error) {
+      return {name,path,available:false,type:"blocked",ownerDepth:found.ownerDepth,error:found.error};
+    }
+
+    const descriptor = found.descriptor;
+    const record = {
+      name,
+      path,
+      available:true,
+      ownerDepth:found.ownerDepth,
+      owner:descriptorOwnerSummary(root, rootPath, found.ownerDepth),
+      descriptor:descriptorSnapshot(descriptor)
+    };
+
+    if (!Object.prototype.hasOwnProperty.call(descriptor, "value")) {
+      record.type = "accessor";
+      record.access = "not invoked";
+      return record;
+    }
+
+    const value = descriptor.value;
+    record.type = value === null ? "null" : typeof value;
+    if (isPrimitiveValue(value)) record.primitiveValue = snapshotPrimitive(value);
+    if (typeof value === "function") {
+      record.declaredArgumentCount = Number.isFinite(value.length) ? value.length : null;
+      record.source = safeFunctionSource(value);
+      record.sourceReferences = extractInterestingReferences(record.source);
+    }
+    if (value !== null && ["object","function"].includes(typeof value)) {
+      record.prototype = safePrototypeInfo(value);
+    }
+    return record;
+  }
+
+  function inspectMatchingProperties(root, rootPath, matcher, maxPrototypeDepth, maxMatches) {
+    const matches = [];
+    let cursor = root;
+
+    for (let depth = 0; cursor && depth <= maxPrototypeDepth && matches.length < maxMatches; depth++) {
+      let names = [];
+      try {
+        names = Object.getOwnPropertyNames(cursor);
+      } catch (error) {
+        matches.push({path:rootPath,ownerDepth:depth,type:"blocked",error:errorText(error)});
+        break;
+      }
+
+      for (const name of names) {
+        if (!matcher.test(name)) continue;
+        let descriptor = null;
+        try {
+          descriptor = Object.getOwnPropertyDescriptor(cursor, name);
+        } catch (error) {
+          matches.push({name,path:propertyPath(rootPath,name),ownerDepth:depth,type:"blocked",error:errorText(error)});
+          continue;
+        }
+        if (!descriptor) continue;
+
+        const record = {
+          name,
+          path:propertyPath(rootPath,name),
+          ownerDepth:depth,
+          owner:descriptorOwnerSummary(root,rootPath,depth),
+          descriptor:descriptorSnapshot(descriptor)
+        };
+        if (!Object.prototype.hasOwnProperty.call(descriptor,"value")) {
+          record.type = "accessor";
+          record.access = "not invoked";
+        } else {
+          const value = descriptor.value;
+          record.type = value === null ? "null" : typeof value;
+          if (isPrimitiveValue(value)) record.primitiveValue = snapshotPrimitive(value);
+          if (typeof value === "function") {
+            record.declaredArgumentCount = Number.isFinite(value.length) ? value.length : null;
+            record.source = safeFunctionSource(value);
+            record.sourceReferences = extractInterestingReferences(record.source);
+          }
+        }
+        matches.push(record);
+        if (matches.length >= maxMatches) break;
+      }
+
+      try {
+        cursor = Object.getPrototypeOf(cursor);
+      } catch (_) {
+        break;
+      }
+    }
+    return matches;
+  }
+
+  function inspectVowOSGetIdentifier() {
+    const vowOSValue = getGlobalDataValue("vowOS");
+    if (!vowOSValue.data || vowOSValue.value === null || !["object","function"].includes(typeof vowOSValue.value)) {
+      return {
+        available:false,
+        error:vowOSValue.error || (vowOSValue.accessor ? "vowOS accessor not invoked" : "vowOS unavailable")
+      };
+    }
+
+    const service = getDataPropertyValue(vowOSValue.value,"service",4);
+    if (!service.data || service.value === null || !["object","function"].includes(typeof service.value)) {
+      return {
+        available:false,
+        error:service.error || (service.accessor ? "vowOS.service accessor not invoked" : "vowOS.service unavailable")
+      };
+    }
+    return inspectPropertyRecord(service.value,"window.vowOS.service","getIdentifier",4);
+  }
+
+  function inspectNavigatorRuntimeIdentity() {
+    const rootPath = "window.navigator";
+    const appIdentifier = inspectPropertyRecord(navigator,rootPath,"appIdentifier",5);
+    const serviceGetIdentifier = inspectVowOSGetIdentifier();
+    const serviceSource = String(serviceGetIdentifier && serviceGetIdentifier.source || "");
+    const sourceEvidence =
+      serviceSource.indexOf("navigator.appIdentifier") >= 0 ||
+      serviceSource.indexOf("window.navigator.appIdentifier") >= 0;
+
+    const currentValue = {
+      status:appIdentifier.available ? "inspect-only" : "unavailable",
+      called:false,
+      type:null,
+      value:null,
+      error:null,
+      readJustification:null
+    };
+
+    const found = findPropertyDescriptor(navigator,"appIdentifier",5);
+    if (found && !found.error && Object.prototype.hasOwnProperty.call(found.descriptor,"value")) {
+      currentValue.status = "returned";
+      currentValue.type = found.descriptor.value === null ? "null" : typeof found.descriptor.value;
+      currentValue.value = isPrimitiveValue(found.descriptor.value)
+        ? snapshotPrimitive(found.descriptor.value)
+        : safeValue(found.descriptor.value);
+      currentValue.readJustification = "data-property descriptor value";
+    } else if (appIdentifier.available && appIdentifier.type === "accessor" && sourceEvidence) {
+      currentValue.called = true;
+      currentValue.readJustification = "vowOS.service.getIdentifier source reads navigator.appIdentifier";
+      try {
+        const value = navigator.appIdentifier;
+        currentValue.status = "returned";
+        currentValue.type = value === null ? "null" : typeof value;
+        currentValue.value = isPrimitiveValue(value) ? snapshotPrimitive(value) : safeValue(value);
+      } catch (error) {
+        currentValue.status = "error";
+        currentValue.error = errorText(error);
+      }
+    } else if (appIdentifier.available) {
+      currentValue.error = "Accessor left inspect-only because the normal runtime read path was not proven from source.";
+    }
+
+    return {
+      available:true,
+      prototype:safePrototypeInfo(navigator),
+      appIdentifier:{...appIdentifier,currentValue},
+      relatedProperties:inspectMatchingProperties(navigator,rootPath,NAVIGATOR_IDENTITY_MATCHER,5,120),
+      serviceGetIdentifier,
+      appIdentifierReadPathProvenByServiceSource:sourceEvidence
+    };
+  }
+
+  function inspectVowOSContextRuntime() {
+    const globalRecord = inspectGlobal("vowOSContext");
+    const dataValue = getGlobalDataValue("vowOSContext");
+    const result = {
+      available:Boolean(globalRecord.available),
+      type:globalRecord.type,
+      descriptor:globalRecord.descriptor || null,
+      prototype:null,
+      properties:null,
+      methods:{},
+      lifecycleReferences:[],
+      error:globalRecord.error || dataValue.error || null
+    };
+
+    if (!dataValue.data || dataValue.value === null || !["object","function"].includes(typeof dataValue.value)) {
+      if (dataValue.accessor) result.error = "vowOSContext accessor not invoked";
+      return result;
+    }
+
+    const context = dataValue.value;
+    result.prototype = safePrototypeInfo(context);
+    const budget = createProbeBudget();
+    result.properties = inspectObjectTree(context,"window.vowOSContext",budget);
+
+    ["getAppIdentifier","getAppId","init"].forEach((name) => {
+      result.methods[name] = inspectPropertyRecord(context,"window.vowOSContext",name,5);
+    });
+
+    const entries = result.properties && result.properties.entries || [];
+    result.lifecycleReferences = entries
+      .filter((entry) => entry && entry.sourceReferences && entry.sourceReferences.length)
+      .map((entry) => ({path:entry.path,references:entry.sourceReferences}))
+      .slice(0,80);
+
+    const init = result.methods.init;
+    if (init) {
+      init.called = false;
+      init.manualCallEligible = false;
+      init.notCalledReason = init.available
+        ? "Source captured for review; Sidee will not call init until its arguments and side effects are proven safe."
+        : "vowOSContext.init is unavailable.";
+    }
+
+    return result;
+  }
+
   function inspectClientInformation() {
     const record = inspectGlobal("clientInformation");
     return {
       called:false,
-      status:record.available ? (record.type === "accessor" ? "accessor-inspect-only" : "inspect-only") : "unavailable",
+      status:record.available ? "manual-read-ready" : "unavailable",
       type:record.type,
       descriptor:record.descriptor || null,
       getterSource:record.descriptor && record.descriptor.getterSource || null,
-      error:record.error || null
+      setterSource:record.descriptor && record.descriptor.setterSource || null,
+      ownerDepth:record.ownerDepth,
+      error:record.error || null,
+      readPolicy:"manual-only",
+      webPlatformMeaning:"Window.clientInformation is a read-only legacy alias of Window.navigator."
     };
   }
 
@@ -1282,48 +1515,188 @@
     return String(record.value);
   }
 
-  function renderClientIdentityProbe(result) {
-    setSummaryValue("serviceIdentifierValue", identityDisplayValue(result.serviceIdentifier));
-    setSummaryValue("appIdentifierValue", identityDisplayValue(result.appIdentifier));
-    setSummaryValue("appIdValue", identityDisplayValue(result.appId));
-    setSummaryValue("roleIdValue", identityDisplayValue(result.roleId));
-    setSummaryValue("customerIdValue", identityDisplayValue(result.customerId));
+  function runtimeNavigatorDisplayValue(runtimeResult) {
+    const current = runtimeResult && runtimeResult.navigatorAppIdentifier &&
+      runtimeResult.navigatorAppIdentifier.currentValue;
+    return identityDisplayValue(current);
   }
 
-  async function clientIdentityProbe() {
-    const stateEl = $("clientIdentityProbeState");
-    if (stateEl) stateEl.textContent = "Running read-only client identity probe…";
+  function renderRuntimeIdentityProbe(result) {
+    setSummaryValue("navigatorAppIdentifierValue", runtimeNavigatorDisplayValue(result));
+    setSummaryValue("serviceIdentifierValue", identityDisplayValue(result.identity.serviceIdentifier));
+    setSummaryValue("appIdentifierValue", identityDisplayValue(result.identity.appIdentifier));
+    setSummaryValue("appIdValue", identityDisplayValue(result.identity.appId));
+    setSummaryValue("roleIdValue", identityDisplayValue(result.identity.roleId));
+    setSummaryValue("customerIdValue", identityDisplayValue(result.identity.customerId));
+    setSummaryValue(
+      "vowOSInitValue",
+      result.vowOSContext &&
+      result.vowOSContext.methods &&
+      result.vowOSContext.methods.init &&
+      result.vowOSContext.methods.init.available
+        ? "AVAILABLE · INSPECT ONLY"
+        : "NOT AVAILABLE"
+    );
 
-    const result = captureClientIdentityContext(true);
-    result.readOnly = true;
-    result.comparison = {
+    const clientInfo = result.clientInformation || {};
+    setSummaryValue(
+      "clientInformationValue",
+      clientInfo.called
+        ? (clientInfo.sameAsNavigator ? "READ · NAVIGATOR ALIAS" : "READ")
+        : clientInfo.status === "unavailable" ? "UNAVAILABLE" : "MANUAL READ READY"
+    );
+  }
+
+  async function runtimeIdentityProbe() {
+    const stateEl = $("clientIdentityProbeState");
+    if (stateEl) stateEl.textContent = "Running read-only runtime identity probe…";
+
+    const identity = captureClientIdentityContext(true);
+    identity.readOnly = true;
+    identity.comparison = {
       serviceAndAppIdentifierComparable:
-        result.serviceIdentifier.status === "returned" &&
-        result.appIdentifier.status === "returned",
+        identity.serviceIdentifier.status === "returned" &&
+        identity.appIdentifier.status === "returned",
       serviceAndAppIdentifierEqual:
-        result.serviceIdentifier.status === "returned" &&
-        result.appIdentifier.status === "returned"
-          ? Object.is(result.serviceIdentifier.value, result.appIdentifier.value)
+        identity.serviceIdentifier.status === "returned" &&
+        identity.appIdentifier.status === "returned"
+          ? Object.is(identity.serviceIdentifier.value, identity.appIdentifier.value)
           : null
     };
-    result.safety = {
-      clientInformationCalled:false,
-      stateChangingCallsIssued:false,
-      settersCalled:false,
-      signingCallsIssued:false,
-      writesIssued:false
+
+    const navigatorRuntime = inspectNavigatorRuntimeIdentity();
+    const vowOSContext = inspectVowOSContextRuntime();
+    const result = {
+      timestamp:new Date().toISOString(),
+      readOnly:true,
+      navigatorAppIdentifier:navigatorRuntime.appIdentifier,
+      navigator:navigatorRuntime,
+      identity,
+      vowOSContext,
+      clientInformation:inspectClientInformation(),
+      safety:{
+        vowOSContextInitCalled:false,
+        clientInformationCalled:false,
+        stateChangingCallsIssued:false,
+        settersCalled:false,
+        signingCallsIssued:false,
+        writesIssued:false,
+        installCallsIssued:false
+      }
     };
 
-    state.report.clientIdentityProbe = safeValue(result);
-    renderClientIdentityProbe(result);
+    state.report.clientIdentityProbe = safeValue(identity);
+    state.report.runtimeIdentityProbe = safeValue(result);
+    state.report.runtimeContextInitialization = {
+      inspectedAt:result.timestamp,
+      available:Boolean(
+        vowOSContext.methods &&
+        vowOSContext.methods.init &&
+        vowOSContext.methods.init.available
+      ),
+      called:false,
+      eligible:false,
+      reason:"vowOSContext.init is inspect-only until its source, arguments and side effects are proven safe on the real TV runtime."
+    };
+
+    renderRuntimeIdentityProbe(result);
     if (stateEl) {
       stateEl.textContent =
-        "Probe completed · identifier " + identityDisplayValue(result.serviceIdentifier) +
-        " · appIdentifier " + identityDisplayValue(result.appIdentifier) +
-        " · appId " + identityDisplayValue(result.appId);
+        "Probe completed · navigator.appIdentifier " + runtimeNavigatorDisplayValue(result) +
+        " · serviceIdentifier " + identityDisplayValue(identity.serviceIdentifier) +
+        " · appIdentifier " + identityDisplayValue(identity.appIdentifier) +
+        " · init " + (state.report.runtimeContextInitialization.available ? "inspect only" : "not available");
     }
-    log("Client identity probe — read-only context captured");
-    await saveReport("client-identity-probe");
+    log("Runtime identity probe — lifecycle metadata captured; init not called");
+    await saveReport("runtime-identity-probe");
+  }
+
+  async function readClientInformation() {
+    const stateEl = $("clientIdentityProbeState");
+    const record = {...inspectClientInformation(),called:true,readAt:new Date().toISOString()};
+
+    try {
+      const value = window.clientInformation;
+      record.status = "returned";
+      record.type = value === null ? "null" : typeof value;
+      record.sameAsNavigator = value === window.navigator;
+      record.value = safeValue(value);
+    } catch (error) {
+      record.status = "error";
+      record.error = errorText(error);
+    }
+
+    let currentRuntime = state.report.runtimeIdentityProbe;
+    if (!currentRuntime || !currentRuntime.timestamp) {
+      const navigatorRuntime = inspectNavigatorRuntimeIdentity();
+      currentRuntime = {
+        timestamp:new Date().toISOString(),
+        readOnly:true,
+        navigatorAppIdentifier:navigatorRuntime.appIdentifier,
+        navigator:navigatorRuntime,
+        identity:captureClientIdentityContext(false),
+        vowOSContext:inspectVowOSContextRuntime(),
+        safety:{}
+      };
+    }
+
+    currentRuntime.clientInformation = safeValue(record);
+    currentRuntime.safety = {
+      ...(currentRuntime.safety || {}),
+      clientInformationCalled:true,
+      clientInformationSetterCalled:false,
+      stateChangingCallsIssued:false,
+      writesIssued:false,
+      installCallsIssued:false
+    };
+
+    state.report.runtimeIdentityProbe = safeValue(currentRuntime);
+    renderRuntimeIdentityProbe(currentRuntime);
+    if (stateEl) {
+      stateEl.textContent = record.status === "returned"
+        ? "clientInformation read once · " + (record.sameAsNavigator ? "same object as navigator" : "value captured")
+        : "clientInformation read failed · " + (record.error || record.status);
+    }
+    log("clientInformation — manual read " + record.status);
+    await saveReport("client-information-read");
+  }
+
+  function hasMeaningfulIdentityValue(record) {
+    if (!record || record.status !== "returned") return false;
+    const value = record.value;
+    if (value === null || value === undefined) return false;
+    if (typeof value === "string") return value.trim().length > 0;
+    if (typeof value === "number" || typeof value === "boolean") {
+      return String(value).trim().length > 0;
+    }
+    return false;
+  }
+
+  function installIdentityGate() {
+    const runtime = state.report.runtimeIdentityProbe;
+    if (!runtime || !runtime.timestamp) {
+      return {
+        allowed:false,
+        reason:"Run Runtime Identity Probe before another install attempt.",
+        evidence:[]
+      };
+    }
+
+    const identity = runtime.identity || {};
+    const navigatorValue = runtime.navigatorAppIdentifier && runtime.navigatorAppIdentifier.currentValue;
+    const evidence = [];
+    if (hasMeaningfulIdentityValue(navigatorValue)) evidence.push("navigator.appIdentifier");
+    if (hasMeaningfulIdentityValue(identity.serviceIdentifier)) evidence.push("serviceIdentifier");
+    if (hasMeaningfulIdentityValue(identity.appIdentifier)) evidence.push("appIdentifier");
+    if (hasMeaningfulIdentityValue(identity.appId)) evidence.push("appId");
+
+    return {
+      allowed:evidence.length > 0,
+      reason:evidence.length
+        ? "Runtime app identity is non-empty."
+        : "Runtime app identity is still empty; Legacy/V2 retest blocked to avoid repeating the known 503 path.",
+      evidence
+    };
   }
 
   function refreshLauncher(appId) {
@@ -1730,6 +2103,21 @@
     if (diagnosticRunning) return;
     if (!validateInstallTarget()) return;
 
+    const identityGate = installIdentityGate();
+    if (!identityGate.allowed) {
+      state.report.installDiagnostic = {
+        status:STATUS.UNKNOWN,
+        attempts:[],
+        blockedAt:new Date().toISOString(),
+        blockedReason:identityGate.reason,
+        identityGate
+      };
+      setInstallState(identityGate.reason, "warn");
+      log("Install diagnostic blocked — no non-empty runtime app identity");
+      await saveReport("install-blocked-runtime-identity");
+      return;
+    }
+
     diagnosticRunning = true;
     setInstallControlsDisabled(true);
     try {
@@ -1802,6 +2190,14 @@
     if (diagnosticRunning) return;
     if (!validateInstallTarget()) return;
 
+    const identityGate = installIdentityGate();
+    if (!identityGate.allowed) {
+      setInstallState(identityGate.reason, "warn");
+      log(installMethodLabel(method) + " blocked — no non-empty runtime app identity");
+      await saveReport("advanced-install-blocked-runtime-identity");
+      return;
+    }
+
     diagnosticRunning = true;
     setInstallControlsDisabled(true);
     try {
@@ -1873,6 +2269,8 @@
         environment:safeValue(state.report.environment),
         permissionProbe:safeValue(state.report.permissionProbe),
         clientIdentityProbe:safeValue(state.report.clientIdentityProbe),
+        runtimeIdentityProbe:safeValue(state.report.runtimeIdentityProbe),
+        runtimeContextInitialization:safeValue(state.report.runtimeContextInitialization),
         target:safeValue(state.report.target),
         installDiagnostic:safeValue(state.report.installDiagnostic),
         verification:safeValue(state.report.verification),
@@ -1916,7 +2314,8 @@
 
   $("scanBtn").addEventListener("click", scan);
   $("permissionProbeBtn").addEventListener("click", permissionProbe);
-  $("clientIdentityProbeBtn").addEventListener("click", clientIdentityProbe);
+  $("clientIdentityProbeBtn").addEventListener("click", runtimeIdentityProbe);
+  $("clientInformationBtn").addEventListener("click", readClientInformation);
   $("saveBtn").addEventListener("click", saveTarget);
   $("verifyBtn").addEventListener("click", () => verify(true));
   $("installDiagnosticBtn").addEventListener("click", runInstallDiagnostic);

@@ -69,18 +69,24 @@
       <article class="card">
         <div class="cardHead">
           <div>
-            <p class="kicker">03 · CLIENT IDENTITY</p>
-            <h2>Client Identity Probe</h2>
+            <p class="kicker">03 · RUNTIME IDENTITY</p>
+            <h2>Runtime Identity</h2>
           </div>
-          <button id="clientIdentityProbeBtn" class="secondary">Client Identity Probe</button>
+          <button id="clientIdentityProbeBtn" class="secondary">Runtime Identity Probe</button>
         </div>
-        <p>Reads the current client identity used by VIDAA services. No role/customer changes, signing, writes or install calls.</p>
+        <p>Inspects <code>navigator.appIdentifier</code>, the VIDAA service identity and <code>vowOSContext</code>. Runtime init stays inspect-only until its source and arguments are proven safe.</p>
         <div class="identityGrid">
+          <div><span>navigator.appIdentifier</span><b id="navigatorAppIdentifierValue" class="summaryValue">UNAVAILABLE</b></div>
           <div><span>Service identifier</span><b id="serviceIdentifierValue" class="summaryValue">UNAVAILABLE</b></div>
           <div><span>App identifier</span><b id="appIdentifierValue" class="summaryValue">UNAVAILABLE</b></div>
           <div><span>App ID</span><b id="appIdValue" class="summaryValue">UNAVAILABLE</b></div>
           <div><span>Role ID</span><b id="roleIdValue" class="summaryValue">UNAVAILABLE</b></div>
           <div><span>Customer ID</span><b id="customerIdValue" class="summaryValue">UNAVAILABLE</b></div>
+          <div><span>vowOSContext.init</span><b id="vowOSInitValue" class="summaryValue">UNKNOWN</b></div>
+          <div><span>clientInformation</span><b id="clientInformationValue" class="summaryValue">INSPECT ONLY</b></div>
+        </div>
+        <div class="row">
+          <button id="clientInformationBtn" class="secondary">Read Client Information</button>
         </div>
         <div id="clientIdentityProbeState" class="state">Not run yet.</div>
       </article>
@@ -98,7 +104,7 @@
       <article class="card installCard">
         <p class="kicker">05 · INSTALL</p>
         <h2>Install Diagnostic</h2>
-        <p>Runs one controlled sequence: snapshot before → Legacy → verification → V2 → verification → final summary.</p>
+        <p>Runs the controlled Legacy/V2 diagnostic only after Runtime Identity finds a non-empty app identity. Empty identity is blocked instead of repeating the known 503 path.</p>
         <button id="installDiagnosticBtn" class="primaryAction">Run Install Diagnostic</button>
         <div id="installState" class="state">No install diagnostic yet.</div>
       </article>

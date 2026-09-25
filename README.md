@@ -65,15 +65,36 @@ sudo ./start-mac-linux.sh
 3. Open the TV browser and visit `https://vidaahub.com`.
 4. Run **Device / Environment Scan**.
 5. Run **Permission & AppConfig Probe**.
-6. Configure the target app if necessary.
-7. Press **Run Install Diagnostic**.
-8. Read the always-visible Summary. A JavaScript callback of `0` is never treated as installation success.
-9. Press **Export Report**.
-10. Use the single `sidee-session-....json` file in `reports/`.
+6. Run **Runtime Identity Probe**.
+7. If useful, press **Read Client Information** once; this is a manual read-only browser-information read.
+8. Configure the target app if necessary.
+9. Press **Run Install Diagnostic** only if Runtime Identity found a non-empty app identity. Sidee blocks repeated Legacy/V2 attempts while identity remains empty.
+10. Read the always-visible Summary. A JavaScript callback of `0` is never treated as installation success.
+11. Press **Export Report**.
+12. Use the single `sidee-session-....json` file in `reports/`.
 
 After testing, restore the TV DNS to Automatic.
 
 > The trusted hostname used by the projects we inspected is **vidaahub.com**, not vidaa.com.
+
+
+## Runtime identity probe
+
+Sidee now has a dedicated **Runtime Identity Probe** for the VIDAA 9 permission investigation.
+
+It records, without setters or security calls:
+
+- the descriptor/owner/value path for `navigator.appIdentifier`;
+- related Navigator properties containing app / identifier / client / context / VIDA / vow names;
+- `vowOS.service.getIdentifier` source and its relationship to `navigator.appIdentifier`;
+- the `vowOSContext` structure, prototype and function sources, including `getAppIdentifier`, `getAppId` and `init`;
+- the existing Role ID / Customer ID read-only snapshots.
+
+`vowOSContext.init()` is **not called**. Sidee only records its descriptor/source. A future manual init action should be added only if the real TV source makes the required arguments and non-destructive behavior clear.
+
+`window.clientInformation` has a separate manual **Read Client Information** action. The web platform defines it as a legacy read-only alias of `window.navigator`; Sidee never calls its setter. Its returned value is still safe-serialized and bounded.
+
+To avoid repeating the already-proven anonymous-client 503 path, Legacy/V2 install diagnostics are blocked until the Runtime Identity Probe finds at least one non-empty app identity field.
 
 ## Target app profile
 
