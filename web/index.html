@@ -35,7 +35,19 @@
       </article>
 
       <article class="card">
-        <p class="kicker">02 · NUVIO TARGET</p>
+        <div class="cardHead">
+          <div>
+            <p class="kicker">02 · READ-ONLY</p>
+            <h2>Permission &amp; AppConfig Probe</h2>
+          </div>
+          <button id="permissionProbeBtn" class="secondary">Run probe</button>
+        </div>
+        <p>Inspects AppConfig, permission/client/security-related runtime objects, <code>vowOS</code> and <code>HiUtils_createRequest</code> without calling unknown getters or methods.</p>
+        <div id="permissionProbeState" class="state">Permission probe not run yet.</div>
+      </article>
+
+      <article class="card">
+        <p class="kicker">03 · NUVIO TARGET</p>
         <h2>Install profile</h2>
         <label>App ID<input id="appId"></label>
         <label>Name<input id="appName"></label>
@@ -48,7 +60,7 @@
       </article>
 
       <article class="card">
-        <p class="kicker">03 · INSTALL</p>
+        <p class="kicker">04 · INSTALL</p>
         <h2>Launcher test</h2>
         <p>Test the legacy API first. If VIDAA returns code <code>0</code> without actually registering the app, try the separate V2 API. Sidee traces the internal HiUtils calls and verifies Appinfo before/after.</p>
         <div class="row">
@@ -60,7 +72,7 @@
       </article>
 
       <article class="card">
-        <p class="kicker">04 · DEEP READ-ONLY</p>
+        <p class="kicker">05 · DEEP READ-ONLY</p>
         <h2>Installed-app evidence</h2>
         <p>Checks <code>Hisense_getInstalledApps</code> when available and can read <code>websdk/Appinfo.json</code> through HiUtils if the firmware exposes read access. No file writes.</p>
         <button id="deepBtn" class="secondary">Run deep verification</button>
