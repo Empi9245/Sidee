@@ -12,21 +12,41 @@
       <div>
         <p class="eyebrow">VIDAA LOCAL LAB</p>
         <h1>Sidee</h1>
-        <p class="lead">Inspect first. Install only when the TV tells us what it actually supports.</p>
+        <p class="lead">One diagnostic session. One report. Verified installation only.</p>
       </div>
       <div id="deviceBadge" class="badge">Detecting TV…</div>
     </header>
 
-    <section class="grid">
+    <section class="summaryCard" aria-live="polite">
+      <div class="summaryHead">
+        <div>
+          <p class="kicker">LIVE SUMMARY</p>
+          <h2>Current diagnostic state</h2>
+        </div>
+        <span class="summaryHint">Updates while tests run</span>
+      </div>
+      <div class="summaryGrid">
+        <div><span>Environment</span><b id="summaryEnvironment" class="summaryValue">VIDAA</b></div>
+        <div><span>Origin</span><b id="summaryOrigin" class="summaryValue">—</b></div>
+        <div><span>Install API</span><b id="summaryInstallApi" class="summaryValue">UNKNOWN</b></div>
+        <div><span>AppConfig Probe</span><b id="summaryAppConfig" class="summaryValue">UNKNOWN</b></div>
+        <div><span>Install Request</span><b id="summaryInstallRequest" class="summaryValue">UNKNOWN</b></div>
+        <div><span>Internal reason</span><b id="summaryInternalReason" class="summaryValue">UNKNOWN</b></div>
+        <div><span>Permission code</span><b id="summaryPermissionCode" class="summaryValue">UNKNOWN</b></div>
+        <div><span>Verification</span><b id="summaryVerification" class="summaryValue">UNKNOWN</b></div>
+      </div>
+    </section>
+
+    <section class="grid workflow">
       <article class="card primary">
         <div class="cardHead">
           <div>
-            <p class="kicker">01 · SAFE START</p>
-            <h2>Read-only VIDAA scan</h2>
+            <p class="kicker">01 · DEVICE</p>
+            <h2>Device / Environment Scan</h2>
           </div>
-          <button id="scanBtn">Run scan</button>
+          <button id="scanBtn">Device / Environment Scan</button>
         </div>
-        <p>Finds exposed Hisense / VIDAA / OMI / HiUtils APIs and reads basic device information. It does not write system files.</p>
+        <p>Reads the TV environment and detects exposed VIDAA APIs. No writes.</p>
         <div class="stats">
           <div><b id="fnCount">—</b><span>APIs found</span></div>
           <div><b id="firmware">—</b><span>Firmware</span></div>
@@ -37,61 +57,71 @@
       <article class="card">
         <div class="cardHead">
           <div>
-            <p class="kicker">02 · READ-ONLY</p>
+            <p class="kicker">02 · PERMISSION</p>
             <h2>Permission &amp; AppConfig Probe</h2>
           </div>
-          <button id="permissionProbeBtn" class="secondary">Run probe</button>
+          <button id="permissionProbeBtn" class="secondary">Permission &amp; AppConfig Probe</button>
         </div>
-        <p>Inspects AppConfig, permission/client/security-related runtime objects, <code>vowOS</code> and <code>HiUtils_createRequest</code> without calling unknown getters or methods.</p>
-        <div id="permissionProbeState" class="state">Permission probe not run yet.</div>
+        <p>Read-only inspection of AppConfig, client/permission runtime data, <code>vowOS</code> and HiUtils metadata.</p>
+        <div id="permissionProbeState" class="state">Not run yet.</div>
       </article>
 
       <article class="card">
-        <p class="kicker">03 · NUVIO TARGET</p>
-        <h2>Install profile</h2>
-        <label>App ID<input id="appId"></label>
-        <label>Name<input id="appName"></label>
-        <label>Web app URL<input id="appUrl"></label>
-        <label>Icon URL<input id="iconUrl"></label>
-        <div class="row">
-          <button id="saveBtn" class="secondary">Save target</button>
-          <button id="verifyBtn" class="secondary">Verify only</button>
-        </div>
+        <p class="kicker">03 · TARGET</p>
+        <h2>Target App Configuration</h2>
+        <label>App ID<input id="appId" autocomplete="off"></label>
+        <label>Name<input id="appName" autocomplete="off"></label>
+        <label>Web app URL<input id="appUrl" autocomplete="off"></label>
+        <label>Icon URL<input id="iconUrl" autocomplete="off"></label>
+        <button id="saveBtn" class="secondary">Save Target</button>
       </article>
 
-      <article class="card">
+      <article class="card installCard">
         <p class="kicker">04 · INSTALL</p>
-        <h2>Launcher test</h2>
-        <p>Test the legacy API first. If VIDAA returns code <code>0</code> without actually registering the app, try the separate V2 API. Sidee traces the internal HiUtils calls and verifies Appinfo before/after.</p>
-        <div class="row">
-          <button id="installBtn">Install · Legacy</button>
-          <button id="installV2Btn" class="secondary">Install · V2</button>
-          <button id="uninstallBtn" class="danger">Uninstall</button>
-        </div>
-        <div id="installState" class="state">No install attempt yet.</div>
+        <h2>Install Diagnostic</h2>
+        <p>Runs one controlled sequence: snapshot before → Legacy → verification → V2 → verification → final summary.</p>
+        <button id="installDiagnosticBtn" class="primaryAction">Run Install Diagnostic</button>
+        <div id="installState" class="state">No install diagnostic yet.</div>
       </article>
 
       <article class="card">
-        <p class="kicker">05 · DEEP READ-ONLY</p>
-        <h2>Installed-app evidence</h2>
-        <p>Checks <code>Hisense_getInstalledApps</code> when available and can read <code>websdk/Appinfo.json</code> through HiUtils if the firmware exposes read access. No file writes.</p>
-        <button id="deepBtn" class="secondary">Run deep verification</button>
-        <pre id="verifyOutput">No verification result yet.</pre>
+        <p class="kicker">05 · VERIFY</p>
+        <h2>Verification</h2>
+        <p>Checks installed apps and read-only <code>websdk/Appinfo.json</code>. Only a positive match becomes <strong>VERIFIED INSTALLED</strong>.</p>
+        <button id="verifyBtn" class="secondary">Run Verification</button>
+        <div id="verifyOutput" class="verificationOutput">No verification result yet.</div>
       </article>
 
-      <article class="card wide">
-        <div class="cardHead">
-          <div>
-            <p class="kicker">DIAGNOSTICS</p>
-            <h2>VIDAA 9 report</h2>
-          </div>
-          <button id="reportBtn" class="secondary">Save report</button>
-        </div>
-        <pre id="console"></pre>
+      <article class="card">
+        <p class="kicker">06 · EXPORT</p>
+        <h2>Export Report</h2>
+        <p>Updates the current session file. Export never creates a second diagnostic report for this session.</p>
+        <div class="reportName"><span>Current report</span><b id="reportFileName">—</b></div>
+        <button id="reportBtn" class="secondary">Export Report</button>
+        <div id="reportSaveState" class="microState">Session autosaves after diagnostic phases.</div>
       </article>
+
+      <details class="advanced wide">
+        <summary tabindex="0">Advanced diagnostics</summary>
+        <div class="advancedBody">
+          <p>Manual single-method controls are kept here for targeted testing. They never run automatically.</p>
+          <div class="row">
+            <button id="installLegacyBtn" class="secondary">Legacy only</button>
+            <button id="installV2Btn" class="secondary">V2 only</button>
+            <button id="uninstallBtn" class="danger">Uninstall</button>
+          </div>
+          <div class="logHead">
+            <div>
+              <p class="kicker">COMPACT LOG</p>
+              <h2>Recent events</h2>
+            </div>
+          </div>
+          <pre id="console"></pre>
+        </div>
+      </details>
     </section>
 
-    <footer>Sidee only targets TVs you control. Direct Appinfo.json writes are intentionally disabled in this build.</footer>
+    <footer>Sidee targets TVs you control. Direct Appinfo.json writes are disabled.</footer>
   </main>
   <script src="/app.js"></script>
 </body>

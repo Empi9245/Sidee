@@ -48,11 +48,20 @@
       sessionId:getSessionId(),
       startedAt:now,
       updatedAt:now,
-      summary:{},
+      summary:{
+        origin:location.origin,
+        installApi:"UNKNOWN",
+        appConfigProbe:"UNKNOWN",
+        installRequest:"UNKNOWN",
+        internalReason:"UNKNOWN",
+        permissionCode:"UNKNOWN",
+        verification:"UNKNOWN",
+        conclusion:"UNKNOWN"
+      },
       environment:{},
       permissionProbe:{},
       target:{},
-      installDiagnostic:{attempts:[]},
+      installDiagnostic:{status:"UNKNOWN",attempts:[]},
       verification:{},
       raw:{snapshots:{}}
     };
@@ -63,6 +72,16 @@
     report:createSessionReport()
   };
   let reportSaveChain = Promise.resolve();
+  let diagnosticRunning = false;
+
+  const STATUS = Object.freeze({
+    AVAILABLE:"AVAILABLE",
+    REQUESTED:"REQUESTED",
+    REJECTED:"REJECTED",
+    VERIFIED_INSTALLED:"VERIFIED INSTALLED",
+    NOT_INSTALLED:"NOT INSTALLED",
+    UNKNOWN:"UNKNOWN"
+  });
 
   const KNOWN = [
     "Hisense_LoginWithVIDAA","Hisense_installApp_V2","Hisense_installApp",
@@ -626,21 +645,62 @@
     return compact;
   }
 
+  function currentReportFileName() {
+    return "sidee-session-" + state.report.sessionId.slice("sidee-".length) + ".json";
+  }
+
+  function summaryStatusClass(value) {
+    if ([STATUS.AVAILABLE, STATUS.VERIFIED_INSTALLED, "COMPLETED"].includes(value)) return "good";
+    if ([STATUS.REJECTED, STATUS.NOT_INSTALLED].includes(value)) return "bad";
+    if (value === STATUS.REQUESTED) return "warn";
+    return "";
+  }
+
+  function setSummaryValue(id, value) {
+    const el = $(id);
+    if (!el) return;
+    const text = value === null || value === undefined || value === "" ? STATUS.UNKNOWN : String(value);
+    el.textContent = text;
+    el.className = "summaryValue " + summaryStatusClass(text);
+  }
+
+  function environmentSummaryText() {
+    const summary = state.report.summary;
+    const os = summary.OS || "VIDAA";
+    return summary.apiVersion ? os + " / API " + summary.apiVersion : os;
+  }
+
+  function renderSummary() {
+    setSummaryValue("summaryEnvironment", environmentSummaryText());
+    setSummaryValue("summaryOrigin", state.report.summary.origin || location.origin);
+    setSummaryValue("summaryInstallApi", state.report.summary.installApi || STATUS.UNKNOWN);
+    setSummaryValue("summaryAppConfig", state.report.summary.appConfigProbe || STATUS.UNKNOWN);
+    setSummaryValue("summaryInstallRequest", state.report.summary.installRequest || STATUS.UNKNOWN);
+    setSummaryValue("summaryInternalReason", state.report.summary.internalReason || STATUS.UNKNOWN);
+    setSummaryValue("summaryPermissionCode", state.report.summary.permissionCode ?? STATUS.UNKNOWN);
+    setSummaryValue("summaryVerification", state.report.summary.verification || STATUS.UNKNOWN);
+    const reportName = $("reportFileName");
+    if (reportName) reportName.textContent = currentReportFileName();
+  }
+
   function updateSummaryFromEnvironment(environment) {
     const device = environment.device || {};
     const capabilities = environment.capabilities || {};
+    const installAvailable = Boolean(capabilities.installApp || capabilities.installAppV2);
     Object.assign(state.report.summary, {
       firmware:getterValue(device, "Hisense_GetFirmWareVersion"),
       model:getterValue(device, "Hisense_GetModelName"),
       OS:getterValue(device, "Hisense_GetOSVersion"),
       apiVersion:getterValue(device, "Hisense_GetApiVersion"),
       browser:getterValue(device, "Hisense_GetCurrentBrowser") || device.userAgent || null,
-      origin:device.origin || null,
+      origin:device.origin || location.origin,
       legacyAvailable:Boolean(capabilities.installApp),
       v2Available:Boolean(capabilities.installAppV2),
       getInstalledAppsAvailable:Boolean(capabilities.getInstalledApps),
-      supportAppConfigAvailable:Boolean(environment.supportAppConfigAvailable)
+      supportAppConfigAvailable:Boolean(environment.supportAppConfigAvailable),
+      installApi:installAvailable ? STATUS.AVAILABLE : STATUS.UNKNOWN
     });
+    renderSummary();
   }
 
   function findFirstValueByKeys(value, keys) {
@@ -664,31 +724,60 @@
     return null;
   }
 
-  function updateInstallSummary(attempt) {
+  function installTraceDetails(attempt) {
     const installTrace = (attempt.hiUtilsTrace || []).filter((entry) => String(entry.type).toLowerCase() === "installapplication");
     const latestTrace = installTrace.length ? installTrace[installTrace.length - 1] : null;
     const traceResult = latestTrace ? (latestTrace.result || latestTrace.error || latestTrace) : null;
     const internalRet = findFirstValueByKeys(traceResult, ["ret"]);
     const errorCode = findFirstValueByKeys(traceResult, ["code","errorCode"]);
     const errorMessage = findFirstValueByKeys(traceResult, ["message","msg","error"]);
-    const verified = Boolean(state.report.verification && state.report.verification.verified);
+    return {
+      internalRet,
+      errorCode,
+      errorMessage:errorMessage === null || errorMessage === undefined ? null : String(errorMessage),
+      appConfigPermissionFailure:
+        Number(errorCode) === 503 &&
+        /permission check error|appconfig/i.test(String(errorMessage || ""))
+    };
+  }
 
-    state.report.summary.installRequest = attempt.method || null;
-    if (internalRet !== null) state.report.summary.installApplicationRet = internalRet;
-    if (errorCode !== null) state.report.summary.permissionErrorCode = errorCode;
-    if (errorMessage !== null) state.report.summary.permissionError = String(errorMessage);
+  function classifyInstallAttempt(attempt, verification) {
+    const details = installTraceDetails(attempt);
+    if (verification && verification.verified) return STATUS.VERIFIED_INSTALLED;
+    if (details.appConfigPermissionFailure) return STATUS.REJECTED;
+    if (details.internalRet === false || attempt.returnValue === false) return STATUS.REJECTED;
+    if (attempt.callback && Number(attempt.callback.code) !== 0) return STATUS.REJECTED;
+    if (attempt.error || attempt.callbackTimeout || attempt.unavailable) return STATUS.UNKNOWN;
+    if (attempt.requested) return STATUS.REQUESTED;
+    return STATUS.UNKNOWN;
+  }
 
-    if (verified) {
-      state.report.summary.conclusion = "VERIFIED INSTALLED";
-    } else if (internalRet === false || errorCode !== null || /permission|appconfig/i.test(String(errorMessage || ""))) {
-      state.report.summary.conclusion = "REJECTED";
-    } else if (attempt.error) {
-      state.report.summary.conclusion = "INSTALL ERROR";
-    } else if (attempt.callback && Number(attempt.callback.code) === 0) {
-      state.report.summary.conclusion = "REQUEST ACCEPTED, NOT VERIFIED";
-    } else {
-      state.report.summary.conclusion = "NOT VERIFIED";
+  function updateInstallSummary(attempt, verification) {
+    const details = installTraceDetails(attempt);
+    const classification = classifyInstallAttempt(attempt, verification);
+    attempt.classification = classification;
+    attempt.internal = safeValue(details);
+
+    state.report.summary.installRequest = classification;
+    if (details.errorCode !== null && details.errorCode !== undefined) {
+      state.report.summary.permissionCode = details.errorCode;
     }
+    if (details.appConfigPermissionFailure) {
+      state.report.summary.internalReason = "APP CONFIG PERMISSION CHECK FAILED";
+      state.report.summary.permissionCode = 503;
+    } else if (details.errorMessage) {
+      state.report.summary.internalReason = truncateText(details.errorMessage, 180);
+    } else if (attempt.error) {
+      state.report.summary.internalReason = truncateText(attempt.error, 180);
+    }
+
+    if (verification) {
+      state.report.summary.verification = verification.verified ? STATUS.VERIFIED_INSTALLED : STATUS.NOT_INSTALLED;
+    }
+    state.report.summary.conclusion =
+      verification && verification.verified ? STATUS.VERIFIED_INSTALLED : classification;
+    renderSummary();
+    return classification;
   }
 
   function setInstallState(text, type) {
@@ -808,7 +897,7 @@
 
   async function scan() {
     logBox.textContent = "";
-    log("Starting read-only scan.");
+    log("Device scan — running");
     const functions = enumerateInterestingGlobals();
     const device = {
       location: location.href,
@@ -846,15 +935,9 @@
     $("firmware").textContent = state.report.summary.firmware || "unknown";
     $("model").textContent = state.report.summary.model || "unknown";
     $("deviceBadge").textContent = environment.capabilities.installApp ? "VIDAA APIs detected" : "VIDAA detected / install API unavailable";
-    log("Read-only scan complete.", {
-      firmware:state.report.summary.firmware,
-      model:state.report.summary.model,
-      os:state.report.summary.OS,
-      apiVersion:state.report.summary.apiVersion,
-      origin:state.report.summary.origin,
-      legacyAvailable:state.report.summary.legacyAvailable,
-      v2Available:state.report.summary.v2Available
-    });
+    const availableCount = functions.filter((x) => x.available).length;
+    log("Device scan complete — " + availableCount + " VIDAA APIs");
+    renderSummary();
     await saveReport("scan");
   }
 
@@ -936,6 +1019,8 @@
     };
     state.report.summary.supportAppConfigAvailable = Boolean(supportAppConfig.present);
     state.report.summary.supportAppConfigResult = compactSupportAppConfigResult(supportAppConfig);
+    state.report.summary.appConfigProbe = "COMPLETED";
+    renderSummary();
 
     stateEl.textContent =
       "Probe completed · " + summary.interestingEntries + " interesting entries · " +
@@ -943,7 +1028,8 @@
       "vowOS: " + summary.vowOS + " · " +
       "HiUtils_createRequest: " + summary.hiUtils;
 
-    log("Permission & AppConfig probe complete.", summary);
+    log("Permission probe — " + summary.interestingEntries + " relevant runtime entries");
+    log("Hisense_SupportAppConfig — " + summary.supportAppConfig);
     await saveReport("permission-appconfig-probe");
   }
 
@@ -1144,7 +1230,7 @@
 
     const phase = opts.snapshot || ((state.report.installDiagnostic.attempts || []).length ? "after" : "before");
     if (phase === "before" || phase === "after") {
-      const replaceSnapshot = phase === "after";
+      const replaceSnapshot = opts.replaceSnapshot === true || phase === "after";
       captureRawSnapshot("installedApps" + (phase === "before" ? "Before" : "After"), installedAppsRaw, replaceSnapshot);
       if (deep) captureRawSnapshot("appInfo" + (phase === "before" ? "Before" : "After"), appInfoRaw, replaceSnapshot);
     }
@@ -1165,33 +1251,19 @@
     state.report.verification = safeValue(result);
     state.report.summary.getInstalledAppsAvailable = installedApps.available;
     if (deep && appInfo.available) state.report.summary.appInfoReadable = appInfo.ok;
-    state.report.summary.verification = result.verified ? "VERIFIED INSTALLED" : "NOT VERIFIED";
+    state.report.summary.verification = result.verified ? STATUS.VERIFIED_INSTALLED : STATUS.NOT_INSTALLED;
     if (result.verified) state.report.summary.conclusion = "VERIFIED INSTALLED";
 
-    $("verifyOutput").textContent = safeJson({
-      verified:result.verified,
-      evidence:result.evidence,
-      installedApps:{
-        available:installedApps.available,
-        ok:installedApps.ok,
-        count:installedApps.count,
-        matched:installedApps.apps.filter((app) => app.matchedTarget)
-      },
-      appInfo:{
-        available:appInfo.available,
-        ok:appInfo.ok,
-        skipped:appInfo.skipped,
-        count:appInfo.count,
-        matched:appInfo.apps.filter((app) => app.matchedTarget)
-      }
-    });
+    $("verifyOutput").textContent =
+      (result.verified ? STATUS.VERIFIED_INSTALLED : STATUS.NOT_INSTALLED) +
+      " · Installed apps: " + installedApps.count +
+      (deep ? " · Appinfo: " + appInfo.count : "") +
+      (result.evidence ? " · Evidence: " + result.evidence : "");
+    renderSummary();
     if (opts.log !== false) {
-      log("Verification complete.", {
-        verified:result.verified,
-        evidence:result.evidence,
-        installedAppsCount:installedApps.count,
-        appInfoCount:appInfo.count
-      });
+      log(result.verified
+        ? "Verification — target found via " + result.evidence
+        : "Verification — target not found");
     }
     if (opts.autosave !== false) await saveReport("verification");
     return result;
@@ -1219,111 +1291,238 @@
     };
   }
 
-  async function installWithMethod(method) {
+  function validateInstallTarget() {
     const target = currentTarget();
     if (!target.app_id || !target.app_name || !target.app_url) {
       setInstallState("App ID, name and URL are required.", "bad");
-      return;
+      return null;
     }
+    return target;
+  }
 
+  function installMethodLabel(method) {
+    return method === "v2" ? "V2 install" : "Legacy install";
+  }
+
+  function setInstallControlsDisabled(disabled) {
+    ["installDiagnosticBtn","installLegacyBtn","installV2Btn","uninstallBtn"].forEach((id) => {
+      const el = $(id);
+      if (el) el.disabled = Boolean(disabled);
+    });
+  }
+
+  async function runInstallAttempt(method) {
+    const target = currentTarget();
     const isV2 = method === "v2";
-    const api = isV2 ? window.Hisense_installApp_V2 : window.Hisense_installApp;
-    if (typeof api !== "function") {
-      setInstallState((isV2 ? "Hisense_installApp_V2" : "Hisense_installApp") + " is not available in this browser context.", "bad");
-      return;
-    }
-
+    const apiName = isV2 ? "Hisense_installApp_V2" : "Hisense_installApp";
+    const api = window[apiName];
     const icon = resolveIconUrl(target);
-    if (!icon) {
-      setInstallState("A valid icon URL is required.", "bad");
-      return;
-    }
-    if ($("iconUrl").value.trim() !== icon) $("iconUrl").value = icon;
-    syncTargetToReport();
-
-    const baseline = await verify(true, {snapshot:"before",autosave:false,log:false});
     const attempt = {
       timestamp:new Date().toISOString(),
       method,
-      target:{...target, resolved_icon_url:icon},
-      before:verificationReference(baseline),
+      api:apiName,
+      target:{...target, resolved_icon_url:icon || null},
+      requested:false,
       callback:null,
       returnValue:null,
       refresh:null,
       verification:null,
-      hiUtilsTrace:[]
+      hiUtilsTrace:[],
+      classification:STATUS.UNKNOWN
     };
     state.report.installDiagnostic.attempts.push(attempt);
-    state.report.summary.installRequest = method;
 
-    setInstallState("Calling " + (isV2 ? "Hisense_installApp_V2" : "Hisense_installApp") + "…", "warn");
-    const restoreTrace = beginHiUtilsTrace(attempt);
-    let callbackFinished = false;
+    if (typeof api !== "function") {
+      attempt.unavailable = true;
+      attempt.completedAt = new Date().toISOString();
+      return attempt;
+    }
+    if (!icon) {
+      attempt.error = "A valid icon URL is required.";
+      attempt.completedAt = new Date().toISOString();
+      return attempt;
+    }
 
-    const callback = async function (code) {
-      if (callbackFinished) return;
-      callbackFinished = true;
-      restoreTrace();
-      attempt.callback = {code:safeValue(code),receivedAt:new Date().toISOString()};
-      log((isV2 ? "Hisense_installApp_V2" : "Hisense_installApp") + " callback.", {code:attempt.callback.code});
+    if ($("iconUrl").value.trim() !== icon) $("iconUrl").value = icon;
+    syncTargetToReport();
+    setInstallState(installMethodLabel(method) + " — requesting…", "warn");
 
-      attempt.refresh = refreshLauncher(target.app_id);
-      await new Promise((resolve) => setTimeout(resolve,1500));
-      const verification = await verify(true, {snapshot:"after",autosave:false});
-      attempt.verification = verificationReference(verification);
-      updateInstallSummary(attempt);
+    return await new Promise((resolve) => {
+      const restoreTrace = beginHiUtilsTrace(attempt);
+      let settled = false;
+      let timer = null;
 
-      if (verification.verified) {
-        setInstallState("Verified: Nuvio is present (" + verification.evidence + "). Restart the TV if the launcher has not refreshed yet.", "good");
-      } else if (Number(code) === 0) {
-        const installTrace = (attempt.hiUtilsTrace || []).filter((entry) => entry.type === "installApplication");
-        const suffix = installTrace.length ? " Internal installApplication trace captured in the report." : " No installApplication trace was intercepted.";
-        setInstallState("VIDAA returned code 0, but Sidee could NOT verify the app. Request accepted ≠ installed." + suffix, "warn");
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        if (timer) clearTimeout(timer);
+        restoreTrace();
+        attempt.completedAt = new Date().toISOString();
+        resolve(attempt);
+      };
+
+      const callback = function (code) {
+        if (settled) return;
+        attempt.callback = {code:safeValue(code),receivedAt:new Date().toISOString()};
+        attempt.refresh = refreshLauncher(target.app_id);
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(finish, 1500);
+      };
+
+      try {
+        attempt.requested = true;
+        if (isV2) {
+          const appInfo = buildV2AppInfo(target, icon);
+          attempt.v2Payload = safeValue(appInfo);
+          attempt.returnValue = safeValue(api(appInfo, callback));
+        } else {
+          attempt.returnValue = safeValue(api(
+            target.app_id, target.app_name,
+            icon, icon, icon,
+            target.app_url, target.store_type || "store",
+            callback
+          ));
+        }
+        timer = setTimeout(() => {
+          attempt.callbackTimeout = true;
+          finish();
+        }, 5000);
+      } catch (error) {
+        attempt.error = errorText(error);
+        finish();
+      }
+    });
+  }
+
+  function logAttemptResult(attempt) {
+    const details = installTraceDetails(attempt);
+    const codeSuffix =
+      details.errorCode !== null && details.errorCode !== undefined
+        ? " (" + details.errorCode + ")"
+        : "";
+    log(installMethodLabel(attempt.method) + " — " + String(attempt.classification || STATUS.UNKNOWN).toLowerCase() + codeSuffix);
+  }
+
+  async function verifyAttempt(attempt) {
+    const verification = await verify(true, {
+      snapshot:"after",
+      replaceSnapshot:true,
+      autosave:false,
+      log:false
+    });
+    attempt.verification = verificationReference(verification);
+    updateInstallSummary(attempt, verification);
+    logAttemptResult(attempt);
+    log(verification.verified ? "Verification — target found" : "Verification — target not found");
+    return verification;
+  }
+
+  async function runInstallDiagnostic() {
+    if (diagnosticRunning) return;
+    if (!validateInstallTarget()) return;
+
+    diagnosticRunning = true;
+    setInstallControlsDisabled(true);
+    try {
+      state.report.installDiagnostic = {
+        startedAt:new Date().toISOString(),
+        status:STATUS.REQUESTED,
+        attempts:[]
+      };
+      Object.assign(state.report.summary, {
+        installRequest:STATUS.REQUESTED,
+        internalReason:STATUS.UNKNOWN,
+        permissionCode:STATUS.UNKNOWN,
+        verification:STATUS.UNKNOWN,
+        conclusion:STATUS.REQUESTED
+      });
+      renderSummary();
+
+      setInstallState("Snapshot before install diagnostic…", "warn");
+      const baseline = await verify(true, {
+        snapshot:"before",
+        replaceSnapshot:true,
+        autosave:false,
+        log:false
+      });
+      state.report.installDiagnostic.before = verificationReference(baseline);
+      await saveReport("install-diagnostic-before");
+
+      const legacyAttempt = await runInstallAttempt("legacy");
+      const legacyVerification = await verifyAttempt(legacyAttempt);
+      await saveReport("install-diagnostic-legacy");
+
+      const v2Attempt = await runInstallAttempt("v2");
+      const v2Verification = await verifyAttempt(v2Attempt);
+
+      const verified = Boolean(legacyVerification.verified || v2Verification.verified);
+      const attempts = state.report.installDiagnostic.attempts;
+      const anyRejected = attempts.some((attempt) => attempt.classification === STATUS.REJECTED);
+      const anyRequested = attempts.some((attempt) => attempt.classification === STATUS.REQUESTED);
+      const finalStatus = verified
+        ? STATUS.VERIFIED_INSTALLED
+        : anyRejected
+          ? STATUS.REJECTED
+          : anyRequested
+            ? STATUS.REQUESTED
+            : STATUS.UNKNOWN;
+
+      state.report.installDiagnostic.status = finalStatus;
+      state.report.installDiagnostic.completedAt = new Date().toISOString();
+      state.report.installDiagnostic.finalVerification = verificationReference(v2Verification);
+      state.report.summary.installRequest = finalStatus;
+      state.report.summary.verification = verified ? STATUS.VERIFIED_INSTALLED : STATUS.NOT_INSTALLED;
+      state.report.summary.conclusion = verified ? STATUS.VERIFIED_INSTALLED : finalStatus;
+      renderSummary();
+
+      if (verified) {
+        setInstallState("VERIFIED INSTALLED — target found by verification.", "good");
+      } else if (finalStatus === STATUS.REJECTED) {
+        setInstallState("REJECTED — install request failed. See Summary for the internal reason.", "bad");
       } else {
-        setInstallState("VIDAA install callback returned: " + String(code) + ".", "bad");
+        setInstallState("Diagnostic complete — target is NOT INSTALLED.", "warn");
       }
       await saveReport("install-diagnostic");
-    };
+    } finally {
+      diagnosticRunning = false;
+      setInstallControlsDisabled(false);
+    }
+  }
 
+  async function runAdvancedInstall(method) {
+    if (diagnosticRunning) return;
+    if (!validateInstallTarget()) return;
+
+    diagnosticRunning = true;
+    setInstallControlsDisabled(true);
     try {
-      if (isV2) {
-        const appInfo = buildV2AppInfo(target, icon);
-        attempt.v2Payload = safeValue(appInfo);
-        attempt.returnValue = safeValue(api(appInfo, callback));
-      } else {
-        attempt.returnValue = safeValue(api(
-          target.app_id, target.app_name,
-          icon, icon, icon,
-          target.app_url, target.store_type || "store",
-          callback
-        ));
+      if (!state.report.installDiagnostic || !Array.isArray(state.report.installDiagnostic.attempts)) {
+        state.report.installDiagnostic = {status:STATUS.UNKNOWN,attempts:[]};
       }
-
-      setTimeout(async function () {
-        if (!callbackFinished) {
-          restoreTrace();
-          attempt.callbackTimeout = true;
-          updateInstallSummary(attempt);
-          setInstallState("The install API did not call back within 5 seconds. The session report was updated.", "warn");
-          await saveReport("install-diagnostic-timeout");
-        }
-      }, 5000);
-    } catch (e) {
-      restoreTrace();
-      attempt.error = errorText(e);
-      updateInstallSummary(attempt);
-      setInstallState("Install call threw: " + attempt.error, "bad");
-      log("Install exception.", {method, error:attempt.error});
-      await saveReport("install-diagnostic-error");
+      const baseline = await verify(true, {
+        snapshot:"before",
+        replaceSnapshot:true,
+        autosave:false,
+        log:false
+      });
+      const attempt = await runInstallAttempt(method);
+      attempt.before = verificationReference(baseline);
+      await verifyAttempt(attempt);
+      state.report.installDiagnostic.status = attempt.classification;
+      state.report.installDiagnostic.completedAt = new Date().toISOString();
+      await saveReport("advanced-" + method + "-diagnostic");
+    } finally {
+      diagnosticRunning = false;
+      setInstallControlsDisabled(false);
     }
   }
 
   async function install() {
-    return installWithMethod("legacy");
+    return runAdvancedInstall("legacy");
   }
 
   async function installV2() {
-    return installWithMethod("v2");
+    return runAdvancedInstall("v2");
   }
 
   async function uninstall() {
@@ -1383,11 +1582,15 @@
       });
       const data = await r.json();
       if (!r.ok || !data.ok) throw new Error(data.error || ("HTTP " + r.status));
-      log(reason === "export"
-        ? "Report export synced: " + data.file
-        : "Session report updated: " + data.file);
+      const reportName = $("reportFileName");
+      if (reportName) reportName.textContent = data.file || currentReportFileName();
+      const saveState = $("reportSaveState");
+      if (saveState) saveState.textContent = reason === "export" ? "Report exported/synced." : "Session autosaved.";
+      if (reason === "export") log("Export Report — " + data.file);
       return data;
     } catch (e) {
+      const saveState = $("reportSaveState");
+      if (saveState) saveState.textContent = "Report save failed: " + errorText(e);
       log("Could not save session report.", {reason,error:errorText(e)});
       return {ok:false,error:errorText(e)};
     }
@@ -1403,26 +1606,99 @@
   $("scanBtn").addEventListener("click", scan);
   $("permissionProbeBtn").addEventListener("click", permissionProbe);
   $("saveBtn").addEventListener("click", saveTarget);
-  $("verifyBtn").addEventListener("click", () => verify(false));
-  $("deepBtn").addEventListener("click", () => verify(true));
-  $("installBtn").addEventListener("click", install);
+  $("verifyBtn").addEventListener("click", () => verify(true));
+  $("installDiagnosticBtn").addEventListener("click", runInstallDiagnostic);
+  $("installLegacyBtn").addEventListener("click", install);
   $("installV2Btn").addEventListener("click", installV2);
   $("uninstallBtn").addEventListener("click", uninstall);
   $("reportBtn").addEventListener("click", () => saveReport("export"));
 
+  function isVisibleFocusable(element) {
+    if (!element || element.disabled) return false;
+    const style = window.getComputedStyle(element);
+    return style.display !== "none" && style.visibility !== "hidden" && element.getClientRects().length > 0;
+  }
+
+  function focusableControls() {
+    return Array.from(document.querySelectorAll("button,input,summary"))
+      .filter(isVisibleFocusable);
+  }
+
+  function elementCenter(element) {
+    const rect = element.getBoundingClientRect();
+    return {x:rect.left + rect.width / 2, y:rect.top + rect.height / 2};
+  }
+
+  function spatialTarget(current, key, candidates) {
+    const from = elementCenter(current);
+    let best = null;
+    let bestScore = Infinity;
+
+    for (const candidate of candidates) {
+      if (candidate === current) continue;
+      const to = elementCenter(candidate);
+      const dx = to.x - from.x;
+      const dy = to.y - from.y;
+      let primary = 0;
+      let cross = 0;
+
+      if (key === "ArrowUp") {
+        if (dy >= -4) continue;
+        primary = -dy;
+        cross = Math.abs(dx);
+      } else if (key === "ArrowDown") {
+        if (dy <= 4) continue;
+        primary = dy;
+        cross = Math.abs(dx);
+      } else if (key === "ArrowLeft") {
+        if (dx >= -4) continue;
+        primary = -dx;
+        cross = Math.abs(dy);
+      } else if (key === "ArrowRight") {
+        if (dx <= 4) continue;
+        primary = dx;
+        cross = Math.abs(dy);
+      }
+
+      const score = primary * 10 + cross;
+      if (score < bestScore) {
+        best = candidate;
+        bestScore = score;
+      }
+    }
+    return best;
+  }
+
   window.addEventListener("keydown", (e) => {
-    if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
-      const list = Array.from(document.querySelectorAll("button,input")).filter((x)=>!x.disabled);
-      const i = Math.max(0, list.indexOf(document.activeElement));
-      const delta = (e.key === "ArrowUp" || e.key === "ArrowLeft") ? -1 : 1;
-      list[(i + delta + list.length) % list.length]?.focus();
+    const key = e.key || ({13:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[e.keyCode]);
+    const active = document.activeElement;
+
+    if ((key === "Enter" || key === "OK") && active && (active.tagName === "BUTTON" || active.tagName === "SUMMARY")) {
+      e.preventDefault();
+      active.click();
+      return;
+    }
+
+    if (!["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(key)) return;
+    if (active && active.tagName === "INPUT" && (key === "ArrowLeft" || key === "ArrowRight")) return;
+
+    const controls = focusableControls();
+    if (!controls.length) return;
+    const current = controls.includes(active) ? active : controls[0];
+    const target = spatialTarget(current, key, controls);
+    if (target) {
+      target.focus();
+      e.preventDefault();
+    } else if (!controls.includes(active)) {
+      current.focus();
       e.preventDefault();
     }
   });
 
   getConfig().then(() => {
     syncTargetToReport();
-    log("Sidee UI ready.", {sessionId:state.report.sessionId});
+    renderSummary();
+    log("Sidee UI ready — " + currentReportFileName());
     $("deviceBadge").textContent = typeof window.Hisense_GetFirmWareVersion === "function" ? "VIDAA browser detected" : "Waiting for VIDAA APIs";
   }).catch((e)=>log("Config load failed.",String(e)));
 })();

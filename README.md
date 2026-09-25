@@ -17,14 +17,14 @@ Sidee is deliberately more conservative on VIDAA 9: **direct writes to `websdk/A
 - TV-friendly interface
 - read-only scanner for Hisense / VIDAA / HiUtils / OMI APIs
 - device/model/firmware diagnostics
-- legacy `Hisense_installApp` install test
-- separate `Hisense_installApp_V2` test when exposed by the firmware
+- one explicit **Run Install Diagnostic** workflow: before snapshot → Legacy diagnostic → verification → V2 diagnostic → verification → final summary
+- Legacy-only and V2-only controls kept under **Advanced diagnostics**, not presented as competing solutions
 - internal `HiUtils_createRequest` tracing during native install calls (including `installApplication` results)
 - launcher refresh through `omi_platform` / `opera_omi`
 - post-install verification using `Hisense_getInstalledApps`
 - optional **read-only** `websdk/Appinfo.json` verification when HiUtils is available
 - one continuously updated JSON report per diagnostic session under `reports/`
-- editable Nuvio target profile from the TV UI
+- editable generic target-app profile from the TV UI; the current default ID/name are `nuviodebug` / `Nuvio TV`
 
 ## Important difference from older installers
 
@@ -61,28 +61,25 @@ sudo ./start-mac-linux.sh
 ## TV steps
 
 1. Start Sidee on a computer connected to the same LAN as the TV.
-2. Sidee prints the PC's LAN IP.
-3. On the Hisense TV, set the DNS server manually to that IP.
-4. Open the TV browser.
-5. Visit:
-   ```
-   https://vidaahub.com
-   ```
-6. Accept the local/self-signed certificate warning if VIDAA shows one.
-7. **Run Read-only Scan first.**
-8. Review the detected APIs.
-9. Use Verify / Deep verification.
-10. Only then try Install Nuvio.
+2. Set the TV DNS manually to the PC IP printed by Sidee.
+3. Open the TV browser and visit `https://vidaahub.com`.
+4. Run **Device / Environment Scan**.
+5. Run **Permission & AppConfig Probe**.
+6. Configure the target app if necessary.
+7. Press **Run Install Diagnostic**.
+8. Read the always-visible Summary. A JavaScript callback of `0` is never treated as installation success.
+9. Press **Export Report**.
+10. Use the single `sidee-session-....json` file in `reports/`.
 
 After testing, restore the TV DNS to Automatic.
 
 > The trusted hostname used by the projects we inspected is **vidaahub.com**, not vidaa.com.
 
-## Nuvio target
+## Target app profile
 
-`config.json` contains the Nuvio app ID/name profile. The deployment URL and icon are intentionally left blank until you enter the current Nuvio host. They can be entered directly from the Sidee TV interface and saved back to the host.
+`config.json` keeps the target generic. The current defaults are app ID `nuviodebug` and name `Nuvio TV`; deployment URL and icon URL remain configurable from the Sidee UI and are not hardcoded to a LAN address.
 
-If your current Nuvio deployment uses a different URL, change it before pressing Install.
+The main install classifications are `AVAILABLE`, `REQUESTED`, `REJECTED`, `VERIFIED INSTALLED`, `NOT INSTALLED`, and `UNKNOWN`. If the internal HiUtils trace returns `ret:false`, code `503`, and the AppConfig permission-check message, Sidee classifies the request as `REJECTED` even if the outer callback is `0`.
 
 ## Reports
 

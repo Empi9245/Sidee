@@ -1077,3 +1077,169 @@ Questi test verificano la logica locale e il formato report. Il prossimo test su
 ### Correzione session lifetime — 2026-09-25
 
 Il `sessionId` viene ora conservato in `sessionStorage` e riutilizzato se rispetta la regex prevista. In questo modo un reload/navigazione nella stessa browser session continua a puntare allo stesso filename server-side invece di creare un nuovo ID.
+
+
+---
+
+## IMPLEMENTAZIONE — Install Diagnostic + Summary + UI TV — 2026-09-25
+
+Questa fase conclude il refactor diagnostico richiesto. Non è stata rifatta ricerca VIDAA/AppConfig esterna: sono state riutilizzate esclusivamente le evidenze già documentate in questo file.
+
+### Workflow finale
+
+La UI TV è organizzata nell'ordine:
+
+1. Device / Environment Scan
+2. Permission & AppConfig Probe
+3. Target App Configuration
+4. Install Diagnostic
+5. Verification
+6. Export Report
+
+La Summary è separata dal log ed è visibile in alto durante il workflow.
+
+### Pulsanti principali
+
+I pulsanti principali sono:
+
+- `Device / Environment Scan`
+- `Permission & AppConfig Probe`
+- `Save Target`
+- `Run Install Diagnostic`
+- `Run Verification`
+- `Export Report`
+
+Legacy/V2 non sono più presentati come due possibili soluzioni equivalenti.
+
+### Run Install Diagnostic
+
+L'azione esplicita `Run Install Diagnostic` esegue:
+
+1. snapshot before;
+2. Legacy diagnostic;
+3. verification;
+4. V2 diagnostic;
+5. verification;
+6. summary finale;
+7. aggiornamento dello stesso report di sessione.
+
+Il Permission/AppConfig Probe non avvia mai automaticamente l'installazione.
+
+### Classificazione install
+
+Gli stati principali usati sono:
+
+- `AVAILABLE`
+- `REQUESTED`
+- `REJECTED`
+- `VERIFIED INSTALLED`
+- `NOT INSTALLED`
+- `UNKNOWN`
+
+Regola fondamentale mantenuta:
+
+- callback JavaScript `0` non significa successo;
+- se non esiste verification positiva non viene mostrato SUCCESS;
+- se il trace `installApplication` contiene `ret:false`, `code:503` e il messaggio AppConfig permission check, la richiesta viene classificata `REJECTED`;
+- in quel caso la Summary normalizza la reason a `APP CONFIG PERMISSION CHECK FAILED` e mostra permission code `503`;
+- l'unico successo finale è `VERIFIED INSTALLED`.
+
+### Summary TV
+
+La Summary mostra:
+
+- Environment, per esempio VIDAA / API version;
+- Origin;
+- Install API;
+- AppConfig Probe;
+- Install Request;
+- Internal reason;
+- Permission code;
+- Verification.
+
+Si aggiorna durante scan, probe, install diagnostic e verification. Il risultato principale non dipende dal log.
+
+### Advanced diagnostics
+
+Dentro `Advanced diagnostics` sono stati spostati:
+
+- `Legacy only`;
+- `V2 only`;
+- `Uninstall`;
+- compact log.
+
+Uninstall non viene mai eseguito automaticamente.
+
+### D-pad / telecomando
+
+La navigazione non usa più il semplice ordine globale di `button,input`.
+
+Usa i rettangoli reali dei controlli visibili:
+
+- Up/Down sceglie il controllo spazialmente più vicino sopra/sotto;
+- Left/Right sceglie il controllo più vicino a sinistra/destra;
+- Enter/OK attiva button e summary;
+- nei campi input Left/Right resta disponibile per muovere il cursore di testo;
+- i controlli nascosti dentro Advanced chiuso non entrano nella navigazione;
+- mouse e tastiera PC continuano a funzionare.
+
+Il focus è stato reso molto più evidente e i controlli sono più grandi, con una scala ulteriore su viewport 4K.
+
+### Log
+
+Il log è collassato dentro Advanced diagnostics e usa messaggi sintetici, per esempio:
+
+- `Device scan complete — N VIDAA APIs`
+- `Permission probe — N relevant runtime entries`
+- `Hisense_SupportAppConfig — returned/...`
+- `Legacy install — rejected (503)`
+- `V2 install — rejected (503)`
+- `Verification — target not found`
+
+I dettagli completi restano nel JSON.
+
+### Report
+
+Rimane un solo report aggiornabile per sessione:
+
+`sidee-session-YYYYMMDD-HHMMSS-xxxx.json`
+
+`Export Report` sincronizza la sessione corrente e la UI mostra il filename corrente.
+
+### Target
+
+Il target resta configurabile con:
+
+- app ID;
+- nome;
+- URL;
+- icon URL.
+
+I default correnti restano `nuviodebug` / `Nuvio TV`, ma nessun IP LAN viene hardcodato nel frontend.
+
+### Server / sicurezza
+
+Non sono stati cambiati DNS, HTTPS, certificate generation o DNS forwarding.
+
+Restano vietati/assenti dal workflow automatico:
+
+- `fileWrite`;
+- write diretto di Appinfo;
+- install automatico dopo Permission Probe;
+- uninstall automatico;
+- reset / Set* / metodi security state-changing.
+
+### Test reale da fare sulla Hisense
+
+1. avvia Sidee sul PC;
+2. imposta DNS TV sul PC;
+3. apri `https://vidaahub.com`;
+4. premi `Device / Environment Scan`;
+5. premi `Permission & AppConfig Probe`;
+6. controlla Summary;
+7. configura target se necessario;
+8. premi `Run Install Diagnostic`;
+9. lascia completare Legacy + V2 + verification;
+10. premi `Export Report`;
+11. prendi il singolo JSON nella cartella `reports`;
+12. usa quel report come input della chat successiva.
