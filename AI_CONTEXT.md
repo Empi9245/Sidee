@@ -759,3 +759,151 @@ La prossima AI deve poter leggere `AI_CONTEXT.md` e sapere:
 - quale test implementare dopo.
 
 Questo evita di spendere gran parte della chat a rifare ricerche GitHub/web già concluse.
+
+---
+
+## IMPLEMENTAZIONE — Permission & AppConfig Probe — 2026-09-25
+
+Questa fase è stata implementata senza nuove ricerche web/GitHub: sono state riutilizzate le evidenze già documentate sopra.
+
+### Stato implementato
+
+La UI contiene ora un'azione separata chiamata "Permission & AppConfig Probe".
+
+Il risultato sintetico mostra:
+- completamento del probe;
+- numero totale di entry interessanti raccolte;
+- stato di Hisense_SupportAppConfig;
+- presenza/assenza di vowOS;
+- presenza/assenza di HiUtils_createRequest.
+
+I dettagli completi vengono salvati in state.permissionProbe e quindi inclusi nei report JSON esistenti tramite saveReport("permission-appconfig-probe").
+
+### Matcher runtime
+
+enumerateInterestingGlobals() mantiene i matcher VIDAA/Hisense già utili e include anche:
+
+- appconfig / appConfig
+- permission / permissions
+- access
+- client
+- whitelist
+- domain
+- origin
+- security
+- installApplication
+- config
+- capability
+- privilege
+- auth
+- certificate
+- signature
+- sign
+- vowOS
+- hiutils
+- Hisense_SupportAppConfig
+
+L'enumerazione usa descriptor e non legge automaticamente il valore di accessor/getter globali.
+
+### Introspezione sicura
+
+Per gli oggetti ispezionati il probe può salvare:
+
+- path completo;
+- property name;
+- tipo;
+- valore primitivo per normali data property;
+- enumerable;
+- configurable;
+- writable quando applicabile;
+- presenza getter/setter;
+- source getter/setter senza invocarli;
+- source delle funzioni;
+- riferimenti interessanti estratti dal source;
+- info sul prototype;
+- elenco di proprietà interessanti;
+- errori di descriptor/property enumeration.
+
+La traversal usa una coda iterativa e gestione circular reference; non usa recursion libera.
+
+Limiti implementati:
+
+- profondità massima: 3;
+- massimo proprietà lette per oggetto: 80;
+- massimo entry di proprietà totali: 700;
+- massimo entry per root: 220;
+- massimo global match: 320;
+- stringhe: 1000 caratteri;
+- function/getter/setter source: 5000 caratteri;
+- proprietà prototype salvate: 50;
+- source references: 50.
+
+### Hisense_SupportAppConfig
+
+Se è presente come normale data property e contiene una funzione, il probe:
+
+1. salva descriptor e function source;
+2. chiama Hisense_SupportAppConfig() senza parametri;
+3. salva stato returned oppure error;
+4. salva tipo/valore primitivo del risultato;
+5. se il risultato è un oggetto, lo ispeziona con gli stessi limiti sicuri.
+
+Se il simbolo globale fosse esposto tramite accessor, il probe registra l'accessor ma NON lo invoca.
+
+### HiUtils_createRequest
+
+Il probe salva descriptor, function source e riferimenti/stringhe interessanti estratti dal source.
+
+Il Permission/AppConfig Probe NON chiama HiUtils_createRequest e non inventa/brute-forza nomi di API HiUtils.
+
+Il fileRead di websdk/Appinfo.json rimane esclusivamente nella funzione di verification già esistente.
+
+### vowOS
+
+Se vowOS è disponibile come data property, il probe ispeziona in modo read-only l'oggetto e le sue proprietà, inclusi eventuali rami come vowOS.service, entro i limiti sopra.
+
+Nessun metodo vowOS viene chiamato automaticamente.
+
+### API security enumerate-only
+
+Queste API vengono enumerate/ispezionate quando presenti, ma NON chiamate dal probe:
+
+- Hisense_HiSdkSignCreate
+- Hisense_HiSdkSignCreateSoundbar
+- Hisense_HiSdkJsonVerifyHeap
+- Hisense_CheckAccessCode
+- Hisense_CheckCodeValid
+- Hisense_GetRoleID
+- Hisense_SetRoleID
+- Hisense_GetCustomerID
+- Hisense_SetCustomerID
+- Hisense_Encrypt
+- Hisense_Decrypt
+- Hisense_RSADecrypt
+
+In particolare non vengono eseguite API Set*, firma, access code, encrypt/decrypt, reset o write.
+
+### Chiamate reali del nuovo probe
+
+L'unica nuova funzione VIDAA che il Permission/AppConfig Probe può chiamare automaticamente è Hisense_SupportAppConfig(), e solo se è già esposta come normale data property function.
+
+Il probe non esegue:
+- getter/accessor sconosciuti;
+- metodi vowOS;
+- HiUtils_createRequest;
+- install/uninstall;
+- file write;
+- reset;
+- API Set*.
+
+Il salvataggio del report usa soltanto il normale endpoint HTTP locale di Sidee già esistente.
+
+### Compatibilità browser PC
+
+In un browser PC senza API VIDAA il probe deve completare comunque:
+- Hisense_SupportAppConfig: unavailable;
+- vowOS: not found;
+- HiUtils_createRequest: not found.
+
+Nessuna API VIDAA è richiesta per completare la scansione.
+
