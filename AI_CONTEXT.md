@@ -1243,3 +1243,97 @@ Restano vietati/assenti dal workflow automatico:
 10. premi `Export Report`;
 11. prendi il singolo JSON nella cartella `reports`;
 12. usa quel report come input della chat successiva.
+
+---
+
+## IMPLEMENTAZIONE — Client Identity / Permission Context Probe — 2026-09-25
+
+Questa fase è stata implementata senza nuove ricerche web o issue GitHub esterne. Usa esclusivamente il runtime già esposto dalla TV e le evidenze documentate sopra.
+
+### Nuovo step read-only
+
+Il workflow TV è ora:
+
+1. Device / Environment Scan
+2. Permission & AppConfig Probe
+3. Client Identity Probe
+4. Target App Configuration
+5. Install Diagnostic
+6. Verification
+7. Export Report
+
+Il Client Identity Probe è separato dall'installazione e non avvia alcun tentativo di install.
+
+### API realmente chiamate dal Client Identity Probe
+
+Solo quando esposte come normali data-property function, senza invocare accessor/getter sconosciuti:
+
+- `vowOS.service.getIdentifier()`
+- `vowOSContext.getAppIdentifier()`
+- `vowOSContext.getAppId()`
+- `Hisense_GetRoleID()`
+- `Hisense_GetCustomerID()`
+
+Per ogni chiamata vengono salvati status, tipo, valore ed eventuale errore.
+
+`clientInformation` resta inspect-only: Sidee salva descriptor e getter source, ma non invoca l'accessor.
+
+Restano non chiamati dal nuovo probe:
+
+- `Hisense_SetRoleID`
+- `Hisense_SetCustomerID`
+- `Hisense_HiSdkSignCreate`
+- `Hisense_HiSdkSignCreateSoundbar`
+- `Hisense_HiSdkJsonVerifyHeap`
+- `Hisense_CheckAccessCode`
+- `Hisense_CheckCodeValid`
+- encrypt/decrypt/RSA
+- fileWrite/Appinfo write
+- reset
+- uninstall
+- API HiUtils inventate o sconosciute.
+
+### Report
+
+Il report di sessione contiene ora:
+
+- `clientIdentityProbe`
+- `hiUtilsTrace`
+
+`clientIdentityProbe` salva i valori correnti di service identifier, app identifier, app ID, Role ID e Customer ID, più il descriptor inspect-only di `clientInformation`.
+
+Il probe calcola anche, solo quando entrambi i valori sono realmente disponibili, se service identifier e app identifier coincidono. Questa comparazione non viene interpretata come prova che l'identifier sia la chiave AppConfig.
+
+### Correlazione HiUtils
+
+Ogni entry HiUtils catturata durante gli install diagnostic include uno snapshot `clientContext` con:
+
+- serviceIdentifier
+- appIdentifier
+- appId
+- roleId
+- customerId
+
+Anche il `fileRead` read-only di `websdk/Appinfo.json` registra una entry compatta nel trace di sessione con lo stesso `clientContext`.
+
+I risultati del trace di sessione sono volutamente compatti: per evitare duplicazioni del contenuto Appinfo vengono conservati ret/code/message e il contesto identità, mentre i raw snapshot restano nella sezione `raw.snapshots` già esistente.
+
+Ogni tentativo Legacy/V2 salva inoltre `clientContextBefore` e `clientContextAfter`, così il prossimo report può mostrare se l'identità cambia prima/dopo un install attempt.
+
+### Cosa deve verificare il prossimo report reale TV
+
+Il prossimo JSON deve permettere di confrontare:
+
+1. valore reale di `vowOS.service.getIdentifier()`;
+2. valore reale di `vowOSContext.getAppIdentifier()`;
+3. eventuale uguaglianza tra i due;
+4. valore reale di `vowOSContext.getAppId()`;
+5. Role ID e Customer ID correnti;
+6. clientContext del `fileRead` consentito;
+7. clientContext di `installApplication` Legacy e V2;
+8. eventuali differenze Legacy/V2;
+9. eventuali variazioni before/after;
+10. presenza del consueto 503 AppConfig a parità di identity.
+
+Interpretazione corretta se fileRead e installApplication usano la stessa identity ma il primo passa e il secondo viene respinto: forte evidenza di permission per-API associata al client corrente. Non è prova di un bypass e non autorizza modifiche a role/customer/signature.
+

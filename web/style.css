@@ -78,6 +78,10 @@ h2{margin:0 0 12px;font-size:1.65rem;letter-spacing:-.025em}
 .stats div{background:#090d14;border:1px solid #192334;border-radius:15px;padding:16px}
 .stats b{display:block;font-size:1.05rem;margin-bottom:5px;overflow-wrap:anywhere}
 .stats span{font-size:.75rem;color:#7e8a9c}
+.identityGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}
+.identityGrid>div{min-width:0;background:#090d14;border:1px solid #192334;border-radius:13px;padding:13px 14px}
+.identityGrid span{display:block;color:#77859a;font-size:.73rem;margin-bottom:6px}
+.identityGrid>div:last-child{grid-column:1/-1}
 label{display:block;color:#9aa6b8;font-size:.82rem;margin:13px 0}
 input{
   display:block;
@@ -178,5 +182,7 @@ footer{margin:26px 4px 0;color:#647084;font-size:.78rem}
   .cardHead,.row{align-items:stretch;flex-direction:column}
   .row button,.cardHead button{width:100%}
   .stats{grid-template-columns:1fr}
+  .identityGrid{grid-template-columns:1fr}
+  .identityGrid>div:last-child{grid-column:auto}
   .summaryGrid{grid-template-columns:1fr}
 }

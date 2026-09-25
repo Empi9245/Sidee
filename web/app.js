@@ -60,9 +60,11 @@
       },
       environment:{},
       permissionProbe:{},
+      clientIdentityProbe:{},
       target:{},
       installDiagnostic:{status:"UNKNOWN",attempts:[]},
       verification:{},
+      hiUtilsTrace:[],
       raw:{snapshots:{}}
     };
   }
@@ -73,6 +75,7 @@
   };
   let reportSaveChain = Promise.resolve();
   let diagnosticRunning = false;
+  let clientContextCaptureActive = false;
 
   const STATUS = Object.freeze({
     AVAILABLE:"AVAILABLE",
@@ -96,7 +99,7 @@
     "Hisense_HiSdkSignCreate","Hisense_HiSdkSignCreateSoundbar","Hisense_HiSdkJsonVerifyHeap",
     "Hisense_CheckAccessCode","Hisense_CheckCodeValid","Hisense_GetRoleID","Hisense_SetRoleID",
     "Hisense_GetCustomerID","Hisense_SetCustomerID","Hisense_Encrypt","Hisense_Decrypt",
-    "Hisense_RSADecrypt","HiUtils_createRequest","vowOS","omi_platform","opera_omi"
+    "Hisense_RSADecrypt","HiUtils_createRequest","vowOS","vowOSContext","clientInformation","omi_platform","opera_omi"
   ];
 
   const SAFE_GETTERS = [
@@ -300,6 +303,202 @@
       return {found:true, data:false, accessor:true, descriptor};
     }
     return {found:true, data:true, value:descriptor.value, descriptor};
+  }
+
+  function getDataPropertyValue(root, name, maxDepth) {
+    if (root === null || !["object","function"].includes(typeof root)) {
+      return {found:false,data:false,error:"Root is unavailable"};
+    }
+    const found = findPropertyDescriptor(root, name, maxDepth === undefined ? 4 : maxDepth);
+    if (!found) return {found:false,data:false,error:null};
+    if (found.error) return {found:true,data:false,error:found.error,ownerDepth:found.ownerDepth};
+    const descriptor = found.descriptor;
+    if (!Object.prototype.hasOwnProperty.call(descriptor, "value")) {
+      return {found:true,data:false,accessor:true,descriptor,ownerDepth:found.ownerDepth};
+    }
+    return {found:true,data:true,value:descriptor.value,descriptor,ownerDepth:found.ownerDepth};
+  }
+
+  function readOnlyCallRecord(root, name, label) {
+    const property = getDataPropertyValue(root, name, 4);
+    const record = {
+      status:"unavailable",
+      called:false,
+      type:null,
+      value:null,
+      error:null,
+      label:label || name
+    };
+    if (!property.found) return record;
+    if (property.error) {
+      record.status = "error";
+      record.error = property.error;
+      return record;
+    }
+    if (!property.data) {
+      record.error = property.accessor ? "Accessor not invoked" : "Data property unavailable";
+      return record;
+    }
+    if (typeof property.value !== "function") {
+      record.type = property.value === null ? "null" : typeof property.value;
+      record.error = "Not a function";
+      return record;
+    }
+
+    record.called = true;
+    try {
+      const value = property.value.call(root);
+      record.status = "returned";
+      record.type = value === null ? "null" : typeof value;
+      record.value = isPrimitiveValue(value) ? snapshotPrimitive(value) : safeValue(value);
+    } catch (error) {
+      record.status = "error";
+      record.error = errorText(error);
+    }
+    return record;
+  }
+
+  function readOnlyGlobalCallRecord(name) {
+    const property = getGlobalDataValue(name);
+    const record = {
+      status:"unavailable",
+      called:false,
+      type:null,
+      value:null,
+      error:null,
+      label:name
+    };
+    if (!property.found) return record;
+    if (property.error) {
+      record.status = "error";
+      record.error = property.error;
+      return record;
+    }
+    if (!property.data) {
+      record.error = property.accessor ? "Accessor not invoked" : "Data property unavailable";
+      return record;
+    }
+    if (typeof property.value !== "function") {
+      record.type = property.value === null ? "null" : typeof property.value;
+      record.error = "Not a function";
+      return record;
+    }
+
+    record.called = true;
+    try {
+      const value = property.value();
+      record.status = "returned";
+      record.type = value === null ? "null" : typeof value;
+      record.value = isPrimitiveValue(value) ? snapshotPrimitive(value) : safeValue(value);
+    } catch (error) {
+      record.status = "error";
+      record.error = errorText(error);
+    }
+    return record;
+  }
+
+  function inspectClientInformation() {
+    const record = inspectGlobal("clientInformation");
+    return {
+      called:false,
+      status:record.available ? (record.type === "accessor" ? "accessor-inspect-only" : "inspect-only") : "unavailable",
+      type:record.type,
+      descriptor:record.descriptor || null,
+      getterSource:record.descriptor && record.descriptor.getterSource || null,
+      error:record.error || null
+    };
+  }
+
+  function unavailableIdentityRecord(message) {
+    return {
+      status:"unavailable",
+      called:false,
+      type:null,
+      value:null,
+      error:message || null
+    };
+  }
+
+  function captureClientIdentityContext(includeClientInformation) {
+    const timestamp = new Date().toISOString();
+    if (clientContextCaptureActive) {
+      return {
+        timestamp,
+        serviceIdentifier:unavailableIdentityRecord("Identity capture already in progress"),
+        appIdentifier:unavailableIdentityRecord("Identity capture already in progress"),
+        appId:unavailableIdentityRecord("Identity capture already in progress"),
+        roleId:unavailableIdentityRecord("Identity capture already in progress"),
+        customerId:unavailableIdentityRecord("Identity capture already in progress")
+      };
+    }
+
+    clientContextCaptureActive = true;
+    try {
+      let serviceIdentifier = unavailableIdentityRecord("vowOS.service.getIdentifier unavailable");
+      const vowOSValue = getGlobalDataValue("vowOS");
+      if (vowOSValue.data && vowOSValue.value !== null && ["object","function"].includes(typeof vowOSValue.value)) {
+        const serviceProperty = getDataPropertyValue(vowOSValue.value, "service", 4);
+        if (serviceProperty.error) {
+          serviceIdentifier = {
+            status:"error",called:false,type:null,value:null,error:serviceProperty.error
+          };
+        } else if (serviceProperty.data && serviceProperty.value !== null && ["object","function"].includes(typeof serviceProperty.value)) {
+          serviceIdentifier = readOnlyCallRecord(serviceProperty.value, "getIdentifier", "vowOS.service.getIdentifier");
+        } else if (serviceProperty.accessor) {
+          serviceIdentifier = unavailableIdentityRecord("vowOS.service accessor not invoked");
+        }
+      } else if (vowOSValue.accessor) {
+        serviceIdentifier = unavailableIdentityRecord("vowOS accessor not invoked");
+      } else if (vowOSValue.error) {
+        serviceIdentifier = {
+          status:"error",called:false,type:null,value:null,error:vowOSValue.error
+        };
+      }
+
+      let appIdentifier = unavailableIdentityRecord("vowOSContext.getAppIdentifier unavailable");
+      let appId = unavailableIdentityRecord("vowOSContext.getAppId unavailable");
+      const contextValue = getGlobalDataValue("vowOSContext");
+      if (contextValue.data && contextValue.value !== null && ["object","function"].includes(typeof contextValue.value)) {
+        appIdentifier = readOnlyCallRecord(contextValue.value, "getAppIdentifier", "vowOSContext.getAppIdentifier");
+        appId = readOnlyCallRecord(contextValue.value, "getAppId", "vowOSContext.getAppId");
+      } else if (contextValue.accessor) {
+        appIdentifier = unavailableIdentityRecord("vowOSContext accessor not invoked");
+        appId = unavailableIdentityRecord("vowOSContext accessor not invoked");
+      } else if (contextValue.error) {
+        appIdentifier = {status:"error",called:false,type:null,value:null,error:contextValue.error};
+        appId = {status:"error",called:false,type:null,value:null,error:contextValue.error};
+      }
+
+      const result = {
+        timestamp,
+        serviceIdentifier,
+        appIdentifier,
+        appId,
+        roleId:readOnlyGlobalCallRecord("Hisense_GetRoleID"),
+        customerId:readOnlyGlobalCallRecord("Hisense_GetCustomerID")
+      };
+      if (includeClientInformation) result.clientInformation = inspectClientInformation();
+      return result;
+    } finally {
+      clientContextCaptureActive = false;
+    }
+  }
+
+  function traceIdentityValue(record) {
+    if (record && record.status === "returned") return safeValue(record.value);
+    if (record && record.status === "error") return "ERROR";
+    return "UNAVAILABLE";
+  }
+
+  function captureTraceClientContext() {
+    const identity = captureClientIdentityContext(false);
+    return {
+      serviceIdentifier:traceIdentityValue(identity.serviceIdentifier),
+      appIdentifier:traceIdentityValue(identity.appIdentifier),
+      appId:traceIdentityValue(identity.appId),
+      roleId:traceIdentityValue(identity.roleId),
+      customerId:traceIdentityValue(identity.customerId)
+    };
   }
 
   function createProbeBudget() {
@@ -822,17 +1021,57 @@
     return target;
   }
 
+  function compactHiUtilsTraceResult(result) {
+    if (result === undefined) return null;
+    const compact = {
+      type:result === null ? "null" : typeof result
+    };
+    const ret = findFirstValueByKeys(result, ["ret"]);
+    const code = findFirstValueByKeys(result, ["code","errorCode"]);
+    const message = findFirstValueByKeys(result, ["message","msg","error"]);
+    if (ret !== null && ret !== undefined) compact.ret = safeValue(ret);
+    if (code !== null && code !== undefined) compact.code = safeValue(code);
+    if (message !== null && message !== undefined) compact.message = truncateText(String(message), 300);
+    return compact;
+  }
+
+  function recordSessionHiUtilsTrace(entry, source) {
+    if (!Array.isArray(state.report.hiUtilsTrace)) state.report.hiUtilsTrace = [];
+    const record = {
+      timestamp:entry.timestamp || new Date().toISOString(),
+      source:source || "unknown",
+      type:String(entry.type || ""),
+      args:safeValue(entry.args),
+      clientContext:safeValue(entry.clientContext || captureTraceClientContext())
+    };
+    if (Object.prototype.hasOwnProperty.call(entry, "result")) {
+      record.result = compactHiUtilsTraceResult(entry.result);
+    }
+    if (entry.error) record.error = truncateText(String(entry.error), PROBE_LIMITS.maxStringLength);
+    state.report.hiUtilsTrace.push(record);
+    if (state.report.hiUtilsTrace.length > 120) {
+      state.report.hiUtilsTrace.splice(0, state.report.hiUtilsTrace.length - 120);
+    }
+  }
+
   function beginHiUtilsTrace(attempt) {
     const original = window.HiUtils_createRequest;
     attempt.hiUtilsTrace = [];
     if (typeof original !== "function") return function () {};
 
     const wrapped = function (type, msg) {
-      const entry = {timestamp:new Date().toISOString(), type:String(type), args:safeValue(msg)};
+      if (clientContextCaptureActive) return original(type, msg);
+      const entry = {
+        timestamp:new Date().toISOString(),
+        type:String(type),
+        args:safeValue(msg),
+        clientContext:captureTraceClientContext()
+      };
       try {
         const result = original(type, msg);
         entry.result = safeValue(result);
         attempt.hiUtilsTrace.push(entry);
+        recordSessionHiUtilsTrace(entry, "install-" + attempt.method);
         log("HiUtils trace captured: " + String(type) + ".", {
           type:entry.type,
           ret:findFirstValueByKeys(entry.result, ["ret"]),
@@ -843,6 +1082,7 @@
       } catch (e) {
         entry.error = errorText(e);
         attempt.hiUtilsTrace.push(entry);
+        recordSessionHiUtilsTrace(entry, "install-" + attempt.method);
         log("HiUtils trace error: " + String(type) + ".", {error:entry.error});
         throw e;
       }
@@ -1033,6 +1273,59 @@
     await saveReport("permission-appconfig-probe");
   }
 
+  function identityDisplayValue(record) {
+    if (!record || record.status === "unavailable") return "UNAVAILABLE";
+    if (record.status === "error") return "ERROR";
+    if (record.status !== "returned") return String(record.status || "UNAVAILABLE").toUpperCase();
+    if (record.value === null) return "null";
+    if (typeof record.value === "object") return truncateText(safeJson(record.value), 180);
+    return String(record.value);
+  }
+
+  function renderClientIdentityProbe(result) {
+    setSummaryValue("serviceIdentifierValue", identityDisplayValue(result.serviceIdentifier));
+    setSummaryValue("appIdentifierValue", identityDisplayValue(result.appIdentifier));
+    setSummaryValue("appIdValue", identityDisplayValue(result.appId));
+    setSummaryValue("roleIdValue", identityDisplayValue(result.roleId));
+    setSummaryValue("customerIdValue", identityDisplayValue(result.customerId));
+  }
+
+  async function clientIdentityProbe() {
+    const stateEl = $("clientIdentityProbeState");
+    if (stateEl) stateEl.textContent = "Running read-only client identity probe…";
+
+    const result = captureClientIdentityContext(true);
+    result.readOnly = true;
+    result.comparison = {
+      serviceAndAppIdentifierComparable:
+        result.serviceIdentifier.status === "returned" &&
+        result.appIdentifier.status === "returned",
+      serviceAndAppIdentifierEqual:
+        result.serviceIdentifier.status === "returned" &&
+        result.appIdentifier.status === "returned"
+          ? Object.is(result.serviceIdentifier.value, result.appIdentifier.value)
+          : null
+    };
+    result.safety = {
+      clientInformationCalled:false,
+      stateChangingCallsIssued:false,
+      settersCalled:false,
+      signingCallsIssued:false,
+      writesIssued:false
+    };
+
+    state.report.clientIdentityProbe = safeValue(result);
+    renderClientIdentityProbe(result);
+    if (stateEl) {
+      stateEl.textContent =
+        "Probe completed · identifier " + identityDisplayValue(result.serviceIdentifier) +
+        " · appIdentifier " + identityDisplayValue(result.appIdentifier) +
+        " · appId " + identityDisplayValue(result.appId);
+    }
+    log("Client identity probe — read-only context captured");
+    await saveReport("client-identity-probe");
+  }
+
   function refreshLauncher(appId) {
     const payload = {
       type:"APPMessage", MsgType:"appControl", action:"updateAppState",
@@ -1080,10 +1373,21 @@
   function readAppInfo() {
     const fn = window.HiUtils_createRequest;
     if (typeof fn !== "function") return {available:false};
+    const args = {path:"websdk/Appinfo.json",mode:6};
+    const traceEntry = {
+      timestamp:new Date().toISOString(),
+      type:"fileRead",
+      args:safeValue(args),
+      clientContext:captureTraceClientContext()
+    };
     try {
-      const result = fn("fileRead", {path:"websdk/Appinfo.json",mode:6});
+      const result = fn("fileRead", args);
+      traceEntry.result = safeValue(result);
+      recordSessionHiUtilsTrace(traceEntry, "verification");
       return {available:true,ok:Boolean(result && result.ret),result};
     } catch (e) {
+      traceEntry.error = errorText(e);
+      recordSessionHiUtilsTrace(traceEntry, "verification");
       return {available:true,ok:false,error:errorText(e)};
     }
   }
@@ -1328,17 +1632,21 @@
       refresh:null,
       verification:null,
       hiUtilsTrace:[],
-      classification:STATUS.UNKNOWN
+      classification:STATUS.UNKNOWN,
+      clientContextBefore:captureTraceClientContext(),
+      clientContextAfter:null
     };
     state.report.installDiagnostic.attempts.push(attempt);
 
     if (typeof api !== "function") {
       attempt.unavailable = true;
+      attempt.clientContextAfter = captureTraceClientContext();
       attempt.completedAt = new Date().toISOString();
       return attempt;
     }
     if (!icon) {
       attempt.error = "A valid icon URL is required.";
+      attempt.clientContextAfter = captureTraceClientContext();
       attempt.completedAt = new Date().toISOString();
       return attempt;
     }
@@ -1357,6 +1665,7 @@
         settled = true;
         if (timer) clearTimeout(timer);
         restoreTrace();
+        attempt.clientContextAfter = captureTraceClientContext();
         attempt.completedAt = new Date().toISOString();
         resolve(attempt);
       };
@@ -1563,9 +1872,11 @@
         summary:safeValue(state.report.summary),
         environment:safeValue(state.report.environment),
         permissionProbe:safeValue(state.report.permissionProbe),
+        clientIdentityProbe:safeValue(state.report.clientIdentityProbe),
         target:safeValue(state.report.target),
         installDiagnostic:safeValue(state.report.installDiagnostic),
         verification:safeValue(state.report.verification),
+        hiUtilsTrace:safeValue(state.report.hiUtilsTrace),
         raw:{snapshots:safeValue(state.report.raw.snapshots)}
       };
     }
@@ -1605,6 +1916,7 @@
 
   $("scanBtn").addEventListener("click", scan);
   $("permissionProbeBtn").addEventListener("click", permissionProbe);
+  $("clientIdentityProbeBtn").addEventListener("click", clientIdentityProbe);
   $("saveBtn").addEventListener("click", saveTarget);
   $("verifyBtn").addEventListener("click", () => verify(true));
   $("installDiagnosticBtn").addEventListener("click", runInstallDiagnostic);

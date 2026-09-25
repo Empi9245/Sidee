@@ -67,7 +67,26 @@
       </article>
 
       <article class="card">
-        <p class="kicker">03 · TARGET</p>
+        <div class="cardHead">
+          <div>
+            <p class="kicker">03 · CLIENT IDENTITY</p>
+            <h2>Client Identity Probe</h2>
+          </div>
+          <button id="clientIdentityProbeBtn" class="secondary">Client Identity Probe</button>
+        </div>
+        <p>Reads the current client identity used by VIDAA services. No role/customer changes, signing, writes or install calls.</p>
+        <div class="identityGrid">
+          <div><span>Service identifier</span><b id="serviceIdentifierValue" class="summaryValue">UNAVAILABLE</b></div>
+          <div><span>App identifier</span><b id="appIdentifierValue" class="summaryValue">UNAVAILABLE</b></div>
+          <div><span>App ID</span><b id="appIdValue" class="summaryValue">UNAVAILABLE</b></div>
+          <div><span>Role ID</span><b id="roleIdValue" class="summaryValue">UNAVAILABLE</b></div>
+          <div><span>Customer ID</span><b id="customerIdValue" class="summaryValue">UNAVAILABLE</b></div>
+        </div>
+        <div id="clientIdentityProbeState" class="state">Not run yet.</div>
+      </article>
+
+      <article class="card">
+        <p class="kicker">04 · TARGET</p>
         <h2>Target App Configuration</h2>
         <label>App ID<input id="appId" autocomplete="off"></label>
         <label>Name<input id="appName" autocomplete="off"></label>
@@ -77,7 +96,7 @@
       </article>
 
       <article class="card installCard">
-        <p class="kicker">04 · INSTALL</p>
+        <p class="kicker">05 · INSTALL</p>
         <h2>Install Diagnostic</h2>
         <p>Runs one controlled sequence: snapshot before → Legacy → verification → V2 → verification → final summary.</p>
         <button id="installDiagnosticBtn" class="primaryAction">Run Install Diagnostic</button>
@@ -85,7 +104,7 @@
       </article>
 
       <article class="card">
-        <p class="kicker">05 · VERIFY</p>
+        <p class="kicker">06 · VERIFY</p>
         <h2>Verification</h2>
         <p>Checks installed apps and read-only <code>websdk/Appinfo.json</code>. Only a positive match becomes <strong>VERIFIED INSTALLED</strong>.</p>
         <button id="verifyBtn" class="secondary">Run Verification</button>
@@ -93,7 +112,7 @@
       </article>
 
       <article class="card">
-        <p class="kicker">06 · EXPORT</p>
+        <p class="kicker">07 · EXPORT</p>
         <h2>Export Report</h2>
         <p>Updates the current session file. Export never creates a second diagnostic report for this session.</p>
         <div class="reportName"><span>Current report</span><b id="reportFileName">—</b></div>
