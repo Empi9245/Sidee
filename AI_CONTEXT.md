@@ -667,3 +667,95 @@ Quando il nuovo probe sarà effettivamente implementato:
 11. invia il singolo `sidee-session-....json` della sessione.
 
 Non serve committare i report generati.
+
+
+---
+
+## Protocollo ricerca esterna / GitHub — evitare spreco di token
+
+Questa regola vale per tutte le prossime chat che lavorano su Sidee.
+
+Quando si fa ricerca su Internet o GitHub, NON lasciare che la ricerca viva solo nella chat.
+
+Ogni informazione esterna che modifica una conclusione, introduce una nuova API, conferma/smentisce un'ipotesi o suggerisce un test concreto deve essere sintetizzata in `AI_CONTEXT.md` nello stesso lavoro, con:
+
+- data della verifica;
+- fonte precisa (repo/file/issue/comment/documentazione/pagina);
+- fatto osservato;
+- livello di affidabilità: confermato / riportato da terzi / ipotesi;
+- conseguenza pratica per Sidee;
+- cosa NON serve ricercare di nuovo;
+- eventuale prossimo test sulla TV.
+
+### Regola di efficienza per GitHub
+
+Usare una strategia a imbuto:
+
+1. prima `search` mirato per simbolo, errore o filename;
+2. poi leggere solo il file o le righe realmente rilevanti;
+3. leggere file completi solo quando serve davvero il contesto intero;
+4. non scaricare dump enormi di repository, issue o API list se bastano pochi risultati;
+5. non ristampare nella chat interi risultati già conosciuti;
+6. quando una ricerca non produce nulla di nuovo, annotare semplicemente che è stata verificata e non ha aggiunto evidenza;
+7. riutilizzare i risultati già documentati in questo file invece di rifare le stesse query.
+
+Per issue lunghe:
+- leggere prima titolo, stato, date e ultimi commenti pertinenti;
+- recuperare solo i commenti che aggiungono firmware, errori, workaround o conferme;
+- evitare di riportare metadata GitHub inutili come avatar, reaction, URL API duplicati, node ID, ecc.
+
+Per codice:
+- cercare prima il simbolo;
+- recuperare il blocco/righe circostanti;
+- evitare di leggere interi file TypeScript/JavaScript se serve solo una dichiarazione o una funzione.
+
+### Regola di efficienza per ricerca web
+
+Per ricerche web pubbliche:
+
+1. usare query molto specifiche con firmware, errore o nome API;
+2. preferire fonti primarie: repository ufficiali, issue originali, documentazione, sorgenti;
+3. non aprire molte pagine quasi equivalenti;
+4. non accumulare risultati generici se non cambiano la diagnosi;
+5. salvare nel context solo il contenuto utile, non il testo integrale delle pagine;
+6. distinguere sempre tra:
+   - fatto verificato sulla TV reale;
+   - comportamento documentato in sorgente;
+   - esperienza riportata da altri utenti;
+   - ipotesi nostra.
+
+### Budget pratico di ricerca
+
+Prima di ampliare una ricerca, chiedersi:
+
+> Questa nuova query può cambiare una decisione di implementazione o suggerire un test concreto?
+
+Se la risposta è no, fermarsi.
+
+Dopo 2-3 query mirate senza nuove evidenze sostanziali:
+- non continuare a espandere automaticamente la ricerca;
+- implementare il probe/runtime necessario;
+- usare il risultato della TV reale come fonte prioritaria.
+
+### Priorità delle fonti
+
+Ordine di affidabilità per questo progetto:
+
+1. risultati reali della Hisense `50E70LEVS_0003 / V0000.09.60A.Q0707`;
+2. source JavaScript/runtime realmente esposto dalla stessa TV;
+3. codice sorgente pubblico VIDAA/Hisense o wrapper direttamente rilevante;
+4. issue/commenti con firmware e log concreti;
+5. supposizioni generiche o comportamenti di firmware più vecchi.
+
+Le fonti di livello inferiore non devono sovrascrivere evidenza concreta proveniente dalla TV.
+
+### Obiettivo
+
+La prossima AI deve poter leggere `AI_CONTEXT.md` e sapere:
+- cosa è già stato cercato;
+- quali fonti hanno dato risultati;
+- quali query non hanno prodotto nulla;
+- quali ipotesi sono ancora aperte;
+- quale test implementare dopo.
+
+Questo evita di spendere gran parte della chat a rifare ricerche GitHub/web già concluse.
