@@ -65,14 +65,61 @@
     $("iconUrl").value = app.icon_url || "";
   }
 
+  function resolveIconUrl(target) {
+    const raw = (target.icon_url || "").trim();
+    if (raw && raw !== target.app_url) return raw;
+    try {
+      const url = new URL(target.app_url);
+      return url.origin + "/assets/images/icon.png";
+    } catch (_) {
+      return raw;
+    }
+  }
+
   function currentTarget() {
-    return {
+    const target = {
       app_id: $("appId").value.trim(),
       app_name: $("appName").value.trim(),
       app_url: $("appUrl").value.trim(),
       icon_url: $("iconUrl").value.trim(),
       store_type: state.config?.nuvio?.store_type || "store"
     };
+    if (!target.icon_url || target.icon_url === target.app_url) {
+      target.icon_url = resolveIconUrl(target);
+      if (target.icon_url) $("iconUrl").value = target.icon_url;
+    }
+    return target;
+  }
+
+  function beginHiUtilsTrace(attempt) {
+    const original = window.HiUtils_createRequest;
+    attempt.hiUtilsTrace = [];
+    if (typeof original !== "function") return function () {};
+
+    const wrapped = function (type, msg) {
+      const entry = {timestamp:new Date().toISOString(), type:String(type), args:safeValue(msg)};
+      try {
+        const result = original(type, msg);
+        entry.result = safeValue(result);
+        attempt.hiUtilsTrace.push(entry);
+        log("HiUtils " + String(type), entry);
+        return result;
+      } catch (e) {
+        entry.error = String(e && e.message || e);
+        attempt.hiUtilsTrace.push(entry);
+        throw e;
+      }
+    };
+
+    try {
+      window.HiUtils_createRequest = wrapped;
+      return function () {
+        try { window.HiUtils_createRequest = original; } catch (_) {}
+      };
+    } catch (e) {
+      attempt.hiUtilsTraceError = String(e && e.message || e);
+      return function () {};
+    }
   }
 
   async function saveTarget() {
@@ -235,50 +282,127 @@
     return result;
   }
 
-  async function install() {
+  function buildV2AppInfo(target, icon) {
+    return {
+      Id: target.app_id,
+      appId: target.app_id,
+      AppName: target.app_name,
+      name: target.app_name,
+      Title: target.app_name,
+      URL: target.app_url,
+      url: target.app_url,
+      StartCommand: target.app_url,
+      Thumb: icon,
+      Icon_96: icon,
+      Image: icon,
+      IconURL: icon,
+      icon: icon,
+      StoreType: target.store_type || "store",
+      storeType: target.store_type || "store",
+      PreInstall: false,
+      isShowOnLauncher: true
+    };
+  }
+
+  async function installWithMethod(method) {
     const target = currentTarget();
     if (!target.app_id || !target.app_name || !target.app_url) {
       setInstallState("App ID, name and URL are required.", "bad");
       return;
     }
-    if (typeof window.Hisense_installApp !== "function") {
-      setInstallState("Hisense_installApp is not available in this browser context.", "bad");
-      log("Install API unavailable.");
+
+    const isV2 = method === "v2";
+    const api = isV2 ? window.Hisense_installApp_V2 : window.Hisense_installApp;
+    if (typeof api !== "function") {
+      setInstallState((isV2 ? "Hisense_installApp_V2" : "Hisense_installApp") + " is not available in this browser context.", "bad");
       return;
     }
 
-    setInstallState("Calling Hisense_installApp…", "warn");
-    const icon = target.icon_url || target.app_url;
-    const attempt = {timestamp:new Date().toISOString(),target,callback:null,refresh:null,verification:null};
+    const icon = resolveIconUrl(target);
+    if (!icon) {
+      setInstallState("A valid icon URL is required.", "bad");
+      return;
+    }
+    if ($("iconUrl").value.trim() !== icon) $("iconUrl").value = icon;
+
+    const attempt = {
+      timestamp:new Date().toISOString(),
+      method,
+      target:{...target, resolved_icon_url:icon},
+      beforeAppInfo:readAppInfo(),
+      callback:null,
+      returnValue:null,
+      refresh:null,
+      verification:null,
+      hiUtilsTrace:[]
+    };
     state.installAttempts.push(attempt);
 
+    setInstallState("Calling " + (isV2 ? "Hisense_installApp_V2" : "Hisense_installApp") + "…", "warn");
+    const restoreTrace = beginHiUtilsTrace(attempt);
+    let callbackFinished = false;
+
+    const callback = async function (code) {
+      if (callbackFinished) return;
+      callbackFinished = true;
+      restoreTrace();
+      attempt.callback = {code:safeValue(code),receivedAt:new Date().toISOString()};
+      log((isV2 ? "Hisense_installApp_V2" : "Hisense_installApp") + " callback.", attempt.callback);
+
+      attempt.afterCallbackAppInfo = readAppInfo();
+      attempt.refresh = refreshLauncher(target.app_id);
+      await new Promise((r)=>setTimeout(r,1500));
+      attempt.afterRefreshAppInfo = readAppInfo();
+      attempt.verification = await verify(true);
+
+      if (attempt.verification.verified) {
+        setInstallState("Verified: Nuvio is present (" + attempt.verification.evidence + "). Restart the TV if the launcher has not refreshed yet.", "good");
+      } else if (Number(code) === 0) {
+        const installTrace = (attempt.hiUtilsTrace || []).filter((x)=>x.type === "installApplication");
+        const suffix = installTrace.length ? " Internal installApplication trace captured in the report." : " No installApplication trace was intercepted.";
+        setInstallState("VIDAA returned code 0, but Sidee could NOT verify the app. Request accepted ≠ installed." + suffix, "warn");
+      } else {
+        setInstallState("VIDAA install callback returned: " + String(code) + ".", "bad");
+      }
+      await saveReport("install-" + method);
+    };
+
     try {
-      window.Hisense_installApp(
-        target.app_id, target.app_name,
-        icon, icon, icon,
-        target.app_url, target.store_type || "store",
-        async function (code) {
-          attempt.callback = {code:safeValue(code),receivedAt:new Date().toISOString()};
-          log("Hisense_installApp callback.", attempt.callback);
-          attempt.refresh = refreshLauncher(target.app_id);
-          await new Promise((r)=>setTimeout(r,1500));
-          attempt.verification = await verify(true);
-          if (attempt.verification.verified) {
-            setInstallState("Verified: Nuvio is present (" + attempt.verification.evidence + "). Restart the TV if the launcher has not refreshed yet.", "good");
-          } else if (Number(code) === 0) {
-            setInstallState("VIDAA returned code 0, but Sidee could NOT verify the app. Request accepted ≠ installed.", "warn");
-          } else {
-            setInstallState("VIDAA install callback returned: " + String(code) + ".", "bad");
-          }
-          await saveReport("install");
+      if (isV2) {
+        const appInfo = buildV2AppInfo(target, icon);
+        attempt.v2Payload = appInfo;
+        attempt.returnValue = safeValue(api(appInfo, callback));
+      } else {
+        attempt.returnValue = safeValue(api(
+          target.app_id, target.app_name,
+          icon, icon, icon,
+          target.app_url, target.store_type || "store",
+          callback
+        ));
+      }
+
+      setTimeout(function () {
+        if (!callbackFinished) {
+          restoreTrace();
+          attempt.callbackTimeout = true;
+          setInstallState("The install API did not call back within 5 seconds. Save the report.", "warn");
         }
-      );
+      }, 5000);
     } catch (e) {
+      restoreTrace();
       attempt.error = String(e && e.message || e);
       setInstallState("Install call threw: " + attempt.error, "bad");
       log("Install exception.", attempt);
-      await saveReport("install-error");
+      await saveReport("install-" + method + "-error");
     }
+  }
+
+  async function install() {
+    return installWithMethod("legacy");
+  }
+
+  async function installV2() {
+    return installWithMethod("v2");
   }
 
   async function uninstall() {
@@ -325,6 +449,7 @@
   $("verifyBtn").addEventListener("click", () => verify(false));
   $("deepBtn").addEventListener("click", () => verify(true));
   $("installBtn").addEventListener("click", install);
+  $("installV2Btn").addEventListener("click", installV2);
   $("uninstallBtn").addEventListener("click", uninstall);
   $("reportBtn").addEventListener("click", () => saveReport("manual"));
 

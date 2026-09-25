@@ -18,6 +18,8 @@ Sidee is deliberately more conservative on VIDAA 9: **direct writes to `websdk/A
 - read-only scanner for Hisense / VIDAA / HiUtils / OMI APIs
 - device/model/firmware diagnostics
 - legacy `Hisense_installApp` install test
+- separate `Hisense_installApp_V2` test when exposed by the firmware
+- internal `HiUtils_createRequest` tracing during native install calls (including `installApplication` results)
 - launcher refresh through `omi_platform` / `opera_omi`
 - post-install verification using `Hisense_getInstalledApps`
 - optional **read-only** `websdk/Appinfo.json` verification when HiUtils is available
@@ -31,8 +33,9 @@ A callback value of `0` from `Hisense_installApp` is **not displayed as a succes
 Sidee distinguishes:
 
 1. install request accepted by the VIDAA API
-2. launcher refresh attempted
-3. app actually found by a verification method
+2. internal HiUtils/installApplication result captured when interceptable
+3. launcher refresh attempted
+4. app actually found by a verification method
 
 This is meant to investigate the VIDAA 9 situation where the browser says the operation succeeded but nothing appears on the TV.
 

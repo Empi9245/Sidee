@@ -50,9 +50,10 @@
       <article class="card">
         <p class="kicker">03 · INSTALL</p>
         <h2>Launcher test</h2>
-        <p>Uses the exposed <code>Hisense_installApp</code> API. Callback <code>0</code> is treated only as “request accepted” until Sidee can verify the app.</p>
+        <p>Test the legacy API first. If VIDAA returns code <code>0</code> without actually registering the app, try the separate V2 API. Sidee traces the internal HiUtils calls and verifies Appinfo before/after.</p>
         <div class="row">
-          <button id="installBtn">Install Nuvio</button>
+          <button id="installBtn">Install · Legacy</button>
+          <button id="installV2Btn" class="secondary">Install · V2</button>
           <button id="uninstallBtn" class="danger">Uninstall</button>
         </div>
         <div id="installState" class="state">No install attempt yet.</div>
