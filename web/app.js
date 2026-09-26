@@ -364,6 +364,56 @@
     out.matches.forEach(x=>(x.phoenixPaths||[]).forEach(v=>{if(!pathSeen[v]){pathSeen[v]=true;out.uniquePhoenixPaths.push(v);}}));
     return out;
   }
+  const IDENTITY_USAGE_PATTERNS=[
+    {name:"vowOSContext.init",re:/vowOSContext\s*\.\s*init\s*\(/i},
+    {name:"vowOSContext.getAppIdentifier",re:/vowOSContext\s*\.\s*getAppIdentifier\s*\(/i},
+    {name:"vowOSContext.getAppId",re:/vowOSContext\s*\.\s*getAppId\s*\(/i},
+    {name:"navigator.appIdentifier",re:/navigator\s*\.\s*appIdentifier\b/i},
+    {name:"getAppIdentifier",re:/\bgetAppIdentifier\s*\(/i},
+    {name:"getAppId",re:/\bgetAppId\s*\(/i}
+  ];
+  function identityUsageAnalysis(source){
+    const text=String(source||""),matched=[],excerpts=[];
+    IDENTITY_USAGE_PATTERNS.forEach(p=>{
+      const m=p.re.exec(text);
+      if(!m)return;
+      matched.push(p.name);
+      if(excerpts.length<16){
+        const idx=m.index,start=Math.max(0,idx-750),end=Math.min(text.length,idx+m[0].length+1300);
+        excerpts.push({pattern:p.name,index:idx,excerpt:text.slice(start,end)});
+      }
+    });
+    return matched.length?{matchedPatterns:matched,excerpts:excerpts}:null;
+  }
+  function scanIdentityFunctionDescriptor(owner,name,path,depth,out,seenFns){
+    let d=null;try{d=Object.getOwnPropertyDescriptor(owner,name);}catch(e){return;}
+    if(!d||!Object.prototype.hasOwnProperty.call(d,"value")||typeof d.value!=="function")return;
+    const fn=d.value;if(seenFns.indexOf(fn)>=0)return;seenFns.push(fn);
+    const source=functionSource(fn),analysis=identityUsageAnalysis(source);
+    out.scannedFunctionCount++;
+    if(analysis&&out.matches.length<150)out.matches.push({path:path,ownerDepth:depth,name:name,functionName:fn.name||null,length:fn.length,source:source,matchedPatterns:analysis.matchedPatterns,excerpts:analysis.excerpts});
+  }
+  function globalIdentityUsageTrace(){
+    const out={timestamp:new Date().toISOString(),readOnly:true,scannedGlobalPropertyCount:0,scannedNamespaceCount:0,scannedFunctionCount:0,matches:[],patternCounts:{},errors:[],notes:["Scans existing function source for native identity usage; no function, getter, setter or vowOSContext.init call is invoked.","Window accessors are not evaluated; only data descriptors whose values are already functions/objects are traversed.","A bounded one-level namespace scan mirrors the Phoenix wrapper trace for consistent coverage."]};
+    IDENTITY_USAGE_PATTERNS.forEach(p=>out.patternCounts[p.name]=0);
+    const seenFns=[],seenObjects=[];
+    let names=[];try{names=Object.getOwnPropertyNames(window);}catch(e){out.errors.push({path:"window",error:err(e)});return out;}
+    for(let i=0;i<names.length&&i<1200;i++){
+      const name=names[i];out.scannedGlobalPropertyCount++;
+      scanIdentityFunctionDescriptor(window,name,"window."+name,0,out,seenFns);
+      let d=null;try{d=Object.getOwnPropertyDescriptor(window,name);}catch(e){}
+      if(!d||!Object.prototype.hasOwnProperty.call(d,"value")||!d.value||typeof d.value!=="object")continue;
+      const obj=d.value;
+      if(obj===window||obj===document||obj===navigator||seenObjects.indexOf(obj)>=0)continue;
+      seenObjects.push(obj);
+      let childNames=[];try{childNames=Object.getOwnPropertyNames(obj);}catch(e){continue;}
+      if(childNames.length>200)continue;
+      out.scannedNamespaceCount++;
+      for(let j=0;j<childNames.length&&j<200;j++)scanIdentityFunctionDescriptor(obj,childNames[j],"window."+name+"."+childNames[j],1,out,seenFns);
+    }
+    out.matches.forEach(x=>(x.matchedPatterns||[]).forEach(p=>{if(Object.prototype.hasOwnProperty.call(out.patternCounts,p))out.patternCounts[p]++;}));
+    return out;
+  }
   async function permissionSourceTrace(){
     if(state.running)return;state.running=true;set("permissionSourceTraceState","Inspecting function sources and descriptors…");
     try{
@@ -387,11 +437,11 @@
       }
       const concreteReferences=[],seen={};
       targets.forEach(t=>(t.references||[]).forEach(v=>{const k=String(v).toLowerCase();if(!seen[k]){seen[k]=true;concreteReferences.push({source:t.path,value:v});}}));
-      const loadedScripts=await loadedScriptSourceTrace(),runtimeIdentitySurface=runtimeIdentitySurfaceTrace(),runtimeObjectInventory=runtimeObjectInventoryTrace(),globalPhoenixWrappers=globalPhoenixWrapperTrace();
-      state.report.permissionSourceTrace={timestamp:new Date().toISOString(),readOnly:true,targets:targets,supportAppConfig:supportAppConfig,concreteReferences:concreteReferences.slice(0,150),loadedScripts:loadedScripts,runtimeIdentitySurface:runtimeIdentitySurface,runtimeObjectInventory:runtimeObjectInventory,globalPhoenixWrappers:globalPhoenixWrappers,notes:["Function source/descriptor inspection plus read-only source inspection of already-loaded scripts and runtime bridge objects.","Only same-origin external scripts and inline script text are inspected; cross-origin scripts are skipped.","Sidee's own /app.js is listed but source scanning is skipped to avoid self-generated keyword noise.","Runtime getters, setters, init methods and discovered functions are never invoked.","The complete runtime inventory is unfiltered for vowOSContext, vowOS.service and omi_platform; descriptor access does not evaluate accessor values.","Global Phoenix wrapper scan searches existing function source for vowOS.service.execute, phoenix://service/ and register patterns without invoking anything.","Install-pipeline helpers are inspected but never invoked.","Hisense_SupportAppConfig is the only diagnostic function invoked; no install/uninstall, fileWrite, setters or guessed HiUtils APIs are called."]};
+      const loadedScripts=await loadedScriptSourceTrace(),runtimeIdentitySurface=runtimeIdentitySurfaceTrace(),runtimeObjectInventory=runtimeObjectInventoryTrace(),globalPhoenixWrappers=globalPhoenixWrapperTrace(),globalIdentityUsage=globalIdentityUsageTrace();
+      state.report.permissionSourceTrace={timestamp:new Date().toISOString(),readOnly:true,targets:targets,supportAppConfig:supportAppConfig,concreteReferences:concreteReferences.slice(0,150),loadedScripts:loadedScripts,runtimeIdentitySurface:runtimeIdentitySurface,runtimeObjectInventory:runtimeObjectInventory,globalPhoenixWrappers:globalPhoenixWrappers,globalIdentityUsage:globalIdentityUsage,notes:["Function source/descriptor inspection plus read-only source inspection of already-loaded scripts and runtime bridge objects.","Only same-origin external scripts and inline script text are inspected; cross-origin scripts are skipped.","Sidee's own /app.js is listed but source scanning is skipped to avoid self-generated keyword noise.","Runtime getters, setters, init methods and discovered functions are never invoked.","The complete runtime inventory is unfiltered for vowOSContext, vowOS.service and omi_platform; descriptor access does not evaluate accessor values.","Global Phoenix wrapper scan searches existing function source for vowOS.service.execute, phoenix://service/ and register patterns without invoking anything.","Global identity-usage scan searches existing function source for vowOSContext.init/getAppIdentifier/getAppId and navigator.appIdentifier without invoking anything.","Install-pipeline helpers are inspected but never invoked.","Hisense_SupportAppConfig is the only diagnostic function invoked; no install/uninstall, fileWrite, setters or guessed HiUtils APIs are called."]};
       const ctxProps=runtimeObjectInventory.objects.vowOSContext.propertyCount,svcProps=runtimeObjectInventory.objects.vowOSService.propertyCount,omiProps=runtimeObjectInventory.objects.omiPlatform.propertyCount;
-      set("permissionSourceTraceState","Trace complete · "+targets.filter(t=>t.available).length+"/"+targets.length+" functions · Phoenix wrappers "+globalPhoenixWrappers.matches.length+" / paths "+globalPhoenixWrappers.uniquePhoenixPaths.length+".");
-      log("Permission source trace complete",{available:targets.filter(t=>t.available).map(t=>t.path),references:concreteReferences.slice(0,20),phoenixSummary:{scannedFunctions:globalPhoenixWrappers.scannedFunctionCount,matches:globalPhoenixWrappers.matches.length,paths:globalPhoenixWrappers.uniquePhoenixPaths},runtimeInventorySummary:{contextProperties:ctxProps,serviceProperties:svcProps,omiProperties:omiProps,omiAvailable:runtimeObjectInventory.objects.omiPlatform.available},runtimeIdentitySummary:{navigatorAppIdentifier:runtimeIdentitySurface.exact.navigatorAppIdentifier},scriptSummary:{count:loadedScripts.scriptCount,inspected:loadedScripts.inspectedCount,matched:loadedScripts.matchedScriptCount,mapAppInfoFieldsFound:loadedScripts.mapAppInfoFieldsFound},supportAppConfig:supportAppConfig});
+      set("permissionSourceTraceState","Trace complete · identity wrappers "+globalIdentityUsage.matches.length+" · init refs "+globalIdentityUsage.patternCounts["vowOSContext.init"]+" · Phoenix wrappers "+globalPhoenixWrappers.matches.length+".");
+      log("Permission source trace complete",{available:targets.filter(t=>t.available).map(t=>t.path),references:concreteReferences.slice(0,20),identityUsageSummary:{scannedFunctions:globalIdentityUsage.scannedFunctionCount,matches:globalIdentityUsage.matches.length,patternCounts:globalIdentityUsage.patternCounts},phoenixSummary:{scannedFunctions:globalPhoenixWrappers.scannedFunctionCount,matches:globalPhoenixWrappers.matches.length,paths:globalPhoenixWrappers.uniquePhoenixPaths},runtimeInventorySummary:{contextProperties:ctxProps,serviceProperties:svcProps,omiProperties:omiProps,omiAvailable:runtimeObjectInventory.objects.omiPlatform.available},runtimeIdentitySummary:{navigatorAppIdentifier:runtimeIdentitySurface.exact.navigatorAppIdentifier},scriptSummary:{count:loadedScripts.scriptCount,inspected:loadedScripts.inspectedCount,matched:loadedScripts.matchedScriptCount,mapAppInfoFieldsFound:loadedScripts.mapAppInfoFieldsFound},supportAppConfig:supportAppConfig});
       await save("permission-source-trace");
     }catch(e){set("permissionSourceTraceState","Trace failed: "+err(e));log("Permission source trace failed",err(e));}
     finally{state.running=false;}
