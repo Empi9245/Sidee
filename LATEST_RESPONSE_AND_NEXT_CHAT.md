@@ -1,39 +1,36 @@
-# Sidee — risposta all’ultimo test + prompt per la prossima chat
+# Sidee — risposta aggiornata + prompt per la prossima chat
 
 Data: 2026-09-26
 
-## Risposta all’ultimo test
+## Risposta aggiornata
 
-Il risultato è adesso molto più netto.
+Sì: da questo punto continuiamo sulla pista **write diretto / AppInfo**, senza devkit.
 
-Abbiamo provato **due veri contesti creati dal launcher VIDAA**, non una semplice imitazione JavaScript:
+La direzione da seguire è quella vista sia nel materiale russo sia in `weinzii/vidaa-edge`: ottenere una scrittura reale del registro applicazioni della TV, ma senza continuare a perdere tempo con identifier casuali o con lo stesso `HiUtils_createRequest("fileWrite")` già bloccato dal firmware.
 
-- Duplecast — app ID `1876`;
-- Smartone IPTV — app ID `1470`.
+## Stato verificato sulla TV
 
-In entrambi i casi la TV ha fornito una vera identity nativa:
+TV:
 
-- `navigator.appIdentifier` contiene il vero `appid`, un `md5` specifico dell’app e `permissions:""`;
-- `vowOSContext.getAppId()` restituisce l’ID reale dell’app;
-- `vowOSContext.getAppIdentifier()` restituisce un identifier nativo non vuoto;
-- `vowOS.service.getIdentifier()` restituisce lo stesso identifier;
-- `Hisense_SupportAppConfig() === true`;
-- `HiUtils_createRequest` è disponibile.
+- Hisense `50E70LEVS_0003`
+- firmware `V0000.09.60A.Q0707`
+- VIDAA U09.60
+- MTK9603
+- Chromium 111 / Odin
 
-Quindi il trampoline funziona davvero: Sidee sta girando dentro il contesto di un’app VIDAA installata dal launcher.
+Abbiamo ormai verificato che:
 
-### Ma il gate resta identico
+- `https://vidaahub.com` funziona;
+- raw-IP vs hostname non cambia il gate;
+- HTTP vs HTTPS non cambia il gate;
+- il browser vede realmente le API VIDAA;
+- `HiUtils_createRequest` funziona per `fileRead`;
+- `websdk/Appinfo.json` è leggibile;
+- `Hisense_installApp` e `Hisense_installApp_V2` arrivano al backend nativo ma vengono respinti;
+- `fileWrite` via HiUtils viene respinto;
+- il callback esterno `0` non significa installazione avvenuta.
 
-Da entrambi i veri contesti installati, il test protetto:
-
-```text
-fileRead websdk/Appinfo.json
-backup immutabile
-fileWrite degli stessi identici byte
-fileRead immediato
-```
-
-continua a restituire:
+Errore reale comune:
 
 ```text
 ret: false
@@ -41,47 +38,58 @@ code: 503
 client request permission check error, please check appconfig
 ```
 
-Il readback resta identico al backup.
+## Anche i veri contesti app non bastano
 
-Quindi:
+Sono stati provati due veri contesti creati dal launcher VIDAA:
 
-- il file non è stato corrotto;
-- nessuna entry è stata aggiunta;
-- il test è rimasto un no-op;
-- né Smartone né Duplecast possiedono il permesso richiesto per `fileWrite` di AppInfo.
+- Smartone IPTV — app ID `1470`
+- Duplecast — app ID `1876`
 
-## Cosa abbiamo definitivamente escluso
+Entrambi espongono identity nativa reale, per esempio:
 
-Con i test fatti finora possiamo escludere come spiegazione sufficiente:
+```json
+{
+  "appid": "1876",
+  "md5": "...",
+  "permissions": ""
+}
+```
 
-1. DNS / hostname `vidaahub.com`;
-2. HTTP vs HTTPS;
-3. raw IP vs hostname;
-4. identifier vuoto;
-5. sostituzione manuale dell’identifier con `1470`, `1876` o `2568`;
-6. il semplice fatto di essere lanciati dentro una vera app installata dallo store;
-7. il solo fatto che `Hisense_SupportAppConfig()` ritorni `true`.
+e inoltre:
 
-## Nuova informazione decisiva: il bridge JavaScript
+- `vowOSContext.getAppId()` restituisce l'app ID reale;
+- `vowOSContext.getAppIdentifier()` restituisce un identifier nativo;
+- `vowOS.service.getIdentifier()` restituisce lo stesso identifier;
+- `Hisense_SupportAppConfig() === true`.
 
-Nel vero contesto Duplecast abbiamo letto la sorgente effettiva del bridge.
+Nonostante questo, l'exact no-op:
 
-Il percorso visibile è:
+```javascript
+HiUtils_createRequest("fileWrite", {
+  path: "websdk/Appinfo.json",
+  mode: 6,
+  writedata: exactRawPreviouslyRead
+})
+```
+
+continua a tornare `503`.
+
+Quindi il problema non è semplicemente "avere un vero app ID".
+
+## Il bridge HiUtils è ormai abbastanza chiaro
+
+Nel vero contesto Duplecast abbiamo letto la sorgente del wrapper.
+
+Il percorso è:
 
 ```text
 HiUtils_createRequest(type, msg)
-  -> vowOS.service.syncExecute(
-       "hiutils",
-       {
-         api: type,
-         args: msg
-       }
-     )
+  -> vowOS.service.syncExecute("hiutils", { api:type, args:msg })
   -> vowOS.service.executeHttpRequest(...)
   -> POST https://localhost:9888/service/hiutils
 ```
 
-La richiesta HTTP visibile aggiunge soltanto:
+La richiesta aggiunge:
 
 ```text
 header:
@@ -94,79 +102,259 @@ body:
 }
 ```
 
-E `getIdentifier()` delega a:
+e `getIdentifier()` delega a:
 
-```text
+```javascript
 vowOSContext.getAppIdentifier()
 ```
 
-quando esiste un vero contesto app.
+Non abbiamo trovato nel wrapper JS:
 
-Non risulta codice JavaScript che aggiunga automaticamente:
-
-- MD5 dell’app;
-- campo `permissions`;
+- MD5 aggiuntivo;
+- permissions aggiuntive;
 - StoreType;
 - origin;
-- AppInfo;
-- Role/Customer ID;
-- firma;
-- metadata aggiuntivi AppConfig.
+- AppInfo metadata;
+- RoleID;
+- CustomerID;
+- firme;
+- access code.
 
-### Conclusione più forte supportata dai dati
+Quindi il gate `503` è quasi certamente sotto il wrapper JavaScript, nel servizio nativo / resolver AppConfig.
 
-Il controllo che restituisce il 503 è quasi certamente effettuato **sotto il wrapper JavaScript**, dal servizio nativo `hiutils` / dal relativo permission resolver.
+## Punto importante: non continuiamo più con identifier casuali
 
-Un vero identifier nativo è necessario per descrivere il client, ma **non equivale a possedere il permesso richiesto**.
+Sono già stati provati anche override concreti come:
 
-L’ipotesi più coerente con tutti i risultati è che il servizio nativo risolva l’identifier verso una configurazione/ACL AppConfig interna e verifichi se quel client può chiamare una certa API, per esempio `fileWrite` o `installApplication`.
+- `1470`
+- `1876`
+- `2568`
+- `16` TV Browser
+- `164` APP STORE
+- altri ID reali presenti sulla TV
 
-Questo è coerente anche con il dato:
+Il risultato resta identico.
 
-```json
-"permissions": ""
+Conclusione verificata:
+
+```text
+IDENTIFIER_STRING_NOT_SUFFICIENT
 ```
 
-presente nei veri `navigator.appIdentifier` di Smartone e Duplecast.
+Questa pista è esaurita.
 
-Attenzione: non abbiamo ancora provato che quella stringa vuota sia direttamente la causa del 503. È però un indizio concreto da confrontare con un contesto VIDAA che possieda davvero privilegi maggiori.
+---
 
-## Quello che NON conviene più fare
+# Nuova pista prioritaria: writer legacy HSPDK / Hisense.File
 
-Non ha senso continuare a:
+Il materiale storico/russo e le implementazioni vecchie mostrano una seconda famiglia di accesso ai file che NON passa necessariamente da:
 
-- provare altri AppInfo ID casualmente;
-- cambiare ancora hostname/origin;
-- riprovare Smartone/Duplecast con lo stesso test;
-- inventare valori per header `identifier`;
-- chiamare setter Role/Customer;
-- tentare firme/access-code a caso;
-- scrivere manualmente AppInfo senza un no-op prima riuscito.
+```javascript
+HiUtils_createRequest("fileWrite", ...)
+```
 
-Le piste semplici sono state testate abbastanza.
+La forma storica è invece simile a:
 
-## Prossima pista concreta
+```javascript
+Hisense.File.read("launcher/Appinfo.json", 1)
+Hisense.File.write("launcher/Appinfo.json", raw, 1)
+```
 
-Ora dobbiamo trovare **un contesto VIDAA reale con una diversa configurazione di autorizzazione**, non un identifier diverso inventato.
+eventualmente dopo:
 
-Il confronto più utile è con un’app/componente di sistema che abbia ragione di eseguire operazioni privilegiate, per esempio:
+```javascript
+Hisense.loadLibrary("libhspdk-jsx.so")
+```
 
-- il vero App Store / app manager VIDAA;
-- una pagina interna che effettua install/uninstall;
-- un contesto di sistema che esponga `navigator.appIdentifier` con `permissions` non vuoto;
-- una app preinstallata/system che abbia un AppConfig diverso dalle normali store web-app.
+oppure attraverso `HiBrowser`.
 
-La prima fase deve essere **solo read-only**:
+Questa è la pista da seguire adesso.
 
-1. catturare `navigator.appIdentifier`;
-2. catturare `getAppId()`;
-3. catturare `getAppIdentifier()`;
-4. catturare `Hisense_SupportAppConfig()`;
-5. catturare soltanto sorgenti/descriptors del bridge già noto;
-6. confrontare il campo `permissions` e la shape dell’identity con Smartone/Duplecast/browser;
-7. non fare setter, firma, access-code o chiamate native indovinate.
+È importante perché potrebbe essere un percorso nativo differente dal servizio `hiutils` che oggi ci risponde con `503`.
 
-Solo se troviamo un contesto realmente differente e plausibilmente autorizzato ha senso ripetere **l’unico test di scrittura consentito**, cioè il backup-protected exact no-op `fileWrite`.
+## Stato del codice Sidee
+
+Prima modifica presente:
+
+```text
+e93275fa6c698ccd35afadbd5583b90d46ec540f
+ui: add legacy HSPDK write lab
+```
+
+Quella versione aggiungeva il laboratorio HSPDK ma aveva un difetto:
+
+sceglieva il primo oggetto trovato tra:
+
+```text
+HiBrowser
+Hisense
+```
+
+e quindi poteva fermarsi sul wrapper sbagliato senza provare davvero l'altro.
+
+Questo è stato corretto.
+
+Nuovo HEAD:
+
+```text
+edaee8750188c382058d35f20ceeafda4df442f1
+fix: probe both legacy VIDAA write surfaces
+```
+
+Ora Sidee:
+
+- enumera sia `window.Hisense` sia `window.HiBrowser`;
+- verifica separatamente se ciascuno espone `File.read` / `File.write`;
+- prova `loadLibrary("libhspdk-jsx.so")` dove disponibile;
+- non si ferma sul primo host object;
+- seleziona la superficie che espone davvero il writer;
+- salva nel report quale owner è stato usato;
+- riusa lo stesso owner per restore e aggiunta;
+- cerca i registri:
+  - `launcher/Appinfo.json`
+  - `websdk/Appinfo.json`
+
+## Test HSPDK attuale
+
+Il test non aggiunge Nuvio subito.
+
+Fa prima:
+
+1. individua `Hisense` / `HiBrowser`;
+2. prova il caricamento HSPDK se serve;
+3. trova un AppInfo leggibile;
+4. crea backup immutabile sul PC;
+5. costruisce una variante strutturalmente identica che cambia solo whitespace;
+6. esegue `File.write(...)`;
+7. legge immediatamente indietro;
+8. verifica hash e byte;
+9. ripristina ESATTAMENTE il backup originale;
+10. verifica ancora hash e byte.
+
+Solo se ottiene:
+
+```text
+WRITE_ALLOWED_AND_RESTORED
+```
+
+abilita:
+
+```text
+Add Nuvio via HSPDK
+```
+
+Quindi il test di scrittura resta reversibile e verificabile.
+
+## Perché questa pista ha senso
+
+`weinzii/vidaa-edge` usa direttamente:
+
+```javascript
+HiUtils_createRequest("fileRead", ...)
+HiUtils_createRequest("fileWrite", ...)
+```
+
+e sulla nostra Q0707 quel percorso è chiaramente bloccato da AppConfig.
+
+Il materiale storico invece usa il vecchio stack:
+
+```text
+Hisense / HiBrowser
+  -> libhspdk-jsx.so
+  -> File.read / File.write
+```
+
+Quindi non stiamo semplicemente ripetendo lo stesso test con un nome diverso.
+
+Stiamo verificando se il firmware espone ancora una seconda superficie di filesystem che non passa dallo stesso permission resolver di `hiutils`.
+
+## Cosa devi fare adesso sulla TV
+
+Dopo:
+
+```bash
+git pull
+```
+
+riavvia Sidee.
+
+Poi apri la pagina sulla TV e usa:
+
+```text
+Legacy Hisense File Writer
+```
+
+quindi:
+
+```text
+Test HSPDK Write + Restore
+```
+
+Non premere `Add Nuvio via HSPDK` manualmente se non viene abilitato dal test.
+
+Il risultato che ci interessa è soprattutto:
+
+- Host object
+- HSPDK library
+- Registry path
+- Whitespace probe
+- Restore
+- Capability
+
+Se il test salva il report normalmente, non serve allegare nulla: il prossimo step deve leggere:
+
+```text
+sidee-reports/reports/latest.json
+```
+
+## Interpretazione dei possibili risultati
+
+### Caso 1
+
+```text
+WRITE_ALLOWED_AND_RESTORED
+```
+
+Questo è il risultato migliore.
+
+Significa che Q0707 continua ad avere un writer legacy utilizzabile anche se `HiUtils fileWrite` è bloccato.
+
+A quel punto Sidee può usare quel writer per inserire Nuvio nel registro e mandare il refresh launcher.
+
+### Caso 2
+
+```text
+Legacy File.read/File.write not exposed
+```
+
+Significa che il vecchio stack HSPDK non è disponibile da quel runtime.
+
+A quel punto bisogna capire se:
+
+- il writer esiste solo in un contesto specifico;
+- una pagina di sistema lo carica;
+- l'App Store ufficiale usa un host object diverso;
+- esiste un altro bridge legacy equivalente.
+
+### Caso 3
+
+```text
+File.read funziona ma File.write non applica la modifica
+```
+
+Questo è comunque utile.
+
+Vuol dire che anche la superficie legacy è separata in read/write e dobbiamo ispezire il suo backend o il contesto che la rende writable.
+
+### Caso 4
+
+```text
+launcher/Appinfo.json
+```
+
+risulta leggibile mentre `websdk/Appinfo.json` non lo è tramite HSPDK.
+
+Questo sarebbe un dato molto interessante, perché suggerirebbe che il vecchio writer opera su un registro differente da HiUtils.
 
 ---
 
@@ -174,72 +362,82 @@ Solo se troviamo un contesto realmente differente e plausibilmente autorizzato h
 
 Sto continuando il lavoro su `Empi9245/Sidee`, branch `main`.
 
-Lavora direttamente sulla repo GitHub collegata e, se fai modifiche, committa direttamente su `main`.
+Lavora direttamente sulla repo collegata.
 
-NON usare Superdesign.
+NON usare devkit.
 
-## Prima di fare qualsiasi cosa
+NON tornare alla pista degli identifier casuali.
 
-Leggi completamente:
+NON rifare test generici DNS / HTTP / HTTPS.
 
-- `AI_CONTEXT.md`
-- `README.md`
-- `LATEST_RESPONSE_AND_NEXT_CHAT.md`
+La pista prioritaria è:
 
-Poi controlla:
+```text
+WRITE diretto AppInfo
+Hisense.File / HiBrowser.File
+HSPDK / libhspdk-jsx.so
+```
 
-- HEAD reale di `main`;
-- `sidee.py`;
-- `web/app.js`;
-- `web/index.html`;
-- `config.json`.
+Prima di fare qualsiasi modifica:
 
-Leggi anche il report più recente disponibile su branch `sidee-reports`:
+1. leggi completamente `AI_CONTEXT.md`;
+2. leggi completamente `README.md`;
+3. leggi completamente `LATEST_RESPONSE_AND_NEXT_CHAT.md`;
+4. controlla l'HEAD reale di `main`;
+5. leggi `web/app.js`;
+6. leggi `web/index.html`;
+7. leggi `sidee.py`;
+8. leggi il report più recente da:
 
-`reports/latest.json`
+```text
+sidee-reports/reports/latest.json
+```
 
-Non chiedermi di allegare manualmente il JSON se è già disponibile lì.
+Non chiedermi di allegare il JSON se è già lì.
 
-## Stato già provato
+## HEAD noto
 
-TV:
+```text
+edaee8750188c382058d35f20ceeafda4df442f1
+fix: probe both legacy VIDAA write surfaces
+```
 
-- Hisense `50E70LEVS_0003`
-- firmware `V0000.09.60A.Q0707`
-- VIDAA U09.60
-- MTK9603
-- Chromium 111 / Odin
+Controlla comunque l'HEAD reale prima di assumere che sia ancora quello.
 
-Il problema non è più DNS/origin/HTTP/HTTPS.
+## Stato già escluso
 
-Abbiamo provato:
+Non perdere tempo con:
 
-- `https://vidaahub.com`;
-- raw IP HTTP;
-- identifier JS vuoto;
-- override con IDs reali `1470`, `1876`, `2568`;
-- vero launch context Smartone;
-- vero launch context Duplecast.
-
-Smartone e Duplecast danno una vera identity nativa, per esempio:
-
-- `navigator.appIdentifier = {"appid":"1876","md5":"...","permissions":""}`;
-- `vowOSContext.getAppId() = "1876"`;
-- `vowOSContext.getAppIdentifier()` non vuoto;
-- `vowOS.service.getIdentifier()` uguale al native app identifier;
+- `Hisense_installApp`;
+- `Hisense_installApp_V2`;
+- callback esterno `0`;
+- DNS;
+- raw IP;
+- hostname;
+- HTTP vs HTTPS;
+- override JS di identifier;
+- app ID `1470`;
+- app ID `1876`;
+- app ID `2568`;
+- app ID APP STORE `164`;
+- semplice launch dentro Smartone/Duplecast;
 - `Hisense_SupportAppConfig() === true`.
 
-Eppure l’exact no-op:
+Tutto questo è già stato provato.
+
+## HiUtils è già caratterizzato
+
+Il write HiUtils:
 
 ```javascript
 HiUtils_createRequest("fileWrite", {
   path: "websdk/Appinfo.json",
   mode: 6,
-  writedata: exactRawPreviouslyRead
+  writedata: ...
 })
 ```
 
-continua a ricevere:
+riceve:
 
 ```text
 ret:false
@@ -247,113 +445,108 @@ code:503
 client request permission check error, please check appconfig
 ```
 
-con backup creato prima e readback identico dopo.
+anche dentro veri contesti app VIDAA.
 
-Smartone e Duplecast quindi hanno identity reale ma NON hanno quel privilegio.
+Non continuare a martellare questa API con identifier diversi.
 
-## Bridge JavaScript già verificato
+## Obiettivo della prossima fase
 
-Nel vero contesto Duplecast la sorgente dimostra:
+Analizza PRIMA il risultato del nuovo:
 
 ```text
-HiUtils_createRequest(type,msg)
- -> vowOS.service.syncExecute("hiutils",{api:type,args:msg})
- -> vowOS.service.executeHttpRequest(...)
- -> POST https://localhost:9888/service/hiutils
-    header identifier = vowOS.service.getIdentifier()
-    body = JSON.stringify({api,args})
+Legacy Hisense File Writer
 ```
 
-`getIdentifier()` delega a `vowOSContext.getAppIdentifier()`.
+in `reports/latest.json`.
 
-Nei wrapper JavaScript osservati NON vengono aggiunti MD5, permissions, StoreType, origin, AppInfo o altri metadata.
+Controlla in particolare:
 
-Quindi il permission check avviene con alta probabilità sotto il wrapper JS, nel servizio nativo / AppConfig resolver.
+- `legacyHspdkWriteLab.beforeLoad`;
+- `legacyHspdkWriteLab.afterLoad`;
+- `legacyHspdkWriteLab.resolutionAttempts`;
+- `legacyHspdkWriteLab.selectedOwner`;
+- `legacyHspdkWriteLab.registry`;
+- `legacyHspdkWriteLab.readAttempts`;
+- `legacyHspdkWriteLab.probe`;
+- `legacyHspdkWriteLab.restore`;
+- `legacyHspdkWriteLab.writeCapability`.
 
-## Obiettivo di questa fase
+## Se HSPDK write funziona
 
-NON continuare a provare identifier casuali.
+Se:
 
-Voglio capire **che cosa distingue un client VIDAA realmente autorizzato da Smartone/Duplecast**.
+```text
+writeCapability = WRITE_ALLOWED_AND_RESTORED
+```
 
-La pista prioritaria è confrontare un contesto VIDAA reale che abbia ragione di avere privilegi superiori:
+allora verifica bene il report e solo dopo usa il percorso già previsto per aggiungere Nuvio tramite lo stesso writer.
 
-- App Store / app manager ufficiale VIDAA;
-- pagina/componente di sistema che effettua installazioni;
-- app preinstallata/system;
-- qualunque contesto reale osservabile che esponga un `navigator.appIdentifier` / AppConfig diverso, in particolare un campo `permissions` non vuoto o metadata strutturalmente differenti.
+Dopo l'aggiunta verifica:
 
-## Prima fase: solo read-only
+- AppInfo readback;
+- entry Nuvio presente;
+- entry preesistenti intatte;
+- launcher refresh;
+- presenza dell'app nel launcher / lista installate.
 
-Implementa/usa un **Authorization Context Comparison Probe** che confronti in modo sicuro:
+## Se HSPDK non funziona
 
-- hostname/access mode;
-- `navigator.appIdentifier` raw e JSON parsed se valido;
-- `appid`;
-- `md5`;
-- `permissions`;
-- `vowOSContext.getAppId()`;
-- `vowOSContext.getAppIdentifier()`;
-- `vowOS.service.getIdentifier()`;
-- `Hisense_SupportAppConfig()`;
-- capabilities native esposte;
-- sorgente/descriptors del bridge già noto;
-- differenze rispetto a Smartone e Duplecast.
+NON tornare indietro a HiUtils.
 
-Non invocare setter o API sconosciute.
+Continua sulla pista write cercando una diversa superficie nativa realmente presente sul firmware.
 
-Non chiamare automaticamente:
+Ricerca mirata solo su stringhe concrete osservate, per esempio:
 
-- `Hisense_SetRoleID`;
-- `Hisense_SetCustomerID`;
-- signature APIs;
-- access-code APIs;
+- `Hisense.File`;
+- `HiBrowser.File`;
+- `libhspdk-jsx.so`;
+- `launcher/Appinfo.json`;
+- `File.read`;
+- `File.write`;
+- eventuali nomi nuovi trovati nel runtime.
+
+Controlla anche se una pagina/app di sistema già presente sulla TV espone la stessa API con un oggetto diverso.
+
+La priorità è capire se esiste:
+
+```text
+un writer AppInfo alternativo al servizio hiutils
+```
+
+senza devkit.
+
+## Regole di sicurezza per il test
+
+Ogni prova di scrittura deve:
+
+1. leggere prima il file;
+2. creare backup immutabile;
+3. fare una modifica minima e reversibile;
+4. leggere immediatamente indietro;
+5. ripristinare l'originale;
+6. verificare il restore byte-per-byte;
+7. non aggiungere Nuvio se la prova precedente non è stata verificata.
+
+Non usare:
+
 - reset;
-- encrypt/decrypt;
-- API native indovinate;
-- fileWrite/installApplication durante la fase di discovery.
-
-## Ricerca esterna
-
-NON rifare ricerca generica VIDAA/AppConfig.
-
-Fai ricerca solo con stringhe concrete appena osservate, per esempio:
-
-- forma di `navigator.appIdentifier`;
-- campo `permissions`;
-- `getAppIdentifier`;
-- sorgente di `executeHttpRequest`;
-- error string 503;
-- nomi concreti di funzioni/context trovati sulla TV.
-
-Se non c’è evidenza pubblica utile, dillo e torna al runtime reale.
-
-## Eventuale test di scrittura
-
-Solo se troviamo un **vero contesto differente e plausibilmente autorizzato**, puoi aggiungere un test esplicito separato che:
-
-1. legge `websdk/Appinfo.json`;
-2. crea backup immutabile;
-3. scrive ESATTAMENTE gli stessi byte;
-4. legge subito indietro;
-5. si ferma immediatamente se cambia qualsiasi contenuto.
-
-Non aggiungere Nuvio finché il no-op non restituisce `WRITE_ALLOWED_AND_IDENTICAL`.
+- firmware downgrade;
+- bootloader;
+- service-menu distruttivi;
+- scritture a partizioni;
+- comandi shell arbitrari;
+- setter RoleID/CustomerID inventati;
+- firme/access-code casuali.
 
 ## Criterio di successo
 
-La fase è utile se riesce a stabilire almeno una di queste cose:
+La fase è utile se stabilisce almeno una di queste cose:
 
-- un contesto ufficiale/system espone permissions/identity diverse;
-- il campo `permissions` cambia tra client normali e privilegiati;
-- il servizio nativo associa privilege set diversi a identifier diversi;
-- emerge un’altra API/config read-only che descrive l’ACL reale;
-- oppure possiamo concludere con evidenza che il privilegio è confinato a componenti non accessibili dal normale web runtime.
+- `Hisense.File.write` funziona su Q0707;
+- `HiBrowser.File.write` funziona su Q0707;
+- il vecchio HSPDK writer usa un registro diverso;
+- il vecchio writer esiste ma richiede un contesto specifico;
+- il vecchio writer è stato rimosso/bloccato;
+- emerge un altro writer nativo concreto da testare.
 
-Distingui sempre:
-
-- evidenza verificata;
-- inferenza;
-- ipotesi.
-
-Alla fine aggiorna `AI_CONTEXT.md` con solo i nuovi fatti verificati e committa su `main`.
+Alla fine aggiorna `AI_CONTEXT.md` solo con i nuovi fatti realmente verificati e committa direttamente su `main`.
