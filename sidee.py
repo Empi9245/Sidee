@@ -382,6 +382,24 @@ pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-w
     }}catch(e){{out.error=String(e&&e.message||e);}}
     return out;
   }}
+  function accessorSourceInfo(root,name){{
+    var out={{path:name,found:false,getterSource:null,setterSource:null,error:null}};
+    var cur=root;
+    for(var depth=0;cur&&depth<6;depth++){{
+      try{{
+        var d=Object.getOwnPropertyDescriptor(cur,name);
+        if(d){{
+          out.found=true;
+          out.ownerDepth=depth;
+          if(typeof d.get==="function")out.getterSource=String(Function.prototype.toString.call(d.get)).slice(0,6000);
+          if(typeof d.set==="function")out.setterSource=String(Function.prototype.toString.call(d.set)).slice(0,6000);
+          return out;
+        }}
+        cur=Object.getPrototypeOf(cur);
+      }}catch(e){{out.error=String(e&&e.message||e);return out;}}
+    }}
+    return out;
+  }}
   function objectShape(root){{
     var out={{available:!!root,properties:[],error:null}};
     if(!root)return out;
@@ -424,9 +442,13 @@ pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-w
     }},
     bridgeSources:{{
       hiUtilsCreateRequest:sourceInfo(window,"HiUtils_createRequest"),
+      supportAppConfig:sourceInfo(window,"Hisense_SupportAppConfig"),
       serviceSyncExecute:sourceInfo(svc,"syncExecute"),
       serviceGetIdentifier:sourceInfo(svc,"getIdentifier"),
       serviceExecuteHttpRequest:sourceInfo(svc,"executeHttpRequest"),
+      serviceProcessResponse:sourceInfo(svc,"processResponse"),
+      serviceExecute:sourceInfo(svc,"execute"),
+      serviceRelaunch:sourceInfo(svc,"reLaunchService"),
       contextInit:sourceInfo(ctx,"init"),
       contextGetAppIdentifier:sourceInfo(ctx,"getAppIdentifier"),
       contextGetAppId:sourceInfo(ctx,"getAppId")
@@ -434,7 +456,8 @@ pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-w
     bridgeObjects:{{
       service:objectShape(svc),
       context:objectShape(ctx),
-      navigatorAppIdentifierDescriptor:descriptorInfo(navigator,"appIdentifier")
+      navigatorAppIdentifierDescriptor:descriptorInfo(navigator,"appIdentifier"),
+      navigatorAppIdentifierAccessor:accessorSourceInfo(navigator,"appIdentifier")
     }}
   }};
   var out=document.getElementById("out"),state=document.getElementById("state");
