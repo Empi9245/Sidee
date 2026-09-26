@@ -3920,3 +3920,51 @@ Interpretazione:
 - PROXY_ERROR: risolvere prima solo il trasporto upstream, senza inventare endpoint o azioni.
 
 Non tornare a pkgmgr/AppInfo write/install legacy/V2 finché il trace Store non è stato valutato.
+
+
+## HARDENING — Store transport trace bounded events — 2026-09-26
+
+Dopo l'implementazione iniziale del proxy Store sono stati chiusi alcuni dettagli diagnostici prima del test TV reale.
+
+### Event trace esplicito
+
+`storeCatalogTrace.events` è ora una lista bounded (massimo 160 eventi) con tipi normalizzati:
+
+- `DNS`;
+- `TLS_SNI`;
+- `HTTP_REQUEST`;
+- `HTTP_RESPONSE`;
+- `PROXY_ERROR`.
+
+Ogni evento conserva solo dati minimali/non sensibili: timestamp, host, metodo/path quando applicabile, nomi delle query parameter, status/content-type/response length per le risposte e tipo/stage dell'errore. I valori delle query, header e body request non vengono persistiti.
+
+Restano anche le viste aggregate `requests` e `errors`, entrambe bounded.
+
+### JSON catalog summary
+
+Il parser bounded delle risposte JSON conserva ora anche:
+
+- `resultCode`, se incontrato come valore scalare non sensibile;
+- `routeCategoryKeys`, cioè solo i nomi bounded delle chiavi contenenti `route` o `category`;
+- i metadata app già previsti (`id`, `productCode`, `typeCode`, `unifiedAppName`, `openMode`, `packaged`, `hasDetailPage`, ecc.).
+
+URL catalogo vengono ancora ridotti a scheme/host/path senza query o fragment. Chiavi sensibili come signature/token/session/certificate vengono saltate e il loro valore non viene salvato.
+
+### Redaction difensiva
+
+La redaction degli errori è applicata anche dentro il recorder del trace, non soltanto nel chiamante del proxy. Pattern `authorization=`, `token=`, cookie/secret/password/credential/signature/session/nonce/API key e valori `Bearer ...` vengono sostituiti con `<redacted>` prima della persistenza.
+
+### Test
+
+`tests/test_store_catalog_trace.py` copre ora:
+
+- body upstream restituito invariato;
+- inoltro Cookie/Authorization senza logging dei valori;
+- query parameter names only;
+- redaction dei metadata sensibili JSON;
+- `resultCode` e route/category keys;
+- sequenza eventi trasporto normalizzata;
+- redaction difensiva degli errori;
+- presenza di `category-ui.vidaahub.com` in `spoof_domains`.
+
+Il test TV reale non è ancora avvenuto dopo questa build. L'ultimo `reports/latest.json` disponibile continua a essere una sessione browser precedente senza `storeCatalogTrace`. Il prossimo dato utile deve quindi arrivare aprendo il VIDAA Store ufficiale con il DNS TV puntato a Sidee.
