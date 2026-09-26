@@ -2408,3 +2408,13 @@ Il remote workflow NON può:
 - install/uninstall;
 - invocare setter;
 - eseguire JavaScript arbitrario.
+
+
+### HARDENING — Direct AppInfo write build binding
+
+Prima del test reale sono stati aggiunti due gate:
+- ogni no-op/add/restore rilegge `/api/status` immediatamente prima del flusso di scrittura e rifiuta un client stale;
+- il backup server riceve `clientBuildId` e rifiuta la creazione se non coincide con il build corrente;
+- per le richieste create dalla chat si usa `runDirectAppInfoWriteNoopV2:true` + `requiresBuildId`;
+- il vecchio server non riconosce il flag V2, quindi non può consumare accidentalmente la nuova richiesta;
+- il server nuovo consegna una request V2 AppInfo soltanto a una pagina che dichiara lo stesso `clientBuildId`.

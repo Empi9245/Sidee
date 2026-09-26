@@ -718,9 +718,18 @@
     const response=r&&r.value,raw=response&&response.ret===true&&typeof response.msg==="string"?response.msg:null,parsed=parseRegistryRaw(raw),hash=raw!==null?await hashText(raw):null;
     return {ok:!!(response&&response.ret===true&&raw!==null&&parsed.valid),error:r&&r.error||parsed.error||null,raw:raw,parsed:parsed.parsed,parseValid:parsed.valid,hash:hash,length:raw!==null?raw.length:null,appInfoCount:parsed.appInfoCount,response:labSafe(response),trace:r&&r.trace||null};
   }
+
+  async function refreshDirectBuildMatch(){
+    const response=await fetch("/api/status?cb="+Date.now(),{cache:"no-store"}),data=await response.json();
+    if(!response.ok||!data.ok)throw new Error("Could not verify Sidee server build");
+    state.report.serverBuildId=data.clientBuildId||null;
+    state.report.buildMatch=!!data.clientBuildId&&data.clientBuildId===CLIENT_BUILD_ID;
+    if(!state.report.buildMatch)throw new Error("Client/server build mismatch; reload Sidee before any AppInfo write");
+    return data.clientBuildId;
+  }
   async function createAppInfoBackup(raw,hash){
     const clientSha256=hash&&hash.algorithm==="SHA-256"?hash.value:null;
-    const response=await fetch("/api/appinfo/backup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:state.report.sessionId,raw:raw,clientSha256:clientSha256})});
+    const response=await fetch("/api/appinfo/backup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:state.report.sessionId,raw:raw,clientSha256:clientSha256,clientBuildId:CLIENT_BUILD_ID})});
     const data=await response.json();
     if(!response.ok||!data.ok)throw new Error(data.error||"Could not create AppInfo backup");
     if(clientSha256&&data.backup.sha256!==clientSha256)throw new Error("Backup hash mismatch");
@@ -786,7 +795,7 @@
     state.running=true;set("directAppInfoWriteState","Preparing backup-protected AppInfo no-op write…");
     let report={timestamp:new Date().toISOString(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:state.report.serverBuildId,buildMatch:state.report.buildMatch,sourceArticle:{url:DIRECT_WRITE_ARTICLE,claim:"Third-party report describes direct Appinfo fileWrite on VIDAA 9."},sourceImplementation:{ref:DIRECT_WRITE_REFERENCE,call:"HiUtils_createRequest('fileWrite', {path:'websdk/Appinfo.json', mode:6, writedata:...})"},original:null,backup:null,writeApi:"HiUtils_createRequest('fileWrite', ...)",request:null,response:null,readback:null,structuralDiff:null,identicalBeforeAfter:null,writeCapability:"INCONCLUSIVE",candidateEntry:{entry:directCandidateEntry(),basis:directEntryBasis()},addResult:null,restoreResult:null,conclusion:null,remote:!!(options&&options.remote)};
     try{
-      if(state.report.buildMatch!==true)throw new Error("Client/server build mismatch; reload Sidee before any AppInfo write");
+      report.serverBuildId=await refreshDirectBuildMatch();report.buildMatch=true;
       const before=await readAppInfoRegistry("direct-appinfo-noop-before");
       report.original={raw:before.raw,parsed:before.parsed,rawHash:before.hash,length:before.length,appInfoCount:before.appInfoCount,parseValid:before.parseValid,readResponse:before.response,error:before.error};
       if(!before.ok||!before.parseValid)throw new Error(before.error||"Could not obtain valid Appinfo JSON");
@@ -829,7 +838,7 @@
     if(state.running)return;state.running=true;set("directAddState","Reading current AppInfo and creating a fresh backup…");
     let result={timestamp:new Date().toISOString(),status:"INCONCLUSIVE",fileWriteStatus:"NOT_RUN",entryStatus:"NOT_PRESENT",launcherStatus:"UNKNOWN_REBOOT_REQUIRED",launchStatus:"NOT_TESTED",backup:null,candidateEntry:directCandidateEntry(),error:null};
     try{
-      if(state.report.buildMatch!==true)throw new Error("Client/server build mismatch; reload Sidee before writing");
+      await refreshDirectBuildMatch();
       const before=await readAppInfoRegistry("direct-add-before");
       if(!before.ok||!before.parseValid)throw new Error(before.error||"Current Appinfo is not valid");
       result.before={rawHash:before.hash,length:before.length,appInfoCount:before.appInfoCount};
@@ -861,7 +870,7 @@
     if(state.running)return;state.running=true;set("directRestoreState","Verifying backup and protecting the current registry…");
     let result={timestamp:new Date().toISOString(),backupId:originalBackup.backupId,status:"INCONCLUSIVE",preRestoreBackup:null,error:null};
     try{
-      if(state.report.buildMatch!==true)throw new Error("Client/server build mismatch; reload Sidee before restoring");
+      await refreshDirectBuildMatch();
       const currentRegistry=await readAppInfoRegistry("direct-restore-current");
       if(!currentRegistry.ok||!currentRegistry.parseValid)throw new Error(currentRegistry.error||"Current Appinfo is not valid");
       result.preRestoreBackup=await createAppInfoBackup(currentRegistry.raw,currentRegistry.hash);
@@ -1182,6 +1191,10 @@
     state.remoteDiagnosticRunning=true;
     rememberRemoteDiagnosticId(request.requestId);
     const started=new Date().toISOString(),directNoop=request.workflow==="direct-appinfo-noop";
+    if(directNoop&&request.requiresBuildId&&request.requiresBuildId!==CLIENT_BUILD_ID){
+      renderRemoteDiagnosticState("ARMED · stale client for AppInfo write request");
+      return;
+    }
     state.report.remoteDiagnostic={
       lastRequestId:request.requestId,
       requestWorkflow:request.workflow||"safe-readonly",
@@ -1223,7 +1236,7 @@
   }
   async function pollRemoteDiagnostic(){
     try{
-      const r=await fetch("/api/remote-diagnostic/request",{cache:"no-store"}),d=await r.json();
+      const r=await fetch("/api/remote-diagnostic/request?clientBuildId="+encodeURIComponent(CLIENT_BUILD_ID),{cache:"no-store"}),d=await r.json();
       if(!r.ok)return;
       if(d.state==="PENDING"&&d.request){
         if(!state.remoteDiagnosticArmed){

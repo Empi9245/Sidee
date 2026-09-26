@@ -130,7 +130,10 @@ def _appinfo_backup_dir(session_id):
     return target
 
 
-def create_appinfo_backup(session_id, raw, client_hash=None):
+def create_appinfo_backup(session_id, raw, client_hash=None, client_build=None):
+    server_build = client_build_id()
+    if client_build is not None and client_build != server_build:
+        raise ValueError(f"Stale client build: {client_build!r} != {server_build!r}")
     parsed, encoded = _validate_appinfo_raw(raw)
     sha256 = hashlib.sha256(encoded).hexdigest()
     if client_hash is not None and client_hash != sha256:
@@ -160,6 +163,8 @@ def create_appinfo_backup(session_id, raw, client_hash=None):
         "bytes": len(encoded),
         "appInfoCount": len(parsed["AppInfo"]),
         "createdAt": _utc_timestamp(),
+        "clientBuildId": client_build,
+        "serverBuildId": server_build,
     }
 
 
@@ -529,13 +534,21 @@ def remote_diagnostic_worker():
         try:
             raw = _fetch_remote_diagnostic_request()
             workflow = None
+            required_build = None
             if isinstance(raw, dict):
                 safe_readonly = raw.get("runSafeDiagnostic") is True
                 direct_noop = raw.get("runDirectAppInfoWriteNoop") is True
-                if safe_readonly and direct_noop:
+                direct_noop_v2 = raw.get("runDirectAppInfoWriteNoopV2") is True
+                selected = int(bool(safe_readonly)) + int(bool(direct_noop)) + int(bool(direct_noop_v2))
+                if selected > 1:
                     raise ValueError("Diagnostic request selects multiple workflows")
                 if safe_readonly:
                     workflow = "safe-readonly"
+                elif direct_noop_v2:
+                    workflow = "direct-appinfo-noop"
+                    required_build = raw.get("requiresBuildId")
+                    if required_build != client_build_id():
+                        raise ValueError("Direct AppInfo no-op request is waiting for its required Sidee build")
                 elif direct_noop:
                     workflow = "direct-appinfo-noop"
 
@@ -556,6 +569,7 @@ def remote_diagnostic_worker():
                 request = {
                     "requestId": request_id,
                     "workflow": workflow,
+                    "requiresBuildId": required_build,
                     "createdAt": raw.get("createdAt"),
                     "expiresAt": raw.get("expiresAt"),
                     "requestedBy": str(raw.get("requestedBy") or "unknown")[:80],
@@ -797,7 +811,16 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
             return self._send_json(_report_sync_status())
 
         if path == "/api/remote-diagnostic/request":
-            return self._send_json(_remote_diagnostic_snapshot(include_request=True))
+            snapshot = _remote_diagnostic_snapshot(include_request=True)
+            request = snapshot.get("request")
+            if request and request.get("workflow") == "direct-appinfo-noop" and request.get("requiresBuildId"):
+                params = urllib.parse.parse_qs(parsed.query)
+                supplied_build = (params.get("clientBuildId") or [""])[0]
+                if supplied_build != request.get("requiresBuildId") or supplied_build != client_build_id():
+                    snapshot["state"] = "STALE_CLIENT"
+                    snapshot["message"] = "Reload Sidee before the build-bound AppInfo write test."
+                    snapshot["request"] = None
+            return self._send_json(snapshot)
 
         if path == "/api/appinfo/backup":
             params = urllib.parse.parse_qs(parsed.query)
@@ -865,11 +888,12 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
             session_id = data.get("sessionId")
             raw = data.get("raw")
             client_hash = data.get("clientSha256")
+            client_build = data.get("clientBuildId")
             if client_hash is not None:
                 if not isinstance(client_hash, str) or not re.fullmatch(r"[a-f0-9]{64}", client_hash):
                     return self._send_json({"ok": False, "error": "Invalid clientSha256"}, 400)
             try:
-                backup = create_appinfo_backup(session_id, raw, client_hash)
+                backup = create_appinfo_backup(session_id, raw, client_hash, client_build)
             except ValueError as exc:
                 return self._send_json({"ok": False, "error": str(exc)}, 400)
             except FileExistsError:
