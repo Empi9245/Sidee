@@ -2,69 +2,54 @@
 
 Data: 2026-09-26
 
-## Risultato del test multihost
+## Ultimo test reale
 
-Il test ha chiarito perché la detail page mostrava "impossibile caricare contenuto".
+Dopo il fallback alla modalità passiva, la Q0707 ha prodotto:
 
-Report:
-- sessionId: `sidee-20260926-203224-8ef2`;
-- build: `app-c022f88e412f`;
-- buildMatch: `true`.
+- sessionId: `sidee-20260926-204550-b8a4`
+- build: `app-4ce89e866abf`
+- `QUERIES_CAPTURED`
+- 42 query DNS
+- 23 host VIDAA osservati
 
-Status:
+Il risultato più importante è:
 
-- `category-ui.vidaahub.com` -> `IDLE`
-- `detail-ui-eu.vidaahub.com` -> `TLS_SNI_ONLY`
-- `appstore-vidaa.vidaahub.com` -> `TLS_SNI_ONLY`
-- `tvmodules-vidaa.vidaahub.com` -> `TLS_SNI_ONLY`
+`category-ui-eu.vidaahub.com`
 
-Non è arrivata nessuna richiesta HTTP.
+Il precedente PoC FuVIDAA usava la famiglia `category-ui.vidaahub.com`; sulla TV europea corrente è comparsa invece la variante regionale `category-ui-eu`.
 
-Questo significa che la TV raggiunge Sidee, invia SNI, ma interrompe il collegamento TLS prima dell'HTTP. Il certificato locale non viene accettato dal client Store.
+Altri host funzionali osservati:
+- `layout-ui-eu.vidaahub.com`
+- `detail-ui-eu.vidaahub.com`
+- `search-ui-eu.vidaahub.com`
+- `home-ui-eu.vidaahub.com`
+- `recommend-ui-eu.vidaahub.com`
+- `appstore-vidaa.vidaahub.com`
+- `tvmodules-vidaa.vidaahub.com`
+- `vidaa-base-auth-eu.vidaahub.com`
+- `partner.vidaahub.com`
 
-## Correzione già applicata
+## Stato tecnico
 
-Gli host Store sono stati rimossi da `config.json -> spoof_domains`.
+NON riattivare lo spoof HTTPS Store: la Q0707 rifiuta il certificato locale prima dell'HTTP.
 
-Dopo pull + riavvio:
-- il VIDAA Store torna a collegarsi direttamente ai server reali;
-- Sidee non interrompe più TLS;
-- gli host vengono comunque osservati dal discovery DNS passivo.
+`category-ui-eu.vidaahub.com` è stato aggiunto agli host noti del trace per completezza, ma non è presente in `spoof_domains`: resta quindi passivo di default.
 
-Il codice multihost rimane nella repo ma non è attivo di default.
+## Evidenza pubblica utile
 
-È stato inoltre aggiunto al discovery passivo:
+Un progetto recente, `kineticman/FastChannels`, usa backend VIDAA moderni con:
+- famiglia `layoutApi`;
+- famiglia `detailApi`;
+- endpoint `/api/v1.0.0/detailApi/mediasInfo`;
+- host VIDAA partner dedicati a layout/detail;
+- `partner.vidaahub.com` nel flusso di autenticazione.
 
-`app-appstore.hismarttv.com`
+Questo è coerente con gli host `layout-ui-eu`, `detail-ui-eu` e `partner.vidaahub.com` osservati sulla Q0707, ma non prova che i path siano identici nel VIDAA Store TV.
 
-per verificare se la Q0707 lo usa in un flusso Store successivo.
+## Prossima direzione
 
-## Nuova interpretazione
-
-`tvmodules-vidaa.vidaahub.com` è pubblicamente usato per il file:
-
-`/deviceapi/vidaatv.js`
-
-quindi è più plausibile che serva script/API device VIDAA piuttosto che catalogo/detail.
-
-`appstore-vidaa.vidaahub.com` è servito tramite CloudFront/S3 ed è chiaramente associato allo Store.
-
-`detail-ui-eu.vidaahub.com` resta il candidato più direttamente associato alla detail UI, ma il path HTTP non è osservabile con il MITM locale perché TLS viene rifiutato.
-
-## Prossimo passo
-
-Non riattivare lo spoof HTTPS dei domini Store.
-
-Continuare con:
-1. DNS passivo;
-2. ricerca di asset/script e riferimenti pubblici ai domini osservati;
-3. analisi di eventuali nuovi host Store emersi nella Q0707;
-4. ricostruzione degli endpoint da risorse pubbliche senza modificare il traffico della TV.
-
-Per un nuovo test TV basta:
-- `git pull`;
-- riavviare Sidee;
-- lasciare il DNS TV sul PC;
-- aprire normalmente lo Store e una detail page.
-
-Questa volta la pagina non dovrebbe essere bloccata da Sidee perché i domini Store non vengono più spoofati.
+Continuare senza MITM:
+1. mappare riferimenti pubblici/asset per `category-ui-eu`, `layout-ui-eu`, `detail-ui-eu`;
+2. confrontare con i path pubblicamente documentati delle famiglie `categoryApi`, `layoutApi`, `detailApi`;
+3. usare solo richieste read-only e senza credenziali della TV;
+4. non tornare ai vecchi test install/AppInfo/HSPDK finché la superficie Store moderna non è mappata meglio.
