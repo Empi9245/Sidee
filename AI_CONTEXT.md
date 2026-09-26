@@ -2083,3 +2083,71 @@ Workflow futuro per analizzare un test:
 3. in una nuova chat basta chiedere di analizzare l'ultimo report Sidee;
 4. leggere direttamente `reports/latest.json` dal branch `sidee-reports`;
 5. non chiedere all'utente di allegare il JSON se il sync risulta disponibile.
+
+
+---
+
+## IMPLEMENTAZIONE — Client Build ID + Cache Busting — 2026-09-26
+
+Problema osservato:
+- un report TV successivo all'aggiunta del Global Native Identity Usage Trace non conteneva affatto `permissionSourceTrace.globalIdentityUsage`;
+- il repo `main` conteneva già il probe, quindi la TV aveva eseguito una versione precedente/cachata di `web/app.js`;
+- il server già inviava `Cache-Control: no-cache, no-store, must-revalidate`, ma il browser VIDAA non è sufficientemente affidabile da usare solo gli header come garanzia.
+
+Soluzione implementata:
+
+### 1. Build ID content-derived
+`sidee.py` calcola `client_build_id()` come SHA-256 dei byte correnti di `web/app.js`, abbreviato a 12 caratteri e prefissato con `app-`.
+
+Quindi il build ID cambia automaticamente ogni volta che cambia davvero `app.js`, senza dover mantenere una versione manuale.
+
+### 2. Cache busting esplicito
+`web/index.html` usa:
+`/app.js?v=__SIDEE_BUILD_ID__`
+
+Quando il server serve `index.html`, sostituisce `__SIDEE_BUILD_ID__` con il build ID reale calcolato dal contenuto di `app.js`.
+
+Gli asset statici ora ricevono anche:
+- `Cache-Control: no-cache, no-store, must-revalidate, max-age=0`
+- `Pragma: no-cache`
+- `Expires: 0`
+- `X-Sidee-Build: <build id>`
+
+L'HTML include anche meta no-cache/no-store come ulteriore fallback per browser TV.
+
+### 3. clientBuildId nel report
+`web/app.js` ricava `CLIENT_BUILD_ID` dal parametro `v` del proprio `document.currentScript.src`.
+
+Ogni nuovo report contiene:
+- `clientBuildId`
+- `serverBuildId`
+- `buildMatch`
+
+Prima di ogni salvataggio il client riafferma il proprio `clientBuildId`.
+
+### 4. Verifica client/server
+`/api/status` espone il build ID server corrente come `clientBuildId`.
+
+Durante `load()`, Sidee confronta il build ID del JS effettivamente in esecuzione con quello servito dal server.
+
+Anche `POST /api/reports/session` effettua una verifica server-side:
+- se il client non invia `clientBuildId`, salva `clientBuildId: "MISSING"`;
+- salva sempre `serverBuildId`;
+- salva sempre `buildMatch`;
+- restituisce questi tre valori nella response.
+
+Questo rende riconoscibile anche un vecchio client che non possiede ancora la logica di build checking.
+
+Se una build nuova rileva mismatch durante il salvataggio, la UI mostra esplicitamente:
+`STALE CLIENT · <client> ≠ <server> · reload Sidee before testing.`
+
+### Obiettivo operativo
+Dal prossimo JSON, prima di interpretare qualsiasi diagnostica, controllare:
+- `clientBuildId`
+- `serverBuildId`
+- `buildMatch`
+
+Procedere con l'analisi del probe solo se `buildMatch === true`.
+
+Il Global Native Identity Usage Trace resta presente in `web/app.js`; una build aggiornata deve quindi produrre anche:
+`permissionSourceTrace.globalIdentityUsage`.
