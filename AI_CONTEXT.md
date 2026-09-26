@@ -3340,3 +3340,45 @@ Non chiama:
 - sendPlatformMessage mutanti.
 
 Questo è il prossimo dato necessario per capire il formato reale dei package VIDAA e se la pista package manager è praticabile.
+
+
+---
+
+## RISULTATO TV — pkgmgr getInstalledPkgs reale — 2026-09-26
+
+Il probe read-only `vowOS.store.getInstalledPkgs()` è riuscito realmente sulla Q0707:
+
+`ret=true`, `code=0`, SDK `1.5.0`.
+
+Sono stati restituiti 18 pacchetti reali, tra cui:
+- `tv.vidaa.app.browser` — type `ns` — `APPS:pkgs/tv.vidaa.app.browser/CHA/`;
+- `tv.vidaa.app.phoenix` — type `ns`;
+- `tv.vidaa.app.operationui` — type `system`;
+- `tv.vidaa.app.youtube` — type `native`;
+- `tv.vidaa.jsservice.basic` — type `js`;
+- `tv.vidaa.jsservice.system` — type `js`;
+- `tv.vidaa.lib.odin` — type `native`;
+- `tv.vidaa.app.tvbrowser` — type `web` — `APPS:pkgs/tv.vidaa.app.tvbrowser/`.
+
+Il dato `tv.vidaa.app.tvbrowser` è particolarmente importante perché conferma che il package manager gestisce anche pacchetti web reali.
+
+Il source già verificato di `vowOS.store.sendPkgmgrRequest('install', ...)` costruisce, dopo una risposta package riuscita:
+
+`file:///APPS/pkgs/<pkgName>/index.html`
+
+Questo è coerente con il path restituito da `getInstalledPkgs`.
+
+Interpretazione verificata:
+- `pkgmgr` è vivo e accessibile dal browser corrente;
+- `getInstalledPkgs` è autorizzato nel normale contesto `vidaahub.com`;
+- il package manager distingue tipi `web`, `native`, `ns`, `system`, `js`, `res`, `phony`;
+- il ramo package install non riceve una URL dal wrapper browser, solo `pkgName`, `version`, `appId`;
+- quindi la sorgente del package deve essere risolta/staged altrove oppure tramite stato interno al package manager;
+- NON è ancora provato che `pkgmgr install` accetti un package arbitrario o che consenta sideload.
+
+Le ricerche pubbliche mirate sui package name Q0707 e su `APPS:pkgs` non hanno prodotto documentazione utile.
+
+Prossima pista:
+1. ricostruire formato/staging di un package web già installato, partendo da `tv.vidaa.app.tvbrowser`;
+2. cercare nel runtime già caricato riferimenti source a `pkgmgr`, `packageName`, `/APPS/pkgs/` e wrapper di download/staging;
+3. evitare `pkgmgr install` finché non è chiaro da dove prende il package.
