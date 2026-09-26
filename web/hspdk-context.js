@@ -2,6 +2,8 @@
   "use strict";
   // Descriptor-only discovery. Never execute a discovered native method or getter.
   var terms = /libhspdk-jsx\.so|(?:Hisense|HiBrowser)\.File|File\.(?:read|write)|launcher\/Appinfo\.json|websdk\/Appinfo\.json|loadLibrary/g;
+  // Exact launch-context markers found in historical Hisense launcher source. Source-only detection; never launch them.
+  var legacyLaunchTerms = /:am,am,(?:(?:hi_browser|lau_browser|tv_store):start|:start=\[(?:hi_browser|lau_browser|tv_store))|app_(?:hi_browser|lau_browser|tv_store)|amName\s*:\s*["']hi_browser["']/g;
   var sensitive = /token|secret|password|cookie|credential|authorization|signature|certificate|nonce|session/i;
   function lookup(root, name) {
     for (var depth = 0; root && depth < 5; depth++) {
@@ -48,9 +50,9 @@
       callablePairObserved: read.type === "function" && write.type === "function" };
   }
   function capture() {
-    var out = { version: 1, timestamp: new Date().toISOString(), readOnly: true,
+    var out = { version: 2, timestamp: new Date().toISOString(), readOnly: true,
       page: { href: location.href, origin: location.origin, userAgent: navigator.userAgent },
-      exact: [], discoveredSurfaces: [], sourceMatches: [], scripts: [],
+      exact: [], discoveredSurfaces: [], sourceMatches: [], legacyLaunchContextMatches: [], scripts: [],
       scannedGlobals: 0, scannedFunctions: 0, truncated: false,
       note: "Presence is not write permission. No getter, loader, file read/write or discovered function is invoked." };
     ["Hisense", "HiBrowser"].forEach(function (name) { out.exact.push(surface("window." + name, lookup(window, name))); });
@@ -65,6 +67,13 @@
         if (match && out.sourceMatches.length < 40) out.sourceMatches.push({ path: path,
           term: match[0], sourceLength: source.length, truncated: source.length > 24000,
           excerpt: bounded.slice(Math.max(0, match.index - 300), match.index + 900) });
+        legacyLaunchTerms.lastIndex = 0;
+        var launchMatch = legacyLaunchTerms.exec(bounded);
+        if (launchMatch && out.legacyLaunchContextMatches.length < 40) out.legacyLaunchContextMatches.push({
+          path: path, term: launchMatch[0], sourceLength: source.length, truncated: source.length > 24000,
+          excerpt: bounded.slice(Math.max(0, launchMatch.index - 300), launchMatch.index + 900),
+          evidence: "HISTORICAL_LAUNCH_MARKER_ONLY"
+        });
       } catch (e) { /* Some native functions do not expose source. */ }
     }
     try {
