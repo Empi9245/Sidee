@@ -15,6 +15,7 @@ OpenSSL is used only to generate a temporary self-signed vidaahub.com certificat
 from __future__ import annotations
 
 import argparse
+import hashlib
 import http.server
 import json
 import mimetypes
@@ -42,6 +43,15 @@ CERT_DIR = ROOT / ".sidee-certs"
 stop_event = threading.Event()
 REPORT_WRITE_LOCK = threading.Lock()
 SESSION_ID_RE = re.compile(r"^sidee-\d{8}-\d{6}-[a-f0-9]{4}$")
+
+
+def client_build_id():
+    """Content-derived ID for the exact web/app.js bytes served by this host."""
+    try:
+        digest = hashlib.sha256((WEB_DIR / "app.js").read_bytes()).hexdigest()[:12]
+        return "app-" + digest
+    except OSError:
+        return "app-unavailable"
 
 
 def session_report_filename(session_id):
@@ -525,6 +535,7 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
                 "host": self.headers.get("Host", ""),
                 "client": self.client_address[0],
                 "spoofDomains": cfg.get("spoof_domains", []),
+                "clientBuildId": client_build_id(),
             })
 
         if path == "/api/config":
@@ -557,12 +568,20 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
             return self.send_error(403)
         if not file_path.is_file():
             file_path = WEB_DIR / "index.html"
-        data = file_path.read_bytes()
+        build_id = client_build_id()
+        if file_path.name == "index.html":
+            text = file_path.read_text(encoding="utf-8")
+            data = text.replace("__SIDEE_BUILD_ID__", build_id).encode("utf-8")
+        else:
+            data = file_path.read_bytes()
         ctype = mimetypes.guess_type(str(file_path))[0] or "application/octet-stream"
         self.send_response(200)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(data)))
-        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
+        self.send_header("X-Sidee-Build", build_id)
         self.end_headers()
         self.wfile.write(data)
 
@@ -578,6 +597,16 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
                 return self._send_json({"ok": False, "error": "Expected JSON object"}, 400)
             session_id = data.get("sessionId")
             report = data.get("report")
+            if isinstance(report, dict):
+                report = dict(report)
+                server_build_id = client_build_id()
+                raw_client_build_id = report.get("clientBuildId")
+                client_id = raw_client_build_id if isinstance(raw_client_build_id, str) and raw_client_build_id else "MISSING"
+                report["clientBuildId"] = client_id
+                report["serverBuildId"] = server_build_id
+                report["buildMatch"] = client_id == server_build_id
+            else:
+                server_build_id = client_build_id()
             try:
                 file_path = write_session_report(session_id, report)
             except ValueError as exc:
@@ -598,6 +627,9 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
                 "ok": True,
                 "sessionId": session_id,
                 "file": file_path.name,
+                "clientBuildId": report.get("clientBuildId") if isinstance(report, dict) else None,
+                "serverBuildId": server_build_id,
+                "buildMatch": report.get("buildMatch") if isinstance(report, dict) else False,
                 "githubSync": sync_state,
             })
 
