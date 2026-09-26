@@ -59,9 +59,14 @@ APP_CONTEXT_TRANSPORT_LAST = {}
 
 
 def client_build_id():
-    """Content-derived ID for the exact web/app.js bytes served by this host."""
+    """Bind the UI, shared context probe and inline bootstrap to one build."""
     try:
-        digest = hashlib.sha256((WEB_DIR / "app.js").read_bytes()).hexdigest()[:12]
+        digest = hashlib.sha256(b"\0".join([
+            (WEB_DIR / "app.js").read_bytes(),
+            (WEB_DIR / "hspdk-context.js").read_bytes(),
+            (WEB_DIR / "index.html").read_bytes(),
+            pathlib.Path(__file__).read_bytes(),
+        ])).hexdigest()[:12]
         return "app-" + digest
     except OSError:
         return "app-unavailable"
@@ -311,6 +316,8 @@ def _record_app_context_hit(host, path, client_ip, headers):
 def _app_context_bootstrap_html(host):
     app = APP_CONTEXT_HOSTS[host]
     app_json = json.dumps(app, ensure_ascii=False)
+    hspdk_source = (WEB_DIR / "hspdk-context.js").read_text(encoding="utf-8")
+    build_json = json.dumps(client_build_id())
     return f"""<!doctype html>
 <html>
 <head>
@@ -332,11 +339,11 @@ pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-w
 <main>
 <h1>Sidee · native app context</h1>
 <p id="state" class="wait">Capturing read-only VIDAA identity…</p>
-<button id="noopBtn" disabled>Run backup-protected AppInfo no-op write</button>
-<p id="noopState" class="wait">Waiting for the identity capture.</p>
+<p>HSPDK context inspection only. No file write or library load.</p>
 <pre id="out">host: {host}\nexpected app: {app["name"]} ({app["id"]})</pre>
 </main>
-<script>
+<script data-sidee>{hspdk_source}</script>
+<script data-sidee>
 (function(){{
   "use strict";
   var expected={app_json};
@@ -415,6 +422,8 @@ pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-w
   try{{svc=window.vowOS&&window.vowOS.service;}}catch(e){{}}
   try{{ctx=window.vowOSContext;}}catch(e){{}}
   var payload={{
+    clientBuildId:{build_json},
+    legacyHspdkContext:window.SideeHspdkContext(),
     timestamp:new Date().toISOString(),
     href:location.href,
     origin:location.origin,
@@ -461,9 +470,6 @@ pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-w
     }}
   }};
   var out=document.getElementById("out"),state=document.getElementById("state");
-  var noopBtn=document.getElementById("noopBtn"),noopState=document.getElementById("noopState");
-  var bootstrapSessionId=null,bootstrapBuildId=null,autoNoopStarted=false;
-  var autoNoopGuardKey="sidee.appContextNoopAuto.v1:"+location.hostname;
   out.textContent=JSON.stringify(payload,null,2);
 
   function postJson(url,body){{
@@ -483,93 +489,9 @@ pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-w
       }}catch(e){{reject(e);}}
     }});
   }}
-  function nativeSummary(v){{
-    if(v===true||v===false)return {{ret:v,code:null,msg:null}};
-    if(!v||typeof v!=="object")return {{ret:null,code:null,msg:null}};
-    return {{
-      ret:typeof v.ret==="boolean"?v.ret:null,
-      code:v.code===undefined?null:v.code,
-      msg:v.msg===undefined||v.msg===null?null:String(v.msg).slice(0,1000)
-    }};
-  }}
-  function appInfoRaw(v){{
-    if(v&&typeof v==="object"&&typeof v.msg==="string")return v.msg;
-    return null;
-  }}
-  async function runNoopWrite(){{
-    if(!bootstrapSessionId||typeof window.HiUtils_createRequest!=="function")return false;
-    noopBtn.disabled=true;
-    noopState.className="wait";
-    noopState.textContent="Reading AppInfo and creating immutable backup…";
-    var backup=null,write=null,after=null;
-    try{{
-      var before=window.HiUtils_createRequest("fileRead",{{path:"websdk/Appinfo.json",mode:6}});
-      var raw=appInfoRaw(before);
-      if(!raw)throw new Error("fileRead did not return raw AppInfo JSON");
-      backup=await postJson("/api/appinfo/backup",{{
-        sessionId:bootstrapSessionId,
-        raw:raw,
-        clientBuildId:bootstrapBuildId
-      }});
-      if(!backup||!backup.ok||!backup.backup||!backup.backup.backupId)throw new Error("immutable backup was not confirmed");
-
-      noopState.textContent="Backup confirmed. Writing the exact same AppInfo bytes once…";
-      write=window.HiUtils_createRequest("fileWrite",{{path:"websdk/Appinfo.json",mode:6,writedata:raw}});
-      after=window.HiUtils_createRequest("fileRead",{{path:"websdk/Appinfo.json",mode:6}});
-      var afterRaw=appInfoRaw(after);
-      if(!afterRaw)throw new Error("readback did not return raw AppInfo JSON");
-
-      var saved=await postJson("/api/app-context-noop-result",{{
-        sessionId:bootstrapSessionId,
-        backupId:backup.backup.backupId,
-        writeResponse:nativeSummary(write),
-        readbackResponse:nativeSummary(after),
-        readbackRaw:afterRaw
-      }});
-      var cap=saved&&saved.writeCapability?saved.writeCapability:"INCONCLUSIVE";
-      noopState.textContent=cap+" · ret "+String(saved&&saved.writeResponse&&saved.writeResponse.ret)+" · code "+String(saved&&saved.writeResponse&&saved.writeResponse.code)+" · readback identical "+String(saved&&saved.readback&&saved.readback.identicalToBackup);
-      noopState.className=cap==="WRITE_ALLOWED_AND_IDENTICAL"?"ok":"wait";
-      return true;
-    }}catch(e){{
-      noopState.textContent="No-op test stopped: "+String(e&&e.message||e);
-      noopState.className="wait";
-      return false;
-    }}
-  }}
-
-  async function autoRunNoopWriteOnce(){{
-    if(autoNoopStarted)return;
-    autoNoopStarted=true;
-    try{{
-      if(sessionStorage.getItem(autoNoopGuardKey)==="done"){{
-        noopState.textContent="Automatic no-op test already completed in this app session.";
-        return;
-      }}
-      sessionStorage.setItem(autoNoopGuardKey,"running");
-    }}catch(e){{}}
-
-    noopState.textContent="Native app context captured. Starting the backup-protected no-op test automatically…";
-    var ok=await runNoopWrite();
-    try{{
-      if(ok)sessionStorage.setItem(autoNoopGuardKey,"done");
-      else sessionStorage.removeItem(autoNoopGuardKey);
-    }}catch(e){{}}
-  }}
-
-  noopBtn.onclick=runNoopWrite;
-
   postJson("/api/app-context-bootstrap",payload).then(function(saved){{
-    bootstrapSessionId=saved&&saved.sessionId||null;
-    bootstrapBuildId=saved&&saved.clientBuildId||null;
-    state.textContent="Captured and synced. Native app context is ready.";
+    state.textContent="Saved HSPDK context: "+payload.legacyHspdkContext.status+". Report queued for sync.";
     state.className="ok";
-    if(payload.capabilities.hiUtils&&bootstrapSessionId){{
-      noopBtn.disabled=false;
-      noopState.textContent="Ready. Starting the exact backup-protected AppInfo no-op test automatically…";
-      setTimeout(function(){{autoRunNoopWriteOnce();}},250);
-    }}else{{
-      noopState.textContent="HiUtils or bootstrap session unavailable; no write test can run.";
-    }}
   }}).catch(function(e){{
     state.textContent="Captured locally in the page; server sync failed: "+String(e&&e.message||e);
   }});
@@ -591,9 +513,10 @@ def _save_app_context_bootstrap(data, server_host, client_ip):
     identity = data.get("identity") if isinstance(data.get("identity"), dict) else {}
     report = {
         "sessionId": session_id,
-        "clientBuildId": client_build_id(),
+        "clientBuildId": data.get("clientBuildId") or "MISSING",
         "serverBuildId": client_build_id(),
-        "buildMatch": True,
+        "buildMatch": data.get("clientBuildId") == client_build_id(),
+        "legacyHspdkContext": data.get("legacyHspdkContext") if isinstance(data.get("legacyHspdkContext"), dict) else None,
         "startedAt": now,
         "updatedAt": now,
         "accessContext": {

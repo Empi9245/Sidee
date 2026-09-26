@@ -1,5 +1,28 @@
 # Sidee
 
+## Current investigation — legacy writer context (2026-09-26)
+
+The latest TV report (`sidee-20260926-172629-e5b8`, build match true) found
+`Hisense` without `File` or `loadLibrary`, and no usable `HiBrowser` surface in
+the vidaahub browser context. No legacy read/write occurred. Do not repeat the
+HiUtils 503, identifier, origin or install tests described in the historical
+sections below. Devkit is outside this investigation.
+
+Use **Inspect HSPDK Context (read-only)** in **Legacy Hisense File Writer**.
+The report's `legacyHspdkContext` records both named roots, descriptor/prototype
+metadata, concrete global objects exposing `File`/`loadLibrary`, and bounded
+function-source matches. It never calls a getter, loader or file operation.
+`FILE_PAIR_OBSERVED_NOT_TESTED` means presence only, not permission.
+
+After restarting Sidee, the existing Smartone/Duplecast bootstrap captures the
+same HSPDK evidence automatically and queues it for report sync. Its previous
+automatic HiUtils no-op write has been removed. Compare these reports with the
+browser capture to determine whether the legacy surface changes by context.
+No system page exposing HSPDK on the tested firmware has yet been identified.
+
+Local checks: `node tests/hspdk-context.test.js` and
+`python -B tests/test_hspdk_bootstrap.py` (requires Node.js).
+
 Sidee is a **standalone local VIDAA research + web-app installer toolkit**. It is not part of Nuvio TV Smart.
 
 It combines the useful ideas found in:

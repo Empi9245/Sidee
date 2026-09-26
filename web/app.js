@@ -332,7 +332,7 @@
       }else{
         let url=null;try{url=new URL(src,location.href);entry.sameOrigin=url.origin===location.origin;}catch(e){entry.status="ERROR";entry.error=err(e);}
         if(entry.sameOrigin){
-          if(url&&url.pathname==="/app.js"){entry.status="SIDEE_SELF_SKIPPED";}
+          if(url&&(url.pathname==="/app.js"||url.pathname==="/hspdk-context.js")){entry.status="SIDEE_SELF_SKIPPED";}
           else{
             try{
               const response=await withTimeout(fetch(url.href,{cache:"no-store",credentials:"same-origin"}),3000,"script source fetch");
@@ -952,6 +952,19 @@
     }
     return report;
   }
+  async function inspectHspdkContext(){
+    if(state.running)return;
+    state.running=true;
+    try{
+      const report=window.SideeHspdkContext();
+      state.report.legacyHspdkContext=report;
+      set("hspdkContextState",report.status+" · "+report.sourceMatches.length+" source references · no native calls");
+      await save("legacy-hspdk-context");
+    }catch(e){set("hspdkContextState","Context inspection failed: "+err(e));}
+    finally{state.running=false;}
+  }
+  $("hspdkContextBtn").addEventListener("click",inspectHspdkContext);
+
   function hspdkHosts(){
     const names=["Hisense","HiBrowser"],out=[];
     for(let i=0;i<names.length;i++){
@@ -1120,7 +1133,11 @@
       }
       report.afterLoad=hspdkSnapshot();
       const file=resolved.file;
-      if(!file)throw new Error("Neither Hisense nor HiBrowser exposed a usable legacy File.read/File.write surface");
+      if(!file){
+        report.writeCapability="WRITER_UNAVAILABLE";
+        state.report.legacyHspdkContext=window.SideeHspdkContext();
+        throw new Error("Neither Hisense nor HiBrowser exposed a usable legacy File.read/File.write surface");
+      }
       const found=await hspdkFindRegistry(file);report.readAttempts=found.attempts;
       if(!found.registry)throw new Error("No valid AppInfo registry readable through the legacy File API");
       const before=found.registry;report.registry={path:before.path,hash:before.hash,length:before.length,appInfoCount:before.appInfoCount};

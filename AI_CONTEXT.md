@@ -2852,3 +2852,85 @@ The real Duplecast and Smartone launcher contexts both had:
 - the same code 503 AppConfig rejection for exact no-op `fileWrite`.
 
 Therefore the current evidence points to permission resolution below the visible JavaScript wrapper layer, keyed at least by the native identifier/session context. A valid installed-app identity is not equivalent to write permission.
+
+---
+
+## VERIFICA — Legacy writer unavailable / context-only capture — 2026-09-26
+
+### Stato reale e report
+
+- Prima delle modifiche, `main` e `origin/main` coincidevano su
+  `be3991b1488349b514862a1aae6a42655b81ab4f`; working tree pulito.
+- Recuperato `origin/sidee-reports` su `0a9b873c948eecf65f72498fd241d9c779f47c47`.
+- Fonte: `reports/latest.json`, sessione `sidee-20260926-172629-e5b8`, aggiornata
+  `2026-09-26T15:28:00.775Z`; client/server `app-08cafb236b7f`, `buildMatch:true`.
+- Il test legacy delle `15:27:20.386Z` gira in `VIDAAHUB_BROWSER_CONTEXT`.
+  Prima e dopo: unico owner rilevato `Hisense` (object), `File` assente,
+  `loadLibrary` non disponibile; nessuna superficie HiBrowser rilevata.
+  `resolutionAttempts` contiene soltanto Hisense, senza caricamento libreria.
+- `selectedOwner`, registry, backup, probe e restore sono null;
+  `readAttempts` è vuoto. Risultato storico `INCONCLUSIVE`, errore
+  `Neither Hisense nor HiBrowser exposed a usable legacy File.read/File.write surface`.
+  Non è una scrittura rifiutata: nessun writer è stato raggiunto e nessun file
+  è stato letto/scritto da questo test. Non autorizza l'aggiunta Nuvio.
+- Il vecchio snapshot non distingue bene assenza/accessor/errori degli host:
+  l'assenza della superficie nel report non prova l'assenza di HSPDK nel firmware.
+
+### Ricerca mirata e limiti
+
+- Fonte primaria del codice storico: post oceansize #5237, 2022-03-07,
+  https://4pda.to/forum/index.php?showtopic=1004810&st=5220 .
+  Il codice disponibile nell'indice della pagina usa direttamente
+  `Hisense.File.read('launcher/Appinfo.json',1)` e
+  `Hisense.File.write('launcher/Appinfo.json',writedata,1)`.
+  Nel listato non c'è bootstrap, script esterno o `loadLibrary` precedente.
+  Il post descrive una pagina servita dal PC aperta nel browser TV; non identifica
+  una pagina di sistema HSPDK. L'accesso diretto alla pagina ha restituito 403;
+  il listato era leggibile nel risultato indicizzato. Esperienza di terzi del
+  2022, non prova di compatibilità con VIDAA 9.60.
+- Verificato via GitHub il file `src/app/services/app-management.service.ts`
+  di https://github.com/weinzii/vidaa-edge e dei fork `marmas1503/vidaa-edge`,
+  `WawRepo/vidaa-edge`, `BastyJuice/vidaa-edge`, `simonbuehler/vidaa-edge`.
+  Nei primi quattro il file contiene HiUtils `fileWrite` e `Hisense_installApp`,
+  senza `HiBrowser`, HSPDK o `File.write`; il file del fork simonbuehler contiene
+  soltanto il percorso `Hisense_installApp`. Questo controllo riguarda quei file,
+  non dimostra l'assenza di altre superfici in tutti i fork/storia Git.
+- Issue https://github.com/weinzii/vidaa-edge/issues/30 e relativi commenti:
+  nessun bootstrap HSPDK o secondo writer concreto nei contenuti verificati.
+- Le query esatte `libhspdk-jsx.so`, `HiBrowser.loadLibrary` e combinazioni con
+  Hisense non hanno fornito nuova evidenza utile. Non attribuire al post 4PDA
+  il fallback `libhspdk-jsx.so`: esiste nel codice Sidee ma non nel listato citato.
+- Non è stata identificata una pagina/app di sistema che esponga HSPDK sulla
+  TV specifica. Nessun nuovo nome API o URL di sistema è stato inventato/provato.
+
+### Implementazione verificata localmente
+
+- Nuovo `web/hspdk-context.js`, condiviso da UI e bootstrap inline, salva
+  `legacyHspdkContext`: Hisense/HiBrowser anche se assenti o accessor, proprietà
+  e prototype, altri globali reali con File/loadLibrary, riferimenti nel source
+  delle funzioni già esistenti e inventario degli script caricati.
+- Descriptor-only: il nuovo collector non invoca getter, loader, File.read/write,
+  HiUtils o funzioni scoperte. Non recupera/esegue script remoti. Limiti:
+  1600 globali, 4000 proprietà di namespace, 100 per namespace, 40 source match,
+  30 superfici, 80 script; proprietà sensibili filtrate, troncamenti segnalati.
+- Pulsante `Inspect HSPDK Context (read-only)` nel lab legacy. Il test write
+  esistente ora classifica `WRITER_UNAVAILABLE` quando non trova il writer e
+  conserva anche la nuova cattura. Nessuna nuova API write introdotta.
+- Trovato nel codice reale un automatismo non allineato al vecchio README:
+  il bootstrap Smartone/Duplecast chiamava `autoRunNoopWriteOnce()` dopo il save.
+  Rimosso tutto il flusso no-op dal bootstrap per evitare di ripetere HiUtils 503.
+  Ora salva automaticamente il contesto HSPDK insieme all'identità read-only.
+- Build ID include app.js, collector, index.html e sidee.py. Il bootstrap invia
+  il build incorporato nell'HTML e il server confronta quello ricevuto: non marca
+  più indiscriminatamente un bootstrap vecchio come `buildMatch:true`.
+- Test locali passati: parsing JavaScript, discovery di File ereditato e host
+  alternativi/alias, accessor non invocati, assenza Hisense/HiBrowser gestita,
+  source match senza invocazione, esecuzione del bootstrap realmente generato
+  con HiUtils/timer proibiti, persistenza del campo nel report, build stale rilevata.
+  Nessuna di queste simulazioni dimostra disponibilità del writer sulla TV.
+
+Prossimo dato necessario: dopo restart Sidee, cattura HSPDK nel browser tramite
+il nuovo pulsante e nei contesti Smartone/Duplecast tramite il bootstrap. Questo
+è un confronto di superfici di sola lettura, non un nuovo test permission/write.
+Analizzare `legacyHspdkContext` dai report sincronizzati senza richiedere allegati.
+Nuvio non è stato aggiunto; nessuna scrittura TV eseguita in questa fase.
