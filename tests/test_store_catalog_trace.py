@@ -72,9 +72,9 @@ class _Handler:
     command = "GET"
     path = "/api/v1.0.0/categoryApi/categoryFirstResult?country=ITA&token=secret"
 
-    def __init__(self):
+    def __init__(self, host=None):
         self.headers = _Headers({
-            "Host": sidee.STORE_CATALOG_HOST,
+            "Host": host or sidee.STORE_CATALOG_HOST,
             "Authorization": "Bearer forwarded-but-never-logged",
             "Cookie": "sid=forwarded-but-never-logged",
             "Accept": "application/json",
@@ -151,6 +151,29 @@ class StoreCatalogTraceTests(unittest.TestCase):
         self.assertNotIn("must-not-appear", serialized)
         self.assertEqual(response_event["jsonSummary"]["catalogApps"][0]["url"]["host"], "example.test")
 
+    def test_proxy_routes_each_observed_store_host_to_matching_upstream(self):
+        for host in (
+            "detail-ui-eu.vidaahub.com",
+            "appstore-vidaa.vidaahub.com",
+            "tvmodules-vidaa.vidaahub.com",
+        ):
+            handler = _Handler(host)
+            events = []
+
+            def record(event, detail=None):
+                events.append((event, detail or {}))
+                return {}
+
+            with mock.patch.object(sidee.http.client, "HTTPSConnection", _Connection), \
+                 mock.patch.object(sidee, "_record_store_trace", record):
+                sidee._proxy_store_catalog_request(handler)
+
+            self.assertEqual(_Connection.last.request_args[3]["Host"], host)
+            begin = [detail for event, detail in events if event == "HTTP_BEGIN"][0]
+            response = [detail for event, detail in events if event == "HTTP_RESPONSE"][0]
+            self.assertEqual(begin["host"], host)
+            self.assertEqual(response["host"], host)
+
     def test_event_trace_records_bounded_transport_events_and_redacts_errors(self):
         previous = sidee.STORE_TRACE_REPORT
         sidee.STORE_TRACE_REPORT = None
@@ -192,6 +215,14 @@ class StoreCatalogTraceTests(unittest.TestCase):
             self.assertLessEqual(len(trace["events"]), sidee.STORE_TRACE_MAX_EVENTS)
             self.assertEqual(trace["events"][2]["queryParameterNames"], ["country", "token"])
             self.assertEqual(trace["events"][3]["upstreamStatus"], 200)
+            self.assertEqual(
+                trace["hostStats"][sidee.STORE_CATALOG_HOST]["status"],
+                "PROXY_ERROR",
+            )
+            self.assertEqual(
+                trace["hostStats"][sidee.STORE_CATALOG_HOST]["requestCount"],
+                1,
+            )
             serialized = json.dumps(trace)
             self.assertNotIn("topsecret", serialized)
             self.assertNotIn("anothersecret", serialized)
@@ -265,7 +296,25 @@ class StoreCatalogTraceTests(unittest.TestCase):
 
     def test_config_spoofs_store_host(self):
         cfg = sidee.load_config()
-        self.assertIn(sidee.STORE_CATALOG_HOST, cfg["spoof_domains"])
+        for host in sidee.STORE_TRACE_HOSTS:
+            self.assertIn(host, cfg["spoof_domains"])
+
+    def test_store_trace_hosts_are_present_in_default_snapshot(self):
+        previous = sidee.STORE_TRACE_REPORT
+        sidee.STORE_TRACE_REPORT = None
+        try:
+            snapshot = sidee._store_trace_snapshot()
+            self.assertEqual(snapshot["hosts"], list(sidee.STORE_TRACE_HOSTS))
+            self.assertEqual(
+                set(snapshot["hostStats"].keys()),
+                set(sidee.STORE_TRACE_HOSTS),
+            )
+            self.assertTrue(all(
+                item["status"] == "IDLE"
+                for item in snapshot["hostStats"].values()
+            ))
+        finally:
+            sidee.STORE_TRACE_REPORT = previous
 
 
 if __name__ == "__main__":
