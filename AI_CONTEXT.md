@@ -3469,3 +3469,45 @@ L'auto-probe:
 - chiama solo `Hisense_FileRead` sul package già installato;
 - salva normalmente il report;
 - non installa/rimuove/scrive package.
+
+
+---
+
+## RISULTATO ALLEGATO — tvbrowser index READ_EMPTY e path-form probe — 2026-09-26
+
+Report reale allegato dall'utente, build:
+`app-7abbfb3ccac3`, build match true.
+
+`pkgmgrPackageProbe` ha eseguito:
+`Hisense_FileRead('../../../APPS/pkgs/tv.vidaa.app.tvbrowser/index.html', 0)`
+
+Risultato:
+- returnedType: `string`;
+- length: `0`;
+- status: `READ_EMPTY`;
+- nessun errore;
+- nessun riferimento HTML.
+
+Questo NON dimostra che il package non esista: `getInstalledPkgs` lo aveva già restituito come package reale. Dimostra solo che la conversione Linux-relative usata dal primo probe non ha prodotto contenuto leggibile.
+
+I source matches del medesimo report riconfermano:
+- `vowOS.store.getInstalledPkgs -> service.syncExecute('pkgmgr', ...)`;
+- `vowOS.store.installApp` usa `packageName` e `sendPkgmgrRequest('install', ...)`;
+- `sendPkgmgrRequest` usa `https://localhost:9888/service/pkgmgr`;
+- dopo install riuscito costruisce `file:///APPS/pkgs/<pkgName>/index.html`.
+
+### Probe successivo
+
+Il probe tvbrowser ora testa, read-only, solo tre rappresentazioni del medesimo path già osservate o direttamente derivate da sorgenti reali:
+1. `APPS:pkgs/tv.vidaa.app.tvbrowser/index.html`
+   - forma namespace esatta restituita da `getInstalledPkgs`;
+2. `/APPS/pkgs/tv.vidaa.app.tvbrowser/index.html`
+   - forma filesystem implicata da `file:///APPS/pkgs/<pkgName>/index.html`;
+3. `../../../APPS/pkgs/tv.vidaa.app.tvbrowser/index.html`
+   - conversione usata dal file scanner pubblico vidaa-edge.
+
+Tutte usano `Hisense_FileRead(..., 0)`.
+Nessun filename alternativo viene indovinato.
+Nessun install/uninstall/write viene eseguito.
+
+Il report salva ogni attempt separatamente e seleziona il primo che restituisce contenuto.
