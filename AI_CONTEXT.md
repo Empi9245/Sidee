@@ -1980,3 +1980,56 @@ Obiettivo del prossimo test TV: eseguire solo **Trace Permission Sources** e **E
 - `scannedFunctionCount`
 
 Se emergono wrapper concreti, il prossimo probe dovrà seguire soltanto quei nomi/path reali. Se non emerge nulla, la pista JavaScript dei wrapper Phoenix è sostanzialmente esaurita.
+
+
+---
+
+## IMPLEMENTAZIONE — Global Native Identity Usage Trace — 2026-09-26
+
+Il Global Phoenix Wrapper Source Trace reale ha trovato 4 wrapper concreti su 1192 funzioni analizzate:
+- `TvInfo_setParam` -> `phoenix://service/tvinfo`, `callAPI/setbiz`
+- `TvInfo_setParamObserver` -> `phoenix://service/tvinfo`, `method:'register'`
+- `TvInfo_clearParamObserver` -> `phoenix://service/tvinfo`, `method:'unregister'`
+- `TvInfo_writeTvRunLog` -> `phoenix://service/hiutils`, `callAPI/writeTvRunLog`
+
+Il `register` emerso è quindi un observer/event subscription di `tvinfo`, non un client/app identity registration. I soli Phoenix paths scoperti sono `phoenix://service/tvinfo` e `phoenix://service/hiutils`.
+
+Per verificare l'ultima pista JavaScript rimasta — chi usa davvero l'identità nativa — il Permission Source Trace ora salva:
+
+`permissionSourceTrace.globalIdentityUsage`
+
+Il probe usa la stessa copertura bounded del Phoenix trace:
+- proprietà proprie di `window` via descriptor;
+- one-level scan dei namespace object-valued già presenti;
+- massimo 1200 global properties;
+- namespace solo se <=200 proprietà;
+- deduplica per function reference;
+- massimo 150 match salvati.
+
+Pattern cercati nel source delle funzioni:
+- `vowOSContext.init(`
+- `vowOSContext.getAppIdentifier(`
+- `vowOSContext.getAppId(`
+- `navigator.appIdentifier`
+- `getAppIdentifier(`
+- `getAppId(`
+
+Per ogni match salva:
+- path globale della funzione;
+- ownerDepth;
+- functionName/arity;
+- source completo;
+- matchedPatterns;
+- excerpt contestuali.
+
+Il report include anche `patternCounts` per sapere rapidamente quante funzioni visibili contengono ciascun riferimento.
+
+Il probe non invoca alcuna funzione/getter/setter e soprattutto non chiama `vowOSContext.init()`.
+
+Obiettivo del prossimo test TV: eseguire solo **Trace Permission Sources** e **Export Report**, poi analizzare:
+- `permissionSourceTrace.globalIdentityUsage.matches`
+- `permissionSourceTrace.globalIdentityUsage.patternCounts`
+
+Interpretazione attesa:
+- se esistono wrapper che chiamano `vowOSContext.init()`, seguire solo quei wrapper concreti;
+- se non esiste alcun riferimento a `init()` e gli unici match sono `vowOS.service.getIdentifier()` / getter nativi, la pista JavaScript per l'inizializzazione dell'identity è sostanzialmente chiusa e l'assegnazione dell'app identifier va considerata runtime/browser-native.
