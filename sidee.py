@@ -101,6 +101,16 @@ STORE_INSTALL_PROBE_TARGET = {
     "host": "vidaa.duplecast.com",
 }
 STORE_INSTALL_PROBE_CLIENT = None
+STORE_INSTALL_AUTO_TRIGGER_HOSTS = {
+    "category-ui-eu.vidaahub.com",
+    "layout-ui-eu.vidaahub.com",
+    "home-ui-eu.vidaahub.com",
+    "detail-ui-eu.vidaahub.com",
+    "recommend-ui-eu.vidaahub.com",
+    "search-ui-eu.vidaahub.com",
+    "appstore-vidaa.vidaahub.com",
+    "tvmodules-vidaa.vidaahub.com",
+}
 
 
 def client_build_id():
@@ -2274,7 +2284,7 @@ def run_dns(config, local_ip):
             break
         try:
             host, qtype, _ = parse_dns_question(data)
-            if _is_store_discovery_host(host):
+            if _normalized_host(host) in STORE_INSTALL_AUTO_TRIGGER_HOSTS:
                 try:
                     _store_install_probe_auto_start(host, client[0])
                 except Exception as exc:
