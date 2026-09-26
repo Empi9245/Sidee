@@ -1,4 +1,8 @@
 {
-  "runSafeDiagnostic": false,
-  "note": "Idle. A real request is created from ChatGPT only after the TV page has been explicitly armed."
+  "requestId": "sidee-request-20260926-113416-9f55",
+  "createdAt": "2026-09-26T11:34:16.568Z",
+  "expiresAt": "2026-09-26T11:49:16.568Z",
+  "requestedBy": "ChatGPT",
+  "note": "Run the armed fixed read-only workflow on the current Sidee build, including Identity Override Lab when available.",
+  "runSafeDiagnostic": true
 }
