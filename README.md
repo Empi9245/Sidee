@@ -66,7 +66,7 @@ sudo ./start-mac-linux.sh
 1. Start Sidee on a computer connected to the same LAN as the TV.
 2. Set the TV DNS manually to the PC IP printed by Sidee.
 3. Open the TV browser and visit `https://vidaahub.com`.
-   - For the explicit origin A/B comparison only, Sidee also prints `http://<PC-IP>:8181`. Open that URL without changing DNS, capture baseline, and run only the backup-protected **Test AppInfo Direct Write** no-op test.
+   - For the explicit origin A/B comparison only, Sidee also prints `http://<PC-IP>:8080`. Open that URL without changing DNS, capture baseline, and run only the backup-protected **Test AppInfo Direct Write** no-op test.
 4. Run **Device / Environment Scan**.
 5. Run **Permission & AppConfig Probe**.
 6. Run **Runtime Identity Probe**.
@@ -283,12 +283,12 @@ Each real request must carry a fresh `sidee-request-YYYYMMDD-HHMMSS-xxxx` ID and
 
 ## Raw-IP HTTP origin A/B test
 
-Sidee exposes a second TV UI on `http://<PC-IP>:8181` specifically to compare the trusted-host path with the direct-IP pattern reported by some VIDAA 9 users.
+Sidee exposes a second TV UI on `http://<PC-IP>:8080` specifically to compare the trusted-host path with the direct-IP pattern reported by some VIDAA 9 users.
 
 The comparison is:
 
 - A: `https://vidaahub.com` on port 443;
-- B: `http://<PC-IP>:8181` with no DNS hostname involved.
+- B: `http://<PC-IP>:8080` with no DNS hostname involved.
 
 Both serve the same build and use the same backup-protected no-op `fileWrite` test. Reports record `accessContext` (href/origin/protocol/hostname/port/secureContext), server-side request scheme/port, build IDs, API availability, and the exact `fileWrite` result. A different origin is never interpreted as success by itself.
 
