@@ -4,7 +4,7 @@
   "serverBuildId": "app-c022f88e412f",
   "buildMatch": true,
   "startedAt": "2026-09-26T18:32:24Z",
-  "updatedAt": "2026-09-26T18:33:13Z",
+  "updatedAt": "2026-09-26T18:33:19Z",
   "accessContext": {
     "href": "https://category-ui.vidaahub.com/",
     "origin": "https://category-ui.vidaahub.com",
@@ -179,6 +179,16 @@
         "timestamp": "2026-09-26T18:33:13Z",
         "type": "TLS_SNI",
         "host": "detail-ui-eu.vidaahub.com"
+      },
+      {
+        "timestamp": "2026-09-26T18:33:18Z",
+        "type": "TLS_SNI",
+        "host": "appstore-vidaa.vidaahub.com"
+      },
+      {
+        "timestamp": "2026-09-26T18:33:19Z",
+        "type": "TLS_SNI",
+        "host": "tvmodules-vidaa.vidaahub.com"
       }
     ],
     "requests": [],
