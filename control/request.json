@@ -1,0 +1,4 @@
+{
+  "runSafeDiagnostic": false,
+  "note": "Idle. A real request is created from ChatGPT only after the TV page has been explicitly armed."
+}
