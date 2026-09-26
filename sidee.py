@@ -378,9 +378,37 @@ def _record_store_domain_query(host, qtype):
             queue_report_sync(snapshot["sessionId"], snapshot, "store-domain-discovery")
         except Exception as exc:
             print(f"[STORE-DNS] sync error: {exc}")
+    trace_snapshot = _store_trace_snapshot()
+    if trace_snapshot.get("status") != "IDLE":
+        snapshot["storeCatalogTrace"] = trace_snapshot
+        snapshot.setdefault("summary", {})["storeCatalogTrace"] = trace_snapshot.get("status", "IDLE")
+        try:
+            write_session_report(snapshot["sessionId"], snapshot)
+        except Exception as exc:
+            print(f"[STORE-DNS] correlated trace report error: {exc}")
+        if should_sync:
+            try:
+                queue_report_sync(snapshot["sessionId"], snapshot, "store-domain-discovery")
+            except Exception as exc:
+                print(f"[STORE-DNS] correlated sync error: {exc}")
+
     if new_host:
         print(f"[STORE-DNS] discovered {host} ({qtype_name})")
     return snapshot
+
+
+def _store_domain_discovery_snapshot():
+    with STORE_DISCOVERY_LOCK:
+        if STORE_DISCOVERY_REPORT is None:
+            return {
+                "status": "IDLE",
+                "passiveDnsOnly": True,
+                "responsesModified": False,
+                "totalQueries": 0,
+                "hostCount": 0,
+                "hosts": [],
+            }
+        return json.loads(json.dumps(STORE_DISCOVERY_REPORT.get("storeDomainDiscovery", {})))
 
 
 def _store_trace_status(trace):
@@ -663,6 +691,11 @@ def _record_store_trace(event, detail=None):
         trace["status"] = _store_trace_status(trace)
         report["summary"]["storeCatalogTrace"] = trace["status"]
         snapshot = json.loads(json.dumps(report))
+
+    discovery_snapshot = _store_domain_discovery_snapshot()
+    if discovery_snapshot.get("status") != "IDLE":
+        snapshot["storeDomainDiscovery"] = discovery_snapshot
+        snapshot.setdefault("summary", {})["storeDomainDiscovery"] = discovery_snapshot.get("status", "IDLE")
 
     try:
         write_session_report(snapshot["sessionId"], snapshot)
