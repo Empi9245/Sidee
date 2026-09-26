@@ -3022,6 +3022,8 @@ Altri post 4PDA dello stesso periodo riportano comportamento dipendente da model
 
 Le query esatte effettuate per `PikaHub` + HSPDK/HiBrowser/libhspdk non hanno prodotto una nuova evidenza di launch context utile in questa fase; non basare test nuovi sul solo nome finché non emerge una URL/repository concreta.
 
+Le query pubbliche esatte `V0000.09.60 + hi_browser`, `MTK9603 + hi_browser`, `VIDAA 9 + /3rd/internet_browser/browser`, `Q0707 + hi_browser/internet_browser` e `Odin/111 + hi_browser` non hanno restituito risultati pertinenti. Quindi al 2026-09-26 non esiste nelle fonti pubbliche trovate un collegamento verificabile tra questi host storici e la build Q0707/MTK9603 attuale.
+
 ### Conclusione di ricerca
 
 Il candidato storico più concreto per il browser esplicito è ora:
