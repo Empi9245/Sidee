@@ -3569,3 +3569,62 @@ Il prossimo auto-probe per build salverà:
 - `pkgmgrPackageProbe.sourceInventory.objects`.
 
 Non viene eseguito nessun `pkgmgr install`, download, setter, fileWrite o comando inventato.
+
+
+---
+
+## RISULTATO TV — nessuno stager esposto; correlazione pkgmgr ↔ AppInfo — 2026-09-26
+
+Nuovo report reale, build `app-037c19e82796`, build match true.
+
+Lo scan ampliato delle staging surfaces non ha trovato un downloader/stager VIDAA separato.
+
+Match VIDAA utili:
+- `getInstalledAppJsonObj`;
+- `writeInstallAppObjToJson`;
+- `Hisense_installApp`;
+- `Hisense_installApp_V2`;
+- `Hisense_uninstallApp`;
+- `Hisense_getInstalledApps`;
+- `Hisense_GetUpdatesVerInfo`;
+- `vowOS.store.getInstalledPkgs`;
+- `vowOS.store.installApp`;
+- `vowOS.store.sendPkgmgrRequest`.
+
+I match `PaymentRequestUpdateEvent`, `BackgroundFetch*`, `fetch` ecc. sono API Chromium generiche e non evidenza di staging VIDAA.
+
+`sourceInventory.objects=[]`: nessun oggetto globale adiacente con nomi package/install/download/store/update/deploy/bundle/archive/staging ha prodotto una superficie utile.
+
+Conclusione corrente:
+- nessuna API browser esposta mostra un passo di download/staging package separato;
+- è plausibile che lo staging sia gestito fuori dal runtime JS pubblico, oppure da un contesto Store diverso;
+- non è ancora il momento di chiamare `pkgmgr install` con un nome inventato.
+
+### Nuovo probe: correlazione pkgmgr ↔ AppInfo
+
+Aggiunto probe read-only che:
+1. legge `websdk/Appinfo.json` con `HiUtils_createRequest('fileRead', {path:'websdk/Appinfo.json', mode:6})`;
+2. legge `vowOS.store.getInstalledPkgs()`;
+3. correla le voci AppInfo con i package reali usando esclusivamente:
+   - URL/StartCommand contenenti `/APPS/pkgs/<pkgName>/`;
+   - oppure un package name reale già restituito da pkgmgr presente nei campi AppInfo;
+4. per ogni match conserva solo metadata launcher già esistenti:
+   - `Id/AppId`;
+   - `AppName/Title`;
+   - `URL/StartCommand`;
+   - `StoreType`;
+   - `configUrl`;
+   - `configUrlDownload`;
+   - `mediaId`;
+   - `PreInstall`;
+   - `isShowOnLauncher`.
+
+Nessun write/install/uninstall/setter.
+
+Report:
+`pkgmgrPackageCorrelation`.
+
+Il probe parte automaticamente una volta per build dopo il tvbrowser package probe e può anche essere lanciato manualmente da:
+`Correlate pkgmgr ↔ AppInfo (read-only)`.
+
+Obiettivo: verificare se una app package-backed già installata conserva nel launcher riferimenti a download/config/store che possano rivelare la sorgente reale usata prima di `pkgmgr install`.
