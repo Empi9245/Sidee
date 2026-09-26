@@ -3440,3 +3440,32 @@ Interpretazione attesa:
 - se `index.html` è leggibile, seguire esclusivamente i file/manifest realmente referenziati da quell'HTML;
 - se la lettura è vuota/negata, usare i source matches runtime per trovare un wrapper di staging/download;
 - non tentare ancora `pkgmgr install` finché il meccanismo di origine/staging del package non è documentato da dati reali.
+
+
+---
+
+## NOTE OPERATIVA — stale report dopo tvbrowser probe — 2026-09-26
+
+Dopo che l'utente ha eseguito il nuovo probe `Inspect tvbrowser package (read-only)`, `reports/latest.json` sul branch `sidee-reports` è rimasto invariato:
+- `clientBuildId = app-34999fc05e52`;
+- `updatedAt = 2026-09-26T16:53:46.152Z`;
+- campo `pkgmgrPackageProbe` assente.
+
+Quindi NON interpretare questo come risultato negativo del probe: il nuovo report non è arrivato a GitHub.
+
+Verificato su `main`:
+- il pulsante `pkgmgrPackageProbeBtn` esiste;
+- il relativo handler `inspectTvBrowserPackage()` esiste;
+- il report salva `state.report.pkgmgrPackageProbe`;
+- `client_build_id()` include `web/app.js` e `web/index.html`, quindi una build che contiene il probe non può mantenere il vecchio digest.
+
+Per evitare altri clic su una UI stale, Sidee ora esegue automaticamente il probe read-only del package `tv.vidaa.app.tvbrowser` una sola volta per ogni `CLIENT_BUILD_ID` quando la pagina viene caricata e le API necessarie sono presenti.
+
+Chiave sessionStorage:
+`sidee.pkgmgrPackageProbe.<CLIENT_BUILD_ID>`.
+
+L'auto-probe:
+- è read-only;
+- chiama solo `Hisense_FileRead` sul package già installato;
+- salva normalmente il report;
+- non installa/rimuove/scrive package.
