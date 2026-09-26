@@ -52,6 +52,30 @@
       <div id="remoteDiagnosticState" class="state">DISARMED</div>
     </section>
 
+    <section class="card storeInstallProbeCard" aria-live="polite">
+      <div class="cardHead">
+        <div>
+          <p class="kicker">STORE DOWNLOAD TRACE · PASSIVE DNS</p>
+          <h2>Duplecast Install/Download Probe</h2>
+        </div>
+        <button id="storeInstallProbeStartBtn">Start capture</button>
+      </div>
+      <p>Use this from the Sidee dashboard while the TV uses the official VIDAA Store. No Store HTTPS traffic is intercepted. Start the capture, open the Duplecast detail page, mark it visible, then arm the install window immediately before pressing Install/Download on the TV.</p>
+      <div class="identityGrid">
+        <div><span>Status</span><b id="storeInstallProbeStatus" class="summaryValue">IDLE</b></div>
+        <div><span>Target</span><b id="storeInstallProbeTarget" class="summaryValue">Duplecast · 1876</b></div>
+        <div><span>Hosts at install arm</span><b id="storeInstallProbeBaselineCount" class="summaryValue">0</b></div>
+        <div><span>Contacted after arm</span><b id="storeInstallProbeContactedCount" class="summaryValue">0</b></div>
+        <div><span>New after arm</span><b id="storeInstallProbeNewHosts" class="summaryValue">—</b></div>
+      </div>
+      <div class="row runtimeActions">
+        <button id="storeInstallProbeDetailBtn" class="secondary">Detail page visible</button>
+        <button id="storeInstallProbeArmBtn" class="secondary">Arm install capture</button>
+        <button id="storeInstallProbeFinishBtn" class="secondary">Finish capture</button>
+      </div>
+      <div id="storeInstallProbeState" class="state">IDLE · Start before opening the official Store flow for Duplecast.</div>
+    </section>
+
     <section class="grid workflow">
       <article class="card primary">
         <div class="cardHead">
