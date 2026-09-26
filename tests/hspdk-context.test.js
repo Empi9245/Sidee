@@ -5,18 +5,30 @@ const source = fs.readFileSync('web/hspdk-context.js', 'utf8');
 let calls = 0;
 const forbidden = () => { calls++; throw new Error('native method called'); };
 const host = Object.create({ File: { read: forbidden, write: forbidden }, loadLibrary: forbidden });
-const window = { Hisense: {}, HiBrowser: host, OtherObservedHost: host };
+const window = {
+  Hisense: {},
+  HiBrowser: host,
+  OtherObservedHost: host,
+  modeljs: { sendam: forbidden }
+};
 Object.defineProperty(window, 'UnknownGetter', { get: forbidden });
 Object.defineProperty(window.Hisense, 'File', { get: forbidden });
 window.observedWrapper = function () { return Hisense.File.read('launcher/Appinfo.json', 1); };
 window.legacyLaunchWrapper = function (url) { return sendAM(':am,am,hi_browser:start=[hi_browser,-u,' + url + ']'); };
 window.legacyBrowserPathWrapper = function () { return '/3rd/internet_browser/browser'; };
+window.sendAM = function (command) { return window.modeljs.sendam(command); };
+window.asyncStartApp = function (pageId, command) { return sendAM(command); };
 const context = vm.createContext({ window, location: { href: 'https://vidaahub.com/', origin: 'https://vidaahub.com' },
   navigator: { userAgent: 'test' }, document: { scripts: [] } });
 vm.runInContext(source, context);
 const result = window.SideeHspdkContext();
 assert.equal(calls, 0);
-assert.equal(result.version, 2);
+assert.equal(result.version, 3);
+assert.equal(result.legacyAppManagerBridge.modeljs.status, 'DATA');
+assert.equal(result.legacyAppManagerBridge.sendam.type, 'function');
+assert.equal(result.legacyAppManagerBridge.callableObserved, true);
+assert.equal(result.legacyAppManagerBridge.invoked, false);
+assert(result.legacyAppManagerMatches.some(s => s.path === 'window.sendAM' && s.term === 'modeljs.sendam'));
 assert.equal(result.exact[0].File.status, 'ACCESSOR_NOT_READ');
 assert.equal(result.exact[1].callablePairObserved, true);
 assert.equal(result.exact[1].File.ownerDepth, 1);
@@ -29,8 +41,13 @@ assert(!result.sourceMatches.some(s => s.path === 'window.SideeHspdkContext'));
 assert(!result.legacyLaunchContextMatches.some(s => s.path === 'window.SideeHspdkContext'));
 delete window.HiBrowser;
 delete window.OtherObservedHost;
+delete window.modeljs;
+delete window.sendAM;
+delete window.asyncStartApp;
 const missing = window.SideeHspdkContext();
 assert.equal(missing.exact[1].root.status, 'ABSENT');
+assert.equal(missing.legacyAppManagerBridge.modeljs.status, 'ABSENT');
+assert.equal(missing.legacyAppManagerBridge.sendam.status, 'ABSENT');
 assert.equal(missing.status, 'NO_FILE_PAIR_OBSERVED');
 assert.equal(calls, 0);
 
