@@ -30,6 +30,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 import urllib.parse
 
 ROOT = pathlib.Path(__file__).resolve().parent
@@ -92,6 +93,266 @@ def write_session_report(session_id, report):
 
 
 
+
+
+REPORT_SYNC_LOCK = threading.Lock()
+REPORT_SYNC_EVENT = threading.Event()
+REPORT_SYNC_CONFIG = {}
+REPORT_SYNC_PENDING = None
+REPORT_SYNC_STATUS = {
+    "enabled": False,
+    "state": "DISABLED",
+    "message": "GitHub report sync is disabled.",
+    "sessionId": None,
+    "remote": None,
+    "branch": None,
+    "commit": None,
+    "lastAttemptAt": None,
+    "lastSuccessAt": None,
+}
+
+
+def _utc_timestamp():
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+
+def _report_sync_status():
+    with REPORT_SYNC_LOCK:
+        return dict(REPORT_SYNC_STATUS)
+
+
+def _set_report_sync_status(**updates):
+    with REPORT_SYNC_LOCK:
+        REPORT_SYNC_STATUS.update(updates)
+        return dict(REPORT_SYNC_STATUS)
+
+
+def configure_report_sync(config):
+    global REPORT_SYNC_CONFIG
+    raw = config.get("github_report_sync", {}) if isinstance(config, dict) else {}
+    REPORT_SYNC_CONFIG = {
+        "enabled": bool(raw.get("enabled", False)),
+        "remote": str(raw.get("remote", "origin")).strip() or "origin",
+        "branch": str(raw.get("branch", "sidee-reports")).strip() or "sidee-reports",
+        "base_branch": str(raw.get("base_branch", "main")).strip() or "main",
+        "latest_path": str(raw.get("latest_path", "reports/latest.json")).strip() or "reports/latest.json",
+        "history_dir": str(raw.get("history_dir", "reports/sessions")).strip() or "reports/sessions",
+        "debounce_seconds": max(0.5, min(float(raw.get("debounce_seconds", 2.0)), 10.0)),
+    }
+    state = "IDLE" if REPORT_SYNC_CONFIG["enabled"] else "DISABLED"
+    message = (
+        "Waiting for a report to sync."
+        if REPORT_SYNC_CONFIG["enabled"]
+        else "GitHub report sync is disabled."
+    )
+    _set_report_sync_status(
+        enabled=REPORT_SYNC_CONFIG["enabled"],
+        state=state,
+        message=message,
+        remote=REPORT_SYNC_CONFIG["remote"],
+        branch=REPORT_SYNC_CONFIG["branch"],
+        commit=None,
+    )
+
+
+def _validate_git_name(value, label):
+    if not re.fullmatch(r"[A-Za-z0-9._/-]{1,160}", value):
+        raise ValueError(f"Invalid Git {label}")
+    if (
+        value.startswith(("/", ".", "-"))
+        or value.endswith(("/", "."))
+        or ".." in value
+        or "@{" in value
+        or "//" in value
+    ):
+        raise ValueError(f"Invalid Git {label}")
+    return value
+
+
+def _validate_remote_name(value):
+    if not re.fullmatch(r"[A-Za-z0-9._-]{1,80}", value):
+        raise ValueError("Invalid Git remote")
+    return value
+
+
+def _validate_repo_relative_path(value, label):
+    pure = pathlib.PurePosixPath(value)
+    if pure.is_absolute() or not pure.parts or any(part in ("", ".", "..") for part in pure.parts):
+        raise ValueError(f"Invalid {label}")
+    return pure
+
+
+def _run_git(args, cwd=ROOT, timeout=45, check=True):
+    git = shutil.which("git")
+    if not git:
+        raise RuntimeError("Git executable not found")
+    env = os.environ.copy()
+    env["GIT_TERMINAL_PROMPT"] = "0"
+    proc = subprocess.run(
+        [git] + list(args),
+        cwd=str(cwd),
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=timeout,
+        env=env,
+    )
+    if check and proc.returncode != 0:
+        detail = (proc.stderr or proc.stdout or "git command failed").strip()
+        raise RuntimeError(detail[:800])
+    return proc
+
+
+def _write_sync_file(worktree, relative_path, content):
+    pure = _validate_repo_relative_path(relative_path, "report sync path")
+    destination = worktree.joinpath(*pure.parts)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(content, encoding="utf-8")
+    return pure.as_posix()
+
+
+def _sync_report_job(job):
+    cfg = job["config"]
+    remote = _validate_remote_name(cfg["remote"])
+    branch = _validate_git_name(cfg["branch"], "branch")
+    base_branch = _validate_git_name(cfg["base_branch"], "base branch")
+
+    top = pathlib.Path(_run_git(["rev-parse", "--show-toplevel"]).stdout.strip()).resolve()
+    if top != ROOT.resolve():
+        raise RuntimeError("Sidee must run from its Git repository checkout for automatic GitHub sync")
+
+    fetch_target = _run_git(
+        ["fetch", "--quiet", "--no-tags", remote, branch],
+        check=False,
+    )
+    if fetch_target.returncode != 0:
+        _run_git(["fetch", "--quiet", "--no-tags", remote, base_branch])
+    base_ref = "FETCH_HEAD"
+
+    session_name = session_report_filename(job["sessionId"])
+    history_dir = _validate_repo_relative_path(cfg["history_dir"], "history directory")
+    history_path = (history_dir / session_name).as_posix()
+    latest_path = _validate_repo_relative_path(cfg["latest_path"], "latest report path").as_posix()
+
+    with tempfile.TemporaryDirectory(prefix="sidee-report-sync-") as temp_root:
+        worktree = pathlib.Path(temp_root) / "repo"
+        added = False
+        try:
+            _run_git(
+                ["worktree", "add", "--detach", "--quiet", str(worktree), base_ref],
+                cwd=ROOT,
+            )
+            added = True
+            _write_sync_file(worktree, latest_path, job["reportText"])
+            _write_sync_file(worktree, history_path, job["reportText"])
+
+            _run_git(["add", "-f", "--", latest_path, history_path], cwd=worktree)
+            changed = _run_git(["diff", "--cached", "--quiet"], cwd=worktree, check=False)
+            if changed.returncode not in (0, 1):
+                raise RuntimeError("Could not inspect staged report changes")
+            if changed.returncode == 1:
+                reason = re.sub(r"[^A-Za-z0-9._-]+", "-", job.get("reason") or "autosave")[:40]
+                _run_git(
+                    [
+                        "-c", "user.name=Sidee",
+                        "-c", "user.email=sidee@local",
+                        "commit", "--no-verify",
+                        "-m", f"reports: sync {job['sessionId']} ({reason})",
+                    ],
+                    cwd=worktree,
+                )
+
+            commit_sha = _run_git(["rev-parse", "HEAD"], cwd=worktree).stdout.strip()
+            push = _run_git(
+                ["push", "--quiet", remote, f"HEAD:refs/heads/{branch}"],
+                cwd=worktree,
+                timeout=60,
+                check=False,
+            )
+            if push.returncode != 0:
+                detail = (push.stderr or push.stdout or "git push failed").strip()
+                raise RuntimeError(detail[:800])
+            return {"commit": commit_sha, "branch": branch}
+        finally:
+            if added:
+                _run_git(
+                    ["worktree", "remove", "--force", str(worktree)],
+                    cwd=ROOT,
+                    check=False,
+                )
+                _run_git(["worktree", "prune"], cwd=ROOT, check=False)
+
+
+def queue_report_sync(session_id, report, reason=None):
+    global REPORT_SYNC_PENDING
+    cfg = dict(REPORT_SYNC_CONFIG)
+    if not cfg.get("enabled"):
+        return _report_sync_status()
+
+    report_text = json.dumps(report, indent=2, ensure_ascii=False) + "\n"
+    job = {
+        "sessionId": session_id,
+        "reportText": report_text,
+        "reason": str(reason or "autosave"),
+        "config": cfg,
+    }
+    with REPORT_SYNC_LOCK:
+        REPORT_SYNC_PENDING = job
+        REPORT_SYNC_STATUS.update({
+            "enabled": True,
+            "state": "QUEUED",
+            "message": "Report saved locally; GitHub sync queued.",
+            "sessionId": session_id,
+            "remote": cfg["remote"],
+            "branch": cfg["branch"],
+            "commit": None,
+            "lastAttemptAt": None,
+        })
+        snapshot = dict(REPORT_SYNC_STATUS)
+    REPORT_SYNC_EVENT.set()
+    return snapshot
+
+
+def report_sync_worker():
+    global REPORT_SYNC_PENDING
+    while not stop_event.is_set():
+        if not REPORT_SYNC_EVENT.wait(0.5):
+            continue
+        REPORT_SYNC_EVENT.clear()
+
+        debounce = float(REPORT_SYNC_CONFIG.get("debounce_seconds", 2.0))
+        while not stop_event.is_set() and REPORT_SYNC_EVENT.wait(debounce):
+            REPORT_SYNC_EVENT.clear()
+
+        with REPORT_SYNC_LOCK:
+            job = REPORT_SYNC_PENDING
+            REPORT_SYNC_PENDING = None
+        if not job:
+            continue
+
+        _set_report_sync_status(
+            state="SYNCING",
+            message="Syncing the latest report to GitHub.",
+            sessionId=job["sessionId"],
+            lastAttemptAt=_utc_timestamp(),
+        )
+        try:
+            result = _sync_report_job(job)
+            _set_report_sync_status(
+                state="SYNCED",
+                message="Report saved locally and synced to GitHub.",
+                sessionId=job["sessionId"],
+                branch=result["branch"],
+                commit=result["commit"],
+                lastSuccessAt=_utc_timestamp(),
+            )
+        except Exception as exc:
+            _set_report_sync_status(
+                state="ERROR",
+                message=("Local report is safe; GitHub sync failed: " + str(exc))[:1000],
+                sessionId=job["sessionId"],
+                commit=None,
+            )
 
 def load_config():
     with CONFIG_PATH.open("r", encoding="utf-8") as f:
@@ -269,6 +530,9 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
         if path == "/api/config":
             return self._send_json(load_config())
 
+        if path == "/api/reports/sync":
+            return self._send_json(_report_sync_status())
+
         if path == "/api/reports/latest":
             REPORTS_DIR.mkdir(parents=True, exist_ok=True)
             files = sorted(REPORTS_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
@@ -320,10 +584,21 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
                 return self._send_json({"ok": False, "error": str(exc)}, 400)
             except OSError as exc:
                 return self._send_json({"ok": False, "error": f"Could not write report: {exc}"}, 500)
+            reason = data.get("reason")
+            try:
+                sync_state = queue_report_sync(session_id, report, reason)
+            except Exception as exc:
+                sync_state = _set_report_sync_status(
+                    state="ERROR",
+                    message=("Local report is safe; GitHub sync could not be queued: " + str(exc))[:1000],
+                    sessionId=session_id,
+                    commit=None,
+                )
             return self._send_json({
                 "ok": True,
                 "sessionId": session_id,
                 "file": file_path.name,
+                "githubSync": sync_state,
             })
 
         if path == "/api/report":
@@ -383,11 +658,19 @@ def main():
     cfg = load_config()
     local_ip = get_local_ip()
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    configure_report_sync(cfg)
 
     print("\nSidee - VIDAA local toolkit")
     print("=" * 52)
     print(f"PC IP: {local_ip}")
     print(f"PC dashboard: http://{local_ip}:{cfg.get('http_port', 8080)}")
+    if REPORT_SYNC_CONFIG.get("enabled"):
+        print(
+            "Report sync: Git remote "
+            f"{REPORT_SYNC_CONFIG['remote']} -> branch {REPORT_SYNC_CONFIG['branch']}"
+        )
+    else:
+        print("Report sync: disabled")
     print("TV flow:")
     print(f"  1. Set the TV DNS manually to {local_ip}")
     print("  2. Open https://vidaahub.com in the TV browser")
@@ -396,6 +679,11 @@ def main():
     print("=" * 52)
 
     threads = []
+
+    if REPORT_SYNC_CONFIG.get("enabled"):
+        sync_thread = threading.Thread(target=report_sync_worker, daemon=True)
+        sync_thread.start()
+        threads.append(sync_thread)
 
     http_thread = threading.Thread(target=run_http, args=(int(cfg.get("http_port", 8080)),), daemon=True)
     http_thread.start()

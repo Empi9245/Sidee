@@ -169,3 +169,44 @@ Serialization is defensive against circular references, functions, `undefined`, 
 ## Safety scope
 
 Sidee is intended for TVs you own/control. The initial build performs no direct system-file writes. `HiUtils_createRequest` is used only for `fileRead` during explicit deep verification.
+
+
+## Automatic GitHub report sync
+
+Sidee can mirror diagnostic reports to GitHub automatically, without exposing any GitHub credential to the TV/browser JavaScript.
+
+The default configuration is:
+
+```json
+"github_report_sync": {
+  "enabled": true,
+  "remote": "origin",
+  "branch": "sidee-reports",
+  "base_branch": "main",
+  "latest_path": "reports/latest.json",
+  "history_dir": "reports/sessions",
+  "debounce_seconds": 2
+}
+```
+
+After every local session save, the Python host queues the newest report. A short debounce coalesces rapid successive autosaves. The sync worker then uses the existing local Git checkout and its configured Git credentials to update a dedicated `sidee-reports` branch:
+
+- `reports/latest.json` always contains the newest synced state;
+- `reports/sessions/sidee-session-....json` preserves the session history.
+
+The worker operates from a temporary detached Git worktree, so it does not switch branches, stage unrelated files, or commit the user's current working-tree changes. It never stores a GitHub token in `web/app.js`, the TV, or `config.json`. `GIT_TERMINAL_PROMPT=0` prevents Sidee from hanging on an interactive credential prompt.
+
+Requirements for remote sync:
+- Sidee must be running from a real Git checkout of this repository;
+- the configured remote (default `origin`) must permit push using credentials already available to Git on the PC;
+- Git must be installed.
+
+If any Git operation fails, the local `reports/sidee-session-....json` remains authoritative and the TV UI reports the sync error. Diagnostic execution is never failed merely because GitHub is unavailable.
+
+The current sync state is available locally at:
+
+```
+GET /api/reports/sync
+```
+
+Once a report has synced, another ChatGPT conversation with access to the GitHub repository can read `reports/latest.json` from branch `sidee-reports` directly; there is no need to download and attach the JSON manually.

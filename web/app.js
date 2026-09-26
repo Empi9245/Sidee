@@ -5,7 +5,7 @@
   const SESSION_RE = /^sidee-\d{8}-\d{6}-[a-f0-9]{4}$/;
   const CLIENT_KEYS = /(app|identifier|appid|role|customer|origin|url|permission|appconfig|store|package|security)/i;
   const logBox = $("console");
-  const state = { config:null, report:null, running:false, saveChain:Promise.resolve() };
+  const state = { config:null, report:null, running:false, saveChain:Promise.resolve(), syncWatchToken:0 };
 
   function err(e){ return String(e && e.message || e); }
   function cut(v,n){ const s=String(v); return s.length>n?s.slice(0,n)+"…":s; }
@@ -659,7 +659,54 @@
 
   function syncTarget(){state.report.target=compact(target());}
   async function saveTarget(){syncTarget();try{const r=await fetch("/api/config",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({nuvio:target()})}),d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||"Could not save target");state.config.nuvio=d.nuvio;set("targetState","Target saved.");await save("target");}catch(e){set("targetState","Save failed: "+err(e));}}
-  async function persist(reason){syncTarget();state.report.updatedAt=new Date().toISOString();try{const r=await fetch("/api/reports/session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:state.report.sessionId,report:state.report})}),d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||"Report save failed");set("reportFileName",d.file);set("reportSaveState",reason==="export"?"Report exported/synced.":"Session autosaved.");return d;}catch(e){set("reportSaveState","Report save failed: "+err(e));return {ok:false,error:err(e)};}}
+  async function watchReportSync(sessionId){
+    const token=++state.syncWatchToken;
+    for(let i=0;i<24;i++){
+      await new Promise(resolve=>setTimeout(resolve,750));
+      if(token!==state.syncWatchToken)return;
+      try{
+        const r=await fetch("/api/reports/sync",{cache:"no-store"}),d=await r.json();
+        if(!r.ok)continue;
+        if(d.sessionId&&d.sessionId!==sessionId)continue;
+        if(d.state==="SYNCED"){
+          set("reportSaveState","Saved locally · GitHub synced to "+(d.branch||"sidee-reports")+".");
+          return;
+        }
+        if(d.state==="ERROR"){
+          set("reportSaveState","Saved locally · GitHub sync error: "+(d.message||"unknown error"));
+          return;
+        }
+        if(d.state==="DISABLED"){
+          set("reportSaveState","Saved locally · GitHub sync disabled.");
+          return;
+        }
+        set("reportSaveState",d.state==="SYNCING"?"Saved locally · syncing to GitHub…":"Saved locally · GitHub sync queued.");
+      }catch(e){}
+    }
+  }
+  async function persist(reason){
+    syncTarget();
+    state.report.updatedAt=new Date().toISOString();
+    try{
+      const r=await fetch("/api/reports/session",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({sessionId:state.report.sessionId,report:state.report,reason:reason||"autosave"})
+      }),d=await r.json();
+      if(!r.ok||!d.ok)throw new Error(d.error||"Report save failed");
+      set("reportFileName",d.file);
+      const sync=d.githubSync||{};
+      if(sync.state==="DISABLED")set("reportSaveState","Saved locally · GitHub sync disabled.");
+      else{
+        set("reportSaveState",sync.state==="SYNCING"?"Saved locally · syncing to GitHub…":"Saved locally · GitHub sync queued.");
+        watchReportSync(state.report.sessionId);
+      }
+      return d;
+    }catch(e){
+      set("reportSaveState","Report save failed: "+err(e));
+      return {ok:false,error:err(e)};
+    }
+  }
   function save(reason){state.saveChain=state.saveChain.catch(()=>null).then(()=>persist(reason));return state.saveChain;}
   async function load(){const r=await fetch("/api/config",{cache:"no-store"}),d=await r.json();state.config=d;const a=d.nuvio||{};$("appId").value=a.app_id||"nuviodebug";$("appName").value=a.app_name||"Nuvio TV";$("appUrl").value=a.app_url||"";$("iconUrl").value=a.icon_url||"";syncTarget();}
 

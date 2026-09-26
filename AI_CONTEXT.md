@@ -2033,3 +2033,53 @@ Obiettivo del prossimo test TV: eseguire solo **Trace Permission Sources** e **E
 Interpretazione attesa:
 - se esistono wrapper che chiamano `vowOSContext.init()`, seguire solo quei wrapper concreti;
 - se non esiste alcun riferimento a `init()` e gli unici match sono `vowOS.service.getIdentifier()` / getter nativi, la pista JavaScript per l'inizializzazione dell'identity è sostanzialmente chiusa e l'assegnazione dell'app identifier va considerata runtime/browser-native.
+
+
+---
+
+## IMPLEMENTAZIONE — AUTOMATIC GITHUB REPORT SYNC — 2026-09-26
+
+Sidee ora supporta la sincronizzazione automatica dei report diagnostici verso GitHub senza esporre credenziali alla TV.
+
+Architettura:
+- il browser TV continua a inviare il report solo al server Python locale tramite `POST /api/reports/session`;
+- il report locale `reports/sidee-session-....json` viene scritto per primo e rimane sempre la copia autorevole;
+- il POST include anche il `reason` dell'autosave;
+- il backend accoda l'ultima versione del report a un worker Git separato;
+- autosave ravvicinati vengono coalesciti con un debounce configurabile;
+- il worker usa esclusivamente il checkout Git locale e le credenziali Git già configurate sul PC;
+- nessun token/API key GitHub viene inviato o salvato nel browser TV, in `web/app.js` o in `config.json`.
+
+Branch remoto dedicato:
+- default: `sidee-reports`;
+- `reports/latest.json` = ultima versione sincronizzata;
+- `reports/sessions/sidee-session-....json` = storico per sessione;
+- il branch viene creato automaticamente al primo push riuscito se non esiste.
+
+Il sync usa un temporary detached worktree, quindi:
+- non cambia branch nel checkout principale;
+- non aggiunge/stagea modifiche locali dell'utente;
+- non committa file di lavoro non correlati;
+- non inquina `main` con i report runtime.
+
+Fallback:
+- se Git manca, il checkout non è un repository, l'auth push non è disponibile o il remote fallisce, l'analisi resta valida;
+- il JSON locale non viene perso;
+- la UI mostra `Saved locally · GitHub sync error: ...`;
+- `GET /api/reports/sync` espone lo stato `IDLE / QUEUED / SYNCING / SYNCED / ERROR / DISABLED`.
+
+Configurazione default aggiunta a `config.json`:
+- enabled: true
+- remote: origin
+- branch: sidee-reports
+- base_branch: main
+- latest_path: reports/latest.json
+- history_dir: reports/sessions
+- debounce_seconds: 2
+
+Workflow futuro per analizzare un test:
+1. eseguire il probe/test sulla Hisense;
+2. attendere che la UI mostri `GitHub synced to sidee-reports`;
+3. in una nuova chat basta chiedere di analizzare l'ultimo report Sidee;
+4. leggere direttamente `reports/latest.json` dal branch `sidee-reports`;
+5. non chiedere all'utente di allegare il JSON se il sync risulta disponibile.
