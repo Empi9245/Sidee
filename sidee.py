@@ -1236,7 +1236,18 @@ def run_dns(config, local_ip):
     port = int(config.get("dns_port", 53))
     upstreams = config.get("upstream_dns", ["1.1.1.1", "8.8.8.8"])
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind(("0.0.0.0", port))
+    try:
+        s.bind(("0.0.0.0", port))
+    except OSError as exc:
+        s.close()
+        print(f"[ERROR] DNS could not listen on UDP/{port}: {exc}")
+        if os.name == "nt" and getattr(exc, "winerror", None) == 10048:
+            print(f"[ERROR] UDP/{port} is already in use. Most often another Sidee instance is still running.")
+            print(f'[ERROR] Check the owner with: netstat -ano -p udp | findstr ":{port}"')
+            print('[ERROR] Then inspect it with: tasklist /FI "PID eq <PID>"')
+            print('[ERROR] If it is an old Sidee/Python process, close that Sidee window or use: taskkill /PID <PID> /F')
+        stop_event.set()
+        return
     s.settimeout(1)
     print(f"[DNS] UDP/{port} -> {', '.join(sorted(domains))} = {local_ip}")
     while not stop_event.is_set():
