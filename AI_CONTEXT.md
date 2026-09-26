@@ -2692,3 +2692,72 @@ Conseguenza:
 - non ripetere questi tre identifier sullo stesso firmware;
 - prossima pista prioritaria: installed-app context trampoline, cioè ottenere una vera identity nativa lanciando Sidee dentro Smartone/Duplecast dal launcher;
 - se il launch context restituisce identity non vuota ma write resta 503, passare al contesto App Store ufficiale/category-ui.
+
+
+## UPDATE — 2026-09-26 — Native client context fingerprint
+
+### Result just established by the RAW-IP Identifier Write-Gate report
+
+Report `sidee-session-20260926-150815-b6a2` was executed from `http://192.168.1.5:8080/` (`RAW_IP_BROWSER_CONTEXT`, insecure HTTP). The native `fileRead` of `websdk/Appinfo.json` still succeeded, while the exact no-op `fileWrite` returned `ret:false`, `code:503`, `client request permission check error, please check appconfig`.
+
+The same protected no-op write was then repeated while temporarily overriding only `vowOS.service.getIdentifier()` with three concrete IDs already present in the TV registry:
+
+- `1470` — Smartone IPTV;
+- `1876` — Duplecast;
+- `2568` — Stremio Lite.
+
+All three produced the same 503 response as the empty-identifier baseline. Every immediate readback remained identical and the registry was restored/unchanged.
+
+Evidence-based conclusion:
+
+`IDENTIFIER_STRING_NOT_SUFFICIENT`
+
+This rules out the hypothesis that the VIDAA 9.60 AppConfig gate can be bypassed merely by changing the JavaScript identifier string. It also adds evidence that DNS/hostname/HTTPS alone are not the gate, because the raw-IP context reproduces the same rejection.
+
+### New bounded probe implemented
+
+Sidee now includes a `Context Identity Fingerprint` designed to answer the remaining question: whether a store-installed launcher container carries native client/AppConfig state that the ordinary browser/raw-IP contexts lack.
+
+When Sidee is opened by the already-installed Smartone or Duplecast launcher entries, the fingerprint runs automatically. It records:
+
+- expected installed-app context (`1470` Smartone or `1876` Duplecast);
+- `navigator.appIdentifier`;
+- `vowOS.service.getIdentifier()`;
+- `vowOSContext.getAppIdentifier()`;
+- `vowOSContext.getAppId()`;
+- Role ID / Customer ID;
+- `Hisense_SupportAppConfig()`;
+- bounded own data-property metadata already present on `vowOS.service`, `vowOSContext`, `navigator`, and `window`.
+
+Safety properties:
+
+- no setters;
+- no unknown accessors;
+- no install/uninstall;
+- no file write;
+- no guessed HiUtils calls;
+- token/secret/auth/cookie/key/signature/certificate/nonce/session-like fields are redacted.
+
+Possible descriptive classifications:
+
+- `INSTALLED_APP_IDENTITY_MATCH`;
+- `INSTALLED_APP_IDENTITY_PRESENT`;
+- `INSTALLED_APP_METADATA_PRESENT`;
+- `INSTALLED_APP_CONTEXT_ANONYMOUS`;
+- `BROWSER_IDENTITY_PRESENT`;
+- `APPCONFIG_SIGNAL_ONLY`;
+- `ANONYMOUS_LIKE`.
+
+The normal safe remote diagnostic workflow also captures this fingerprint.
+
+### Interpretation of the next real-TV test
+
+Launch Smartone IPTV or Duplecast from the VIDAA launcher while DNS points to Sidee. Do not open the normal browser. Sidee should load under the app's own hostname and automatically capture the fingerprint.
+
+Then the separate backup-protected Direct AppInfo no-op write remains the decisive permission check:
+
+- if the installed-app context exposes a non-empty/matching native identity **and** the no-op write changes from 503 to allowed, the client/container identity is materially involved in the permission gate;
+- if native identity changes but write remains 503, the gate requires additional AppConfig/ACL state beyond the exposed JS identity fields;
+- if the installed-app context still reports anonymous-like identity, the launcher entry/hostname does not by itself create the required privileged client context on this firmware.
+
+Do not treat `Hisense_SupportAppConfig()` by itself as proof of write permission.
