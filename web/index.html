@@ -10,9 +10,9 @@
   <main class="shell">
     <header>
       <div>
-        <p class="eyebrow">VIDAA 9 · TARGETED DIAGNOSTIC</p>
+        <p class="eyebrow">VIDAA IDENTITY LAB</p>
         <h1>Sidee</h1>
-        <p class="lead">Identity → runtime context → AppConfig permission. One small report per session.</p>
+        <p class="lead">Targeted VIDAA Identity / AppConfig Diagnostic.</p>
       </div>
       <div id="deviceBadge" class="badge">Detecting TV…</div>
     </header>
@@ -21,15 +21,15 @@
       <div class="summaryHead">
         <div>
           <p class="kicker">LIVE SUMMARY</p>
-          <h2>VIDAA Identity / AppConfig</h2>
+          <h2>Permission gate state</h2>
         </div>
-        <span class="summaryHint">Only decision-relevant signals</span>
+        <span class="summaryHint">Small report · one session</span>
       </div>
       <div class="summaryGrid compactSummary">
         <div><span>Runtime identity</span><b id="summaryRuntimeIdentity" class="summaryValue">MISSING</b></div>
+        <div><span>Service identifier</span><b id="summaryIdentifier" class="summaryValue">UNKNOWN</b></div>
         <div><span>Context init</span><b id="summaryContextInit" class="summaryValue">NOT_RUN</b></div>
         <div><span>Permission gate</span><b id="summaryPermissionGate" class="summaryValue">UNKNOWN</b></div>
-        <div><span>Service identifier</span><b id="summaryIdentifier" class="summaryValue">UNKNOWN</b></div>
       </div>
     </section>
 
@@ -42,7 +42,7 @@
           </div>
           <button id="baselineBtn">Capture Baseline</button>
         </div>
-        <p>Reads only the identity fields that can affect the local VIDAA service permission path.</p>
+        <p>Reads only the identity fields involved in the localhost service permission path.</p>
         <div class="identityGrid">
           <div><span>navigator.appIdentifier</span><b id="navigatorAppIdentifierValue" class="summaryValue">UNAVAILABLE</b></div>
           <div><span>Service identifier</span><b id="serviceIdentifierValue" class="summaryValue">UNAVAILABLE</b></div>
@@ -53,7 +53,7 @@
           <div><span>Role setter available</span><b id="roleSetterValue" class="summaryValue">—</b></div>
           <div><span>Customer setter available</span><b id="customerSetterValue" class="summaryValue">—</b></div>
         </div>
-        <div id="baselineState" class="state">Not captured yet.</div>
+        <div id="baselineState" class="state">Not run yet.</div>
       </article>
 
       <article class="card">
@@ -64,73 +64,84 @@
           </div>
           <button id="runtimeContextInitBtn" class="secondary">Initialize Context</button>
         </div>
-        <p>Calls <code>vowOSContext.init()</code> once, including native implementations, with timeout and before/after snapshots.</p>
+        <p>Actually calls <code>vowOSContext.init()</code> once, supports sync / Promise / callback-like behavior, then captures identity again.</p>
         <div id="contextState" class="state">Not run yet.</div>
-      </article>
-
-      <article class="card wide">
-        <p class="kicker">03 · COMPARE</p>
-        <h2>Identity Change</h2>
-        <p>The important result is whether initialization changes the identity used by the local service.</p>
-        <div id="contextDiff" class="state resultLine">No comparison yet.</div>
+        <div id="contextDiff" class="state">No comparison yet.</div>
       </article>
 
       <article class="card">
         <div class="cardHead">
           <div>
-            <p class="kicker">04 · CLIENT INFORMATION</p>
+            <p class="kicker">03 · CLIENT INFORMATION</p>
             <h2>Client Information</h2>
           </div>
           <button id="clientInformationBtn" class="secondary">Read Client Information</button>
         </div>
-        <p>Reads the native getter, descriptor and only identity/security-related properties. The setter is never used.</p>
+        <p>Reads the native getter and keeps only fields related to app identity, origin, permissions, package/store and security. The setter is never used.</p>
         <div id="clientInformationState" class="state">Not read yet.</div>
-        <button id="serviceTraceBtn" class="secondary inlineAction">Trace Read-only Service Request</button>
-        <div id="serviceTraceState" class="microState">No service trace yet.</div>
+      </article>
+
+      <article class="card">
+        <div class="cardHead">
+          <div>
+            <p class="kicker">04 · LOCAL SERVICE</p>
+            <h2>Service Trace</h2>
+          </div>
+          <button id="serviceTraceBtn" class="secondary">Trace Read-only Request</button>
+        </div>
+        <p>Captures the identifier and localhost service path during one harmless <code>fileRead</code>. All temporary wrappers are restored.</p>
+        <div id="serviceTraceState" class="state">No trace yet.</div>
+      </article>
+
+      <article class="card">
+        <p class="kicker">TARGET APP</p>
+        <h2>Target Configuration</h2>
+        <label>App ID<input id="appId" autocomplete="off"></label>
+        <label>Name<input id="appName" autocomplete="off"></label>
+        <label>Web app URL<input id="appUrl" autocomplete="off"></label>
+        <label>Icon URL<input id="iconUrl" autocomplete="off"></label>
+        <button id="saveBtn" class="secondary">Save Target</button>
+        <div id="targetState" class="microState">Target loaded from config.</div>
       </article>
 
       <article class="card installCard">
-        <div class="cardHead">
-          <div>
-            <p class="kicker">05 · PERMISSION</p>
-            <h2>Install Permission Test</h2>
-          </div>
-          <button id="installDiagnosticBtn" class="primaryAction">Test Install Permission</button>
-        </div>
-        <p>Runs only when you press the button. Internal <code>installApplication</code> result + verification decide the outcome; callback <code>0</code> alone never counts as success.</p>
+        <p class="kicker">05 · PERMISSION TEST</p>
+        <h2>Install Permission Test</h2>
+        <p>Explicit only. Records the identity used, essential install payload, internal <code>ret/code/msg</code>, external callback and installed-app verification. Callback <code>0</code> alone is never treated as success.</p>
+        <button id="installDiagnosticBtn" class="primaryAction">Test Install Permission</button>
         <div id="installState" class="state">No install permission test yet.</div>
       </article>
 
-      <article class="card wide">
-        <p class="kicker">TARGET APP</p>
-        <h2>Install Target</h2>
-        <div class="formGrid">
-          <label>App ID<input id="appId" autocomplete="off"></label>
-          <label>Name<input id="appName" autocomplete="off"></label>
-          <label>Web app URL<input id="appUrl" autocomplete="off"></label>
-          <label>Icon URL<input id="iconUrl" autocomplete="off"></label>
-        </div>
-        <div class="row">
-          <button id="saveBtn" class="secondary">Save Target</button>
-          <button id="verifyBtn" class="secondary">Verify Installed App</button>
-        </div>
-        <div id="targetState" class="microState">Target loaded from Sidee config.</div>
+      <article class="card">
+        <p class="kicker">VERIFY</p>
+        <h2>Installed App Verification</h2>
+        <p>Checks installed apps plus read-only <code>websdk/Appinfo.json</code>.</p>
+        <button id="verifyBtn" class="secondary">Run Verification</button>
         <div id="verifyOutput" class="verificationOutput">No verification result yet.</div>
       </article>
 
+      <article class="card">
+        <p class="kicker">REPORT</p>
+        <h2>Export Session Report</h2>
+        <p>The same report file is updated throughout the session.</p>
+        <div class="reportName"><span>Current report</span><b id="reportFileName">—</b></div>
+        <button id="reportBtn" class="secondary">Export Report</button>
+        <div id="reportSaveState" class="microState">Session autosaves after each diagnostic step.</div>
+      </article>
+
       <details class="advanced wide">
-        <summary tabindex="0">Advanced · manual tests</summary>
+        <summary tabindex="0">Advanced</summary>
         <div class="advancedBody">
-          <p>These controls never run automatically. Role/Customer setters are intentionally not exposed.</p>
-          <div class="advancedBlock">
-            <p class="kicker">TEMPORARY IDENTIFIER TEST</p>
-            <p>Temporarily overrides <code>vowOS.service.getIdentifier()</code> for exactly one read-only request, then restores the original function in <code>finally</code>.</p>
-            <label>Identifier<input id="temporaryIdentifier" autocomplete="off" placeholder="Leave empty until you have a value to test"></label>
+          <p>Manual controls only. No brute force, no persistent Role/Customer mutation.</p>
+          <div class="advancedTest">
+            <h2>Temporary Identifier Test</h2>
+            <p>Temporarily overrides <code>vowOS.service.getIdentifier()</code> for one read-only request and restores the original function in <code>finally</code>.</p>
+            <label>Identifier<input id="temporaryIdentifier" autocomplete="off" placeholder="manual value"></label>
             <button id="temporaryIdentifierBtn" class="secondary">Run Temporary Identifier Test</button>
-            <div id="temporaryIdentifierState" class="microState">Not run.</div>
+            <div id="temporaryIdentifierState" class="state">No temporary override test yet.</div>
           </div>
-          <div class="advancedBlock">
-            <p class="kicker">SINGLE METHOD INSTALL</p>
+          <div class="advancedTest">
+            <h2>Single install method</h2>
             <div class="row">
               <button id="installLegacyBtn" class="secondary">Legacy only</button>
               <button id="installV2Btn" class="secondary">V2 only</button>
@@ -145,18 +156,9 @@
           <pre id="console"></pre>
         </div>
       </details>
-
-      <article class="card wide">
-        <p class="kicker">REPORT</p>
-        <h2>Session Report</h2>
-        <p>One compact JSON file is updated throughout this session.</p>
-        <div class="reportName"><span>Current report</span><b id="reportFileName">—</b></div>
-        <button id="reportBtn" class="secondary">Export / Sync Report</button>
-        <div id="reportSaveState" class="microState">Session autosaves after each diagnostic step.</div>
-      </article>
     </section>
 
-    <footer>Sidee targets TVs you control. Persistent identity setters, brute force and Appinfo writes are not part of this workflow.</footer>
+    <footer>Sidee targets TVs you control. Role/Customer setters and clientInformation setter are not called by this workflow.</footer>
   </main>
   <script src="/app.js"></script>
 </body>
