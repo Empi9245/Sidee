@@ -319,10 +319,13 @@
     return {source:{available:true,status:error?"ERROR":"RETURNED",callbackStatus:callbackStatus,count:records.length,fields:sourceFields(records),error:error},records:records};
   }
   async function appInfoMetadataSource(){
-    if(typeof window.HiUtils_createRequest!=="function")return {source:{available:false,status:"UNAVAILABLE",path:"websdk/Appinfo.json",count:0,fields:[]},records:[]};
+    if(typeof window.HiUtils_createRequest!=="function")return {source:{available:false,status:"UNAVAILABLE",path:"websdk/Appinfo.json",count:0,fields:[]},records:[],deepDump:[]};
     const r=await traced("installed-app-metadata-appinfo",()=>window.HiUtils_createRequest("fileRead",{path:"websdk/Appinfo.json",mode:6}));
     const raw=[];collectAppRecords(r.value,raw,0,[]);const records=prepareRecords(raw),tr=r.trace&&r.trace.result||{};
-    return {source:{available:true,status:r.error?"ERROR":"RETURNED",path:"websdk/Appinfo.json",count:records.length,fields:sourceFields(records),ret:tr.ret,code:tr.code,msg:tr.msg,error:r.error||null},records:records};
+    // Keep the original AppInfo record objects as returned by the already-known read-only fileRead.
+    // No field filtering/normalization/truncation is applied here: nested appInfo/showInfo and empty values stay intact.
+    const deepDump=records.map(x=>x.raw);
+    return {source:{available:true,status:r.error?"ERROR":"RETURNED",path:"websdk/Appinfo.json",count:records.length,fields:sourceFields(records),ret:tr.ret,code:tr.code,msg:tr.msg,error:r.error||null},records:records,deepDump:deepDump};
   }
   async function inspectInstalledMetadata(){
     if(state.running)return;state.running=true;set("metadataState","Inspecting read-only installed app metadata…");
@@ -334,10 +337,11 @@
       const special=["storeType","openMode","venderId","vendorId","unifiedAppName","initialFrom","configUrl","configUrlDownload","appBundle","package","packageName","version","developer","categoryName","subCategory","preInstall","isShowOnLauncher"];
       special.forEach(k=>{if(apps.some(x=>meaningful(firstValue(x.appInfo,x.installedApps,k))))fields[k]=true;});
       const fieldNames=Object.keys(fields).sort(),seenFieldNames={},interestingFields=fieldNames.filter(k=>{const key=k.toLowerCase();if(seenFieldNames[key])return false;seenFieldNames[key]=true;return true;}),summary={installedAppsCount:a.source.count,appInfoCount:b.source.count,matchedCount:apps.filter(x=>x.matchedSources.length===2).length,appsCount:apps.length,storeTypes:countTypes(apps),interestingFieldsSeen:interestingFields,permissionLikeFieldsSeen:interestingFields.filter(k=>APP_PERMISSION_RE.test(k)),configLikeFieldsSeen:interestingFields.filter(k=>APP_CONFIG_RE.test(k))};
-      const result={timestamp:new Date().toISOString(),sources:{installedApps:a.source,appInfo:b.source},apps:apps,fieldDistribution:distribution(apps),discoveredReferences:references,summary:summary};
+      summary.appInfoDeepDumpCount=b.deepDump.length;
+      const result={timestamp:new Date().toISOString(),sources:{installedApps:a.source,appInfo:b.source},apps:apps,appInfoDeepDump:{path:"websdk/Appinfo.json",readOnly:true,recordCount:b.deepDump.length,records:b.deepDump},fieldDistribution:distribution(apps),discoveredReferences:references,summary:summary};
       state.report.installedAppMetadata=result;
       set("metadataApps",summary.installedAppsCount);set("metadataMatched",summary.matchedCount);set("metadataStoreTypes",formatCounts(summary.storeTypes));set("metadataFields",interestingFields.length?interestingFields.slice(0,8).join(", ")+(interestingFields.length>8?" +"+(interestingFields.length-8):""):"none");set("metadataReferences",references.length);
-      set("metadataState","Inspection complete. Read-only sources only.");log("Installed app metadata inspected",{installedApps:summary.installedAppsCount,appInfo:summary.appInfoCount,matched:summary.matchedCount,references:references.length});await save("installed-app-metadata");
+      set("metadataState","Inspection complete. Full AppInfo deep dump saved read-only ("+b.deepDump.length+" records).");log("Installed app metadata inspected",{installedApps:summary.installedAppsCount,appInfo:summary.appInfoCount,matched:summary.matchedCount,deepDump:b.deepDump.length,references:references.length});await save("installed-app-metadata");
     }catch(e){set("metadataState","Inspection failed: "+err(e));log("Installed app metadata inspection failed",err(e));}
     finally{state.running=false;}
   }
