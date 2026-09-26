@@ -17,7 +17,9 @@ OpenSSL is used only to generate a temporary self-signed vidaahub.com certificat
 from __future__ import annotations
 
 import argparse
+import gzip
 import hashlib
+import http.client
 import http.server
 import json
 import mimetypes
@@ -35,6 +37,7 @@ import tempfile
 import threading
 import time
 import urllib.parse
+import zlib
 
 ROOT = pathlib.Path(__file__).resolve().parent
 WEB_DIR = ROOT / "web"
@@ -56,6 +59,27 @@ APP_CONTEXT_HIT_LOCK = threading.Lock()
 APP_CONTEXT_LAST_HIT = None
 APP_CONTEXT_TRANSPORT_LOCK = threading.Lock()
 APP_CONTEXT_TRANSPORT_LAST = {}
+
+STORE_CATALOG_HOST = "category-ui.vidaahub.com"
+STORE_TRACE_LOCK = threading.Lock()
+STORE_TRACE_REPORT = None
+STORE_TRACE_MAX_REQUESTS = 80
+STORE_TRACE_MAX_ERRORS = 20
+STORE_TRACE_MAX_JSON_BYTES = 2 * 1024 * 1024
+STORE_TRACE_SENSITIVE_RE = re.compile(
+    r"(?:authorization|cookie|token|secret|password|credential|signature|certificate|nonce|session|api[-_]?key|access[-_]?key)",
+    re.IGNORECASE,
+)
+STORE_PROXY_HOP_HEADERS = {
+    "connection",
+    "keep-alive",
+    "proxy-authenticate",
+    "proxy-authorization",
+    "te",
+    "trailer",
+    "transfer-encoding",
+    "upgrade",
+}
 
 
 def client_build_id():
@@ -234,6 +258,384 @@ def _new_probe_session_id():
 
 def _normalized_host(value):
     return str(value or "").split(":", 1)[0].strip().lower().rstrip(".")
+
+
+def _store_trace_status(trace):
+    if trace.get("errors"):
+        return "PROXY_ERROR"
+    if int(trace.get("requestCount", 0)) > 0:
+        return "REQUESTS_CAPTURED"
+    if trace.get("httpProxyHit"):
+        return "HTTP_PROXY_ACTIVE"
+    if trace.get("tlsSniHit"):
+        return "TLS_SNI_ONLY"
+    if trace.get("dnsHit"):
+        return "DNS_ONLY"
+    return "IDLE"
+
+
+def _safe_catalog_scalar(value, limit=300):
+    if value is None or isinstance(value, (bool, int, float)):
+        return value
+    if isinstance(value, str):
+        return value[:limit]
+    return None
+
+
+def _catalog_url_summary(value):
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        parsed = urllib.parse.urlsplit(value)
+        if parsed.scheme and parsed.hostname:
+            return {
+                "scheme": parsed.scheme[:20],
+                "host": str(parsed.hostname)[:255],
+                "path": (parsed.path or "/")[:500],
+            }
+        return {"path": value.split("?", 1)[0].split("#", 1)[0][:500]}
+    except Exception:
+        return {"path": value.split("?", 1)[0].split("#", 1)[0][:500]}
+
+
+def _decode_catalog_body_for_json(body, content_encoding):
+    if not isinstance(body, (bytes, bytearray)):
+        return None, "not-bytes"
+    if len(body) > STORE_TRACE_MAX_JSON_BYTES:
+        return None, "body-too-large"
+    encoding = str(content_encoding or "").strip().lower()
+    try:
+        if encoding in ("", "identity"):
+            return bytes(body), None
+        if encoding in ("gzip", "x-gzip"):
+            return gzip.decompress(body), None
+        if encoding == "deflate":
+            return zlib.decompress(body), None
+        return None, "unsupported-content-encoding:" + encoding[:80]
+    except Exception as exc:
+        return None, "decode-error:" + type(exc).__name__
+
+
+def _catalog_json_summary(body, content_type="", content_encoding=""):
+    decoded, skipped = _decode_catalog_body_for_json(body, content_encoding)
+    if decoded is None:
+        return {"parseSkipped": skipped} if skipped else None
+    content_type = str(content_type or "").lower()
+    stripped = decoded.lstrip()
+    if "json" not in content_type and not stripped.startswith((b"{", b"[")):
+        return None
+    try:
+        value = json.loads(decoded.decode("utf-8"))
+    except Exception as exc:
+        return {"parseError": type(exc).__name__}
+
+    summary = {
+        "topLevelType": "object" if isinstance(value, dict) else "array" if isinstance(value, list) else type(value).__name__,
+        "topLevelKeys": sorted(str(k)[:120] for k in value.keys())[:120] if isinstance(value, dict) else [],
+        "catalogApps": [],
+        "redactedKeyNames": [],
+    }
+    redacted_keys = set()
+    seen_apps = set()
+    nodes = 0
+
+    def add_app(node):
+        appinfo = node.get("appInfo") if isinstance(node.get("appInfo"), dict) else node
+        marker = (
+            str(node.get("id", "")),
+            str(appinfo.get("unifiedAppName", "")),
+            str(appinfo.get("url", "")),
+        )
+        if marker in seen_apps:
+            return
+        record = {}
+        for key in ("id", "appContentId", "productCode", "typeCode", "title", "name"):
+            if key in node and not STORE_TRACE_SENSITIVE_RE.search(key):
+                scalar = _safe_catalog_scalar(node.get(key))
+                if scalar is not None:
+                    record[key] = scalar
+        for key in (
+            "unifiedAppName", "openMode", "packaged", "hasDetailPage",
+            "appHasDetailPage", "appBundle", "categoryName", "subCategory",
+            "configUrlDownload", "StoreType",
+        ):
+            if key in appinfo and not STORE_TRACE_SENSITIVE_RE.search(key):
+                scalar = _safe_catalog_scalar(appinfo.get(key))
+                if scalar is not None:
+                    record[key] = scalar
+        url_summary = _catalog_url_summary(appinfo.get("url"))
+        if url_summary:
+            record["url"] = url_summary
+        if "configUrl" in appinfo:
+            record["configUrlPresent"] = bool(appinfo.get("configUrl"))
+        if record:
+            seen_apps.add(marker)
+            summary["catalogApps"].append(record)
+
+    def walk(node, depth=0):
+        nonlocal nodes
+        if nodes >= 4000 or depth > 8 or len(summary["catalogApps"]) >= 20:
+            return
+        nodes += 1
+        if isinstance(node, dict):
+            for key in node.keys():
+                if STORE_TRACE_SENSITIVE_RE.search(str(key)):
+                    redacted_keys.add(str(key)[:120])
+            if isinstance(node.get("appInfo"), dict) or "unifiedAppName" in node:
+                add_app(node)
+            for key, child in node.items():
+                if STORE_TRACE_SENSITIVE_RE.search(str(key)):
+                    continue
+                if isinstance(child, (dict, list)):
+                    walk(child, depth + 1)
+        elif isinstance(node, list):
+            for child in node[:300]:
+                if len(summary["catalogApps"]) >= 20:
+                    break
+                walk(child, depth + 1)
+
+    walk(value)
+    summary["redactedKeyNames"] = sorted(redacted_keys)[:80]
+    summary["catalogAppCountCaptured"] = len(summary["catalogApps"])
+    return summary
+
+
+def _new_store_trace_report():
+    now = _utc_timestamp()
+    session_id = _new_probe_session_id()
+    return {
+        "sessionId": session_id,
+        "clientBuildId": client_build_id(),
+        "serverBuildId": client_build_id(),
+        "buildMatch": True,
+        "startedAt": now,
+        "updatedAt": now,
+        "accessContext": {
+            "href": "https://" + STORE_CATALOG_HOST + "/",
+            "origin": "https://" + STORE_CATALOG_HOST,
+            "protocol": "https:",
+            "hostname": STORE_CATALOG_HOST,
+            "host": STORE_CATALOG_HOST,
+            "accessMode": "VIDAA_STORE_CATALOG_TRACE",
+        },
+        "accessMode": "VIDAA_STORE_CATALOG_TRACE",
+        "storeCatalogTrace": {
+            "host": STORE_CATALOG_HOST,
+            "passThroughOnly": True,
+            "responsesModified": False,
+            "requestBodiesPersisted": False,
+            "requestHeadersPersisted": False,
+            "dnsHit": False,
+            "tlsSniHit": False,
+            "httpProxyHit": False,
+            "requestCount": 0,
+            "status": "IDLE",
+            "requests": [],
+            "errors": [],
+            "redactionPolicy": {
+                "queryValues": "NOT_STORED",
+                "requestHeaders": "NOT_STORED",
+                "requestBodies": "NOT_STORED",
+                "sensitiveJsonValues": "NOT_STORED",
+            },
+        },
+        "summary": {"storeCatalogTrace": "IDLE"},
+    }
+
+
+def _record_store_trace(event, detail=None):
+    global STORE_TRACE_REPORT
+    detail = detail if isinstance(detail, dict) else {}
+    with STORE_TRACE_LOCK:
+        if STORE_TRACE_REPORT is None:
+            STORE_TRACE_REPORT = _new_store_trace_report()
+        report = STORE_TRACE_REPORT
+        trace = report["storeCatalogTrace"]
+        now = _utc_timestamp()
+        report["updatedAt"] = now
+
+        if event in ("DNS_A", "DNS_AAAA"):
+            trace["dnsHit"] = True
+        elif event == "TLS_SNI":
+            trace["tlsSniHit"] = True
+        elif event == "HTTP_BEGIN":
+            trace["httpProxyHit"] = True
+        elif event == "HTTP_RESPONSE":
+            trace["httpProxyHit"] = True
+            trace["requestCount"] = int(trace.get("requestCount", 0)) + 1
+            item = {
+                "timestamp": now,
+                "method": str(detail.get("method", ""))[:16],
+                "path": str(detail.get("path", ""))[:700],
+                "queryParameterNames": sorted(set(str(x)[:120] for x in detail.get("queryParameterNames", [])))[:80],
+                "upstreamStatus": detail.get("upstreamStatus"),
+                "contentType": str(detail.get("contentType", ""))[:200],
+                "contentEncoding": str(detail.get("contentEncoding", ""))[:80],
+                "responseLength": detail.get("responseLength"),
+                "jsonSummary": detail.get("jsonSummary"),
+            }
+            trace["requests"].append(item)
+            if len(trace["requests"]) > STORE_TRACE_MAX_REQUESTS:
+                trace["requests"] = trace["requests"][-STORE_TRACE_MAX_REQUESTS:]
+        elif event == "PROXY_ERROR":
+            trace["httpProxyHit"] = True
+            item = {
+                "timestamp": now,
+                "stage": str(detail.get("stage", "proxy"))[:80],
+                "method": str(detail.get("method", ""))[:16],
+                "path": str(detail.get("path", ""))[:700],
+                "errorType": str(detail.get("errorType", ""))[:120],
+                "message": str(detail.get("message", ""))[:500],
+            }
+            trace["errors"].append(item)
+            if len(trace["errors"]) > STORE_TRACE_MAX_ERRORS:
+                trace["errors"] = trace["errors"][-STORE_TRACE_MAX_ERRORS:]
+
+        trace["status"] = _store_trace_status(trace)
+        report["summary"]["storeCatalogTrace"] = trace["status"]
+        snapshot = json.loads(json.dumps(report))
+
+    try:
+        write_session_report(snapshot["sessionId"], snapshot)
+    except Exception as exc:
+        print(f"[STORE-TRACE] local report error: {exc}")
+    try:
+        queue_report_sync(snapshot["sessionId"], snapshot, "store-catalog-" + event.lower())
+    except Exception as exc:
+        print(f"[STORE-TRACE] sync error: {exc}")
+    return snapshot
+
+
+def _store_trace_snapshot():
+    with STORE_TRACE_LOCK:
+        if STORE_TRACE_REPORT is None:
+            return {
+                "host": STORE_CATALOG_HOST,
+                "status": "IDLE",
+                "passThroughOnly": True,
+                "responsesModified": False,
+                "requestCount": 0,
+            }
+        return json.loads(json.dumps(STORE_TRACE_REPORT.get("storeCatalogTrace", {})))
+
+
+def _store_query_parameter_names(path):
+    try:
+        parsed = urllib.parse.urlsplit(path)
+        return sorted(set(k[:120] for k, _ in urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)))[:80]
+    except Exception:
+        return []
+
+
+def _proxy_request_headers(headers):
+    connection_tokens = set()
+    try:
+        connection_tokens = {
+            item.strip().lower()
+            for item in str(headers.get("Connection", "")).split(",")
+            if item.strip()
+        }
+    except Exception:
+        pass
+    out = {}
+    for key, value in headers.items():
+        lower = str(key).lower()
+        if lower == "host" or lower == "content-length" or lower in STORE_PROXY_HOP_HEADERS or lower in connection_tokens:
+            continue
+        out[str(key)] = str(value)
+    out["Host"] = STORE_CATALOG_HOST
+    return out
+
+
+def _proxy_store_catalog_request(handler):
+    parsed = urllib.parse.urlsplit(handler.path)
+    path_only = parsed.path or "/"
+    query_names = _store_query_parameter_names(handler.path)
+    method = str(handler.command or "GET").upper()
+    _record_store_trace("HTTP_BEGIN", {"method": method, "path": path_only})
+
+    body = None
+    try:
+        length = int(handler.headers.get("Content-Length", "0") or "0")
+    except Exception:
+        length = 0
+    if length > 0:
+        body = handler.rfile.read(length)
+
+    headers = _proxy_request_headers(handler.headers)
+    conn = None
+    try:
+        conn = http.client.HTTPSConnection(
+            STORE_CATALOG_HOST,
+            443,
+            timeout=20,
+            context=ssl.create_default_context(),
+        )
+        conn.request(method, handler.path, body=body, headers=headers)
+        upstream = conn.getresponse()
+        response_body = upstream.read()
+        response_headers = upstream.getheaders()
+        content_type = upstream.getheader("Content-Type", "")
+        content_encoding = upstream.getheader("Content-Encoding", "")
+        json_summary = _catalog_json_summary(response_body, content_type, content_encoding)
+
+        handler.send_response(upstream.status, upstream.reason)
+        response_connection_tokens = set()
+        for key, value in response_headers:
+            if str(key).lower() == "connection":
+                response_connection_tokens.update(
+                    item.strip().lower() for item in str(value).split(",") if item.strip()
+                )
+        for key, value in response_headers:
+            lower = str(key).lower()
+            if lower in STORE_PROXY_HOP_HEADERS or lower in response_connection_tokens or lower == "content-length":
+                continue
+            handler.send_header(key, value)
+        handler.send_header("Content-Length", str(len(response_body)))
+        handler.send_header("X-Sidee-Store-Trace", "pass-through")
+        handler.end_headers()
+        if method != "HEAD":
+            handler.wfile.write(response_body)
+
+        _record_store_trace("HTTP_RESPONSE", {
+            "method": method,
+            "path": path_only,
+            "queryParameterNames": query_names,
+            "upstreamStatus": upstream.status,
+            "contentType": content_type,
+            "contentEncoding": content_encoding,
+            "responseLength": len(response_body),
+            "jsonSummary": json_summary,
+        })
+        print(f"[STORE-PROXY] {method} {path_only} -> {upstream.status} ({len(response_body)} bytes)")
+    except Exception as exc:
+        message = re.sub(
+            r"(?i)((?:token|authorization|cookie|secret|password|credential|signature|session|api[-_]?key)\s*[=:]\s*)[^\s&,;]+",
+            r"\1<redacted>",
+            str(exc),
+        )
+        _record_store_trace("PROXY_ERROR", {
+            "stage": "upstream",
+            "method": method,
+            "path": path_only,
+            "errorType": type(exc).__name__,
+            "message": message,
+        })
+        payload = b"Sidee Store pass-through proxy could not reach the upstream."
+        handler.send_response(502)
+        handler.send_header("Content-Type", "text/plain; charset=utf-8")
+        handler.send_header("Content-Length", str(len(payload)))
+        handler.send_header("Cache-Control", "no-store")
+        handler.end_headers()
+        if method != "HEAD":
+            handler.wfile.write(payload)
+        print(f"[STORE-PROXY] ERROR {method} {path_only}: {type(exc).__name__}")
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 def _sync_app_transport_observation(transport, host, path=""):
@@ -1149,8 +1551,10 @@ def get_local_ip():
 
 def generate_cert():
     CERT_DIR.mkdir(parents=True, exist_ok=True)
-    cert = CERT_DIR / "sidee-vidaa-multihost.crt"
-    key = CERT_DIR / "sidee-vidaa-multihost.key"
+    # Versioned filename intentionally prevents reuse of the older certificate
+    # that did not include the Store catalog hostname.
+    cert = CERT_DIR / "sidee-vidaa-multihost-store-v1.crt"
+    key = CERT_DIR / "sidee-vidaa-multihost-store-v1.key"
     if cert.exists() and key.exists():
         return cert, key
 
@@ -1167,19 +1571,45 @@ def generate_cert():
             "OpenSSL was not found. Install Git for Windows or OpenSSL, then run Sidee again."
         )
 
+    cert_hosts = [
+        "vidaahub.com",
+        "www.vidaahub.com",
+        "vidaa.smartone-iptv.com",
+        "vidaa.duplecast.com",
+        STORE_CATALOG_HOST,
+    ]
+    san = ",".join("DNS:" + host for host in cert_hosts)
     cmd = [
         openssl, "req", "-x509", "-newkey", "rsa:2048",
         "-keyout", str(key), "-out", str(cert), "-days", "30", "-nodes",
         "-subj", "/CN=vidaahub.com",
-        "-addext", "subjectAltName=DNS:vidaahub.com,DNS:www.vidaahub.com,DNS:vidaa.smartone-iptv.com,DNS:vidaa.duplecast.com",
+        "-addext", "subjectAltName=" + san,
     ]
     try:
         subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except subprocess.CalledProcessError:
+        config = CERT_DIR / "sidee-openssl-store-v1.cnf"
+        alt_names = "\n".join(
+            f"DNS.{index} = {host}" for index, host in enumerate(cert_hosts, start=1)
+        )
+        config.write_text(
+            "[req]\n"
+            "distinguished_name = dn\n"
+            "prompt = no\n"
+            "x509_extensions = v3_req\n"
+            "[dn]\n"
+            "CN = vidaahub.com\n"
+            "[v3_req]\n"
+            "subjectAltName = @alt_names\n"
+            "[alt_names]\n"
+            + alt_names
+            + "\n",
+            encoding="utf-8",
+        )
         fallback = [
             openssl, "req", "-x509", "-newkey", "rsa:2048",
             "-keyout", str(key), "-out", str(cert), "-days", "30", "-nodes",
-            "-subj", "/CN=vidaahub.com",
+            "-config", str(config), "-extensions", "v3_req",
         ]
         subprocess.run(fallback, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return cert, key
@@ -1267,6 +1697,11 @@ def run_dns(config, local_ip):
                         _sync_app_transport_observation("DNS_A", host, "")
                     except Exception as exc:
                         print(f"[DNS] app-context report error: {exc}")
+                elif host == STORE_CATALOG_HOST:
+                    try:
+                        _record_store_trace("DNS_A", {"host": host})
+                    except Exception as exc:
+                        print(f"[DNS] store-trace report error: {exc}")
             elif host in domains and qtype == 28:
                 response = empty_dns_answer(data)
             else:
@@ -1282,7 +1717,18 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
     server_version = "Sidee/0.1"
 
     def log_message(self, fmt, *args):
+        host = _normalized_host(self.headers.get("Host", "")) if hasattr(self, "headers") else ""
+        if host == STORE_CATALOG_HOST:
+            path = urllib.parse.urlsplit(getattr(self, "path", "")).path or "/"
+            print(f"[WEB] {self.client_address[0]} STORE {getattr(self, 'command', '')} {path}")
+            return
         print(f"[WEB] {self.client_address[0]} {fmt % args}")
+
+    def _maybe_proxy_store_catalog(self):
+        if _normalized_host(self.headers.get("Host", "")) != STORE_CATALOG_HOST:
+            return False
+        _proxy_store_catalog_request(self)
+        return True
 
     def _send_json(self, data, status=200):
         payload = json.dumps(data, indent=2).encode("utf-8")
@@ -1299,6 +1745,8 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
         return json.loads(raw.decode("utf-8"))
 
     def do_GET(self):
+        if self._maybe_proxy_store_catalog():
+            return
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         host = _normalized_host(self.headers.get("Host", ""))
@@ -1341,6 +1789,9 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
             with APP_CONTEXT_HIT_LOCK:
                 hit = dict(APP_CONTEXT_LAST_HIT) if APP_CONTEXT_LAST_HIT else None
             return self._send_json({"ok": True, "hit": hit})
+
+        if path == "/api/store-catalog-trace":
+            return self._send_json({"ok": True, "storeCatalogTrace": _store_trace_snapshot()})
 
         if path == "/api/remote-diagnostic/request":
             snapshot = _remote_diagnostic_snapshot(include_request=True)
@@ -1408,6 +1859,8 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_POST(self):
+        if self._maybe_proxy_store_catalog():
+            return
         path = urllib.parse.urlparse(self.path).path
         try:
             data = self._read_json()
@@ -1542,6 +1995,31 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
 
         return self._send_json({"ok": False, "error": "Not found"}, 404)
 
+    def do_PUT(self):
+        if self._maybe_proxy_store_catalog():
+            return
+        self.send_error(405)
+
+    def do_PATCH(self):
+        if self._maybe_proxy_store_catalog():
+            return
+        self.send_error(405)
+
+    def do_DELETE(self):
+        if self._maybe_proxy_store_catalog():
+            return
+        self.send_error(405)
+
+    def do_HEAD(self):
+        if self._maybe_proxy_store_catalog():
+            return
+        self.send_error(405)
+
+    def do_OPTIONS(self):
+        if self._maybe_proxy_store_catalog():
+            return
+        self.send_error(405)
+
 
 class ThreadingHTTPServer(http.server.ThreadingHTTPServer):
     daemon_threads = True
@@ -1592,6 +2070,12 @@ def run_https(port, cert, key):
                 _sync_app_transport_observation("TLS_SNI", host, "")
             except Exception as exc:
                 print(f"[TLS-SNI] report error: {exc}")
+        elif host == STORE_CATALOG_HOST:
+            print(f"[TLS-SNI] {host} (store catalog trace)")
+            try:
+                _record_store_trace("TLS_SNI", {"host": host})
+            except Exception as exc:
+                print(f"[TLS-SNI] store-trace report error: {exc}")
 
     context.set_servername_callback(_sni_observer)
     server.socket = context.wrap_socket(server.socket, server_side=True)
@@ -1627,6 +2111,7 @@ def main():
     print(f"PC dashboard: http://{local_ip}:{cfg.get('http_port', 8080)}")
     print(f"Installed-app context probe HTTP: http://{local_ip}:{cfg.get('app_context_http_port', 80)}")
     print(f"Raw-IP A/B test: http://{local_ip}:{cfg.get('http_port', 8080)}")
+    print(f"VIDAA Store catalog trace: https://{STORE_CATALOG_HOST} (pass-through only)")
     if REPORT_SYNC_CONFIG.get("enabled"):
         print(
             "Report sync: Git remote "

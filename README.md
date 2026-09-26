@@ -32,6 +32,32 @@ It combines the useful ideas found in:
 
 Sidee is deliberately conservative on VIDAA 9. Direct `websdk/Appinfo.json` writes are available only through explicit, backup-protected flows: first an exact no-op write-back capability test, then separately triggered add/restore actions.
 
+
+## VIDAA Store catalog transport trace — 2026-09-26
+
+Sidee now has a pass-through-only observer for the real VIDAA Store catalog host:
+
+`category-ui.vidaahub.com`
+
+This was added after verifying the public `PhasedGapple/FuVIDAA-API` PoC, which proxies that host and handles `/api/v1.0.0/categoryApi/categoryFirstResult` with VIDAA catalog metadata including `appInfo.openMode`, `unifiedAppName`, `packaged` and related fields.
+
+The Sidee implementation does **not** modify Store responses. When the TV DNS points to Sidee and the official VIDAA Store connects to that host, Sidee forwards the request to the real HTTPS upstream and records only bounded diagnostics:
+
+- DNS hit;
+- TLS SNI hit;
+- HTTP method/path;
+- query parameter names only;
+- upstream status/content type/response length;
+- bounded, non-sensitive catalog metadata from JSON responses.
+
+Sidee does not persist request headers, request bodies, query values, cookies, authorization values, tokens, session identifiers, signature material or certificate-like values. Sensitive JSON keys are skipped. The returned upstream body is passed through unchanged.
+
+Trace status is exposed at `GET /api/store-catalog-trace` and is also persisted in `storeCatalogTrace` reports with states such as `DNS_ONLY`, `TLS_SNI_ONLY`, `HTTP_PROXY_ACTIVE`, `REQUESTS_CAPTURED`, and `PROXY_ERROR`.
+
+The generated multihost certificate now uses a new filename and includes `category-ui.vidaahub.com` in its SAN, so an older Sidee certificate without that hostname is not silently reused.
+
+For the real-TV trace: start Sidee, point TV DNS to the Sidee PC, open the official VIDAA Store, browse a category, and open the detail page of an existing app. Do not press Install during this first transport-only phase.
+
 ## What it does
 
 - local DNS server: redirects only `vidaahub.com` / `www.vidaahub.com` to your PC and forwards other DNS requests upstream

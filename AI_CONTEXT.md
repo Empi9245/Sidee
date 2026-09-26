@@ -3829,3 +3829,94 @@ Il dato utile successivo è verificare se compaiono:
 - source che materializza l'oggetto `appInfo` ricco osservato nel registry.
 
 Se non appare nulla oltre ai wrapper già noti, la conclusione si restringe ulteriormente: i metadata ricchi e/o il privilegio Store non sono esposti al normale browser `vidaahub.com`, e per procedere servirà identificare il contesto/processo VIDAA Store reale invece di inventare API.
+
+
+## IMPLEMENTAZIONE — VIDAA Store Catalog / Transport Trace — 2026-09-26
+
+### Fonte pubblica concreta verificata
+
+È stato verificato direttamente il source:
+
+`PhasedGapple/FuVIDAA-API`
+`Project FuckVIDAA/main.cpp`
+commit `e2010891e5061698d537e77164f3489d4c087011`.
+
+Il PoC:
+- avvia un server TLS per `category-ui.vidaahub.com`;
+- usa come upstream reale `https://category-ui.vidaahub.com`;
+- intercetta `/api/v1.0.0/categoryApi/categoryFirstResult`;
+- costruisce una risposta catalogo contenente campi Store reali come `id`, `productCode`, `typeCode`, `showInfo`, `appInfo.url`, `openMode`, `unifiedAppName`, `configUrlDownload`, `hasDetailPage`, `packaged`, `appBundle`.
+
+Questo non prova che la Q0707 usi ancora lo stesso endpoint né che il catalogo possa installare direttamente una app. Prova però che `category-ui.vidaahub.com` è una superficie Store reale e separata dal registry locale AppInfo.
+
+### Implementazione Sidee
+
+Sidee ora include un trace trasporto/catalogo rigorosamente pass-through per:
+
+`category-ui.vidaahub.com`
+
+Modifiche:
+- dominio aggiunto a `spoof_domains`;
+- certificato Sidee versionato nuovo con SAN `category-ui.vidaahub.com`;
+- vecchio certificato senza il SAN non viene riutilizzato;
+- DNS A hit registrato;
+- TLS SNI hit registrato;
+- richieste HTTP/HTTPS per quell'Host inoltrate al vero `https://category-ui.vidaahub.com`;
+- metodo, path e body sono inoltrati; i body delle risposte vengono restituiti byte-per-byte senza modifica;
+- le response headers non hop-by-hop vengono inoltrate;
+- nessuna tile viene iniettata;
+- nessun install/fileWrite/HiUtils/OMI viene eseguito.
+
+### Redaction
+
+Nei report NON vengono persistiti:
+- request headers;
+- request bodies;
+- query values;
+- Cookie;
+- Authorization;
+- token/access token/refresh token;
+- session/nonce/key/credential/password;
+- signature/certificate-like values.
+
+Per JSON vengono salvati solo:
+- tipo e top-level keys;
+- un inventario bounded di metadata catalogo non sensibili;
+- valori URL senza query/fragment e separati in scheme/host/path;
+- nomi dei campi sensibili incontrati, mai i loro valori.
+
+### Stato trace
+
+`storeCatalogTrace.status` può essere:
+- `IDLE`;
+- `DNS_ONLY`;
+- `TLS_SNI_ONLY`;
+- `HTTP_PROXY_ACTIVE`;
+- `REQUESTS_CAPTURED`;
+- `PROXY_ERROR`.
+
+È disponibile anche localmente via:
+
+`GET /api/store-catalog-trace`
+
+Il trace usa una singola sessione server-side per processo Sidee ed è sincronizzato su `sidee-reports`.
+
+### Interpretazione del prossimo test TV
+
+Dopo pull/restart:
+1. TV DNS -> PC Sidee;
+2. non aprire Smartone/Duplecast;
+3. aprire il VIDAA Store ufficiale;
+4. navigare una categoria;
+5. aprire il dettaglio di una app reale già installata, se possibile;
+6. non premere Install;
+7. attendere il sync.
+
+Interpretazione:
+- nessun DNS hit: la Q0707 non usa quell'host nel flusso osservato;
+- DNS ma niente SNI: trasporto diverso/host non raggiunto;
+- SNI ma niente HTTP: probabile blocco TLS/cert prima della richiesta;
+- REQUESTS_CAPTURED: seguire esclusivamente gli endpoint reali Q0707 osservati;
+- PROXY_ERROR: risolvere prima solo il trasporto upstream, senza inventare endpoint o azioni.
+
+Non tornare a pkgmgr/AppInfo write/install legacy/V2 finché il trace Store non è stato valutato.
