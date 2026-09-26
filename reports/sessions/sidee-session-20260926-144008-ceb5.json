@@ -4,7 +4,7 @@
   "serverBuildId": "app-0a160ec03833",
   "buildMatch": true,
   "startedAt": "2026-09-26T12:40:08.579Z",
-  "updatedAt": "2026-09-26T12:40:29.186Z",
+  "updatedAt": "2026-09-26T12:40:40.699Z",
   "accessContext": {
     "href": "http://192.168.1.5:8080/",
     "origin": "http://192.168.1.5:8080",
@@ -86,7 +86,1821 @@
       "errors": []
     }
   ],
-  "permissionSourceTrace": null,
+  "permissionSourceTrace": {
+    "timestamp": "2026-09-26T12:40:40.698Z",
+    "readOnly": true,
+    "targets": [
+      {
+        "path": "window.Hisense_installApp",
+        "available": false,
+        "descriptor": {
+          "found": false
+        },
+        "type": "undefined",
+        "name": null,
+        "length": null,
+        "source": null,
+        "references": [],
+        "error": null
+      },
+      {
+        "path": "window.Hisense_installApp_V2",
+        "available": false,
+        "descriptor": {
+          "found": false
+        },
+        "type": "undefined",
+        "name": null,
+        "length": null,
+        "source": null,
+        "references": [],
+        "error": null
+      },
+      {
+        "path": "window.writeInstallAppObjToJson",
+        "available": false,
+        "descriptor": {
+          "found": false
+        },
+        "type": "undefined",
+        "name": null,
+        "length": null,
+        "source": null,
+        "references": [],
+        "error": null
+      },
+      {
+        "path": "window.getInstalledAppJsonObj",
+        "available": false,
+        "descriptor": {
+          "found": false
+        },
+        "type": "undefined",
+        "name": null,
+        "length": null,
+        "source": null,
+        "references": [],
+        "error": null
+      },
+      {
+        "path": "window.mapAppInfoFields",
+        "available": false,
+        "descriptor": {
+          "found": false
+        },
+        "type": "undefined",
+        "name": null,
+        "length": null,
+        "source": null,
+        "references": [],
+        "error": null
+      },
+      {
+        "path": "window.HiUtils_createRequest",
+        "available": true,
+        "descriptor": {
+          "found": true,
+          "ownerDepth": 0,
+          "enumerable": true,
+          "configurable": true,
+          "writable": true,
+          "hasGetter": false,
+          "hasSetter": false
+        },
+        "type": "function",
+        "name": "HiUtils_createRequest",
+        "length": 2,
+        "source": "function(type, msg) {\n        const xhr_response = vowOS.service.syncExecute('hiutils', {\n            api: type,\n            args: msg\n        })\n        return xhr_response\n    }",
+        "references": [
+          "hiutils",
+          "vowOS.service.syncExecute"
+        ],
+        "error": null
+      },
+      {
+        "path": "window.Hisense_SupportAppConfig",
+        "available": true,
+        "descriptor": {
+          "found": true,
+          "ownerDepth": 0,
+          "enumerable": true,
+          "configurable": true,
+          "writable": true,
+          "hasGetter": false,
+          "hasSetter": false
+        },
+        "type": "function",
+        "name": "Hisense_SupportAppConfig",
+        "length": 0,
+        "source": "function() {\n        console.log('Hisense_SupportAppConfig')\n        return true\n    }",
+        "references": [
+          "Hisense_SupportAppConfig"
+        ],
+        "error": null
+      },
+      {
+        "path": "window.vowOS.service.syncExecute",
+        "available": true,
+        "descriptor": {
+          "found": true,
+          "ownerDepth": 0,
+          "enumerable": true,
+          "configurable": true,
+          "writable": true,
+          "hasGetter": false,
+          "hasSetter": false
+        },
+        "type": "function",
+        "name": "syncExecute",
+        "length": 2,
+        "source": "function (service, args) {\n            if (!args?.api) {\n                console.error('wrong parameter, should set api')\n                return false\n            }\n\n            if (this.httpRequest == null) {\n                this.httpRequest = new XMLHttpRequest()\n            }\n\n            if (!this.portValidated) {\n                const options = [\n                    'https://localhost:9888/service/',\n                    'http://localhost:9009/service/'\n                ]\n\n                for (const option of options) {\n                    const url = option + service\n                    const result = this.executeHttpRequest(url, args)\n\n                    if (result.success) {\n                        this.httpOption = option\n                        this.portValidated = true\n                        console.log(`request ok: ${option}`)\n                        return result.data\n                    }\n                }\n\n                this.portValidated = true\n                console.warn('all attempt are invalid, use default https.')\n                return false\n            }\n\n            const finalUrl = this.httpOption + service\n            const finalResult = this.executeHttpRequest(finalUrl, args)\n\n            return finalResult.success ? finalResult.data : false\n        }",
+        "references": [
+          "this.executeHttpRequest"
+        ],
+        "error": null
+      },
+      {
+        "path": "window.vowOS.service.executeHttpRequest",
+        "available": true,
+        "descriptor": {
+          "found": true,
+          "ownerDepth": 0,
+          "enumerable": true,
+          "configurable": true,
+          "writable": true,
+          "hasGetter": false,
+          "hasSetter": false
+        },
+        "type": "function",
+        "name": "executeHttpRequest",
+        "length": 2,
+        "source": "function (url, args) {\n            try {\n                console.log('post request to ' + url)\n                this.httpRequest.open('POST', url, false)\n                this.httpRequest.setRequestHeader('identifier', this.getIdentifier())\n                this.httpRequest.send(JSON.stringify(args))\n\n                if (this.httpRequest.status == 200) {\n                    this.httpServeLostErrNum = 0\n                    return {\n                        success: true,\n                        data: this.processResponse(this.httpRequest)\n                    }\n                } else {\n                    console.error('http request failed:' + this.httpRequest.status)\n                    return { success: false }\n                }\n            } catch (e) {\n                console.error(`error occurred(${e.message})`)\n                if(this.httpRequest.status === 0) this.httpServeLostErrNum++\n                if (this.wssServeLostErrNum >= 2 && this.httpServeLostErrNum >= 2) {\n                    if (this.launchTimer !== null) clearTimeout(this.launchTimer)\n                    console.error(`Server lost (WS err:${this.wssServeLostErrNum}, HTTP err:${this.httpServeLostErrNum}). Relaunching in 5s...`);\n                    this.launchTimer = setTimeout(() => {\n                        this.reLaunchService()\n                        this.launchTimer = null\n                    }, 5000)\n                    this.wssServeLostErrNum = 0\n                    this.httpServeLostErrNum = 0\n                }\n                return { success: false }\n            }\n        }",
+        "references": [
+          "identifier",
+          "this.getIdentifier"
+        ],
+        "error": null
+      },
+      {
+        "path": "window.vowOS.service.getIdentifier",
+        "available": true,
+        "descriptor": {
+          "found": true,
+          "ownerDepth": 0,
+          "enumerable": true,
+          "configurable": true,
+          "writable": true,
+          "hasGetter": false,
+          "hasSetter": false
+        },
+        "type": "function",
+        "name": "getIdentifier",
+        "length": 0,
+        "source": "function() {\n            if(window.navigator.appIdentifier !== 'undefined' && window.vowOSContext && typeof(window.vowOSContext?.getAppIdentifier) === 'function') {\n                return window.vowOSContext.getAppIdentifier()\n            }\n\n            return ''\n        }",
+        "references": [
+          "window.navigator.appIdentifier",
+          "getAppIdentifier",
+          "window.vowOSContext.getAppIdentifier"
+        ],
+        "error": null
+      }
+    ],
+    "supportAppConfig": {
+      "available": true,
+      "called": true,
+      "status": "RETURNED",
+      "value": true,
+      "error": null
+    },
+    "concreteReferences": [
+      {
+        "source": "window.HiUtils_createRequest",
+        "value": "hiutils"
+      },
+      {
+        "source": "window.HiUtils_createRequest",
+        "value": "vowOS.service.syncExecute"
+      },
+      {
+        "source": "window.Hisense_SupportAppConfig",
+        "value": "Hisense_SupportAppConfig"
+      },
+      {
+        "source": "window.vowOS.service.syncExecute",
+        "value": "this.executeHttpRequest"
+      },
+      {
+        "source": "window.vowOS.service.executeHttpRequest",
+        "value": "identifier"
+      },
+      {
+        "source": "window.vowOS.service.executeHttpRequest",
+        "value": "this.getIdentifier"
+      },
+      {
+        "source": "window.vowOS.service.getIdentifier",
+        "value": "window.navigator.appIdentifier"
+      },
+      {
+        "source": "window.vowOS.service.getIdentifier",
+        "value": "getAppIdentifier"
+      },
+      {
+        "source": "window.vowOS.service.getIdentifier",
+        "value": "window.vowOSContext.getAppIdentifier"
+      }
+    ],
+    "loadedScripts": {
+      "timestamp": "2026-09-26T12:40:40.643Z",
+      "readOnly": true,
+      "scriptCount": 1,
+      "inspectedCount": 0,
+      "matchedScriptCount": 0,
+      "mapAppInfoFieldsFound": false,
+      "entries": [
+        {
+          "index": 0,
+          "src": "http://192.168.1.5:8080/app.js?v=app-0a160ec03833",
+          "inline": false,
+          "type": null,
+          "sameOrigin": true,
+          "status": "SIDEE_SELF_SKIPPED",
+          "sourceLength": 0,
+          "matchedTerms": [],
+          "excerpts": [],
+          "error": null
+        }
+      ]
+    },
+    "runtimeIdentitySurface": {
+      "timestamp": "2026-09-26T12:40:40.644Z",
+      "readOnly": true,
+      "exact": {
+        "navigatorAppIdentifier": {
+          "found": true,
+          "ownerDepth": 1,
+          "enumerable": false,
+          "configurable": true,
+          "writable": null,
+          "hasGetter": true,
+          "hasSetter": false,
+          "valueType": "accessor",
+          "value": null,
+          "functionSource": null,
+          "getterSource": "function get appIdentifier() { [native code] }",
+          "setterSource": null,
+          "error": null
+        },
+        "vowOSContextGetAppIdentifier": {
+          "found": true,
+          "ownerDepth": 0,
+          "enumerable": true,
+          "configurable": true,
+          "writable": true,
+          "hasGetter": false,
+          "hasSetter": false,
+          "valueType": "function",
+          "value": null,
+          "functionSource": "function getAppIdentifier() { [native code] }",
+          "getterSource": null,
+          "setterSource": null,
+          "error": null
+        },
+        "vowOSContextGetAppId": {
+          "found": true,
+          "ownerDepth": 0,
+          "enumerable": true,
+          "configurable": true,
+          "writable": true,
+          "hasGetter": false,
+          "hasSetter": false,
+          "valueType": "function",
+          "value": null,
+          "functionSource": "function getAppId() { [native code] }",
+          "getterSource": null,
+          "setterSource": null,
+          "error": null
+        },
+        "vowOSContextInit": {
+          "found": true,
+          "ownerDepth": 0,
+          "enumerable": true,
+          "configurable": true,
+          "writable": true,
+          "hasGetter": false,
+          "hasSetter": false,
+          "valueType": "function",
+          "value": null,
+          "functionSource": "function init() { [native code] }",
+          "getterSource": null,
+          "setterSource": null,
+          "error": null
+        },
+        "vowOSServiceGetIdentifier": {
+          "found": true,
+          "ownerDepth": 0,
+          "enumerable": true,
+          "configurable": true,
+          "writable": true,
+          "hasGetter": false,
+          "hasSetter": false,
+          "valueType": "function",
+          "value": null,
+          "functionSource": "function() {\n            if(window.navigator.appIdentifier !== 'undefined' && window.vowOSContext && typeof(window.vowOSContext?.getAppIdentifier) === 'function') {\n                return window.vowOSContext.getAppIdentifier()\n            }\n\n            return ''\n        }",
+          "getterSource": null,
+          "setterSource": null,
+          "error": null
+        }
+      },
+      "surfaces": {
+        "vowOSContext": {
+          "label": "window.vowOSContext",
+          "available": true,
+          "levels": [
+            {
+              "depth": 0,
+              "type": "[object Object]",
+              "matchingNames": [
+                "getAppIdentifier",
+                "getAppId"
+              ]
+            },
+            {
+              "depth": 1,
+              "type": "[object Object]",
+              "matchingNames": []
+            },
+            {
+              "depth": 2,
+              "type": "[object Object]",
+              "matchingNames": []
+            }
+          ],
+          "matchingProperties": [
+            {
+              "name": "getAppIdentifier",
+              "descriptor": {
+                "found": true,
+                "ownerDepth": 0,
+                "enumerable": true,
+                "configurable": true,
+                "writable": true,
+                "hasGetter": false,
+                "hasSetter": false,
+                "valueType": "function",
+                "value": null,
+                "functionSource": "function getAppIdentifier() { [native code] }",
+                "getterSource": null,
+                "setterSource": null,
+                "error": null
+              }
+            },
+            {
+              "name": "getAppId",
+              "descriptor": {
+                "found": true,
+                "ownerDepth": 0,
+                "enumerable": true,
+                "configurable": true,
+                "writable": true,
+                "hasGetter": false,
+                "hasSetter": false,
+                "valueType": "function",
+                "value": null,
+                "functionSource": "function getAppId() { [native code] }",
+                "getterSource": null,
+                "setterSource": null,
+                "error": null
+              }
+            }
+          ],
+          "error": null
+        },
+        "vowOSService": {
+          "label": "window.vowOS.service",
+          "available": true,
+          "levels": [
+            {
+              "depth": 0,
+              "type": "[object Object]",
+              "matchingNames": [
+                "getIdentifier",
+                "reLaunchService"
+              ]
+            },
+            {
+              "depth": 1,
+              "type": "[object Object]",
+              "matchingNames": []
+            }
+          ],
+          "matchingProperties": [
+            {
+              "name": "getIdentifier",
+              "descriptor": {
+                "found": true,
+                "ownerDepth": 0,
+                "enumerable": true,
+                "configurable": true,
+                "writable": true,
+                "hasGetter": false,
+                "hasSetter": false,
+                "valueType": "function",
+                "value": null,
+                "functionSource": "function() {\n            if(window.navigator.appIdentifier !== 'undefined' && window.vowOSContext && typeof(window.vowOSContext?.getAppIdentifier) === 'function') {\n                return window.vowOSContext.getAppIdentifier()\n            }\n\n            return ''\n        }",
+                "getterSource": null,
+                "setterSource": null,
+                "error": null
+              }
+            },
+            {
+              "name": "reLaunchService",
+              "descriptor": {
+                "found": true,
+                "ownerDepth": 0,
+                "enumerable": true,
+                "configurable": true,
+                "writable": true,
+                "hasGetter": false,
+                "hasSetter": false,
+                "valueType": "function",
+                "value": null,
+                "functionSource": "function () {\n            console.warn('reLaunchService called');\n            let msg = {type: 'restartWebsocket'}\n            omi_platform.sendPlatformMessage(JSON.stringify(msg))\n        }",
+                "getterSource": null,
+                "setterSource": null,
+                "error": null
+              }
+            }
+          ],
+          "error": null
+        }
+      },
+      "notes": [
+        "Descriptors and function/getter/setter source are inspected without invoking getters, setters, init methods or discovered functions.",
+        "Only scalar data-descriptor values are copied; object values are not traversed except through their own/prototype property names."
+      ]
+    },
+    "runtimeObjectInventory": {
+      "timestamp": "2026-09-26T12:40:40.644Z",
+      "readOnly": true,
+      "objects": {
+        "vowOSContext": {
+          "label": "window.vowOSContext",
+          "available": true,
+          "levels": [
+            {
+              "depth": 0,
+              "type": "[object Object]",
+              "propertyCount": 3,
+              "truncated": false,
+              "properties": [
+                {
+                  "name": "init",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function init() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "getAppIdentifier",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function getAppIdentifier() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "getAppId",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function getAppId() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                }
+              ]
+            },
+            {
+              "depth": 1,
+              "type": "[object Object]",
+              "propertyCount": 1,
+              "truncated": false,
+              "properties": [
+                {
+                  "name": "constructor",
+                  "ownerDepth": 1,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function () { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                }
+              ]
+            },
+            {
+              "depth": 2,
+              "type": "[object Object]",
+              "propertyCount": 12,
+              "truncated": false,
+              "properties": [
+                {
+                  "name": "constructor",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function Object() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "__defineGetter__",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function __defineGetter__() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "__defineSetter__",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function __defineSetter__() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "hasOwnProperty",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function hasOwnProperty() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "__lookupGetter__",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function __lookupGetter__() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "__lookupSetter__",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function __lookupSetter__() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "isPrototypeOf",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function isPrototypeOf() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "propertyIsEnumerable",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function propertyIsEnumerable() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "toString",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function toString() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "valueOf",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function valueOf() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "__proto__",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": null,
+                  "hasGetter": true,
+                  "hasSetter": true,
+                  "valueType": "accessor",
+                  "value": null,
+                  "functionSource": null,
+                  "getterSource": "function get __proto__() { [native code] }",
+                  "setterSource": "function set __proto__() { [native code] }",
+                  "error": null
+                },
+                {
+                  "name": "toLocaleString",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function toLocaleString() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                }
+              ]
+            }
+          ],
+          "propertyCount": 16,
+          "functionCount": 15,
+          "getterCount": 1,
+          "setterCount": 1,
+          "error": null
+        },
+        "vowOSService": {
+          "label": "window.vowOS.service",
+          "available": true,
+          "levels": [
+            {
+              "depth": 0,
+              "type": "[object Object]",
+              "propertyCount": 22,
+              "truncated": false,
+              "properties": [
+                {
+                  "name": "socket",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "object",
+                  "value": {
+                    "type": "[object WebSocket]"
+                  },
+                  "functionSource": null,
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "port",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "number",
+                  "value": 9888,
+                  "functionSource": null,
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "session_array",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "object",
+                  "value": {
+                    "type": "[object Object]"
+                  },
+                  "functionSource": null,
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "session",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "number",
+                  "value": 1,
+                  "functionSource": null,
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "msgs",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "object",
+                  "value": {
+                    "type": "array",
+                    "length": 0
+                  },
+                  "functionSource": null,
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "httpRequest",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "object",
+                  "value": {
+                    "type": "[object XMLHttpRequest]"
+                  },
+                  "functionSource": null,
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "getIdentifier",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function() {\n            if(window.navigator.appIdentifier !== 'undefined' && window.vowOSContext && typeof(window.vowOSContext?.getAppIdentifier) === 'function') {\n                return window.vowOSContext.getAppIdentifier()\n            }\n\n            return ''\n        }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "isObject",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function(data) {\n            return typeof data === 'object'\n        }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "httpOption",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "string",
+                  "value": "https://localhost:9888/service/",
+                  "functionSource": null,
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "portValidated",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "boolean",
+                  "value": true,
+                  "functionSource": null,
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "httpServeLostErrNum",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "number",
+                  "value": 0,
+                  "functionSource": null,
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "wssServeLostErrNum",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "number",
+                  "value": 0,
+                  "functionSource": null,
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "launchTimer",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "null",
+                  "value": null,
+                  "functionSource": null,
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "reLaunchService",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function () {\n            console.warn('reLaunchService called');\n            let msg = {type: 'restartWebsocket'}\n            omi_platform.sendPlatformMessage(JSON.stringify(msg))\n        }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "syncExecute",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function (service, args) {\n            if (!args?.api) {\n                console.error('wrong parameter, should set api')\n                return false\n            }\n\n            if (this.httpRequest == null) {\n                this.httpRequest = new XMLHttpRequest()\n            }\n\n            if (!this.portValidated) {\n                const options = [\n                    'https://localhost:9888/service/',\n                    'http://localhost:9009/service/'\n                ]\n\n                for (const option of options) {\n                    const url = option + service\n                    const result = this.executeHttpRequest(url, args)\n\n                    if (result.success) {\n                        this.httpOption = option\n                        this.portValidated = true\n                        console.log(`request ok: ${option}`)\n                        return result.data\n                    }\n                }\n\n                this.portValidated = true\n                console.warn('all attempt are invalid, use default https.')\n                return false\n            }\n\n            const finalUrl = this.httpOption + service\n            const finalResult = this.executeHttpRequest(finalUrl, args)\n\n            return finalResult.success ? finalResult.data : false\n        }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "executeHttpRequest",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function (url, args) {\n            try {\n                console.log('post request to ' + url)\n                this.httpRequest.open('POST', url, false)\n                this.httpRequest.setRequestHeader('identifier', this.getIdentifier())\n                this.httpRequest.send(JSON.stringify(args))\n\n                if (this.httpRequest.status == 200) {\n                    this.httpServeLostErrNum = 0\n                    return {\n                        success: true,\n                        data: this.processResponse(this.httpRequest)\n                    }\n                } else {\n                    console.error('http request failed:' + this.httpRequest.status)\n                    return { success: false }\n                }\n            } catch (e) {\n                console.error(`error occurred(${e.message})`)\n                if(this.httpRequest.status === 0) this.httpServeLostErrNum++\n                if (this.wssServeLostErrNum >= 2 && this.httpServeLostErrNum >= 2) {\n                    if (this.launchTimer !== null) clearTimeout(this.launchTimer)\n                    console.error(`Server lost (WS err:${this.wssServeLostErrNum}, HTTP err:${this.httpServeLostErrNum}). Relaunching in 5s...`);\n                    this.launchTimer = setTimeout(() => {\n                        this.reLaunchService()\n                        this.launchTimer = null\n                    }, 5000)\n                    this.wssServeLostErrNum = 0\n                    this.httpServeLostErrNum = 0\n                }\n                return { success: false }\n            }\n        }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "processResponse",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function (xhr) {\n            if (typeof xhr.responseText == 'string') {\n                const ret = JSON.parse(xhr.responseText)\n                delete ret.session\n                return ret\n            }\n            return true\n        }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "execute",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function(module, obj_params) {\n            if (module.indexOf('phoenix://service') != 0) {\n                console.error('wrong scheme format, should be : phoenix://service/xxx !')\n            }\n\n            if (this.socket == null) {\n                this.socket = new WebSocket('wss://localhost:' + this.port)\n                this.socket.onopen = this.socketonopen\n                this.socket.onmessage = this.socketonmessage\n                this.socket.onclose = this.socketonclose\n                this.socket.onerror = this.socketonerror\n            }\n\n            const cmd = {\n                path: module,\n                method: '',\n                parameters: {},\n                session: this.session++, // this need be set everytime\n                timeout: 10, // default is 10\n                identifier: this.getIdentifier() // resolved\n            }\n\n            // check input\n            if (!this.isObject(obj_params)) {\n                console.error('wrong parameter, input should be Json format!')\n                return false\n            }\n\n            cmd.method = obj_params?.method ?? ''\n            cmd.timeout = obj_params?.timeout ?? 10\n\n            if (obj_params?.parameters) {\n                // check input\n                if (!this.isObject(obj_params.parameters)) {\n                    console.error('wrong parameter, input should be Json format!')\n                    return false\n                }\n\n                if (!obj_params.parameters?.api) {\n                    console.error('wrong parameter, should set api or args!')\n                    return false\n                }\n                cmd.parameters = obj_params.parameters\n            }\n\n            // save session data\n            this.session_array[cmd.session] = obj_params\n\n            if (this.socket.readyState == WebSocket.OPEN) {\n                this.socket.send(JSON.stringify(cmd))\n                // console.log(\"send out cmd: \"+JSON.stringify(cmd))\n            } else {\n                this.msgs.push(JSON.stringify(cmd))\n            }\n\n            return true\n        }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "socketonopen",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function(e) {\n        console.log('websocket opened')\n        window.vowOS.service.wssServeLostErrNum = 0\n        if (vowOS.service.msgs.length > 0) vowOS.service.msgs.reverse()\n        while (vowOS.service.msgs.length > 0) {\n            vowOS.service.socket.send(vowOS.service.msgs.pop())\n        }\n    }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "socketonmessage",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function(e) {\n        console.log('websocket received message:' + e.data)\n        window.vowOS.service.wssServeLostErrNum = 0\n        try {\n            const params = JSON.parse(e.data)\n            const callbacks = vowOS.service.session_array[params.session] != undefined ? vowOS.service.session_array[params.session] : {}\n            const event_return = callbacks?.onMessage\n            // handle event\n            if (event_return && params?.event) {\n                const event = {\n                    event: params?.event ?? 'unknown',\n                    msg: params?.msg ?? 'invalid format'\n                }\n                return callbacks.onMessage(event)\n            }\n            // handle api case\n            if (params.ret) {\n                callbacks?.onSuccess?.(params.msg)\n            } else {\n                callbacks?.onError?.(params.msg)\n            }\n\n            callbacks?.onComplete?.(params.msg)\n            if (callbacks.method != 'register') {\n                console.log('removed session:' + params.session)\n                delete vowOS.service.session_array[params.session]\n            }\n        } catch (e) {\n            console.log(e)\n        }\n    }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "socketonclose",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function(e) {\n        console.log('websocket closed, code:%d / reason:%s', e.code, e.reason)\n        if (e.code === 1006) window.vowOS.service.wssServeLostErrNum++\n\n        vowOS.service.socket = null\n        vowOS.service.msgs.length = []\n\n        for (const session in vowOS.service.session_array) {\n            if (vowOS.service.session_array[session]?.onError) {\n                const callbacks = vowOS.service.session_array[session]\n                delete vowOS.service.session_array[session]\n                console.log('call onError for session %s!', session)\n                callbacks.onError('session is closed abnormally.code ' + e.code)\n            }\n        }\n    }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "socketonerror",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function(error) {\n        console.log('got error:' + error.msg)\n        window.vowOS.service.wssServeLostErrNum++\n    }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                }
+              ]
+            },
+            {
+              "depth": 1,
+              "type": "[object Object]",
+              "propertyCount": 12,
+              "truncated": false,
+              "properties": [
+                {
+                  "name": "constructor",
+                  "ownerDepth": 1,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function Object() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "__defineGetter__",
+                  "ownerDepth": 1,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function __defineGetter__() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "__defineSetter__",
+                  "ownerDepth": 1,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function __defineSetter__() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "hasOwnProperty",
+                  "ownerDepth": 1,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function hasOwnProperty() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "__lookupGetter__",
+                  "ownerDepth": 1,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function __lookupGetter__() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "__lookupSetter__",
+                  "ownerDepth": 1,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function __lookupSetter__() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "isPrototypeOf",
+                  "ownerDepth": 1,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function isPrototypeOf() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "propertyIsEnumerable",
+                  "ownerDepth": 1,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function propertyIsEnumerable() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "toString",
+                  "ownerDepth": 1,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function toString() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "valueOf",
+                  "ownerDepth": 1,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function valueOf() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "__proto__",
+                  "ownerDepth": 1,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": null,
+                  "hasGetter": true,
+                  "hasSetter": true,
+                  "valueType": "accessor",
+                  "value": null,
+                  "functionSource": null,
+                  "getterSource": "function get __proto__() { [native code] }",
+                  "setterSource": "function set __proto__() { [native code] }",
+                  "error": null
+                },
+                {
+                  "name": "toLocaleString",
+                  "ownerDepth": 1,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function toLocaleString() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                }
+              ]
+            }
+          ],
+          "propertyCount": 34,
+          "functionCount": 22,
+          "getterCount": 1,
+          "setterCount": 1,
+          "error": null
+        },
+        "omiPlatform": {
+          "label": "window.omi_platform",
+          "available": true,
+          "levels": [
+            {
+              "depth": 0,
+              "type": "[object Object]",
+              "propertyCount": 2,
+              "truncated": false,
+              "properties": [
+                {
+                  "name": "addPlatformEventListener",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function addPlatformEventListener() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "sendPlatformMessage",
+                  "ownerDepth": 0,
+                  "found": true,
+                  "enumerable": true,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function sendPlatformMessage() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                }
+              ]
+            },
+            {
+              "depth": 1,
+              "type": "[object Object]",
+              "propertyCount": 1,
+              "truncated": false,
+              "properties": [
+                {
+                  "name": "constructor",
+                  "ownerDepth": 1,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function () { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                }
+              ]
+            },
+            {
+              "depth": 2,
+              "type": "[object Object]",
+              "propertyCount": 12,
+              "truncated": false,
+              "properties": [
+                {
+                  "name": "constructor",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function Object() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "__defineGetter__",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function __defineGetter__() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "__defineSetter__",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function __defineSetter__() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "hasOwnProperty",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function hasOwnProperty() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "__lookupGetter__",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function __lookupGetter__() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "__lookupSetter__",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function __lookupSetter__() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "isPrototypeOf",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function isPrototypeOf() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "propertyIsEnumerable",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function propertyIsEnumerable() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "toString",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function toString() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "valueOf",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function valueOf() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                },
+                {
+                  "name": "__proto__",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": null,
+                  "hasGetter": true,
+                  "hasSetter": true,
+                  "valueType": "accessor",
+                  "value": null,
+                  "functionSource": null,
+                  "getterSource": "function get __proto__() { [native code] }",
+                  "setterSource": "function set __proto__() { [native code] }",
+                  "error": null
+                },
+                {
+                  "name": "toLocaleString",
+                  "ownerDepth": 2,
+                  "found": true,
+                  "enumerable": false,
+                  "configurable": true,
+                  "writable": true,
+                  "hasGetter": false,
+                  "hasSetter": false,
+                  "valueType": "function",
+                  "value": null,
+                  "functionSource": "function toLocaleString() { [native code] }",
+                  "getterSource": null,
+                  "setterSource": null,
+                  "error": null
+                }
+              ]
+            }
+          ],
+          "propertyCount": 15,
+          "functionCount": 14,
+          "getterCount": 1,
+          "setterCount": 1,
+          "error": null
+        }
+      },
+      "notes": [
+        "Complete unfiltered property inventory for the three concrete runtime bridge objects, including own properties and prototype levels.",
+        "Descriptors and function/getter/setter source are captured without reading accessor values or invoking any discovered function.",
+        "Per-level safety cap is 250 property names and prototype traversal cap is 10 levels; truncation is explicitly reported if reached."
+      ]
+    },
+    "globalPhoenixWrappers": {
+      "timestamp": "2026-09-26T12:40:40.645Z",
+      "readOnly": true,
+      "scannedGlobalPropertyCount": 1105,
+      "scannedNamespaceCount": 14,
+      "scannedFunctionCount": 1033,
+      "matches": [
+        {
+          "path": "window.TvInfo_setParam",
+          "ownerDepth": 0,
+          "name": "TvInfo_setParam",
+          "functionName": "TvInfo_setParam",
+          "length": 2,
+          "source": "function(key, value) {\n        vowOS.service.execute('phoenix://service/tvinfo', {\n            method: 'callAPI',\n            parameters: {\n                api: 'setbiz',\n                args: {\n                    key: key,\n                    value: value.toString()\n                }\n            },\n            timeout: 2,\n            onSuccess: function(ret) { console.log('got result: %d - %s', ret) }\n        })\n\n        return true\n    }",
+          "matchedPatterns": [
+            "vowOS.service.execute",
+            "phoenixService"
+          ],
+          "phoenixPaths": [
+            "phoenix://service/tvinfo"
+          ],
+          "excerpts": [
+            {
+              "pattern": "vowOS.service.execute",
+              "index": 31,
+              "excerpt": "function(key, value) {\n        vowOS.service.execute('phoenix://service/tvinfo', {\n            method: 'callAPI',\n            parameters: {\n                api: 'setbiz',\n                args: {\n                    key: key,\n                    value: value.toString()\n                }\n            },\n            timeout: 2,\n            onSuccess: function(ret) { console.log('got result: %d - %s', ret) }\n        })\n\n        return true\n    }"
+            },
+            {
+              "pattern": "phoenixService",
+              "index": 54,
+              "excerpt": "function(key, value) {\n        vowOS.service.execute('phoenix://service/tvinfo', {\n            method: 'callAPI',\n            parameters: {\n                api: 'setbiz',\n                args: {\n                    key: key,\n                    value: value.toString()\n                }\n            },\n            timeout: 2,\n            onSuccess: function(ret) { console.log('got result: %d - %s', ret) }\n        })\n\n        return true\n    }"
+            }
+          ]
+        },
+        {
+          "path": "window.TvInfo_setParamObserver",
+          "ownerDepth": 0,
+          "name": "TvInfo_setParamObserver",
+          "functionName": "TvInfo_setParamObserver",
+          "length": 2,
+          "source": "function(key, callback) {\n        console.log('set observer: ' + key)\n        vowOS.service.execute('phoenix://service/tvinfo', {\n            method: 'register',\n            parameters: {\n                api: key\n            },\n            timeout: 2,\n            onMessage: function(ret) {\n                if (ret) {\n                    updateJSON(ret)\n                    callback(ret?.msg)\n                }\n            }\n        })\n\n        return true\n    }",
+          "matchedPatterns": [
+            "vowOS.service.execute",
+            "phoenixService",
+            "registerMethod"
+          ],
+          "phoenixPaths": [
+            "phoenix://service/tvinfo"
+          ],
+          "excerpts": [
+            {
+              "pattern": "vowOS.service.execute",
+              "index": 78,
+              "excerpt": "function(key, callback) {\n        console.log('set observer: ' + key)\n        vowOS.service.execute('phoenix://service/tvinfo', {\n            method: 'register',\n            parameters: {\n                api: key\n            },\n            timeout: 2,\n            onMessage: function(ret) {\n                if (ret) {\n                    updateJSON(ret)\n                    callback(ret?.msg)\n                }\n            }\n        })\n\n        return true\n    }"
+            },
+            {
+              "pattern": "phoenixService",
+              "index": 101,
+              "excerpt": "function(key, callback) {\n        console.log('set observer: ' + key)\n        vowOS.service.execute('phoenix://service/tvinfo', {\n            method: 'register',\n            parameters: {\n                api: key\n            },\n            timeout: 2,\n            onMessage: function(ret) {\n                if (ret) {\n                    updateJSON(ret)\n                    callback(ret?.msg)\n                }\n            }\n        })\n\n        return true\n    }"
+            },
+            {
+              "pattern": "registerMethod",
+              "index": 142,
+              "excerpt": "function(key, callback) {\n        console.log('set observer: ' + key)\n        vowOS.service.execute('phoenix://service/tvinfo', {\n            method: 'register',\n            parameters: {\n                api: key\n            },\n            timeout: 2,\n            onMessage: function(ret) {\n                if (ret) {\n                    updateJSON(ret)\n                    callback(ret?.msg)\n                }\n            }\n        })\n\n        return true\n    }"
+            }
+          ]
+        },
+        {
+          "path": "window.TvInfo_clearParamObserver",
+          "ownerDepth": 0,
+          "name": "TvInfo_clearParamObserver",
+          "functionName": "TvInfo_clearParamObserver",
+          "length": 1,
+          "source": "function(key) {\n        console.log('unregister observer: ' + key)\n        vowOS.service.execute('phoenix://service/tvinfo', {\n            method: 'unregister',\n            parameters: {\n                api: key\n            },\n            timeout: 2\n        })\n\n        return true\n    }",
+          "matchedPatterns": [
+            "vowOS.service.execute",
+            "phoenixService"
+          ],
+          "phoenixPaths": [
+            "phoenix://service/tvinfo"
+          ],
+          "excerpts": [
+            {
+              "pattern": "vowOS.service.execute",
+              "index": 75,
+              "excerpt": "function(key) {\n        console.log('unregister observer: ' + key)\n        vowOS.service.execute('phoenix://service/tvinfo', {\n            method: 'unregister',\n            parameters: {\n                api: key\n            },\n            timeout: 2\n        })\n\n        return true\n    }"
+            },
+            {
+              "pattern": "phoenixService",
+              "index": 98,
+              "excerpt": "function(key) {\n        console.log('unregister observer: ' + key)\n        vowOS.service.execute('phoenix://service/tvinfo', {\n            method: 'unregister',\n            parameters: {\n                api: key\n            },\n            timeout: 2\n        })\n\n        return true\n    }"
+            }
+          ]
+        },
+        {
+          "path": "window.TvInfo_writeTvRunLog",
+          "ownerDepth": 0,
+          "name": "TvInfo_writeTvRunLog",
+          "functionName": "TvInfo_writeTvRunLog",
+          "length": 2,
+          "source": "function(type, msg) {\n        var runlog = {}\n        runlog.type = type\n        runlog.msg = msg\n        if (!_validateWriteTvRunLogInput(runlog)) {\n            return false\n        }\n        vowOS.service.execute('phoenix://service/hiutils', {\n            method: 'callAPI',\n            parameters: {\n                api: 'writeTvRunLog',\n                args: JSON.stringify(runlog)\n            },\n            timeout: 2,\n            onSuccess: function(ret) { console.log('got result: %d - %s', ret) }\n        })\n        return true\n    }",
+          "matchedPatterns": [
+            "vowOS.service.execute",
+            "phoenixService"
+          ],
+          "phoenixPaths": [
+            "phoenix://service/hiutils"
+          ],
+          "excerpts": [
+            {
+              "pattern": "vowOS.service.execute",
+              "index": 193,
+              "excerpt": "function(type, msg) {\n        var runlog = {}\n        runlog.type = type\n        runlog.msg = msg\n        if (!_validateWriteTvRunLogInput(runlog)) {\n            return false\n        }\n        vowOS.service.execute('phoenix://service/hiutils', {\n            method: 'callAPI',\n            parameters: {\n                api: 'writeTvRunLog',\n                args: JSON.stringify(runlog)\n            },\n            timeout: 2,\n            onSuccess: function(ret) { console.log('got result: %d - %s', ret) }\n        })\n        return true\n    }"
+            },
+            {
+              "pattern": "phoenixService",
+              "index": 216,
+              "excerpt": "function(type, msg) {\n        var runlog = {}\n        runlog.type = type\n        runlog.msg = msg\n        if (!_validateWriteTvRunLogInput(runlog)) {\n            return false\n        }\n        vowOS.service.execute('phoenix://service/hiutils', {\n            method: 'callAPI',\n            parameters: {\n                api: 'writeTvRunLog',\n                args: JSON.stringify(runlog)\n            },\n            timeout: 2,\n            onSuccess: function(ret) { console.log('got result: %d - %s', ret) }\n        })\n        return true\n    }"
+            }
+          ]
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "Scans function source only; no global function, getter, setter, Phoenix service or register call is invoked.",
+        "Window data descriptors are inspected directly, so accessor values are not evaluated.",
+        "A bounded one-level scan of object-valued global namespaces is included to catch wrappers stored under runtime objects."
+      ],
+      "uniquePhoenixPaths": [
+        "phoenix://service/tvinfo",
+        "phoenix://service/hiutils"
+      ]
+    },
+    "globalIdentityUsage": {
+      "timestamp": "2026-09-26T12:40:40.670Z",
+      "readOnly": true,
+      "scannedGlobalPropertyCount": 1105,
+      "scannedNamespaceCount": 14,
+      "scannedFunctionCount": 1033,
+      "matches": [
+        {
+          "path": "window.vowOSContext.getAppIdentifier",
+          "ownerDepth": 1,
+          "name": "getAppIdentifier",
+          "functionName": "getAppIdentifier",
+          "length": 0,
+          "source": "function getAppIdentifier() { [native code] }",
+          "matchedPatterns": [
+            "getAppIdentifier"
+          ],
+          "excerpts": [
+            {
+              "pattern": "getAppIdentifier",
+              "index": 9,
+              "excerpt": "function getAppIdentifier() { [native code] }"
+            }
+          ]
+        },
+        {
+          "path": "window.vowOSContext.getAppId",
+          "ownerDepth": 1,
+          "name": "getAppId",
+          "functionName": "getAppId",
+          "length": 0,
+          "source": "function getAppId() { [native code] }",
+          "matchedPatterns": [
+            "getAppId"
+          ],
+          "excerpts": [
+            {
+              "pattern": "getAppId",
+              "index": 9,
+              "excerpt": "function getAppId() { [native code] }"
+            }
+          ]
+        }
+      ],
+      "patternCounts": {
+        "vowOSContext.init": 0,
+        "vowOSContext.getAppIdentifier": 0,
+        "vowOSContext.getAppId": 0,
+        "navigator.appIdentifier": 0,
+        "getAppIdentifier": 1,
+        "getAppId": 1
+      },
+      "errors": [],
+      "notes": [
+        "Scans existing function source for native identity usage; no function, getter, setter or vowOSContext.init call is invoked.",
+        "Window accessors are not evaluated; only data descriptors whose values are already functions/objects are traversed.",
+        "A bounded one-level namespace scan mirrors the Phoenix wrapper trace for consistent coverage."
+      ]
+    },
+    "notes": [
+      "Function source/descriptor inspection plus read-only source inspection of already-loaded scripts and runtime bridge objects.",
+      "Only same-origin external scripts and inline script text are inspected; cross-origin scripts are skipped.",
+      "Sidee's own /app.js is listed but source scanning is skipped to avoid self-generated keyword noise.",
+      "Runtime getters, setters, init methods and discovered functions are never invoked.",
+      "The complete runtime inventory is unfiltered for vowOSContext, vowOS.service and omi_platform; descriptor access does not evaluate accessor values.",
+      "Global Phoenix wrapper scan searches existing function source for vowOS.service.execute, phoenix://service/ and register patterns without invoking anything.",
+      "Global identity-usage scan searches existing function source for vowOSContext.init/getAppIdentifier/getAppId and navigator.appIdentifier without invoking anything.",
+      "Install-pipeline helpers are inspected but never invoked.",
+      "Hisense_SupportAppConfig is the only diagnostic function invoked; no install/uninstall, fileWrite, setters or guessed HiUtils APIs are called."
+    ]
+  },
   "installTest": null,
   "verification": null,
   "installedAppMetadata": null,
