@@ -403,7 +403,7 @@ def _store_install_probe_mark(action, target=None):
             report["storeInstallProbe"] = {
                 "passiveDnsOnly": True,
                 "tlsIntercepted": False,
-                "target": dict(target or STORE_INSTALL_PROBE_TARGET),
+                "target": dict(STORE_INSTALL_PROBE_TARGET),
                 "status": "CAPTURING_NAVIGATION",
                 "startedAt": now,
                 "detailOpenedAt": None,
