@@ -1899,3 +1899,42 @@ Obiettivo del prossimo test TV: eseguire solo **Trace Permission Sources** e **E
 - `permissionSourceTrace.runtimeIdentitySurface.surfaces.vowOSService`
 
 Cercare in particolare source/descriptor che mostrino inizializzazione dell'app identity, eventuali setter/config methods, accesso ad AppConfig/client context o condizioni che spiegano perché `getAppIdentifier()` resta vuoto.
+
+
+---
+
+## IMPLEMENTAZIONE — Complete Runtime Bridge Inventory — 2026-09-26
+
+Il Runtime Identity Surface Trace reale ha mostrato:
+- `navigator.appIdentifier` come accessor nativo sul prototype, con getter `[native code]` e senza setter;
+- `vowOSContext.getAppIdentifier`, `getAppId` e `init` come funzioni native;
+- nessun setter/permission/config method evidente nella superficie filtrata di `vowOSContext`;
+- nella superficie filtrata di `vowOS.service` soltanto `getIdentifier` e `reLaunchService`;
+- `reLaunchService()` comunica con il runtime tramite `omi_platform.sendPlatformMessage(...)`.
+
+Per evitare che il filtro per nome nasconda metodi con nomi non ovvi, il Permission Source Trace ora salva anche un inventario completo e non filtrato:
+
+`permissionSourceTrace.runtimeObjectInventory`
+
+Oggetti inventariati:
+- `window.vowOSContext`
+- `window.vowOS.service`
+- `window.omi_platform`
+
+Per ciascun oggetto vengono enumerati tutti i nomi di proprietà proprie a ogni livello della prototype chain (fino a 10 livelli). Per ogni proprietà vengono salvati:
+- nome;
+- depth del proprietario;
+- descriptor flags;
+- tipo del data descriptor;
+- valore solo se scalare, oppure tag/shape minimale per array/object;
+- source se il valore è una funzione;
+- source di getter/setter se presenti.
+
+Il probe non legge i valori degli accessor e non invoca funzioni, getter, setter, init o metodi scoperti. Limite di sicurezza: massimo 250 proprietà per livello; ogni eventuale troncamento viene marcato esplicitamente nel report.
+
+Obiettivo del prossimo test TV: eseguire soltanto **Trace Permission Sources** e poi **Export Report**. Analizzare soprattutto:
+- `permissionSourceTrace.runtimeObjectInventory.objects.vowOSContext`
+- `permissionSourceTrace.runtimeObjectInventory.objects.vowOSService`
+- `permissionSourceTrace.runtimeObjectInventory.objects.omiPlatform`
+
+Cercare metodi non ovvi come initialize/bind/register/setParam/platform/message/context/config/access/bridge o altre funzioni che possano spiegare come il browser/runtime assegna l'identità dell'app prima di `getIdentifier()`.
