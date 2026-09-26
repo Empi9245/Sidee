@@ -68,6 +68,32 @@
       invoked: false
     };
   }
+  function modernBridgeInventory() {
+    var prefixes = /^(?:Hisense_|HiUtils_|VIDAA|TvInfo|vowOS|omi_|opera_omi)/i;
+    var exactObjects = ["vowOS", "omi_platform", "opera_omi", "TvInfo_Json"];
+    var result = { globals: [], objects: {}, truncated: false, invoked: false };
+    try {
+      var names = Object.getOwnPropertyNames(window);
+      names.forEach(function (name) {
+        if (!prefixes.test(name) || sensitive.test(name)) return;
+        if (result.globals.length >= 250) { result.truncated = true; return; }
+        var record = lookup(window, name);
+        result.globals.push({
+          name: name,
+          descriptor: meta(record),
+          source: functionSource(record)
+        });
+      });
+    } catch (e) { result.error = String(e); }
+    exactObjects.forEach(function (name) {
+      var record = lookup(window, name), root = value(record);
+      result.objects[name] = {
+        descriptor: meta(record),
+        properties: object(root) ? shape(root) : []
+      };
+    });
+    return result;
+  }
   function surface(path, record) {
     var root = value(record), file = lookup(root, "File"), fileValue = value(file);
     var read = meta(lookup(fileValue, "read")), write = meta(lookup(fileValue, "write"));
@@ -76,12 +102,12 @@
       callablePairObserved: read.type === "function" && write.type === "function" };
   }
   function capture() {
-    var out = { version: 3, timestamp: new Date().toISOString(), readOnly: true,
+    var out = { version: 4, timestamp: new Date().toISOString(), readOnly: true,
       page: { href: location.href, origin: location.origin, userAgent: navigator.userAgent },
       exact: [], discoveredSurfaces: [], sourceMatches: [], legacyLaunchContextMatches: [], legacyAppManagerMatches: [],
-      legacyAppManagerBridge: appManagerBridge(), scripts: [],
+      legacyAppManagerBridge: appManagerBridge(), modernBridgeInventory: modernBridgeInventory(), scripts: [],
       scannedGlobals: 0, scannedFunctions: 0, truncated: false,
-      note: "Presence is not permission. No getter, App Manager method, loader, file read/write or discovered function is invoked." };
+      note: "Presence is not permission. Modern bridge inventory is descriptor/source-only. No getter, App Manager method, loader, file read/write or discovered function is invoked." };
     ["Hisense", "HiBrowser"].forEach(function (name) { out.exact.push(surface("window." + name, lookup(window, name))); });
     var seenFunctions = [], seenObjects = [], propertyBudget = 4000;
     function inspectFunction(fn, path) {
