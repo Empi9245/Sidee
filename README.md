@@ -293,3 +293,32 @@ The comparison is:
 Both serve the same build and use the same backup-protected no-op `fileWrite` test. Reports record `accessContext` (href/origin/protocol/hostname/port/secureContext), server-side request scheme/port, build IDs, API availability, and the exact `fileWrite` result. A different origin is never interpreted as success by itself.
 
 The raw-IP test exists only to determine whether the 503 AppConfig rejection depends on the DNS/origin path. Do not add Nuvio from the raw-IP session unless a separate no-op write first proves `WRITE_ALLOWED_AND_IDENTICAL`.
+
+
+## Installed-app context trampoline
+
+The raw-IP A/B test proved that DNS/origin alone is not the permission gate on the tested VIDAA 9.60 TV: `fileRead` works from a raw LAN origin but `fileWrite` is still rejected with the same AppConfig 503.
+
+The next bounded experiment uses an app that is already installed by the VIDAA store as the launch context. The TV currently exposes two convenient HTTP apps in `websdk/Appinfo.json`:
+
+- Smartone IPTV — app ID `1470`, host `vidaa.smartone-iptv.com`;
+- Duplecast — app ID `1876`, host `vidaa.duplecast.com`.
+
+Sidee's DNS responder now maps those two hosts to the Sidee PC, and Sidee listens on HTTP port 80 in addition to the normal 8080 dashboard. This lets the user launch Smartone or Duplecast from the VIDAA launcher while temporarily receiving the Sidee page inside that installed-app web container.
+
+The report classifies the context as `SMARTONE_APP_CONTEXT` or `DUPLECAST_APP_CONTEXT` and captures the native identity fields before any write test.
+
+### TV procedure
+
+1. Pull and restart Sidee.
+2. Set the TV DNS to the Sidee PC IP.
+3. Do **not** open Sidee from the normal browser.
+4. From the VIDAA home/app launcher, open **Smartone IPTV**.
+5. If Sidee loads, confirm the summary shows `SMARTONE_APP_CONTEXT`.
+6. Run **Capture Baseline**.
+7. Inspect whether `Service identifier` / app identifier are now non-empty.
+8. Only then run the backup-protected **Test AppInfo Direct Write** no-op test.
+9. Do not use **Add Nuvio to AppInfo** unless the no-op result is `WRITE_ALLOWED_AND_IDENTICAL`.
+10. If Smartone does not load Sidee, repeat with **Duplecast**.
+
+After the experiment, restore DNS to Automatic so the original apps resolve normally again.
