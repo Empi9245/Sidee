@@ -260,15 +260,19 @@ class StoreCatalogTraceTests(unittest.TestCase):
         finally:
             sidee.STORE_DISCOVERY_REPORT = previous
 
-    def test_traced_store_hosts_are_excluded_from_generic_discovery(self):
+    def test_store_hosts_can_be_recorded_by_passive_discovery(self):
         previous = sidee.STORE_DISCOVERY_REPORT
         sidee.STORE_DISCOVERY_REPORT = None
         try:
             with mock.patch.object(sidee, "write_session_report"), \
                  mock.patch.object(sidee, "queue_report_sync"):
-                for host in sidee.STORE_TRACE_HOSTS:
-                    self.assertIsNone(sidee._record_store_domain_query(host, 1))
-            self.assertIsNone(sidee.STORE_DISCOVERY_REPORT)
+                snapshot = sidee._record_store_domain_query(
+                    "detail-ui-eu.vidaahub.com", 1
+                )
+            self.assertEqual(
+                snapshot["storeDomainDiscovery"]["hosts"][0]["host"],
+                "detail-ui-eu.vidaahub.com",
+            )
         finally:
             sidee.STORE_DISCOVERY_REPORT = previous
 
@@ -308,10 +312,10 @@ class StoreCatalogTraceTests(unittest.TestCase):
             sidee.STORE_TRACE_REPORT = previous_trace
             sidee.STORE_DISCOVERY_REPORT = previous_discovery
 
-    def test_config_spoofs_store_host(self):
+    def test_config_does_not_spoof_store_hosts_by_default(self):
         cfg = sidee.load_config()
         for host in sidee.STORE_TRACE_HOSTS:
-            self.assertIn(host, cfg["spoof_domains"])
+            self.assertNotIn(host, cfg["spoof_domains"])
 
     def test_store_trace_hosts_are_present_in_default_snapshot(self):
         previous = sidee.STORE_TRACE_REPORT
