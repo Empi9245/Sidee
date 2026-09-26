@@ -3382,3 +3382,61 @@ Prossima pista:
 1. ricostruire formato/staging di un package web già installato, partendo da `tv.vidaa.app.tvbrowser`;
 2. cercare nel runtime già caricato riferimenti source a `pkgmgr`, `packageName`, `/APPS/pkgs/` e wrapper di download/staging;
 3. evitare `pkgmgr install` finché non è chiaro da dove prende il package.
+
+
+---
+
+## IMPLEMENTAZIONE — tvbrowser package + pkgmgr source probe — 2026-09-26
+
+Dopo il risultato reale `getInstalledPkgs()`, Sidee aggiunge un probe separato e read-only per ricostruire il package web già installato `tv.vidaa.app.tvbrowser`.
+
+### Path scelto
+
+Il package manager Q0707 ha restituito:
+
+`APPS:pkgs/tv.vidaa.app.tvbrowser/`
+
+e il source reale di `vowOS.store.sendPkgmgrRequest()`, dopo install riuscito, costruisce:
+
+`file:///APPS/pkgs/<pkgName>/index.html`.
+
+Per la lettura via `Hisense_FileRead` viene usata la conversione documentata nel codice pubblico `weinzii/vidaa-edge/src/app/services/file-exploration/file-scanner.service.ts`:
+
+`/etc/profile -> ../../../etc/profile`
+
+quindi il probe legge:
+
+`../../../APPS/pkgs/tv.vidaa.app.tvbrowser/index.html`
+
+con mode `0`, la stessa modalità usata da quel file scanner pubblico.
+
+### Nuovo probe UI
+
+Aggiunto pulsante:
+
+`Inspect tvbrowser package (read-only)`.
+
+Il probe:
+- invoca solo `Hisense_FileRead(relativePath, 0)`;
+- non chiama `pkgmgr install/uninstall`;
+- non chiama `Hisense_installApp`;
+- non esegue `fileWrite`;
+- calcola hash e lunghezza del file letto;
+- salva solo preview limitata a 32 KiB;
+- estrae fino a 120 riferimenti HTML `src/href`;
+- nello stesso passaggio scansiona solo il source già caricato delle funzioni globali e di `vowOS.store` per:
+  - `pkgmgr`;
+  - `packageName`;
+  - `sendPkgmgrRequest`;
+  - `/APPS/pkgs/`;
+  - `getInstalledPkgs`.
+- nessuna funzione trovata dalla scansione source viene invocata.
+
+Il report viene salvato in:
+
+`pkgmgrPackageProbe`.
+
+Interpretazione attesa:
+- se `index.html` è leggibile, seguire esclusivamente i file/manifest realmente referenziati da quell'HTML;
+- se la lettura è vuota/negata, usare i source matches runtime per trovare un wrapper di staging/download;
+- non tentare ancora `pkgmgr install` finché il meccanismo di origine/staging del package non è documentato da dati reali.
