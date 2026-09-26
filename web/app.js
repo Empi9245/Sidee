@@ -1010,6 +1010,97 @@
   }
   $("pkgmgrInstalledBtn").addEventListener("click",inspectPkgmgrInstalled);
 
+  function pkgmgrSourceInventory(){
+    const terms=["pkgmgr","packageName","sendPkgmgrRequest","/APPS/pkgs/","getInstalledPkgs"];
+    const out=[],seen={};
+    let globals=[];
+    try{globals=Object.getOwnPropertyNames(window);}catch(e){return {matches:out,error:err(e)};}
+    for(let i=0;i<globals.length&&out.length<80;i++){
+      const name=globals[i];
+      if(/token|secret|password|cookie|auth|key|sign|cert|nonce|session/i.test(name))continue;
+      let value=null,src=null;
+      try{
+        const d=Object.getOwnPropertyDescriptor(window,name);
+        if(!d||!Object.prototype.hasOwnProperty.call(d,"value"))continue;
+        value=d.value;
+        if(typeof value!=="function")continue;
+        src=Function.prototype.toString.call(value);
+      }catch(e){continue;}
+      const lower=src.toLowerCase();
+      for(const term of terms){
+        const idx=lower.indexOf(term.toLowerCase());
+        if(idx<0)continue;
+        const id=name+"|"+term;
+        if(seen[id])continue;seen[id]=true;
+        out.push({path:"window."+name,term:term,sourceLength:src.length,excerpt:src.slice(Math.max(0,idx-500),Math.min(src.length,idx+1800))});
+        if(out.length>=80)break;
+      }
+    }
+    try{
+      const store=window.vowOS&&window.vowOS.store;
+      if(store){
+        for(const name of Object.getOwnPropertyNames(store)){
+          if(out.length>=80)break;
+          let d=null,fn=null,src="";
+          try{d=Object.getOwnPropertyDescriptor(store,name);fn=d&&Object.prototype.hasOwnProperty.call(d,"value")?d.value:null;if(typeof fn!=="function")continue;src=Function.prototype.toString.call(fn);}catch(e){continue;}
+          const lower=src.toLowerCase();
+          for(const term of terms){
+            const idx=lower.indexOf(term.toLowerCase());
+            if(idx<0)continue;
+            const id="vowOS.store."+name+"|"+term;
+            if(seen[id])continue;seen[id]=true;
+            out.push({path:"vowOS.store."+name,term:term,sourceLength:src.length,excerpt:src.slice(Math.max(0,idx-500),Math.min(src.length,idx+1800))});
+            if(out.length>=80)break;
+          }
+        }
+      }
+    }catch(e){}
+    return {matches:out,error:null};
+  }
+  function htmlRefs(raw){
+    const refs=[],seen={};
+    if(typeof raw!=="string")return refs;
+    const re=/(?:src|href)\s*=\s*["']([^"']+)["']/gi;let m;
+    while((m=re.exec(raw))&&refs.length<120){
+      const v=String(m[1]||"").trim();
+      if(!v||seen[v])continue;seen[v]=true;refs.push(v);
+    }
+    return refs;
+  }
+  async function inspectTvBrowserPackage(){
+    if(state.running)return;
+    state.running=true;
+    set("pkgmgrPackageProbeState","Reading installed tvbrowser package entry…");
+    const absolutePath="/APPS/pkgs/tv.vidaa.app.tvbrowser/index.html";
+    const relativePath="../../../APPS/pkgs/tv.vidaa.app.tvbrowser/index.html";
+    const report={timestamp:new Date().toISOString(),readOnly:true,pageContext:pageContext(),packageName:"tv.vidaa.app.tvbrowser",absolutePath:absolutePath,readPath:relativePath,mode:0,file:null,sourceInventory:null,status:"NOT_RUN",error:null};
+    try{
+      if(typeof window.Hisense_FileRead!=="function")throw new Error("Hisense_FileRead is unavailable");
+      const raw=window.Hisense_FileRead(relativePath,0);
+      const text=typeof raw==="string"?raw:"";
+      report.file={
+        returnedType:raw===null?"null":typeof raw,
+        length:text.length,
+        hash:text?await hashText(text):null,
+        references:htmlRefs(text),
+        preview:text.slice(0,32000)
+      };
+      report.sourceInventory=pkgmgrSourceInventory();
+      report.status=text?"READ_OK":"READ_EMPTY";
+      set("pkgmgrPackageProbeState",report.status+" · "+text.length+" bytes · "+report.file.references.length+" refs · "+report.sourceInventory.matches.length+" pkgmgr source matches");
+    }catch(e){
+      report.status="READ_ERROR";report.error=err(e);
+      report.sourceInventory=pkgmgrSourceInventory();
+      set("pkgmgrPackageProbeState","READ_ERROR · "+report.error);
+    }finally{
+      state.report.pkgmgrPackageProbe=report;
+      log("tvbrowser package probe",{status:report.status,length:report.file&&report.file.length,refs:report.file&&report.file.references&&report.file.references.length,sourceMatches:report.sourceInventory&&report.sourceInventory.matches&&report.sourceInventory.matches.length,error:report.error});
+      state.running=false;
+      await save("pkgmgr-tvbrowse-package-probe");
+    }
+  }
+  $("pkgmgrPackageProbeBtn").addEventListener("click",inspectTvBrowserPackage);
+
   function hspdkHosts(){
     const names=["Hisense","HiBrowser"],out=[];
     for(let i=0;i<names.length;i++){
