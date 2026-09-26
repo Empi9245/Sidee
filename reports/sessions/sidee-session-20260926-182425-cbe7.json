@@ -1,10 +1,10 @@
 {
   "sessionId": "sidee-20260926-182425-cbe7",
-  "clientBuildId": "app-028fe4092f84",
-  "serverBuildId": "app-028fe4092f84",
+  "clientBuildId": "app-c3fbba9c4bf3",
+  "serverBuildId": "app-c3fbba9c4bf3",
   "buildMatch": true,
-  "startedAt": "2026-09-26T16:41:22.553Z",
-  "updatedAt": "2026-09-26T16:41:42.211Z",
+  "startedAt": "2026-09-26T16:47:21.790Z",
+  "updatedAt": "2026-09-26T16:47:51.252Z",
   "accessContext": {
     "href": "https://vidaahub.com/",
     "origin": "https://vidaahub.com",
@@ -58,13 +58,13 @@
     "appInfoWrite": "NOT_RUN"
   },
   "legacyHspdkContext": {
-    "version": 4,
-    "timestamp": "2026-09-26T16:41:42.029Z",
+    "version": 5,
+    "timestamp": "2026-09-26T16:47:51.022Z",
     "readOnly": true,
     "page": {
       "href": "https://vidaahub.com/",
       "origin": "https://vidaahub.com",
-      "userAgent": "Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 WebExplorer/4.5.0 Safari/537.36"
+      "userAgent": "Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Browser/5.2.20 Safari/537.36"
     },
     "exact": [
       {
@@ -3012,16 +3012,647 @@
       "truncated": false,
       "invoked": false
     },
+    "vowOSNamespaces": {
+      "store": {
+        "descriptor": {
+          "status": "DATA",
+          "ownerDepth": 0,
+          "type": "object",
+          "hasGetter": false,
+          "hasSetter": false
+        },
+        "properties": [
+          {
+            "name": "getInstalledPkgs",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 199,
+              "truncated": false,
+              "excerpt": "function() {\n            const ret = window.vowOS.service.syncExecute('pkgmgr', {\n                  api: 'getInstalledPkgs',\n                  args: ''\n            })\n            return ret\n        }"
+            }
+          },
+          {
+            "name": "installApp",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 990,
+              "truncated": false,
+              "excerpt": "function(appinfo, callback) {\n            if (!appinfo || typeof (appinfo) != 'object') {\n                callback({ret: false, msg:{appId: '', message:'wrong param'}})\n                return false\n            }\n            if(!appinfo?.packageName) {\n                const ret = Hisense_installApp(appinfo.appId, appinfo.appName, appinfo.thumbnail, appinfo.iconSmall, appinfo.iconBig, appinfo.appUrl, appinfo.storetype, callback, appinfo.configUrl, appinfo.configUrlDownload, appinfo.mediaId)\n                callback({ret: ret, msg:{appId: appinfo?.appId, message: ret? \"succeed\" : \"install failed!\"}})\n                return ret\n            } else {\n                // package app\n                const param = {\n                     pkgName: appinfo?.packageName,\n                     version: '',\n                     appId: appinfo?.appId\n                }\n                this.sendPkgmgrRequest('install', param, appinfo, callback)\n                return true\n            }\n        }"
+            }
+          },
+          {
+            "name": "sendPkgmgrRequest",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 1477,
+              "truncated": false,
+              "excerpt": "function(api, args, appinfo, callback) {\n            let ret = true\n            // encode param\n            const encodedData = encodeURIComponent(JSON.stringify(args));\n            const url = `https://localhost:9888/service/pkgmgr?api=${api}&args=${encodedData}`;\n            const xhr = new XMLHttpRequest();\n            xhr.onload = function() {\n                if (xhr.status >= 200 && xhr.status < 300) {\n                    // 请求成功，处理响应数据\n                    console.log(xhr.responseText)\n                    const response = JSON.parse(xhr.responseText)\n                    if(response?.ret && api == 'install') {\n                        // TODO: read from config file\n                        const path = `file:///APPS/pkgs/${args?.pkgName}/index.html`\n                        // write path into Appinfo.json\n                        ret = Hisense_installApp(args?.appId, args?.pkgName, appinfo?.thumbnail, appinfo?.iconSmall, appinfo?.iconBig, path, 'hisense', callback, appinfo?.configUrl, appinfo?.configUrlDownload, appinfo?.mediaId)\n                    }\n\n                    callback({ret: response?.ret, msg:{appId: args?.appId, message: response?.msg}})\n                } else {\n                    // 请求失败，处理错误\n                    ret = false\n                    callback({ret: ret, msg:{appId: args?.appId, message: xhr.responseText}})\n                }\n            }\n\n            xhr.open('GET', url);\n            xhr.send();\n            return ret\n        }"
+            }
+          }
+        ],
+        "invoked": false,
+        "truncated": false
+      },
+      "service": {
+        "descriptor": {
+          "status": "DATA",
+          "ownerDepth": 0,
+          "type": "object",
+          "hasGetter": false,
+          "hasSetter": false
+        },
+        "properties": [
+          {
+            "name": "socket",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "object",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": null
+          },
+          {
+            "name": "port",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "number",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": null
+          },
+          {
+            "name": "msgs",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "object",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": null
+          },
+          {
+            "name": "httpRequest",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "null",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": null
+          },
+          {
+            "name": "getIdentifier",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 273,
+              "truncated": false,
+              "excerpt": "function() {\n            if(window.navigator.appIdentifier !== 'undefined' && window.vowOSContext && typeof(window.vowOSContext?.getAppIdentifier) === 'function') {\n                return window.vowOSContext.getAppIdentifier()\n            }\n\n            return ''\n        }"
+            }
+          },
+          {
+            "name": "isObject",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 70,
+              "truncated": false,
+              "excerpt": "function(data) {\n            return typeof data === 'object'\n        }"
+            }
+          },
+          {
+            "name": "httpOption",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "string",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": null
+          },
+          {
+            "name": "portValidated",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "boolean",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": null
+          },
+          {
+            "name": "httpServeLostErrNum",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "number",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": null
+          },
+          {
+            "name": "wssServeLostErrNum",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "number",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": null
+          },
+          {
+            "name": "launchTimer",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "null",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": null
+          },
+          {
+            "name": "reLaunchService",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 190,
+              "truncated": false,
+              "excerpt": "function () {\n            console.warn('reLaunchService called');\n            let msg = {type: 'restartWebsocket'}\n            omi_platform.sendPlatformMessage(JSON.stringify(msg))\n        }"
+            }
+          },
+          {
+            "name": "syncExecute",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 1300,
+              "truncated": false,
+              "excerpt": "function (service, args) {\n            if (!args?.api) {\n                console.error('wrong parameter, should set api')\n                return false\n            }\n\n            if (this.httpRequest == null) {\n                this.httpRequest = new XMLHttpRequest()\n            }\n\n            if (!this.portValidated) {\n                const options = [\n                    'https://localhost:9888/service/',\n                    'http://localhost:9009/service/'\n                ]\n\n                for (const option of options) {\n                    const url = option + service\n                    const result = this.executeHttpRequest(url, args)\n\n                    if (result.success) {\n                        this.httpOption = option\n                        this.portValidated = true\n                        console.log(`request ok: ${option}`)\n                        return result.data\n                    }\n                }\n\n                this.portValidated = true\n                console.warn('all attempt are invalid, use default https.')\n                return false\n            }\n\n            const finalUrl = this.httpOption + service\n            const finalResult = this.executeHttpRequest(finalUrl, args)\n\n            return finalResult.success ? finalResult.data : false\n        }"
+            }
+          },
+          {
+            "name": "executeHttpRequest",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 1575,
+              "truncated": false,
+              "excerpt": "function (url, args) {\n            try {\n                console.log('post request to ' + url)\n                this.httpRequest.open('POST', url, false)\n                this.httpRequest.setRequestHeader('identifier', this.getIdentifier())\n                this.httpRequest.send(JSON.stringify(args))\n\n                if (this.httpRequest.status == 200) {\n                    this.httpServeLostErrNum = 0\n                    return {\n                        success: true,\n                        data: this.processResponse(this.httpRequest)\n                    }\n                } else {\n                    console.error('http request failed:' + this.httpRequest.status)\n                    return { success: false }\n                }\n            } catch (e) {\n                console.error(`error occurred(${e.message})`)\n                if(this.httpRequest.status === 0) this.httpServeLostErrNum++\n                if (this.wssServeLostErrNum >= 2 && this.httpServeLostErrNum >= 2) {\n                    if (this.launchTimer !== null) clearTimeout(this.launchTimer)\n                    console.error(`Server lost (WS err:${this.wssServeLostErrNum}, HTTP err:${this.httpServeLostErrNum}). Relaunching in 5s...`);\n                    this.launchTimer = setTimeout(() => {\n                        this.reLaunchService()\n                        this.launchTimer = null\n                    }, 5000)\n                    this.wssServeLostErrNum = 0\n                    this.httpServeLostErrNum = 0\n                }\n                return { success: false }\n            }\n        }"
+            }
+          },
+          {
+            "name": "processResponse",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 238,
+              "truncated": false,
+              "excerpt": "function (xhr) {\n            if (typeof xhr.responseText == 'string') {\n                const ret = JSON.parse(xhr.responseText)\n                delete ret.session\n                return ret\n            }\n            return true\n        }"
+            }
+          },
+          {
+            "name": "execute",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 2078,
+              "truncated": false,
+              "excerpt": "function(module, obj_params) {\n            if (module.indexOf('phoenix://service') != 0) {\n                console.error('wrong scheme format, should be : phoenix://service/xxx !')\n            }\n\n            if (this.socket == null) {\n                this.socket = new WebSocket('wss://localhost:' + this.port)\n                this.socket.onopen = this.socketonopen\n                this.socket.onmessage = this.socketonmessage\n                this.socket.onclose = this.socketonclose\n                this.socket.onerror = this.socketonerror\n            }\n\n            const cmd = {\n                path: module,\n                method: '',\n                parameters: {},\n                session: this.session++, // this need be set everytime\n                timeout: 10, // default is 10\n                identifier: this.getIdentifier() // resolved\n            }\n\n            // check input\n            if (!this.isObject(obj_params)) {\n                console.error('wrong parameter, input should be Json format!')\n                return false\n            }\n\n            cmd.method = obj_params?.method ?? ''\n            cmd.timeout = obj_params?.timeout ?? 10\n\n            if (obj_params?.parameters) {\n                // check input\n                if (!this.isObject(obj_params.parameters)) {\n                    console.error('wrong parameter, input should be Json format!')\n                    return false\n                }\n\n                if (!obj_params.parameters?.api) {\n                    console.error('wrong parameter, should set api or args!')\n                    return false\n                }\n                cmd.parameters = obj_params.parameters\n            }\n\n            // save session data\n            this.session_array[cmd.session] = obj_params\n\n            if (this.socket.readyState == WebSocket.OPEN) {\n                this.socket.send(JSON.stringify(cmd))\n                // console.log(\"send out cmd: \"+JSON.stringify(cmd))\n            } else {\n                this.msgs.push(JSON.stringify(cmd))\n            }\n\n            return true\n        }"
+            }
+          },
+          {
+            "name": "socketonopen",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 305,
+              "truncated": false,
+              "excerpt": "function(e) {\n        console.log('websocket opened')\n        window.vowOS.service.wssServeLostErrNum = 0\n        if (vowOS.service.msgs.length > 0) vowOS.service.msgs.reverse()\n        while (vowOS.service.msgs.length > 0) {\n            vowOS.service.socket.send(vowOS.service.msgs.pop())\n        }\n    }"
+            }
+          },
+          {
+            "name": "socketonmessage",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 1186,
+              "truncated": false,
+              "excerpt": "function(e) {\n        console.log('websocket received message:' + e.data)\n        window.vowOS.service.wssServeLostErrNum = 0\n        try {\n            const params = JSON.parse(e.data)\n            const callbacks = vowOS.service.session_array[params.session] != undefined ? vowOS.service.session_array[params.session] : {}\n            const event_return = callbacks?.onMessage\n            // handle event\n            if (event_return && params?.event) {\n                const event = {\n                    event: params?.event ?? 'unknown',\n                    msg: params?.msg ?? 'invalid format'\n                }\n                return callbacks.onMessage(event)\n            }\n            // handle api case\n            if (params.ret) {\n                callbacks?.onSuccess?.(params.msg)\n            } else {\n                callbacks?.onError?.(params.msg)\n            }\n\n            callbacks?.onComplete?.(params.msg)\n            if (callbacks.method != 'register') {\n                console.log('removed session:' + params.session)\n                delete vowOS.service.session_array[params.session]\n            }\n        } catch (e) {\n            console.log(e)\n        }\n    }"
+            }
+          },
+          {
+            "name": "socketonclose",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 677,
+              "truncated": false,
+              "excerpt": "function(e) {\n        console.log('websocket closed, code:%d / reason:%s', e.code, e.reason)\n        if (e.code === 1006) window.vowOS.service.wssServeLostErrNum++\n\n        vowOS.service.socket = null\n        vowOS.service.msgs.length = []\n\n        for (const session in vowOS.service.session_array) {\n            if (vowOS.service.session_array[session]?.onError) {\n                const callbacks = vowOS.service.session_array[session]\n                delete vowOS.service.session_array[session]\n                console.log('call onError for session %s!', session)\n                callbacks.onError('session is closed abnormally.code ' + e.code)\n            }\n        }\n    }"
+            }
+          },
+          {
+            "name": "socketonerror",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 119,
+              "truncated": false,
+              "excerpt": "function(error) {\n        console.log('got error:' + error.msg)\n        window.vowOS.service.wssServeLostErrNum++\n    }"
+            }
+          }
+        ],
+        "invoked": false,
+        "truncated": false
+      },
+      "tvinfo": {
+        "descriptor": {
+          "status": "DATA",
+          "ownerDepth": 0,
+          "type": "object",
+          "hasGetter": false,
+          "hasSetter": false
+        },
+        "properties": [
+          {
+            "name": "apiVersion",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "string",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": null
+          },
+          {
+            "name": "getUIVersion",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 258,
+              "truncated": false,
+              "excerpt": "function() {\n            const ret = window.vowOS.service.syncExecute('hiutils', {\n                  api: 'getUIVersion',\n                  args: ''\n            })\n\n            if(ret?.ret) {\n                return JSON.parse(ret.msg)\n            }\n        }"
+            }
+          },
+          {
+            "name": "getOSVersion",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 247,
+              "truncated": false,
+              "excerpt": "function() {\n            const ret = window.vowOS.service.syncExecute('hiutils', {\n                  api: 'getOSVersion',\n                  args: ''\n            })\n\n            if(ret?.ret) {\n                return ret?.msg\n            }\n        }"
+            }
+          },
+          {
+            "name": "getStoreMode",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 70,
+              "truncated": false,
+              "excerpt": "function() {\n            return TvInfo_getParam('storeMode')\n        }"
+            }
+          },
+          {
+            "name": "getHotelMode",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 72,
+              "truncated": false,
+              "excerpt": "function() {\n            return TvInfo_getParam('isHotelMode')\n        }"
+            }
+          },
+          {
+            "name": "getKidsMode",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 69,
+              "truncated": false,
+              "excerpt": "function() {\n            return TvInfo_getParam('kidsMode')\n        }"
+            }
+          },
+          {
+            "name": "setKidsMode",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 79,
+              "truncated": false,
+              "excerpt": "function(data) {\n            return TvInfo_setParam('kidsMode', data)\n        }"
+            }
+          },
+          {
+            "name": "setArtMode",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 78,
+              "truncated": false,
+              "excerpt": "function(data) {\n            return TvInfo_setParam('artMode', data)\n        }"
+            }
+          },
+          {
+            "name": "getArtMode",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 68,
+              "truncated": false,
+              "excerpt": "function() {\n            return TvInfo_getParam('artMode')\n        }"
+            }
+          },
+          {
+            "name": "getPanelType",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 70,
+              "truncated": false,
+              "excerpt": "function() {\n            return TvInfo_getParam('panelType')\n        }"
+            }
+          },
+          {
+            "name": "getTimeFormat",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 71,
+              "truncated": false,
+              "excerpt": "function() {\n            return TvInfo_getParam('timeFormat')\n        }"
+            }
+          },
+          {
+            "name": "getFrameTvSupport",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 129,
+              "truncated": false,
+              "excerpt": "function() {\n            const frametv = HiUtils_createRequest('getFrameTvSupport', '')\n            return frametv?.msg\n        }"
+            }
+          },
+          {
+            "name": "setBrightness",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 81,
+              "truncated": false,
+              "excerpt": "function(data) {\n            return TvInfo_setParam('brightness', data)\n        }"
+            }
+          },
+          {
+            "name": "getBrightness",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 71,
+              "truncated": false,
+              "excerpt": "function() {\n            return TvInfo_getParam('brightness')\n        }"
+            }
+          },
+          {
+            "name": "setContrast",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 79,
+              "truncated": false,
+              "excerpt": "function(data) {\n            return TvInfo_setParam('contrast', data)\n        }"
+            }
+          },
+          {
+            "name": "getContrast",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 69,
+              "truncated": false,
+              "excerpt": "function() {\n            return TvInfo_getParam('contrast')\n        }"
+            }
+          },
+          {
+            "name": "getChipId",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 67,
+              "truncated": false,
+              "excerpt": "function() {\n            return TvInfo_getParam('chipId')\n        }"
+            }
+          },
+          {
+            "name": "getDabTools",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 194,
+              "truncated": false,
+              "excerpt": "function() {\n            const ret = window.vowOS.service.syncExecute('hiutils', {\n                api: 'getDabTool',\n                args: ''\n            })\n            return ret.ret\n        }"
+            }
+          },
+          {
+            "name": "setDabTools",
+            "descriptor": {
+              "status": "DATA",
+              "ownerDepth": 0,
+              "type": "function",
+              "hasGetter": false,
+              "hasSetter": false
+            },
+            "source": {
+              "sourceLength": 201,
+              "truncated": false,
+              "excerpt": "function(data) {\n            const ret = window.vowOS.service.syncExecute('hiutils', {\n                api: 'setDabTool',\n                args: data\n            })\n\n            return ret.ret\n        }"
+            }
+          }
+        ],
+        "invoked": false,
+        "truncated": false
+      }
+    },
     "scripts": [
       {
         "index": 0,
-        "src": "https://vidaahub.com/hspdk-context.js?v=app-028fe4092f84",
+        "src": "https://vidaahub.com/hspdk-context.js?v=app-c3fbba9c4bf3",
         "inline": false,
         "sideeOwned": true
       },
       {
         "index": 1,
-        "src": "https://vidaahub.com/app.js?v=app-028fe4092f84",
+        "src": "https://vidaahub.com/app.js?v=app-c3fbba9c4bf3",
         "inline": false,
         "sideeOwned": true
       }
