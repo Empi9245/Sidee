@@ -168,6 +168,54 @@
     out.type=fn===null?"null":typeof fn;if(typeof fn!=="function")return out;
     out.available=true;out.name=fn.name||null;out.length=fn.length;out.source=functionSource(fn);out.references=sourceReferences(out.source);return out;
   }
+
+  const SCRIPT_SOURCE_TERMS=["mapAppInfoFields","appIdentifier","getAppIdentifier","AppConfig","permission","identifier","client","service","vowOSContext","getIdentifier","executeHttpRequest","installApplication","HiUtils_createRequest"];
+  function scriptSourceHits(source){
+    const text=String(source||""),lower=text.toLowerCase(),hits=[],excerpts=[],seen={};
+    SCRIPT_SOURCE_TERMS.forEach(term=>{
+      const needle=term.toLowerCase();let from=0,found=false,count=0;
+      while(count<3){
+        const idx=lower.indexOf(needle,from);if(idx<0)break;
+        found=true;count++;from=idx+needle.length;
+        const key=term+"@"+idx;if(seen[key])continue;seen[key]=true;
+        const start=Math.max(0,idx-650),end=Math.min(text.length,idx+needle.length+950);
+        excerpts.push({term:term,index:idx,excerpt:text.slice(start,end)});
+        if(excerpts.length>=24)break;
+      }
+      if(found)hits.push(term);
+    });
+    return {matchedTerms:hits,excerpts:excerpts.slice(0,24)};
+  }
+  async function loadedScriptSourceTrace(){
+    const scripts=Array.prototype.slice.call(document.scripts||[]),entries=[];
+    for(let i=0;i<scripts.length&&i<80;i++){
+      const el=scripts[i],src=el.src||"",entry={index:i,src:src||null,inline:!src,type:el.type||null,sameOrigin:null,status:"SKIPPED",sourceLength:0,matchedTerms:[],excerpts:[],error:null};
+      let source="";
+      if(!src){
+        try{source=el.textContent||"";entry.status="INLINE";}catch(e){entry.status="ERROR";entry.error=err(e);}
+      }else{
+        let url=null;try{url=new URL(src,location.href);entry.sameOrigin=url.origin===location.origin;}catch(e){entry.status="ERROR";entry.error=err(e);}
+        if(entry.sameOrigin){
+          if(url&&url.pathname==="/app.js"){entry.status="SIDEE_SELF_SKIPPED";}
+          else{
+            try{
+              const response=await withTimeout(fetch(url.href,{cache:"no-store",credentials:"same-origin"}),3000,"script source fetch");
+              if(!response.ok)throw new Error("HTTP "+response.status);
+              source=await withTimeout(response.text(),3000,"script source body");
+              entry.status="FETCHED";
+            }catch(e){entry.status="ERROR";entry.error=err(e);}
+          }
+        }else if(entry.status!=="ERROR")entry.status="CROSS_ORIGIN_SKIPPED";
+      }
+      if(source){
+        entry.sourceLength=source.length;
+        const hits=scriptSourceHits(source);entry.matchedTerms=hits.matchedTerms;entry.excerpts=hits.excerpts;
+      }
+      entries.push(entry);
+    }
+    const matched=entries.filter(x=>x.matchedTerms.length>0);
+    return {timestamp:new Date().toISOString(),readOnly:true,scriptCount:scripts.length,inspectedCount:entries.filter(x=>x.status==="FETCHED"||x.status==="INLINE").length,matchedScriptCount:matched.length,mapAppInfoFieldsFound:matched.some(x=>x.matchedTerms.indexOf("mapAppInfoFields")>=0),entries:entries};
+  }
   async function permissionSourceTrace(){
     if(state.running)return;state.running=true;set("permissionSourceTraceState","Inspecting function sources and descriptors…");
     try{
@@ -191,9 +239,10 @@
       }
       const concreteReferences=[],seen={};
       targets.forEach(t=>(t.references||[]).forEach(v=>{const k=String(v).toLowerCase();if(!seen[k]){seen[k]=true;concreteReferences.push({source:t.path,value:v});}}));
-      state.report.permissionSourceTrace={timestamp:new Date().toISOString(),readOnly:true,targets:targets,supportAppConfig:supportAppConfig,concreteReferences:concreteReferences.slice(0,150),notes:["Function source/descriptor inspection only.","Install-pipeline helpers are inspected but never invoked.","Hisense_SupportAppConfig is the only diagnostic function invoked; no install/uninstall, fileWrite, setters or guessed HiUtils APIs are called."]};
-      set("permissionSourceTraceState","Trace complete · "+targets.filter(t=>t.available).length+"/"+targets.length+" functions available · "+concreteReferences.length+" concrete references.");
-      log("Permission source trace complete",{available:targets.filter(t=>t.available).map(t=>t.path),references:concreteReferences.slice(0,20),supportAppConfig:supportAppConfig});
+      const loadedScripts=await loadedScriptSourceTrace();
+      state.report.permissionSourceTrace={timestamp:new Date().toISOString(),readOnly:true,targets:targets,supportAppConfig:supportAppConfig,concreteReferences:concreteReferences.slice(0,150),loadedScripts:loadedScripts,notes:["Function source/descriptor inspection plus read-only source inspection of already-loaded scripts.","Only same-origin external scripts and inline script text are inspected; cross-origin scripts are skipped.","Sidee's own /app.js is listed but source scanning is skipped to avoid self-generated keyword noise.","Install-pipeline helpers are inspected but never invoked.","Hisense_SupportAppConfig is the only diagnostic function invoked; no install/uninstall, fileWrite, setters or guessed HiUtils APIs are called."]};
+      set("permissionSourceTraceState","Trace complete · "+targets.filter(t=>t.available).length+"/"+targets.length+" functions · "+loadedScripts.matchedScriptCount+"/"+loadedScripts.scriptCount+" scripts matched · mapAppInfoFields "+(loadedScripts.mapAppInfoFieldsFound?"FOUND":"not found")+".");
+      log("Permission source trace complete",{available:targets.filter(t=>t.available).map(t=>t.path),references:concreteReferences.slice(0,20),scriptSummary:{count:loadedScripts.scriptCount,inspected:loadedScripts.inspectedCount,matched:loadedScripts.matchedScriptCount,mapAppInfoFieldsFound:loadedScripts.mapAppInfoFieldsFound},supportAppConfig:supportAppConfig});
       await save("permission-source-trace");
     }catch(e){set("permissionSourceTraceState","Trace failed: "+err(e));log("Permission source trace failed",err(e));}
     finally{state.running=false;}
