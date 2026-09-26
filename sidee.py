@@ -3,9 +3,10 @@
 Sidee - standalone VIDAA browser research / web-app installer host.
 
 Runs:
-- DNS responder on UDP/53 (vidaahub.com -> this PC)
+- DNS responder on UDP/53 (configured VIDAA hosts -> this PC)
 - HTTPS UI on TCP/443
 - HTTP dashboard/fallback on TCP/8080
+- installed-app context probe host on TCP/80
 - raw-IP HTTP A/B test UI on the existing TCP/8080 dashboard
 - JSON report/config API
 
@@ -1024,6 +1025,7 @@ def main():
     print("=" * 52)
     print(f"PC IP: {local_ip}")
     print(f"PC dashboard: http://{local_ip}:{cfg.get('http_port', 8080)}")
+    print(f"Installed-app context probe HTTP: http://{local_ip}:{cfg.get('app_context_http_port', 80)}")
     print(f"Raw-IP A/B test: http://{local_ip}:{cfg.get('http_port', 8080)}")
     if REPORT_SYNC_CONFIG.get("enabled"):
         print(
@@ -1033,6 +1035,7 @@ def main():
     else:
         print("Report sync: disabled")
     print("TV flow:")
+    print("  Installed-app context probe: with TV DNS pointed to this PC, launch Smartone IPTV or Duplecast from the VIDAA launcher.")
     print(f"  1. Set the TV DNS manually to {local_ip}")
     print("  2. Open https://vidaahub.com in the TV browser")
     print("  3. Accept the local certificate warning if shown")
