@@ -1011,51 +1011,84 @@
   $("pkgmgrInstalledBtn").addEventListener("click",inspectPkgmgrInstalled);
 
   function pkgmgrSourceInventory(){
-    const terms=["pkgmgr","packageName","sendPkgmgrRequest","/APPS/pkgs/","getInstalledPkgs"];
-    const out=[],seen={};
+    const sourceTerms=[
+      "pkgmgr","packageName","pkgName","sendPkgmgrRequest","/APPS/pkgs/","getInstalledPkgs",
+      "download","packageUrl","pkgUrl","installPackage","downloadPackage","updatePackage",
+      "bundle","archive","staging","stagePackage"
+    ];
+    const nameRe=/(pkg|package|install|download|store|update|deploy|bundle|archive|stag|fetch)/i;
+    const sensitiveRe=/(token|secret|password|cookie|auth|key|sign|cert|nonce|session)/i;
+    const out=[],objects=[],seen={};
     let globals=[];
-    try{globals=Object.getOwnPropertyNames(window);}catch(e){return {matches:out,error:err(e)};}
-    for(let i=0;i<globals.length&&out.length<80;i++){
-      const name=globals[i];
-      if(/token|secret|password|cookie|auth|key|sign|cert|nonce|session/i.test(name))continue;
-      let value=null,src=null;
-      try{
-        const d=Object.getOwnPropertyDescriptor(window,name);
-        if(!d||!Object.prototype.hasOwnProperty.call(d,"value"))continue;
-        value=d.value;
-        if(typeof value!=="function")continue;
-        src=Function.prototype.toString.call(value);
-      }catch(e){continue;}
+    try{globals=Object.getOwnPropertyNames(window);}catch(e){return {matches:out,objects:objects,error:err(e)};}
+
+    function addFunction(path,fn,nameMatched){
+      let src="";
+      try{src=Function.prototype.toString.call(fn);}catch(e){return;}
       const lower=src.toLowerCase();
-      for(const term of terms){
+      let matched=false;
+      for(const term of sourceTerms){
         const idx=lower.indexOf(term.toLowerCase());
         if(idx<0)continue;
-        const id=name+"|"+term;
-        if(seen[id])continue;seen[id]=true;
-        out.push({path:"window."+name,term:term,sourceLength:src.length,excerpt:src.slice(Math.max(0,idx-500),Math.min(src.length,idx+1800))});
-        if(out.length>=80)break;
+        const id=path+"|"+term;
+        if(seen[id])continue;seen[id]=true;matched=true;
+        out.push({path:path,term:term,sourceLength:src.length,excerpt:src.slice(Math.max(0,idx-600),Math.min(src.length,idx+2200))});
+        if(out.length>=140)return;
+      }
+      if(nameMatched&&!matched&&out.length<140){
+        const id=path+"|NAME_MATCH";
+        if(!seen[id]){
+          seen[id]=true;
+          out.push({path:path,term:"NAME_MATCH",sourceLength:src.length,excerpt:src.slice(0,3200)});
+        }
       }
     }
+
+    for(let i=0;i<globals.length&&out.length<140;i++){
+      const name=globals[i];
+      if(sensitiveRe.test(name))continue;
+      let d=null,value=null;
+      try{
+        d=Object.getOwnPropertyDescriptor(window,name);
+        if(!d||!Object.prototype.hasOwnProperty.call(d,"value"))continue;
+        value=d.value;
+      }catch(e){continue;}
+      if(typeof value==="function"){
+        addFunction("window."+name,value,nameRe.test(name));
+        continue;
+      }
+      if(!value||(typeof value!=="object"&&typeof value!=="function")||!nameRe.test(name)||objects.length>=40)continue;
+      const item={path:"window."+name,properties:[],error:null};
+      try{
+        const props=Object.getOwnPropertyNames(value).slice(0,120);
+        for(const prop of props){
+          if(sensitiveRe.test(prop))continue;
+          const pd=Object.getOwnPropertyDescriptor(value,prop);
+          if(!pd)continue;
+          const meta={name:prop,type:Object.prototype.hasOwnProperty.call(pd,"value")?(pd.value===null?"null":typeof pd.value):"accessor",hasGetter:typeof pd.get==="function",hasSetter:typeof pd.set==="function"};
+          item.properties.push(meta);
+          if(Object.prototype.hasOwnProperty.call(pd,"value")&&typeof pd.value==="function"){
+            addFunction("window."+name+"."+prop,pd.value,nameRe.test(prop));
+          }
+          if(item.properties.length>=80||out.length>=140)break;
+        }
+      }catch(e){item.error=err(e);}
+      objects.push(item);
+    }
+
     try{
       const store=window.vowOS&&window.vowOS.store;
       if(store){
         for(const name of Object.getOwnPropertyNames(store)){
-          if(out.length>=80)break;
-          let d=null,fn=null,src="";
-          try{d=Object.getOwnPropertyDescriptor(store,name);fn=d&&Object.prototype.hasOwnProperty.call(d,"value")?d.value:null;if(typeof fn!=="function")continue;src=Function.prototype.toString.call(fn);}catch(e){continue;}
-          const lower=src.toLowerCase();
-          for(const term of terms){
-            const idx=lower.indexOf(term.toLowerCase());
-            if(idx<0)continue;
-            const id="vowOS.store."+name+"|"+term;
-            if(seen[id])continue;seen[id]=true;
-            out.push({path:"vowOS.store."+name,term:term,sourceLength:src.length,excerpt:src.slice(Math.max(0,idx-500),Math.min(src.length,idx+1800))});
-            if(out.length>=80)break;
-          }
+          if(out.length>=140)break;
+          let d=null,fn=null;
+          try{d=Object.getOwnPropertyDescriptor(store,name);fn=d&&Object.prototype.hasOwnProperty.call(d,"value")?d.value:null;}catch(e){continue;}
+          if(typeof fn==="function")addFunction("vowOS.store."+name,fn,nameRe.test(name));
         }
       }
     }catch(e){}
-    return {matches:out,error:null};
+
+    return {matches:out,objects:objects,error:null};
   }
   function htmlRefs(raw){
     const refs=[],seen={};
@@ -1093,14 +1126,14 @@
       }
       report.sourceInventory=pkgmgrSourceInventory();
       report.status=report.selected?"READ_OK":report.attempts.some(x=>x.error)?"READ_PARTIAL_ERRORS":"READ_EMPTY";
-      set("pkgmgrPackageProbeState",report.status+" · "+report.attempts.length+" path forms · "+(report.selected?report.selected.length:0)+" bytes · "+report.sourceInventory.matches.length+" pkgmgr source matches");
+      set("pkgmgrPackageProbeState",report.status+" · "+report.attempts.length+" path forms · "+(report.selected?report.selected.length:0)+" bytes · "+report.sourceInventory.matches.length+" source matches · "+(report.sourceInventory.objects||[]).length+" adjacent objects");
     }catch(e){
       report.status="READ_ERROR";report.error=err(e);
       report.sourceInventory=pkgmgrSourceInventory();
       set("pkgmgrPackageProbeState","READ_ERROR · "+report.error);
     }finally{
       state.report.pkgmgrPackageProbe=report;
-      log("tvbrowser package probe",{status:report.status,selected:report.selected&&report.selected.label,attempts:report.attempts.map(x=>({label:x.label,length:x.length,error:x.error})),sourceMatches:report.sourceInventory&&report.sourceInventory.matches&&report.sourceInventory.matches.length,error:report.error});
+      log("tvbrowser package probe",{status:report.status,selected:report.selected&&report.selected.label,attempts:report.attempts.map(x=>({label:x.label,length:x.length,error:x.error})),sourceMatches:report.sourceInventory&&report.sourceInventory.matches&&report.sourceInventory.matches.length,adjacentObjects:report.sourceInventory&&report.sourceInventory.objects&&report.sourceInventory.objects.length,error:report.error});
       state.running=false;
       await save("pkgmgr-tvbrowse-package-probe");
     }
