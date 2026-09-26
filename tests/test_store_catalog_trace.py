@@ -238,6 +238,7 @@ class StoreCatalogTraceTests(unittest.TestCase):
         self.assertTrue(sidee._is_store_discovery_host("vidaa-base-auth-oc.vidaahub.com"))
         self.assertTrue(sidee._is_store_discovery_host("api-launcher-em.hismarttv.com"))
         self.assertTrue(sidee._is_store_discovery_host("auth-launcher-na.hismarttv.com"))
+        self.assertTrue(sidee._is_store_discovery_host("app-appstore.hismarttv.com"))
         self.assertFalse(sidee._is_store_discovery_host("example.com"))
         self.assertFalse(sidee._is_store_discovery_host("api-gps-em.hismarttv.com"))
 
