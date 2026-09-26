@@ -350,3 +350,21 @@ The lab creates one immutable AppInfo backup, performs a baseline no-op `fileWri
 The lab stops immediately if a candidate changes the permission response or if the registry readback is not identical. It never adds Nuvio. Possible conclusions include `IDENTIFIER_AFFECTS_WRITE_GATE`, `IDENTIFIER_STRING_NOT_SUFFICIENT`, `NO_REAL_IDENTIFIER_AVAILABLE`, `BASELINE_WRITE_ALLOWED`, `REGISTRY_CHANGED_ABORTED`, and `INCONCLUSIVE`.
 
 The remote version is a separate explicit build-bound workflow (`runIdentityWriteGateLabV1`) and is not classified as read-only.
+
+
+## Installed-app bootstrap fallback
+
+If launching Smartone IPTV or Duplecast with the TV DNS pointed to Sidee leaves the original app on an endless loading spinner and no Sidee session report appears, the failure is before the normal `web/app.js` UI executes.
+
+Sidee therefore serves a dependency-free inline bootstrap page for the two installed-app hostnames on HTTP port 80. The bootstrap:
+
+- is returned for any non-API path on `vidaa.smartone-iptv.com` and `vidaa.duplecast.com`;
+- records a server-side request hit immediately;
+- captures only read-only native identity/capability fields;
+- posts the capture to `/api/app-context-bootstrap`;
+- saves/syncs a normal Sidee session report even though the full UI was never loaded;
+- performs no install, uninstall, setter, file write or guessed native call.
+
+The PC can inspect the last server-observed trampoline request at `/api/app-context/last-hit`.
+
+After pulling this build, Sidee must be restarted so the new HTTP/80 handler is active. Then launch Smartone or Duplecast from the VIDAA launcher while the TV DNS points at the Sidee PC.
