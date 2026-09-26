@@ -4086,3 +4086,61 @@ Commit:
 - `732438a13b2a0c7ba790fcbd3c04993283e808ba` — regression test for Store report sync blind spots.
 
 `LATEST_RESPONSE_AND_NEXT_CHAT.md` è stato riallineato al discovery passivo: non deve più chiedere di ripetere come test principale il vecchio `category-ui`, già risultato silenzioso nel test Q0707 osservato.
+
+
+## RISULTATO REALE — passive Store domain discovery Q0707 — 2026-09-26
+
+Test effettuato con:
+- Sidee aggiornato;
+- DNS TV -> PC Sidee;
+- apertura del VIDAA Store ufficiale;
+- navigazione Store senza premere Install.
+
+Report:
+- sessionId: `sidee-20260926-201849-a7b2`;
+- build: `app-8101f5dd0f50`;
+- buildMatch: `true`;
+- accessMode: `VIDAA_STORE_DOMAIN_DISCOVERY`;
+- `storeDomainDiscovery.status = QUERIES_CAPTURED`;
+- `totalQueries = 20`;
+- `hostCount = 13`.
+
+Host osservati realmente dalla Q0707:
+- `iot-voice-eu.vidaahub.com` — A x1;
+- `rsc-mntz.vidaahub.com` — A x2;
+- `detail-ui-eu.vidaahub.com` — A x2;
+- `rpt-mntz-azure.vidaahub.com` — A x2;
+- `ter-jrnl-eu.vidaahub.com` — A/AAAA x4;
+- `appstore-vidaa.vidaahub.com` — A x1;
+- `tvmodules-vidaa.vidaahub.com` — A x1;
+- `img.vidaahub.com` — A x1;
+- `home-ui-eu.vidaahub.com` — A x1;
+- `static-ui.vidaahub.com` — A x1;
+- `crtv-mntz.vidaahub.com` — A x1;
+- `recommend-ui-eu.vidaahub.com` — A x1;
+- `exc-jrnl-eu.vidaahub.com` — A/AAAA x2.
+
+Non sono stati osservati:
+- `category-ui.vidaahub.com`;
+- `api-launcher-*.hismarttv.com`;
+- `auth-launcher-*.hismarttv.com`;
+- `unified-ter-*.hismarttv.com`.
+
+Conclusione strettamente supportata dal test:
+- il flusso Store Q0707 osservato usa concretamente host `vidaahub.com`;
+- il vecchio `category-ui.vidaahub.com` non è l'host principale del flusso osservato;
+- non c'è evidenza, in questa sessione, di host launcher `hismarttv.com`.
+
+Priorità per il prossimo trace pass-through:
+1. `detail-ui-eu.vidaahub.com` — primo candidato per ottenere gli endpoint della detail page;
+2. `appstore-vidaa.vidaahub.com` — candidato Store/root frontend o asset/app-store surface;
+3. `home-ui-eu.vidaahub.com` — candidato home;
+4. `recommend-ui-eu.vidaahub.com` — candidato recommendations.
+
+La funzione precisa degli host è ancora un'ipotesi basata sul naming e sul timing DNS. Va confermata esclusivamente osservando TLS/HTTP reali, senza modificare le risposte.
+
+Prossimo passo raccomandato:
+- aggiungere un trace TLS/HTTP pass-through mirato per `detail-ui-eu.vidaahub.com`;
+- mantenere redaction e response invariata;
+- non premere Install;
+- non introdurre ancora injection o response rewriting.
