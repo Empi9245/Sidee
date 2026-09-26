@@ -42,7 +42,7 @@
     try{ const a=new Uint8Array(2); crypto.getRandomValues(a); tail=Array.from(a).map(x=>x.toString(16).padStart(2,"0")).join(""); }catch(e){}
     const id="sidee-"+stamp+"-"+tail; try{sessionStorage.setItem("sidee.sessionId",id);}catch(e){} return id;
   }
-  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),startedAt:now,updatedAt:now,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},clientInformation:null,serviceTrace:[],installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",permissionGate:"UNKNOWN"}}; }
+  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),startedAt:now,updatedAt:now,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",permissionGate:"UNKNOWN"}}; }
   state.report=newReport();
 
   function meaningful(v){
@@ -147,6 +147,54 @@
   }
   async function readTrace(){ if(typeof window.HiUtils_createRequest!=="function")return set("serviceTraceState","HiUtils_createRequest unavailable."); const r=await traced("readonly-appinfo",()=>window.HiUtils_createRequest("fileRead",{path:"websdk/Appinfo.json",mode:6})); set("serviceTraceState","api "+(r.trace.api||"unknown")+" · identifier "+(meaningful(r.trace.identifier)?String(r.trace.identifier):"EMPTY")+" · code "+(r.trace.result&&r.trace.result.code!==null?r.trace.result.code:"—")); log("Read-only service trace",r.trace); await save("readonly-service-trace"); }
 
+  const SOURCE_TRACE_RE=/(permission|appconfig|identifier|client|role|customer|origin|package|bundle|auth|security|sign|certificate|access|capability|privilege|config|installapplication|hiutils|syncExecute|getIdentifier)/i;
+  function functionSource(fn){
+    if(typeof fn!=="function")return null;
+    try{return Function.prototype.toString.call(fn);}catch(e){return "[source error: "+err(e)+"]";}
+  }
+  function sourceReferences(src){
+    if(!src)return [];
+    const found={},out=[];
+    const add=v=>{v=String(v||"").trim();if(!v||!SOURCE_TRACE_RE.test(v)||found[v])return;found[v]=true;if(out.length<100)out.push(cut(v,300));};
+    const quoted=/["']([^"'\\]{1,300})["']/g;let m;
+    while((m=quoted.exec(src))&&out.length<100)add(m[1]);
+    const words=/\b[A-Za-z_$][\w$\.]{2,120}\b/g;
+    while((m=words.exec(src))&&out.length<100)add(m[0]);
+    return out;
+  }
+  function inspectFunction(owner,name,path){
+    const out={path:path||name,available:false,descriptor:descriptor(owner,name),type:"missing",name:null,length:null,source:null,references:[],error:null};
+    let fn;try{fn=owner&&owner[name];}catch(e){out.type="error";out.error=err(e);return out;}
+    out.type=fn===null?"null":typeof fn;if(typeof fn!=="function")return out;
+    out.available=true;out.name=fn.name||null;out.length=fn.length;out.source=functionSource(fn);out.references=sourceReferences(out.source);return out;
+  }
+  async function permissionSourceTrace(){
+    if(state.running)return;state.running=true;set("permissionSourceTraceState","Inspecting function sources and descriptors…");
+    try{
+      let service=null;try{service=window.vowOS&&window.vowOS.service;}catch(e){}
+      const targets=[
+        inspectFunction(window,"Hisense_installApp","window.Hisense_installApp"),
+        inspectFunction(window,"Hisense_installApp_V2","window.Hisense_installApp_V2"),
+        inspectFunction(window,"HiUtils_createRequest","window.HiUtils_createRequest"),
+        inspectFunction(window,"Hisense_SupportAppConfig","window.Hisense_SupportAppConfig"),
+        inspectFunction(service,"syncExecute","window.vowOS.service.syncExecute"),
+        inspectFunction(service,"getIdentifier","window.vowOS.service.getIdentifier")
+      ];
+      const supportAppConfig={available:typeof window.Hisense_SupportAppConfig==="function",called:false,status:"NOT_CALLED",value:null,error:null};
+      if(supportAppConfig.available){
+        try{supportAppConfig.called=true;supportAppConfig.value=compact(window.Hisense_SupportAppConfig());supportAppConfig.status="RETURNED";}
+        catch(e){supportAppConfig.called=true;supportAppConfig.status="ERROR";supportAppConfig.error=err(e);}
+      }
+      const concreteReferences=[],seen={};
+      targets.forEach(t=>(t.references||[]).forEach(v=>{const k=String(v).toLowerCase();if(!seen[k]){seen[k]=true;concreteReferences.push({source:t.path,value:v});}}));
+      state.report.permissionSourceTrace={timestamp:new Date().toISOString(),readOnly:true,targets:targets,supportAppConfig:supportAppConfig,concreteReferences:concreteReferences.slice(0,150),notes:["Function source/descriptor inspection only.","Hisense_SupportAppConfig is the only diagnostic function invoked; no install/uninstall, fileWrite, setters or guessed HiUtils APIs are called."]};
+      set("permissionSourceTraceState","Trace complete · "+targets.filter(t=>t.available).length+"/"+targets.length+" functions available · "+concreteReferences.length+" concrete references.");
+      log("Permission source trace complete",{available:targets.filter(t=>t.available).map(t=>t.path),references:concreteReferences.slice(0,20),supportAppConfig:supportAppConfig});
+      await save("permission-source-trace");
+    }catch(e){set("permissionSourceTraceState","Trace failed: "+err(e));log("Permission source trace failed",err(e));}
+    finally{state.running=false;}
+  }
+
   function target(){ return {app_id:$("appId").value.trim(),app_name:$("appName").value.trim(),app_url:$("appUrl").value.trim(),icon_url:$("iconUrl").value.trim(),store_type:state.config&&state.config.nuvio&&state.config.nuvio.store_type||"store"}; }
   function icon(t){ if(t.icon_url)return t.icon_url; try{return new URL("/assets/images/icon.png",t.app_url).toString();}catch(e){return "";} }
   function v2(t){const i=icon(t);return {Id:t.app_id,appId:t.app_id,AppName:t.app_name,name:t.app_name,Title:t.app_name,URL:t.app_url,url:t.app_url,StartCommand:t.app_url,Thumb:i,Icon_96:i,Image:i,IconURL:i,icon:i,StoreType:t.store_type||"store",storeType:t.store_type||"store",PreInstall:false,isShowOnLauncher:true};}
@@ -160,8 +208,8 @@
   function parseJson(v){if(typeof v!=="string")return null;const s=v.trim();if(!s||"[{".indexOf(s[0])<0)return null;try{return JSON.parse(s);}catch(e){return null;}}
   function collect(v,out,d){if(d>3||out.length>=80||v==null)return;const p=parseJson(v);if(p)return collect(p,out,d+1);if(Array.isArray(v)){v.slice(0,50).forEach(x=>collect(x,out,d+1));return;}if(typeof v!=="object")return;out.push(v);Object.keys(v).slice(0,30).forEach(k=>{try{const c=v[k],j=parseJson(c);if(j)collect(j,out,d+1);else if(c&&typeof c==="object")collect(c,out,d+1);}catch(e){}});}
   function matches(r,t){const needles=[t.app_id,t.app_name,t.app_url].filter(Boolean).map(x=>String(x).toLowerCase());const vals=[];try{Object.keys(r).slice(0,30).forEach(k=>{const v=r[k];if(typeof v==="string"||typeof v==="number")vals.push(String(v).toLowerCase());});}catch(e){}return needles.some(n=>vals.some(v=>v.indexOf(n)>=0));}
-  async function installed(){if(typeof window.Hisense_getInstalledApps!=="function")return {available:false,match:false};let resolveCb;const cbp=new Promise(r=>resolveCb=r);let ret;try{ret=window.Hisense_getInstalledApps(function(){resolveCb(Array.prototype.slice.call(arguments));});}catch(e){return {available:true,match:false,error:err(e)};}let cb=null;try{cb=await withTimeout(cbp,1200,"installed apps callback");}catch(e){cb=null;}const records=[];collect(ret,records,0);collect(cb,records,0);const t=target();return {available:true,match:records.some(r=>matches(r,t)),count:records.length};}
-  function appInfo(){if(typeof window.HiUtils_createRequest!=="function")return {available:false,match:false};try{const raw=window.HiUtils_createRequest("fileRead",{path:"websdk/Appinfo.json",mode:6}),records=[];collect(raw,records,0);const t=target();return {available:true,ok:!!(raw&&raw.ret),match:records.some(r=>matches(r,t)),count:records.length};}catch(e){return {available:true,match:false,error:err(e)};}}
+  async function installed(){if(typeof window.Hisense_getInstalledApps!=="function")return {available:false,match:false,count:0};let resolveCb;const cbp=new Promise(r=>resolveCb=r);let ret;try{ret=window.Hisense_getInstalledApps(function(){resolveCb(Array.prototype.slice.call(arguments));});}catch(e){return {available:true,match:false,count:0,error:err(e)};}let cb=null;try{cb=await withTimeout(cbp,1200,"installed apps callback");}catch(e){cb=null;}const raw=[];collectAppRecords(ret,raw,0,[]);collectAppRecords(cb,raw,0,[]);const records=prepareRecords(raw),t=target();return {available:true,match:records.some(x=>matches(x.raw,t)),count:records.length};}
+  function appInfo(){if(typeof window.HiUtils_createRequest!=="function")return {available:false,match:false,count:0};try{const rawResult=window.HiUtils_createRequest("fileRead",{path:"websdk/Appinfo.json",mode:6}),raw=[],t=target();collectAppRecords(rawResult,raw,0,[]);const records=prepareRecords(raw);return {available:true,ok:!!(rawResult&&rawResult.ret),match:records.some(x=>matches(x.raw,t)),count:records.length};}catch(e){return {available:true,match:false,count:0,error:err(e)};}}
 
   const APP_FIELD_ALIASES={
     id:["id"],appId:["appId","appid"],name:["name","appName"],title:["title"],url:["url"],startCommand:["startCommand"],
@@ -368,6 +416,6 @@
   function nextControl(cur,key,list){const from=center(cur);let best=null,score=Infinity;list.forEach(el=>{if(el===cur)return;const to=center(el),dx=to.x-from.x,dy=to.y-from.y;let p=null,c=0;if(key==="ArrowUp"&&dy<-4){p=-dy;c=Math.abs(dx);}if(key==="ArrowDown"&&dy>4){p=dy;c=Math.abs(dx);}if(key==="ArrowLeft"&&dx<-4){p=-dx;c=Math.abs(dy);}if(key==="ArrowRight"&&dx>4){p=dx;c=Math.abs(dy);}if(p===null)return;const s=p*10+c;if(s<score){score=s;best=el;}});return best;}
   window.addEventListener("keydown",e=>{const key=e.key||({13:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[e.keyCode]),active=document.activeElement;if((key==="Enter"||key==="OK")&&active&&(active.tagName==="BUTTON"||active.tagName==="SUMMARY")){e.preventDefault();active.click();return;}if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(key)<0)return;if(active&&active.tagName==="INPUT"&&(key==="ArrowLeft"||key==="ArrowRight"))return;const list=controls();if(!list.length)return;const cur=list.indexOf(active)>=0?active:list[0],to=nextControl(cur,key,list);if(to){to.focus();e.preventDefault();}else if(list.indexOf(active)<0){cur.focus();e.preventDefault();}});
 
-  $("baselineBtn").addEventListener("click",baseline); $("runtimeContextInitBtn").addEventListener("click",initContext); $("clientInformationBtn").addEventListener("click",readClient); $("serviceTraceBtn").addEventListener("click",readTrace); $("installedMetadataBtn").addEventListener("click",inspectInstalledMetadata); $("installDiagnosticBtn").addEventListener("click",()=>installTest()); $("installLegacyBtn").addEventListener("click",()=>installTest("legacy")); $("installV2Btn").addEventListener("click",()=>installTest("v2")); $("temporaryIdentifierBtn").addEventListener("click",tempIdentifier); $("saveBtn").addEventListener("click",saveTarget); $("verifyBtn").addEventListener("click",async()=>{const r=await verify();log("Verification",r);await save("verification");}); $("reportBtn").addEventListener("click",()=>save("export"));
+  $("baselineBtn").addEventListener("click",baseline); $("runtimeContextInitBtn").addEventListener("click",initContext); $("clientInformationBtn").addEventListener("click",readClient); $("serviceTraceBtn").addEventListener("click",readTrace); $("permissionSourceTraceBtn").addEventListener("click",permissionSourceTrace); $("installedMetadataBtn").addEventListener("click",inspectInstalledMetadata); $("installDiagnosticBtn").addEventListener("click",()=>installTest()); $("installLegacyBtn").addEventListener("click",()=>installTest("legacy")); $("installV2Btn").addEventListener("click",()=>installTest("v2")); $("temporaryIdentifierBtn").addEventListener("click",tempIdentifier); $("saveBtn").addEventListener("click",saveTarget); $("verifyBtn").addEventListener("click",async()=>{const r=await verify();log("Verification",r);await save("verification");}); $("reportBtn").addEventListener("click",()=>save("export"));
   load().then(()=>{renderSummary();set("deviceBadge",typeof window.Hisense_GetFirmWareVersion==="function"?"VIDAA browser detected":"Waiting for VIDAA APIs");log("Sidee targeted identity diagnostic ready.");}).catch(e=>log("Config load failed",err(e)));
 })();
