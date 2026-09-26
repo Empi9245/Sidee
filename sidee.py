@@ -39,6 +39,9 @@ WEB_DIR = ROOT / "web"
 REPORTS_DIR = ROOT / "reports"
 CONFIG_PATH = ROOT / "config.json"
 CERT_DIR = ROOT / ".sidee-certs"
+APPINFO_BACKUP_DIR = ROOT / "backups" / "appinfo"
+APPINFO_BACKUP_ID_RE = re.compile(r"^appinfo-backup-\d{8}-\d{6}-[a-f0-9]{8}$")
+APPINFO_MAX_BACKUP_BYTES = 4 * 1024 * 1024
 
 stop_event = threading.Event()
 REPORT_WRITE_LOCK = threading.Lock()
@@ -102,8 +105,85 @@ def write_session_report(session_id, report):
     return file_path
 
 
+def _validate_appinfo_raw(raw):
+    if not isinstance(raw, str):
+        raise ValueError("Expected raw Appinfo JSON string")
+    encoded = raw.encode("utf-8")
+    if len(encoded) > APPINFO_MAX_BACKUP_BYTES:
+        raise ValueError("Appinfo backup exceeds size limit")
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Invalid Appinfo JSON: {exc}") from exc
+    if not isinstance(parsed, dict) or not isinstance(parsed.get("AppInfo"), list):
+        raise ValueError("Appinfo JSON must contain an AppInfo array")
+    return parsed, encoded
 
 
+def _appinfo_backup_dir(session_id):
+    session_report_filename(session_id)
+    root = APPINFO_BACKUP_DIR.resolve()
+    target = (APPINFO_BACKUP_DIR / session_id).resolve()
+    if target.parent != root:
+        raise ValueError("Invalid Appinfo backup directory")
+    target.mkdir(parents=True, exist_ok=True)
+    return target
+
+
+def create_appinfo_backup(session_id, raw, client_hash=None):
+    parsed, encoded = _validate_appinfo_raw(raw)
+    sha256 = hashlib.sha256(encoded).hexdigest()
+    if client_hash is not None and client_hash != sha256:
+        raise ValueError("Client/server Appinfo hash mismatch")
+
+    backup_dir = _appinfo_backup_dir(session_id)
+    stamp = time.strftime("%Y%m%d-%H%M%S", time.gmtime())
+    nonce = hashlib.sha256(f"{session_id}:{time.time_ns()}".encode("utf-8")).hexdigest()[:8]
+    backup_id = f"appinfo-backup-{stamp}-{nonce}"
+    if not APPINFO_BACKUP_ID_RE.fullmatch(backup_id):
+        raise ValueError("Invalid generated backup ID")
+
+    path = (backup_dir / f"{backup_id}.json").resolve()
+    if path.parent != backup_dir:
+        raise ValueError("Invalid Appinfo backup path")
+
+    with path.open("x", encoding="utf-8", newline="") as f:
+        f.write(raw)
+        f.flush()
+        os.fsync(f.fileno())
+
+    return {
+        "backupId": backup_id,
+        "sessionId": session_id,
+        "path": path.relative_to(ROOT).as_posix(),
+        "sha256": sha256,
+        "bytes": len(encoded),
+        "appInfoCount": len(parsed["AppInfo"]),
+        "createdAt": _utc_timestamp(),
+    }
+
+
+def read_appinfo_backup(session_id, backup_id):
+    if not isinstance(backup_id, str) or not APPINFO_BACKUP_ID_RE.fullmatch(backup_id):
+        raise ValueError("Invalid Appinfo backup ID")
+
+    backup_dir = _appinfo_backup_dir(session_id)
+    path = (backup_dir / f"{backup_id}.json").resolve()
+    if path.parent != backup_dir or not path.is_file():
+        raise ValueError("Appinfo backup not found")
+
+    raw = path.read_text(encoding="utf-8")
+    parsed, encoded = _validate_appinfo_raw(raw)
+    return {
+        "backupId": backup_id,
+        "sessionId": session_id,
+        "path": path.relative_to(ROOT).as_posix(),
+        "sha256": hashlib.sha256(encoded).hexdigest(),
+        "bytes": len(encoded),
+        "appInfoCount": len(parsed["AppInfo"]),
+        "createdAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(path.stat().st_mtime)),
+        "raw": raw,
+    }
 
 REPORT_SYNC_LOCK = threading.Lock()
 REPORT_SYNC_EVENT = threading.Event()
@@ -448,12 +528,23 @@ def remote_diagnostic_worker():
     while not stop_event.is_set():
         try:
             raw = _fetch_remote_diagnostic_request()
-            if not isinstance(raw, dict) or raw.get("runSafeDiagnostic") is not True:
+            workflow = None
+            if isinstance(raw, dict):
+                safe_readonly = raw.get("runSafeDiagnostic") is True
+                direct_noop = raw.get("runDirectAppInfoWriteNoop") is True
+                if safe_readonly and direct_noop:
+                    raise ValueError("Diagnostic request selects multiple workflows")
+                if safe_readonly:
+                    workflow = "safe-readonly"
+                elif direct_noop:
+                    workflow = "direct-appinfo-noop"
+
+            if workflow is None:
                 with REMOTE_DIAGNOSTIC_LOCK:
                     if REMOTE_DIAGNOSTIC_STATUS["state"] not in ("RUNNING", "COMPLETED"):
                         REMOTE_DIAGNOSTIC_STATUS.update({
                             "state": "IDLE",
-                            "message": "Waiting for a read-only diagnostic request.",
+                            "message": "Waiting for a supported diagnostic request.",
                             "fetchedAt": _utc_timestamp(),
                         })
             else:
@@ -464,18 +555,24 @@ def remote_diagnostic_worker():
                     raise ValueError("Diagnostic request expired")
                 request = {
                     "requestId": request_id,
+                    "workflow": workflow,
                     "createdAt": raw.get("createdAt"),
                     "expiresAt": raw.get("expiresAt"),
                     "requestedBy": str(raw.get("requestedBy") or "unknown")[:80],
                     "note": str(raw.get("note") or "")[:300],
                 }
+                message = (
+                    "Backup-protected AppInfo no-op write requested; waiting for an armed TV page."
+                    if workflow == "direct-appinfo-noop"
+                    else "Read-only diagnostic requested; waiting for an armed TV page."
+                )
                 with REMOTE_DIAGNOSTIC_LOCK:
                     if request_id != REMOTE_DIAGNOSTIC_LAST_ID:
                         REMOTE_DIAGNOSTIC_LAST_ID = request_id
                         REMOTE_DIAGNOSTIC_REQUEST = request
                         REMOTE_DIAGNOSTIC_STATUS.update({
                             "state": "PENDING",
-                            "message": "Read-only diagnostic requested; waiting for an armed TV page.",
+                            "message": message,
                             "requestId": request_id,
                             "fetchedAt": _utc_timestamp(),
                             "acknowledgedAt": None,
@@ -702,6 +799,18 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
         if path == "/api/remote-diagnostic/request":
             return self._send_json(_remote_diagnostic_snapshot(include_request=True))
 
+        if path == "/api/appinfo/backup":
+            params = urllib.parse.parse_qs(parsed.query)
+            session_id = (params.get("sessionId") or [None])[0]
+            backup_id = (params.get("backupId") or [None])[0]
+            try:
+                backup = read_appinfo_backup(session_id, backup_id)
+            except ValueError as exc:
+                return self._send_json({"ok": False, "error": str(exc)}, 400)
+            except OSError as exc:
+                return self._send_json({"ok": False, "error": f"Could not read backup: {exc}"}, 500)
+            return self._send_json({"ok": True, "backup": backup})
+
         if path == "/api/reports/latest":
             REPORTS_DIR.mkdir(parents=True, exist_ok=True)
             files = sorted(REPORTS_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
@@ -749,6 +858,25 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
             data = self._read_json()
         except Exception as exc:
             return self._send_json({"ok": False, "error": str(exc)}, 400)
+
+        if path == "/api/appinfo/backup":
+            if not isinstance(data, dict):
+                return self._send_json({"ok": False, "error": "Expected JSON object"}, 400)
+            session_id = data.get("sessionId")
+            raw = data.get("raw")
+            client_hash = data.get("clientSha256")
+            if client_hash is not None:
+                if not isinstance(client_hash, str) or not re.fullmatch(r"[a-f0-9]{64}", client_hash):
+                    return self._send_json({"ok": False, "error": "Invalid clientSha256"}, 400)
+            try:
+                backup = create_appinfo_backup(session_id, raw, client_hash)
+            except ValueError as exc:
+                return self._send_json({"ok": False, "error": str(exc)}, 400)
+            except FileExistsError:
+                return self._send_json({"ok": False, "error": "Backup collision; retry"}, 409)
+            except OSError as exc:
+                return self._send_json({"ok": False, "error": f"Could not create backup: {exc}"}, 500)
+            return self._send_json({"ok": True, "backup": backup})
 
         if path == "/api/reports/session":
             if not isinstance(data, dict):
