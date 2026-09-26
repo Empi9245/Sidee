@@ -94,6 +94,25 @@
       </article>
 
       <article class="card">
+        <div class="cardHead">
+          <div>
+            <p class="kicker">05 · INSTALLED APP METADATA</p>
+            <h2>Installed App Metadata</h2>
+          </div>
+          <button id="installedMetadataBtn" class="secondary">Inspect Installed Apps</button>
+        </div>
+        <p>Compare metadata exposed by installed apps and Appinfo using only the existing read-only sources.</p>
+        <div class="identityGrid">
+          <div><span>Apps</span><b id="metadataApps" class="summaryValue">—</b></div>
+          <div><span>Matched sources</span><b id="metadataMatched" class="summaryValue">—</b></div>
+          <div><span>Store types</span><b id="metadataStoreTypes" class="summaryValue">—</b></div>
+          <div><span>Interesting fields</span><b id="metadataFields" class="summaryValue">—</b></div>
+          <div><span>Config/path references</span><b id="metadataReferences" class="summaryValue">—</b></div>
+        </div>
+        <div id="metadataState" class="state">Not inspected yet.</div>
+      </article>
+
+      <article class="card">
         <p class="kicker">TARGET APP</p>
         <h2>Target Configuration</h2>
         <label>App ID<input id="appId" autocomplete="off"></label>
@@ -105,7 +124,7 @@
       </article>
 
       <article class="card installCard">
-        <p class="kicker">05 · PERMISSION TEST</p>
+        <p class="kicker">06 · PERMISSION TEST</p>
         <h2>Install Permission Test</h2>
         <p>Explicit only. Records the identity used, essential install payload, internal <code>ret/code/msg</code>, external callback and installed-app verification. Callback <code>0</code> alone is never treated as success.</p>
         <button id="installDiagnosticBtn" class="primaryAction">Test Install Permission</button>

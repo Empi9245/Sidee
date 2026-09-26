@@ -42,7 +42,7 @@
     try{ const a=new Uint8Array(2); crypto.getRandomValues(a); tail=Array.from(a).map(x=>x.toString(16).padStart(2,"0")).join(""); }catch(e){}
     const id="sidee-"+stamp+"-"+tail; try{sessionStorage.setItem("sidee.sessionId",id);}catch(e){} return id;
   }
-  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),startedAt:now,updatedAt:now,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},clientInformation:null,serviceTrace:[],installTest:null,verification:null,target:{},temporaryIdentifierTest:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",permissionGate:"UNKNOWN"}}; }
+  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),startedAt:now,updatedAt:now,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},clientInformation:null,serviceTrace:[],installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",permissionGate:"UNKNOWN"}}; }
   state.report=newReport();
 
   function meaningful(v){
@@ -162,6 +162,179 @@
   function matches(r,t){const needles=[t.app_id,t.app_name,t.app_url].filter(Boolean).map(x=>String(x).toLowerCase());const vals=[];try{Object.keys(r).slice(0,30).forEach(k=>{const v=r[k];if(typeof v==="string"||typeof v==="number")vals.push(String(v).toLowerCase());});}catch(e){}return needles.some(n=>vals.some(v=>v.indexOf(n)>=0));}
   async function installed(){if(typeof window.Hisense_getInstalledApps!=="function")return {available:false,match:false};let resolveCb;const cbp=new Promise(r=>resolveCb=r);let ret;try{ret=window.Hisense_getInstalledApps(function(){resolveCb(Array.prototype.slice.call(arguments));});}catch(e){return {available:true,match:false,error:err(e)};}let cb=null;try{cb=await withTimeout(cbp,1200,"installed apps callback");}catch(e){cb=null;}const records=[];collect(ret,records,0);collect(cb,records,0);const t=target();return {available:true,match:records.some(r=>matches(r,t)),count:records.length};}
   function appInfo(){if(typeof window.HiUtils_createRequest!=="function")return {available:false,match:false};try{const raw=window.HiUtils_createRequest("fileRead",{path:"websdk/Appinfo.json",mode:6}),records=[];collect(raw,records,0);const t=target();return {available:true,ok:!!(raw&&raw.ret),match:records.some(r=>matches(r,t)),count:records.length};}catch(e){return {available:true,match:false,error:err(e)};}}
+
+  const APP_FIELD_ALIASES={
+    id:["id"],appId:["appId","appid"],name:["name","appName"],title:["title"],url:["url"],startCommand:["startCommand"],
+    storeType:["storeType"],openMode:["openMode"],venderId:["venderId"],vendorId:["vendorId"],unifiedAppName:["unifiedAppName"],
+    initialFrom:["initialFrom"],configUrl:["configUrl"],configUrlDownload:["configUrlDownload"],appBundle:["appBundle"],
+    package:["package"],packageName:["packageName"],version:["version"],developer:["developer"],categoryName:["categoryName"],
+    subCategory:["subCategory"],preInstall:["preInstall"],isShowOnLauncher:["isShowOnLauncher"]
+  };
+  const APP_INTERESTING_RE=/(permission|privilege|security|appconfig|config|identifier|client|role|customer|origin|domain|package|bundle|store|install|launch|sign|certificate|auth)/i;
+  const APP_PERMISSION_RE=/(permission|privilege|security|appconfig|identifier|client|role|customer|sign|certificate|auth)/i;
+  const APP_CONFIG_RE=/(appconfig|config)/i;
+  const APP_REFERENCE_RE=/(\.json(?:$|[?#])|\/config\/|\/appconfig|websdk\/|file:\/\/|\/data\/|\/home\/|package|manifest)/i;
+  const APP_SKIP_RE=/(image|icon|thumb|screenshot|poster|background|wallpaper|promotional|description|base64|blob)/i;
+
+  function scalar(v){
+    if(v===undefined||v===null)return v;
+    if(typeof v==="string")return cut(v,500);
+    if(typeof v==="number"||typeof v==="boolean")return v;
+    return null;
+  }
+  function field(obj,aliases){
+    if(!obj||typeof obj!=="object")return null;
+    let keys=[];try{keys=Object.keys(obj);}catch(e){return null;}
+    const map={};keys.forEach(k=>{const l=String(k).toLowerCase();if(!Object.prototype.hasOwnProperty.call(map,l))map[l]=k;});
+    for(let i=0;i<aliases.length;i++){
+      const real=map[String(aliases[i]).toLowerCase()];
+      if(real===undefined)continue;
+      let v;try{v=obj[real];}catch(e){continue;}
+      const safe=scalar(v);
+      if(safe!==null&&safe!==undefined)return safe;
+    }
+    return null;
+  }
+  function normalizeApp(obj){
+    const out={};
+    Object.keys(APP_FIELD_ALIASES).forEach(k=>{const v=field(obj,APP_FIELD_ALIASES[k]);if(v!==null&&v!==undefined)out[k]=v;});
+    return out;
+  }
+  function appLike(obj){
+    if(!obj||typeof obj!=="object"||Array.isArray(obj))return false;
+    let keys=[];try{keys=Object.keys(obj).map(k=>String(k).toLowerCase());}catch(e){return false;}
+    return ["id","appid","unifiedappname","name","appname","title","url","startcommand"].some(k=>keys.indexOf(k)>=0);
+  }
+  function collectAppRecords(v,out,d,seen){
+    d=d||0;seen=seen||[];
+    if(d>3||out.length>=120||v==null)return;
+    const parsed=parseJson(v);if(parsed)return collectAppRecords(parsed,out,d+1,seen);
+    if(typeof v!=="object")return;
+    if(seen.indexOf(v)>=0)return;seen.push(v);
+    if(Array.isArray(v)){v.slice(0,100).forEach(x=>collectAppRecords(x,out,d+1,seen));seen.pop();return;}
+    if(appLike(v))out.push(v);
+    let keys=[];try{keys=Object.keys(v).slice(0,60);}catch(e){}
+    keys.forEach(k=>{if(APP_SKIP_RE.test(k))return;let child;try{child=v[k];}catch(e){return;}if((child&&typeof child==="object")||parseJson(child))collectAppRecords(child,out,d+1,seen);});
+    seen.pop();
+  }
+  function recordKey(n){
+    const ids=[n.id,n.appId,n.unifiedAppName].filter(meaningful).map(v=>String(v).trim().toLowerCase());
+    if(ids.length)return "id:"+ids.join("|");
+    const urls=[n.url,n.startCommand].filter(meaningful).map(v=>String(v).trim().toLowerCase());
+    if(urls.length)return "url:"+urls.join("|");
+    const names=[n.name,n.title].filter(meaningful).map(v=>String(v).trim().toLowerCase());
+    return names.length?"name:"+names.join("|"):JSON.stringify(n);
+  }
+  function prepareRecords(records){
+    const out=[],seen={};
+    records.forEach(raw=>{const norm=normalizeApp(raw),key=recordKey(norm);if(!key||seen[key])return;seen[key]=true;out.push({raw:raw,norm:norm});});
+    return out;
+  }
+  function tokenSet(n,keys){
+    const out=[];keys.forEach(k=>{if(meaningful(n[k]))out.push(String(n[k]).trim().toLowerCase());});return out;
+  }
+  function overlaps(a,b){return a.some(v=>b.indexOf(v)>=0);}
+  function matchRecord(a,b){
+    const ai=tokenSet(a,["id","appId","unifiedAppName"]),bi=tokenSet(b,["id","appId","unifiedAppName"]);if(ai.length&&bi.length&&overlaps(ai,bi))return 3;
+    const au=tokenSet(a,["url","startCommand"]),bu=tokenSet(b,["url","startCommand"]);if(au.length&&bu.length&&overlaps(au,bu))return 2;
+    const an=tokenSet(a,["name","title"]),bn=tokenSet(b,["name","title"]);if(an.length&&bn.length&&overlaps(an,bn))return 1;
+    return 0;
+  }
+  function sourceFields(prepared){
+    const seen={};prepared.forEach(x=>{let keys=[];try{keys=Object.keys(x.raw);}catch(e){}keys.slice(0,80).forEach(k=>{if(!APP_SKIP_RE.test(k))seen[k]=true;});});
+    return Object.keys(seen).sort().slice(0,100);
+  }
+  function firstValue(a,b,key){return meaningful(a&&a[key])?a[key]:meaningful(b&&b[key])?b[key]:null;}
+  function classify(inst,info){
+    const store=firstValue(info,inst,"storeType"),pre=firstValue(info,inst,"preInstall");
+    if(pre===true||String(pre).toLowerCase()==="true"||String(store).toLowerCase()==="preinstalled"||String(store).toLowerCase()==="preinstall")return {type:"preinstalled",evidence:{storeType:store,preInstall:pre}};
+    if(String(store).toLowerCase()==="store")return {type:"store",evidence:{storeType:store,preInstall:pre}};
+    if(String(store).toLowerCase()==="hisense")return {type:"hisense",evidence:{storeType:store,preInstall:pre}};
+    return {type:"unknown",evidence:{storeType:store,preInstall:pre}};
+  }
+  function identityFor(inst,info){
+    const out={};["id","appId","unifiedAppName","name","title","url","startCommand"].forEach(k=>{const v=firstValue(info,inst,k);if(v!==null)out[k]=v;});return out;
+  }
+  function scanMetadata(raw,prefix,collector){
+    function walk(v,path,d){
+      if(d>3||collector.count>=40||v==null)return;
+      if(typeof v==="string"){
+        if(APP_REFERENCE_RE.test(v)&&!/^(data:|blob:)/i.test(v)){
+          const id=collector.appId||"unknown",key=id+"|"+prefix+"."+path+"|"+v;
+          if(!collector.referenceSeen[key]&&collector.references.length<80){collector.referenceSeen[key]=true;collector.references.push({appId:id,field:prefix+"."+path,value:cut(v,500),reason:"json/config/path-like"});}
+        }
+        return;
+      }
+      if(typeof v!=="object")return;
+      if(collector.seen.indexOf(v)>=0)return;collector.seen.push(v);
+      if(Array.isArray(v)){v.slice(0,30).forEach((x,i)=>walk(x,path+"["+i+"]",d+1));collector.seen.pop();return;}
+      let keys=[];try{keys=Object.keys(v).slice(0,60);}catch(e){}
+      keys.forEach(k=>{
+        if(collector.count>=40||APP_SKIP_RE.test(k))return;
+        let child;try{child=v[k];}catch(e){return;}
+        const next=path?path+"."+k:k,safe=scalar(child);
+        if(APP_INTERESTING_RE.test(k)){
+          collector.fields[k]=true;
+          if(safe!==null&&safe!==undefined){collector.metadata[prefix+"."+next]=safe;collector.count++;}
+        }
+        if(typeof child==="string")walk(child,next,d+1);
+        else if(child&&typeof child==="object")walk(child,next,d+1);
+      });
+      collector.seen.pop();
+    }
+    walk(raw,"",0);
+  }
+  function makeAppRecord(instEntry,infoEntry,references,referenceSeen){
+    const inst=instEntry?instEntry.norm:{},info=infoEntry?infoEntry.norm:{},identity=identityFor(inst,info);
+    const collector={appId:String(identity.appId||identity.id||identity.unifiedAppName||identity.name||"unknown"),metadata:{},fields:{},count:0,references:references,referenceSeen:referenceSeen,seen:[]};
+    if(instEntry)scanMetadata(instEntry.raw,"installedApps",collector);
+    if(infoEntry)scanMetadata(infoEntry.raw,"appInfo",collector);
+    return {identity:identity,installedApps:instEntry?inst:{},appInfo:infoEntry?info:{},matchedSources:[instEntry?"Hisense_getInstalledApps":null,infoEntry?"websdk/Appinfo.json":null].filter(Boolean),interestingMetadata:collector.metadata,classification:classify(inst,info),_fields:Object.keys(collector.fields)};
+  }
+  function distribution(apps){
+    const out={},special=["storeType","openMode","venderId","vendorId","unifiedAppName","initialFrom","configUrl","configUrlDownload","appBundle","package","packageName","version","developer","categoryName","subCategory","preInstall","isShowOnLauncher"];
+    function add(k,v){if(v===null||v===undefined||typeof v==="object")return;if(!out[k])out[k]={};const s=String(v)===""?"(empty)":cut(v,120);out[k][s]=(out[k][s]||0)+1;}
+    apps.forEach(a=>{
+      special.forEach(k=>add(k,firstValue(a.appInfo,a.installedApps,k)));
+      const perField={};Object.keys(a.interestingMetadata).forEach(path=>{const k=path.split(".").pop();if(!Object.prototype.hasOwnProperty.call(perField,k))perField[k]=a.interestingMetadata[path];});
+      Object.keys(perField).slice(0,40).forEach(k=>add(k,perField[k]));
+    });
+    return out;
+  }
+  function countTypes(apps){const out={store:0,hisense:0,preinstalled:0,unknown:0};apps.forEach(a=>{const k=a.classification&&a.classification.type||"unknown";out[k]=(out[k]||0)+1;});return out;}
+  function formatCounts(o){return Object.keys(o).filter(k=>o[k]>0).map(k=>k+" "+o[k]).join(" · ")||"—";}
+  async function installedMetadataSource(){
+    if(typeof window.Hisense_getInstalledApps!=="function")return {source:{available:false,status:"UNAVAILABLE",count:0,fields:[]},records:[]};
+    let resolveCb,callbackStatus="WAITING",ret=null,error=null,cb=null;const cbp=new Promise(r=>resolveCb=r);
+    try{ret=window.Hisense_getInstalledApps(function(){callbackStatus="RETURNED";resolveCb(Array.prototype.slice.call(arguments));});}catch(e){error=err(e);}
+    if(!error){try{cb=await withTimeout(cbp,1500,"installed apps callback");}catch(e){callbackStatus="TIMEOUT";}}
+    const raw=[];collectAppRecords(ret,raw,0,[]);collectAppRecords(cb,raw,0,[]);const records=prepareRecords(raw);
+    return {source:{available:true,status:error?"ERROR":"RETURNED",callbackStatus:callbackStatus,count:records.length,fields:sourceFields(records),error:error},records:records};
+  }
+  async function appInfoMetadataSource(){
+    if(typeof window.HiUtils_createRequest!=="function")return {source:{available:false,status:"UNAVAILABLE",path:"websdk/Appinfo.json",count:0,fields:[]},records:[]};
+    const r=await traced("installed-app-metadata-appinfo",()=>window.HiUtils_createRequest("fileRead",{path:"websdk/Appinfo.json",mode:6}));
+    const raw=[];collectAppRecords(r.value,raw,0,[]);const records=prepareRecords(raw),tr=r.trace&&r.trace.result||{};
+    return {source:{available:true,status:r.error?"ERROR":"RETURNED",path:"websdk/Appinfo.json",count:records.length,fields:sourceFields(records),ret:tr.ret,code:tr.code,msg:tr.msg,error:r.error||null},records:records};
+  }
+  async function inspectInstalledMetadata(){
+    if(state.running)return;state.running=true;set("metadataState","Inspecting read-only installed app metadata…");
+    try{
+      const a=await installedMetadataSource(),b=await appInfoMetadataSource(),used=[],apps=[],references=[],referenceSeen={};
+      a.records.forEach(inst=>{let best=-1,bestScore=0;for(let i=0;i<b.records.length;i++){if(used[i])continue;const score=matchRecord(inst.norm,b.records[i].norm);if(score>bestScore){bestScore=score;best=i;if(score===3)break;}}if(best>=0){used[best]=true;apps.push(makeAppRecord(inst,b.records[best],references,referenceSeen));}else apps.push(makeAppRecord(inst,null,references,referenceSeen));});
+      b.records.forEach((info,i)=>{if(!used[i])apps.push(makeAppRecord(null,info,references,referenceSeen));});
+      const fields={};apps.forEach(x=>{x._fields.forEach(k=>fields[k]=true);delete x._fields;});
+      const special=["storeType","openMode","venderId","vendorId","unifiedAppName","initialFrom","configUrl","configUrlDownload","appBundle","package","packageName","version","developer","categoryName","subCategory","preInstall","isShowOnLauncher"];
+      special.forEach(k=>{if(apps.some(x=>meaningful(firstValue(x.appInfo,x.installedApps,k))))fields[k]=true;});
+      const interestingFields=Object.keys(fields).sort(),summary={installedAppsCount:a.source.count,appInfoCount:b.source.count,matchedCount:apps.filter(x=>x.matchedSources.length===2).length,appsCount:apps.length,storeTypes:countTypes(apps),interestingFieldsSeen:interestingFields,permissionLikeFieldsSeen:interestingFields.filter(k=>APP_PERMISSION_RE.test(k)),configLikeFieldsSeen:interestingFields.filter(k=>APP_CONFIG_RE.test(k))};
+      const result={timestamp:new Date().toISOString(),sources:{installedApps:a.source,appInfo:b.source},apps:apps,fieldDistribution:distribution(apps),discoveredReferences:references,summary:summary};
+      state.report.installedAppMetadata=result;
+      set("metadataApps",summary.installedAppsCount);set("metadataMatched",summary.matchedCount);set("metadataStoreTypes",formatCounts(summary.storeTypes));set("metadataFields",interestingFields.length?interestingFields.slice(0,8).join(", ")+(interestingFields.length>8?" +"+(interestingFields.length-8):""):"none");set("metadataReferences",references.length);
+      set("metadataState","Inspection complete. Read-only sources only.");log("Installed app metadata inspected",{installedApps:summary.installedAppsCount,appInfo:summary.appInfoCount,matched:summary.matchedCount,references:references.length});await save("installed-app-metadata");
+    }catch(e){set("metadataState","Inspection failed: "+err(e));log("Installed app metadata inspection failed",err(e));}
+    finally{state.running=false;}
+  }
+
   async function verify(){const a=await installed(),b=appInfo(),r={timestamp:new Date().toISOString(),installedApps:a,appInfo:b,verified:!!(a.match||b.match)};state.report.verification=r;set("verifyOutput",r.verified?"VERIFIED INSTALLED":"NOT INSTALLED");return r;}
   function gate(test,verification,previous){const i=test&&test.trace&&test.trace.result||{},code=i.code,ret=i.ret,msg=String(i.msg||"");if(verification&&verification.verified)return "PASSED";if(Number(code)===503&&/permission|appconfig/i.test(msg))return "REJECTED";if(ret===true)return "PASSED";if(test&&test.returnValue===false)return "REJECTED";if(previous&&previous.internal&&(previous.internal.code!==code||previous.internal.ret!==ret||String(previous.internal.msg||"")!==msg))return "CHANGED";return "UNKNOWN";}
   async function installTest(method){
@@ -184,6 +357,6 @@
   function nextControl(cur,key,list){const from=center(cur);let best=null,score=Infinity;list.forEach(el=>{if(el===cur)return;const to=center(el),dx=to.x-from.x,dy=to.y-from.y;let p=null,c=0;if(key==="ArrowUp"&&dy<-4){p=-dy;c=Math.abs(dx);}if(key==="ArrowDown"&&dy>4){p=dy;c=Math.abs(dx);}if(key==="ArrowLeft"&&dx<-4){p=-dx;c=Math.abs(dy);}if(key==="ArrowRight"&&dx>4){p=dx;c=Math.abs(dy);}if(p===null)return;const s=p*10+c;if(s<score){score=s;best=el;}});return best;}
   window.addEventListener("keydown",e=>{const key=e.key||({13:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[e.keyCode]),active=document.activeElement;if((key==="Enter"||key==="OK")&&active&&(active.tagName==="BUTTON"||active.tagName==="SUMMARY")){e.preventDefault();active.click();return;}if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(key)<0)return;if(active&&active.tagName==="INPUT"&&(key==="ArrowLeft"||key==="ArrowRight"))return;const list=controls();if(!list.length)return;const cur=list.indexOf(active)>=0?active:list[0],to=nextControl(cur,key,list);if(to){to.focus();e.preventDefault();}else if(list.indexOf(active)<0){cur.focus();e.preventDefault();}});
 
-  $("baselineBtn").addEventListener("click",baseline); $("runtimeContextInitBtn").addEventListener("click",initContext); $("clientInformationBtn").addEventListener("click",readClient); $("serviceTraceBtn").addEventListener("click",readTrace); $("installDiagnosticBtn").addEventListener("click",()=>installTest()); $("installLegacyBtn").addEventListener("click",()=>installTest("legacy")); $("installV2Btn").addEventListener("click",()=>installTest("v2")); $("temporaryIdentifierBtn").addEventListener("click",tempIdentifier); $("saveBtn").addEventListener("click",saveTarget); $("verifyBtn").addEventListener("click",async()=>{const r=await verify();log("Verification",r);await save("verification");}); $("reportBtn").addEventListener("click",()=>save("export"));
+  $("baselineBtn").addEventListener("click",baseline); $("runtimeContextInitBtn").addEventListener("click",initContext); $("clientInformationBtn").addEventListener("click",readClient); $("serviceTraceBtn").addEventListener("click",readTrace); $("installedMetadataBtn").addEventListener("click",inspectInstalledMetadata); $("installDiagnosticBtn").addEventListener("click",()=>installTest()); $("installLegacyBtn").addEventListener("click",()=>installTest("legacy")); $("installV2Btn").addEventListener("click",()=>installTest("v2")); $("temporaryIdentifierBtn").addEventListener("click",tempIdentifier); $("saveBtn").addEventListener("click",saveTarget); $("verifyBtn").addEventListener("click",async()=>{const r=await verify();log("Verification",r);await save("verification");}); $("reportBtn").addEventListener("click",()=>save("export"));
   load().then(()=>{renderSummary();set("deviceBadge",typeof window.Hisense_GetFirmWareVersion==="function"?"VIDAA browser detected":"Waiting for VIDAA APIs");log("Sidee targeted identity diagnostic ready.");}).catch(e=>log("Config load failed",err(e)));
 })();

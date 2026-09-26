@@ -1680,3 +1680,17 @@ Il test install resta esplicito. Il callback esterno `0` non viene interpretato 
 Eseguire nell'ordine: Baseline → Initialize Context → controllare il diff → Read Client Information → Trace Read-only Service Request → Test Install Permission → Export/Sync Report.
 
 Nel prossimo report sono particolarmente importanti: se `vowOSContext.init()` cambia uno degli identifier, il contenuto filtrato di `clientInformation`, l'identifier realmente visto dal service trace, l'endpoint localhost se osservabile e l'eventuale variazione di ret/code/msg del permission check.
+
+---
+
+## IMPLEMENTAZIONE — Installed App Metadata Inspector — 2026-09-26
+
+È stato aggiunto un `Installed App Metadata Inspector` per confrontare, senza modifiche runtime o filesystem scan, i metadata già esposti dalle app installate. La motivazione è il risultato reale in cui `fileRead("websdk/Appinfo.json")` passa con identifier vuoto mentre `installApplication` viene respinto con `ret:false`, code `503` e permission check AppConfig: questo è compatibile con un controllo permission/ACL per API, ma non viene trattato come prova definitiva.
+
+Le uniche fonti usate dall'Inspector sono `Hisense_getInstalledApps` e `HiUtils_createRequest("fileRead", { path: "websdk/Appinfo.json", mode: 6 })`. I record vengono normalizzati in forma compatta, associati prima per ID/appId/unifiedAppName, poi URL/startCommand e infine nome/title. Il report salva per ogni app identità compatta, dati normalizzati per fonte, sorgenti matched, metadata interessanti e classificazione descrittiva `store / hisense / preinstalled / unknown`.
+
+L'ispezione considera i campi core richiesti (ID, nome, URL/start command, StoreType/openMode/vendor, unifiedAppName, config/package/version/developer/category/preInstall/launcher) e proprietà correlate a permission, privilege, security, appconfig/config, identifier/client, role/customer, origin/domain, package/bundle, store/install/launch, sign/certificate/auth. La scansione dei singoli record è limitata a profondità 3, massimo 40 proprietà interessanti per app e stringhe di circa 500 caratteri; immagini, base64/blob e contenuti promozionali voluminosi vengono esclusi.
+
+Il report di sessione unico contiene `installedAppMetadata` con `sources`, `apps`, `fieldDistribution`, `discoveredReferences` e `summary`. I riferimenti path/config già presenti nei metadata vengono soltanto registrati; non vengono letti automaticamente. Un rerun sostituisce la sezione precedente invece di accumulare duplicati.
+
+Vincoli mantenuti: nessun directory traversal, path guessing, filesystem scan, fileWrite, install/uninstall automatico, Role/Customer setter, clientInformation setter, API security/signature o reset. Il prossimo report reale deve mostrare quali campi espone ciascuna fonte, quali app fanno match, distribuzioni tra store/hisense/preinstalled/unknown, eventuali campi permission/AppConfig/security/identifier/client/role e riferimenti config/path concreti da valutare in una fase successiva.
