@@ -58,6 +58,22 @@ The generated multihost certificate now uses a new filename and includes `catego
 
 For the real-TV trace: start Sidee, point TV DNS to the Sidee PC, open the official VIDAA Store, browse a category, and open the detail page of an existing app. Do not press Install during this first transport-only phase.
 
+
+
+### Passive Store domain discovery
+
+If the fixed `category-ui.vidaahub.com` trace stays completely silent, Sidee now records a **passive DNS-only** discovery set while leaving those DNS answers untouched and forwarded normally.
+
+The persisted scope is deliberately narrow:
+- any `*.vidaahub.com` hostname;
+- `api-launcher-*.hismarttv.com`;
+- `auth-launcher-*.hismarttv.com`;
+- `unified-ter-*.hismarttv.com`.
+
+No generic browsing/DNS history is stored. The report section is `storeDomainDiscovery`; it keeps only hostname, DNS query type, count, and first/last timestamps. It does not spoof newly discovered hosts, intercept TLS, or store DNS payloads/query values.
+
+This exists because the Q0707 test produced no DNS/SNI/HTTP hit for `category-ui.vidaahub.com`. Public evidence also shows other VIDAA Store-family hosts such as `appstore-vidaa.vidaahub.com` and `vidaa-base-auth-oc.vidaahub.com`, so the next step is to observe which hostname this TV actually asks for before intercepting anything else.
+
 ## What it does
 
 - local DNS server: redirects only `vidaahub.com` / `www.vidaahub.com` to your PC and forwards other DNS requests upstream

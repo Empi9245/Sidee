@@ -82,6 +82,10 @@ STORE_PROXY_HOP_HEADERS = {
     "upgrade",
 }
 
+STORE_DISCOVERY_LOCK = threading.Lock()
+STORE_DISCOVERY_REPORT = None
+STORE_DISCOVERY_MAX_HOSTS = 40
+
 
 def client_build_id():
     """Bind the UI, shared context probe and inline bootstrap to one build."""
@@ -270,6 +274,113 @@ def _redact_store_message(value, limit=500):
     )
     text = re.sub(r"(?i)\bBearer\s+[^\s,;]+", "Bearer <redacted>", text)
     return text[:limit]
+
+
+def _is_store_discovery_host(host):
+    host = _normalized_host(host)
+    if not host:
+        return False
+    if host == "vidaahub.com" or host.endswith(".vidaahub.com"):
+        return True
+    if re.fullmatch(r"(?:api-launcher|auth-launcher)-[^.]+\.hismarttv\.com", host):
+        return True
+    if re.fullmatch(r"unified-ter-[^.]+\.hismarttv\.com", host):
+        return True
+    return False
+
+
+def _dns_qtype_name(qtype):
+    return {1: "A", 28: "AAAA", 65: "HTTPS"}.get(int(qtype or 0), str(int(qtype or 0)))
+
+
+def _new_store_domain_discovery_report():
+    now = _utc_timestamp()
+    session_id = _new_probe_session_id()
+    return {
+        "sessionId": session_id,
+        "clientBuildId": client_build_id(),
+        "serverBuildId": client_build_id(),
+        "buildMatch": True,
+        "startedAt": now,
+        "updatedAt": now,
+        "accessMode": "VIDAA_STORE_DOMAIN_DISCOVERY",
+        "storeDomainDiscovery": {
+            "passiveDnsOnly": True,
+            "responsesModified": False,
+            "queryValuesPersisted": False,
+            "scope": [
+                "*.vidaahub.com",
+                "api-launcher-*.hismarttv.com",
+                "auth-launcher-*.hismarttv.com",
+                "unified-ter-*.hismarttv.com",
+            ],
+            "status": "IDLE",
+            "totalQueries": 0,
+            "hostCount": 0,
+            "hosts": [],
+        },
+        "summary": {"storeDomainDiscovery": "IDLE"},
+    }
+
+
+def _record_store_domain_query(host, qtype):
+    global STORE_DISCOVERY_REPORT
+    host = _normalized_host(host)
+    if host == STORE_CATALOG_HOST or not _is_store_discovery_host(host):
+        return None
+
+    qtype_name = _dns_qtype_name(qtype)
+    with STORE_DISCOVERY_LOCK:
+        if STORE_DISCOVERY_REPORT is None:
+            STORE_DISCOVERY_REPORT = _new_store_domain_discovery_report()
+        report = STORE_DISCOVERY_REPORT
+        discovery = report["storeDomainDiscovery"]
+        now = _utc_timestamp()
+        report["updatedAt"] = now
+        discovery["totalQueries"] = int(discovery.get("totalQueries", 0)) + 1
+
+        item = next((entry for entry in discovery["hosts"] if entry.get("host") == host), None)
+        new_host = item is None
+        if item is None:
+            if len(discovery["hosts"]) >= STORE_DISCOVERY_MAX_HOSTS:
+                item = None
+            else:
+                item = {
+                    "host": host,
+                    "firstSeen": now,
+                    "lastSeen": now,
+                    "queryCount": 0,
+                    "qtypes": [],
+                }
+                discovery["hosts"].append(item)
+        new_qtype = False
+        if item is not None:
+            item["lastSeen"] = now
+            item["queryCount"] = int(item.get("queryCount", 0)) + 1
+            qtypes = item.setdefault("qtypes", [])
+            if qtype_name not in qtypes:
+                qtypes.append(qtype_name)
+                qtypes.sort()
+                new_qtype = True
+
+        discovery["hostCount"] = len(discovery["hosts"])
+        discovery["status"] = "QUERIES_CAPTURED" if discovery["hosts"] else "IDLE"
+        report["summary"]["storeDomainDiscovery"] = discovery["status"]
+        snapshot = json.loads(json.dumps(report))
+        should_sync = new_host or new_qtype or discovery["totalQueries"] % 20 == 0
+
+    try:
+        write_session_report(snapshot["sessionId"], snapshot)
+    except Exception as exc:
+        print(f"[STORE-DNS] local report error: {exc}")
+    if should_sync:
+        try:
+            queue_report_sync(snapshot["sessionId"], snapshot, "store-domain-discovery")
+        except Exception as exc:
+            print(f"[STORE-DNS] sync error: {exc}")
+    if new_host:
+        print(f"[STORE-DNS] discovered {host} ({qtype_name})")
+    return snapshot
 
 
 def _store_trace_status(trace):
@@ -1750,6 +1861,11 @@ def run_dns(config, local_ip):
             break
         try:
             host, qtype, _ = parse_dns_question(data)
+            if _is_store_discovery_host(host) and host != STORE_CATALOG_HOST:
+                try:
+                    _record_store_domain_query(host, qtype)
+                except Exception as exc:
+                    print(f"[DNS] store-domain discovery error: {exc}")
             if host in domains and qtype == 1:
                 response = dns_answer(data, local_ip)
                 print(f"[DNS] {client[0]} {host} -> {local_ip}")

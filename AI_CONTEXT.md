@@ -3968,3 +3968,68 @@ La redaction degli errori è applicata anche dentro il recorder del trace, non s
 - presenza di `category-ui.vidaahub.com` in `spoof_domains`.
 
 Il test TV reale non è ancora avvenuto dopo questa build. L'ultimo `reports/latest.json` disponibile continua a essere una sessione browser precedente senza `storeCatalogTrace`. Il prossimo dato utile deve quindi arrivare aprendo il VIDAA Store ufficiale con il DNS TV puntato a Sidee.
+
+
+## RISULTATO TV — category-ui silent + passive Store domain discovery — 2026-09-26
+
+### Test reale Q0707
+
+Dopo il test con il VIDAA Store ufficiale, `sidee-reports` non ha ricevuto alcun nuovo commit/report. `reports/latest.json` è rimasto la sessione browser precedente `sidee-20260926-182425-cbe7` e non contiene `storeCatalogTrace`.
+
+Poiché il trace crea/sincronizza già un report al primo evento DNS A/AAAA per `category-ui.vidaahub.com`, il risultato osservato è:
+
+`NO_CATEGORY_UI_DNS_HIT_OBSERVED`
+
+nel test effettuato.
+
+Questo non prova che la TV non usi mai quell'host: caching, percorso Store differente o backend diverso restano possibili. Però non c'è evidenza sufficiente per continuare a intercettare `category-ui.vidaahub.com` come host principale della Q0707.
+
+### Nuove evidenze pubbliche concrete
+
+Sono emersi due marker utili:
+- `appstore-vidaa.vidaahub.com` risulta attivo nel 2026 e servito via HTTPS/CloudFront;
+- un log pubblico Stremio/VIDAA del 2025 mostra una TV che richiede `vidaa-base-auth-oc.vidaahub.com`.
+
+Sono marker di discovery, non prova che la Q0707 usi uno dei due per il flusso Store corrente.
+
+Sono inoltre documentati host launcher Hisense come:
+- `api-launcher-em.hismarttv.com`;
+- `auth-launcher-em.hismarttv.com`;
+- equivalenti regionali;
+- `unified-ter-*.hismarttv.com`.
+
+### Implementazione: passive Store domain discovery
+
+Sidee registra ora, dal resolver DNS già esistente e **senza cambiare la risposta DNS**, soltanto query per:
+- `vidaahub.com` e `*.vidaahub.com`;
+- `api-launcher-*.hismarttv.com`;
+- `auth-launcher-*.hismarttv.com`;
+- `unified-ter-*.hismarttv.com`.
+
+Il discovery:
+- non registra domini generici;
+- non registra payload DNS;
+- non registra query values;
+- non aggiunge i nuovi host a `spoof_domains`;
+- non intercetta TLS;
+- non modifica traffico;
+- salva solo host, qtype, contatore, firstSeen/lastSeen;
+- deduplica per hostname;
+- sincronizza subito quando appare un host/qtype nuovo.
+
+Report: `storeDomainDiscovery`.
+Stato utile: `QUERIES_CAPTURED`.
+
+`category-ui.vidaahub.com` resta escluso dal discovery generico perché ha già il trace dedicato esistente.
+
+### Prossimo test
+
+Dopo pull/restart:
+1. mantenere il DNS TV sul PC Sidee;
+2. non aprire browser, Smartone o Duplecast;
+3. aprire VIDAA Store ufficiale;
+4. navigare home/categoria/dettaglio per circa un minuto;
+5. non premere Install;
+6. chiudere Store.
+
+Il prossimo report deve dirci quale hostname Store/launcher la Q0707 chiede davvero. Solo dopo si decide quale host, se necessario, merita un trace HTTP/TLS dedicato.

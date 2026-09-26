@@ -200,6 +200,33 @@ class StoreCatalogTraceTests(unittest.TestCase):
         finally:
             sidee.STORE_TRACE_REPORT = previous
 
+    def test_store_domain_discovery_is_vendor_scoped_and_deduped(self):
+        self.assertTrue(sidee._is_store_discovery_host("appstore-vidaa.vidaahub.com"))
+        self.assertTrue(sidee._is_store_discovery_host("vidaa-base-auth-oc.vidaahub.com"))
+        self.assertTrue(sidee._is_store_discovery_host("api-launcher-em.hismarttv.com"))
+        self.assertTrue(sidee._is_store_discovery_host("auth-launcher-na.hismarttv.com"))
+        self.assertFalse(sidee._is_store_discovery_host("example.com"))
+        self.assertFalse(sidee._is_store_discovery_host("api-gps-em.hismarttv.com"))
+
+        previous = sidee.STORE_DISCOVERY_REPORT
+        sidee.STORE_DISCOVERY_REPORT = None
+        try:
+            with mock.patch.object(sidee, "write_session_report"), \
+                 mock.patch.object(sidee, "queue_report_sync") as sync:
+                sidee._record_store_domain_query("appstore-vidaa.vidaahub.com", 1)
+                snapshot = sidee._record_store_domain_query("appstore-vidaa.vidaahub.com", 28)
+                sidee._record_store_domain_query("example.com", 1)
+
+            discovery = snapshot["storeDomainDiscovery"]
+            self.assertEqual(discovery["status"], "QUERIES_CAPTURED")
+            self.assertEqual(discovery["hostCount"], 1)
+            self.assertEqual(discovery["hosts"][0]["host"], "appstore-vidaa.vidaahub.com")
+            self.assertEqual(discovery["hosts"][0]["qtypes"], ["A", "AAAA"])
+            self.assertEqual(discovery["hosts"][0]["queryCount"], 2)
+            self.assertEqual(sync.call_count, 2)
+        finally:
+            sidee.STORE_DISCOVERY_REPORT = previous
+
     def test_config_spoofs_store_host(self):
         cfg = sidee.load_config()
         self.assertIn(sidee.STORE_CATALOG_HOST, cfg["spoof_domains"])
