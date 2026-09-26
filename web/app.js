@@ -52,7 +52,7 @@
     try{ const a=new Uint8Array(2); crypto.getRandomValues(a); tail=Array.from(a).map(x=>x.toString(16).padStart(2,"0")).join(""); }catch(e){}
     const id="sidee-"+stamp+"-"+tail; try{sessionStorage.setItem("sidee.sessionId",id);}catch(e){} return id;
   }
-  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,accessContext:pageContext(),accessMode:accessMode(),serverAccess:null,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},contextIdentityFingerprint:null,clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,identityOverrideLab:null,identityWriteGateLab:null,candidatePermissionTest:null,directAppInfoWriteLab:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",contextFingerprint:"NOT_RUN",permissionGate:"UNKNOWN",appInfoWrite:"NOT_RUN"}}; }
+  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,accessContext:pageContext(),accessMode:accessMode(),serverAccess:null,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},contextIdentityFingerprint:null,clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,identityOverrideLab:null,identityWriteGateLab:null,candidatePermissionTest:null,directAppInfoWriteLab:null,legacyHspdkWriteLab:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",contextFingerprint:"NOT_RUN",permissionGate:"UNKNOWN",appInfoWrite:"NOT_RUN"}}; }
   state.report=newReport();
 
   function meaningful(v){
@@ -952,6 +952,193 @@
     }
     return report;
   }
+  function hspdkHost(){
+    const names=["HiBrowser","Hisense"];
+    for(let i=0;i<names.length;i++){
+      try{
+        const value=window[names[i]];
+        if(value&&(typeof value==="object"||typeof value==="function"))return {name:names[i],value:value};
+      }catch(e){}
+    }
+    return {name:null,value:null};
+  }
+  function hspdkFnMeta(owner,name){
+    if(!owner)return {available:false};
+    try{
+      const fn=owner[name];
+      return {available:typeof fn==="function",descriptor:descriptor(owner,name),name:typeof fn==="function"?(fn.name||name):null,length:typeof fn==="function"?fn.length:null,source:typeof fn==="function"?functionSource(fn):null};
+    }catch(e){return {available:false,error:err(e)};}
+  }
+  function hspdkSnapshot(){
+    const selected=hspdkHost(),owner=selected.value;
+    let file=null,fileError=null;
+    if(owner){try{file=owner.File||null;}catch(e){fileError=err(e);}}
+    return {
+      owner:selected.name,
+      ownerAvailable:!!owner,
+      ownerType:owner?typeof owner:"missing",
+      loadLibrary:hspdkFnMeta(owner,"loadLibrary"),
+      fileAvailable:!!file,
+      fileError:fileError,
+      fileProperties:file?(()=>{try{return Object.getOwnPropertyNames(file).slice(0,80);}catch(e){return [];}})():[],
+      read:hspdkFnMeta(file,"read"),
+      write:hspdkFnMeta(file,"write")
+    };
+  }
+  function hspdkFile(owner){
+    if(!owner)return null;
+    try{return owner.File||null;}catch(e){return null;}
+  }
+  async function hspdkReadRegistry(file,path){
+    const out={path:path,ok:false,raw:null,parsed:null,parseValid:false,hash:null,length:null,appInfoCount:null,error:null};
+    if(!file||typeof file.read!=="function"){out.error="Legacy File.read unavailable";return out;}
+    try{
+      const raw=file.read(path,1);
+      if(typeof raw!=="string"){out.error="File.read did not return a string";return out;}
+      const parsed=parseRegistryRaw(raw);
+      out.raw=raw;out.parsed=parsed.parsed;out.parseValid=parsed.valid;out.hash=await hashText(raw);out.length=raw.length;out.appInfoCount=parsed.appInfoCount;out.ok=parsed.valid;out.error=parsed.error||null;
+    }catch(e){out.error=err(e);}
+    return out;
+  }
+  async function hspdkFindRegistry(file){
+    const paths=["launcher/Appinfo.json","websdk/Appinfo.json"],attempts=[];
+    for(let i=0;i<paths.length;i++){
+      const r=await hspdkReadRegistry(file,paths[i]);attempts.push({path:r.path,ok:r.ok,error:r.error,length:r.length,appInfoCount:r.appInfoCount});
+      if(r.ok)return {registry:r,attempts:attempts};
+    }
+    return {registry:null,attempts:attempts};
+  }
+  function hspdkWrite(file,path,raw){
+    const out={path:path,mode:1,returnValue:null,error:null,completed:false};
+    if(!file||typeof file.write!=="function"){out.error="Legacy File.write unavailable";return out;}
+    try{out.returnValue=labSafe(file.write(path,raw,1));out.completed=true;}catch(e){out.error=err(e);}
+    return out;
+  }
+  function hspdkCandidateEntry(parsed){
+    const apps=parsed&&Array.isArray(parsed.AppInfo)?parsed.AppInfo:[],useAppId=apps.some(a=>a&&typeof a==="object"&&Object.prototype.hasOwnProperty.call(a,"AppId"))&&!apps.some(a=>a&&typeof a==="object"&&Object.prototype.hasOwnProperty.call(a,"Id"));
+    const t=target(),i=icon(t),day=new Date().toISOString().split("T")[0];
+    const entry={Thumb:i,Icon_96:i,Image:i,URL:t.app_url,AppName:t.app_name,Title:t.app_name,IconURL:i,StartCommand:t.app_url,InstallTime:day,RunTimes:0,StoreType:"custom",PreInstall:false};
+    entry[useAppId?"AppId":"Id"]=t.app_id;
+    return entry;
+  }
+  function hspdkDuplicate(apps,candidate){
+    const norm=v=>String(v==null?"":v).trim().toLowerCase(),cid=norm(candidate.Id||candidate.AppId),curl=norm(candidate.URL),cname=norm(candidate.AppName);
+    for(let i=0;i<apps.length;i++){
+      const a=apps[i]||{};
+      if((cid&&norm(a.Id||a.AppId)===cid)||(curl&&norm(a.URL||a.StartCommand)===curl)||(cname&&(norm(a.AppName)===cname||norm(a.Title)===cname)))return {index:i,entry:labSafe(a)};
+    }
+    return null;
+  }
+  function hspdkRefreshLauncher(appId){
+    const out={available:false,attempted:false,returnValue:null,error:null};
+    try{
+      const omi=window.omi_platform;
+      if(!omi||typeof omi.sendPlatformMessage!=="function")return out;
+      out.available=true;out.attempted=true;
+      const msg={type:"APPMessage",MsgType:"appControl",action:"updateAppState",source:"browser",startAppType:2,param:{event:"AllAppsUpdate",SubModuleName:"AllApps",startFrom:"",appInfo:appId}};
+      out.returnValue=labSafe(omi.sendPlatformMessage(JSON.stringify(msg)));
+    }catch(e){out.error=err(e);}
+    return out;
+  }
+  function renderLegacyHspdkLab(r){
+    set("legacyHspdkOwner",r&&r.afterLoad&&r.afterLoad.owner?r.afterLoad.owner:r&&r.beforeLoad&&r.beforeLoad.owner?r.beforeLoad.owner:"NONE");
+    set("legacyHspdkLibrary",r&&r.libraryLoad?(r.libraryLoad.attempted?(r.libraryLoad.error?"ERROR":"CALLED"):"NOT_NEEDED"):"NOT_RUN");
+    set("legacyHspdkPath",r&&r.registry?r.registry.path:"—");
+    set("legacyHspdkProbe",r&&r.probe?r.probe.status:"NOT_RUN");
+    set("legacyHspdkRestore",r&&r.restore?r.restore.status:"NOT_RUN");
+    set("legacyHspdkCapability",r&&r.writeCapability?r.writeCapability:"NOT_RUN");
+    set("legacyHspdkState",r?(r.writeCapability+(r.error?" · "+r.error:"")):"Not run yet.");
+    const add=$("addNuvioHspdkBtn"),restore=$("restoreHspdkBackupBtn");
+    if(add)add.disabled=!(r&&r.writeCapability==="WRITE_ALLOWED_AND_RESTORED");
+    if(restore)restore.disabled=!(r&&r.backup&&r.backup.backupId&&r.registry&&r.registry.path);
+    if(r&&r.writeCapability)state.report.summary.appInfoWrite="HSPDK_"+r.writeCapability;
+    renderSummary();
+  }
+  async function legacyHspdkWriteLab(){
+    if(state.running)return null;
+    state.running=true;set("legacyHspdkState","Probing legacy Hisense/HSPDK file writer…");
+    const report={timestamp:new Date().toISOString(),pageContext:pageContext(),source:{article:"https://bananamafia.dev/post/hisensehax/",legacyImplementation:"hisense-app-store/hisense-app-store.github.io · libhspdk-jsx.so"},beforeLoad:null,libraryLoad:{attempted:false,library:"libhspdk-jsx.so",returnValue:null,error:null},afterLoad:null,registry:null,readAttempts:[],backup:null,probe:null,restore:null,writeCapability:"INCONCLUSIVE",error:null};
+    try{
+      await refreshDirectBuildMatch();
+      const selected=hspdkHost();report.beforeLoad=hspdkSnapshot();
+      if(!selected.value)throw new Error("Neither window.HiBrowser nor window.Hisense is exposed in this context");
+      let file=hspdkFile(selected.value);
+      if((!file||typeof file.read!=="function"||typeof file.write!=="function")&&typeof selected.value.loadLibrary==="function"){
+        report.libraryLoad.attempted=true;
+        try{report.libraryLoad.returnValue=labSafe(selected.value.loadLibrary("libhspdk-jsx.so"));}catch(e){report.libraryLoad.error=err(e);}
+      }
+      report.afterLoad=hspdkSnapshot();file=hspdkFile(selected.value);
+      if(!file||typeof file.read!=="function"||typeof file.write!=="function")throw new Error("Legacy File.read/File.write not exposed after HSPDK probe");
+      const found=await hspdkFindRegistry(file);report.readAttempts=found.attempts;
+      if(!found.registry)throw new Error("No valid AppInfo registry readable through the legacy File API");
+      const before=found.registry;report.registry={path:before.path,hash:before.hash,length:before.length,appInfoCount:before.appInfoCount};
+      report.backup=await createAppInfoBackup(before.raw,before.hash);
+      const probeRaw=before.raw.endsWith("\n")?before.raw+" ":before.raw+"\n",probeParsed=parseRegistryRaw(probeRaw);
+      if(!probeParsed.valid||stableJson(probeParsed.parsed)!==stableJson(before.parsed))throw new Error("Could not construct structurally identical whitespace probe");
+      const probeHash=await hashText(probeRaw),write=hspdkWrite(file,before.path,probeRaw),probeRead=await hspdkReadRegistry(file,before.path);
+      const probeApplied=!!(write.completed&&probeRead.ok&&probeRead.raw===probeRaw&&probeRead.hash&&probeHash&&probeRead.hash.algorithm===probeHash.algorithm&&probeRead.hash.value===probeHash.value&&stableJson(probeRead.parsed)===stableJson(before.parsed));
+      report.probe={status:probeApplied?"PROBE_APPLIED":"PROBE_NOT_APPLIED",write:write,expectedHash:probeHash,readbackHash:probeRead.hash,readbackLength:probeRead.length,structurallyIdentical:probeRead.parseValid?stableJson(probeRead.parsed)===stableJson(before.parsed):false,error:probeRead.error||write.error||null};
+      const restoreWrite=hspdkWrite(file,before.path,before.raw),restored=await hspdkReadRegistry(file,before.path);
+      const restoredExact=!!(restoreWrite.completed&&restored.ok&&restored.raw===before.raw&&restored.hash&&before.hash&&restored.hash.algorithm===before.hash.algorithm&&restored.hash.value===before.hash.value);
+      report.restore={status:restoredExact?"RESTORED_IDENTICAL":"RESTORE_NOT_VERIFIED",write:restoreWrite,readbackHash:restored.hash,readbackLength:restored.length,error:restored.error||restoreWrite.error||null};
+      if(probeApplied&&restoredExact)report.writeCapability="WRITE_ALLOWED_AND_RESTORED";
+      else if(probeApplied&&!restoredExact)report.writeCapability="RESTORE_FAILED";
+      else if(write.error)report.writeCapability="WRITE_ERROR";
+      else report.writeCapability="WRITE_NOT_APPLIED";
+    }catch(e){report.error=err(e);}
+    finally{
+      state.report.legacyHspdkWriteLab=report;renderLegacyHspdkLab(report);log("Legacy HSPDK write lab",{owner:report.afterLoad&&report.afterLoad.owner,path:report.registry&&report.registry.path,capability:report.writeCapability,error:report.error});state.running=false;await save("legacy-hspdk-write-lab");
+    }
+    return report;
+  }
+  async function restoreHspdkBackup(){
+    const lab=state.report.legacyHspdkWriteLab;
+    if(!lab||!lab.backup||!lab.registry||!lab.registry.path)return set("legacyHspdkRestoreState","No HSPDK backup from this session is available.");
+    if(state.running)return;state.running=true;set("legacyHspdkRestoreState","Restoring exact HSPDK AppInfo backup…");
+    let result={timestamp:new Date().toISOString(),status:"INCONCLUSIVE",error:null};
+    try{
+      await refreshDirectBuildMatch();
+      const selected=hspdkHost();if(!selected.value)throw new Error("Legacy host object unavailable");
+      let file=hspdkFile(selected.value);
+      if((!file||typeof file.write!=="function")&&typeof selected.value.loadLibrary==="function")selected.value.loadLibrary("libhspdk-jsx.so");
+      file=hspdkFile(selected.value);if(!file||typeof file.write!=="function"||typeof file.read!=="function")throw new Error("Legacy File API unavailable");
+      const backup=await loadAppInfoBackup(lab.backup),write=hspdkWrite(file,lab.registry.path,backup.raw),after=await hspdkReadRegistry(file,lab.registry.path),hash=await hashText(backup.raw);
+      result.write=write;result.readbackHash=after.hash;result.status=write.completed&&after.ok&&after.raw===backup.raw&&after.hash&&hash&&after.hash.value===hash.value?"RESTORED_IDENTICAL":"RESTORE_NOT_VERIFIED";
+    }catch(e){result.error=err(e);}
+    finally{lab.manualRestore=result;state.report.legacyHspdkWriteLab=lab;set("legacyHspdkRestoreState",result.status+(result.error?" · "+result.error:""));state.running=false;await save("legacy-hspdk-restore");}
+  }
+  async function addNuvioHspdk(){
+    const lab=state.report.legacyHspdkWriteLab;
+    if(!lab||lab.writeCapability!=="WRITE_ALLOWED_AND_RESTORED")return set("legacyHspdkAddState","Run a successful HSPDK write+restore proof first.");
+    if(state.running)return;state.running=true;set("legacyHspdkAddState","Adding Nuvio through the verified legacy File writer…");
+    let result={timestamp:new Date().toISOString(),status:"INCONCLUSIVE",backup:null,candidate:null,refresh:null,error:null};
+    try{
+      await refreshDirectBuildMatch();
+      const selected=hspdkHost();if(!selected.value)throw new Error("Legacy host object unavailable");
+      let file=hspdkFile(selected.value);
+      if((!file||typeof file.write!=="function")&&typeof selected.value.loadLibrary==="function")selected.value.loadLibrary("libhspdk-jsx.so");
+      file=hspdkFile(selected.value);if(!file||typeof file.write!=="function"||typeof file.read!=="function")throw new Error("Legacy File API unavailable");
+      const before=await hspdkReadRegistry(file,lab.registry.path);if(!before.ok)throw new Error(before.error||"Could not read current legacy AppInfo");
+      result.backup=await createAppInfoBackup(before.raw,before.hash);
+      const candidate=hspdkCandidateEntry(before.parsed);result.candidate=candidate;
+      const duplicate=hspdkDuplicate(before.parsed.AppInfo,candidate);
+      if(duplicate){result.status="APPINFO_ENTRY_PRESENT";result.duplicate=duplicate;}
+      else{
+        const next=JSON.parse(before.raw);next.AppInfo.push(candidate);const raw=JSON.stringify(next),write=hspdkWrite(file,lab.registry.path,raw),after=await hspdkReadRegistry(file,lab.registry.path);
+        result.write=write;result.readback={hash:after.hash,length:after.length,appInfoCount:after.appInfoCount,error:after.error};
+        const found=after.ok?hspdkDuplicate(after.parsed.AppInfo,candidate):null;
+        const preserved=!!(after.ok&&after.parsed.AppInfo.length===before.parsed.AppInfo.length+1&&before.parsed.AppInfo.every((entry,i)=>stableJson(entry)===stableJson(after.parsed.AppInfo[i])));
+        if(write.completed&&found&&preserved){result.status="APPINFO_ENTRY_PRESENT";result.found=found;result.refresh=hspdkRefreshLauncher(candidate.Id||candidate.AppId);}
+        else{
+          const backup=await loadAppInfoBackup(result.backup),restoreWrite=hspdkWrite(file,lab.registry.path,backup.raw),restored=await hspdkReadRegistry(file,lab.registry.path);
+          result.emergencyRestore={write:restoreWrite,status:restoreWrite.completed&&restored.ok&&restored.raw===backup.raw?"RESTORED_IDENTICAL":"RESTORE_NOT_VERIFIED"};
+          throw new Error("Nuvio write was not verified; original registry restore attempted");
+        }
+      }
+    }catch(e){result.error=err(e);}
+    finally{lab.addResult=result;state.report.legacyHspdkWriteLab=lab;set("legacyHspdkAddState",result.status+(result.error?" · "+result.error:"")+(result.status==="APPINFO_ENTRY_PRESENT"?" · launcher refresh sent when available":""));log("HSPDK Nuvio add",result);state.running=false;await save("legacy-hspdk-add-nuvio");}
+  }
+
   function directDuplicate(apps,candidate){
     const norm=v=>String(v==null?"":v).trim().toLowerCase();
     for(let i=0;i<apps.length;i++){
@@ -1558,6 +1745,6 @@
   function nextControl(cur,key,list){const from=center(cur);let best=null,score=Infinity;list.forEach(el=>{if(el===cur)return;const to=center(el),dx=to.x-from.x,dy=to.y-from.y;let p=null,c=0;if(key==="ArrowUp"&&dy<-4){p=-dy;c=Math.abs(dx);}if(key==="ArrowDown"&&dy>4){p=dy;c=Math.abs(dx);}if(key==="ArrowLeft"&&dx<-4){p=-dx;c=Math.abs(dy);}if(key==="ArrowRight"&&dx>4){p=dx;c=Math.abs(dy);}if(p===null)return;const s=p*10+c;if(s<score){score=s;best=el;}});return best;}
   window.addEventListener("keydown",e=>{const key=e.key||({13:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[e.keyCode]),active=document.activeElement;if((key==="Enter"||key==="OK")&&active&&(active.tagName==="BUTTON"||active.tagName==="SUMMARY")){e.preventDefault();active.click();return;}if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(key)<0)return;if(active&&active.tagName==="INPUT"&&(key==="ArrowLeft"||key==="ArrowRight"))return;const list=controls();if(!list.length)return;const cur=list.indexOf(active)>=0?active:list[0],to=nextControl(cur,key,list);if(to){to.focus();e.preventDefault();}else if(list.indexOf(active)<0){cur.focus();e.preventDefault();}});
 
-  $("remoteDiagnosticArmBtn").addEventListener("click",toggleRemoteDiagnostics);   $("baselineBtn").addEventListener("click",baseline); $("contextIdentityFingerprintBtn").addEventListener("click",()=>contextIdentityFingerprint()); $("runtimeContextInitBtn").addEventListener("click",initContext); $("clientInformationBtn").addEventListener("click",readClient); $("serviceTraceBtn").addEventListener("click",readTrace); $("directAppInfoWriteBtn").addEventListener("click",()=>directAppInfoWriteLab()); $("addNuvioDirectBtn").addEventListener("click",addNuvioDirect); $("restoreAppInfoBackupBtn").addEventListener("click",restoreAppInfoBackup); $("identityOverrideLabBtn").addEventListener("click",()=>identityWriteGateLab()); $("candidatePermissionBtn").addEventListener("click",candidatePermissionGateTest); $("permissionSourceTraceBtn").addEventListener("click",permissionSourceTrace); $("installedMetadataBtn").addEventListener("click",inspectInstalledMetadata); $("installDiagnosticBtn").addEventListener("click",()=>installTest()); $("installLegacyBtn").addEventListener("click",()=>installTest("legacy")); $("installV2Btn").addEventListener("click",()=>installTest("v2")); $("temporaryIdentifierBtn").addEventListener("click",tempIdentifier); $("saveBtn").addEventListener("click",saveTarget); $("verifyBtn").addEventListener("click",async()=>{const r=await verify();log("Verification",r);await save("verification");}); $("reportBtn").addEventListener("click",()=>save("export"));
+  $("remoteDiagnosticArmBtn").addEventListener("click",toggleRemoteDiagnostics);   $("baselineBtn").addEventListener("click",baseline); $("contextIdentityFingerprintBtn").addEventListener("click",()=>contextIdentityFingerprint()); $("runtimeContextInitBtn").addEventListener("click",initContext); $("clientInformationBtn").addEventListener("click",readClient); $("serviceTraceBtn").addEventListener("click",readTrace); $("directAppInfoWriteBtn").addEventListener("click",()=>directAppInfoWriteLab()); $("legacyHspdkWriteBtn").addEventListener("click",()=>legacyHspdkWriteLab()); $("addNuvioHspdkBtn").addEventListener("click",addNuvioHspdk); $("restoreHspdkBackupBtn").addEventListener("click",restoreHspdkBackup); $("addNuvioDirectBtn").addEventListener("click",addNuvioDirect); $("restoreAppInfoBackupBtn").addEventListener("click",restoreAppInfoBackup); $("identityOverrideLabBtn").addEventListener("click",()=>identityWriteGateLab()); $("candidatePermissionBtn").addEventListener("click",candidatePermissionGateTest); $("permissionSourceTraceBtn").addEventListener("click",permissionSourceTrace); $("installedMetadataBtn").addEventListener("click",inspectInstalledMetadata); $("installDiagnosticBtn").addEventListener("click",()=>installTest()); $("installLegacyBtn").addEventListener("click",()=>installTest("legacy")); $("installV2Btn").addEventListener("click",()=>installTest("v2")); $("temporaryIdentifierBtn").addEventListener("click",tempIdentifier); $("saveBtn").addEventListener("click",saveTarget); $("verifyBtn").addEventListener("click",async()=>{const r=await verify();log("Verification",r);await save("verification");}); $("reportBtn").addEventListener("click",()=>save("export"));
   load().then(async()=>{renderSummary();set("deviceBadge",typeof window.Hisense_GetFirmWareVersion==="function"?"VIDAA browser detected":"Waiting for VIDAA APIs");log("Sidee targeted identity diagnostic ready.");if(expectedInstalledAppContext())await contextIdentityFingerprint({automatic:true});startRemoteDiagnosticPolling();}).catch(e=>log("Config load failed",err(e)));
 })();
