@@ -96,7 +96,19 @@
       <article class="card">
         <div class="cardHead">
           <div>
-            <p class="kicker">05 · INSTALLED APP METADATA</p>
+            <p class="kicker">05 · PERMISSION SOURCE TRACE</p>
+            <h2>Install Permission Source Trace</h2>
+          </div>
+          <button id="permissionSourceTraceBtn" class="secondary">Trace Permission Sources</button>
+        </div>
+        <p>Read-only inspection of function sources and descriptors around the install path. It follows only concrete references already present in those sources and never guesses HiUtils APIs or filesystem paths.</p>
+        <div id="permissionSourceTraceState" class="state">Not traced yet.</div>
+      </article>
+
+      <article class="card">
+        <div class="cardHead">
+          <div>
+            <p class="kicker">06 · INSTALLED APP METADATA</p>
             <h2>Installed App Metadata</h2>
           </div>
           <button id="installedMetadataBtn" class="secondary">Inspect Installed Apps</button>
@@ -124,7 +136,7 @@
       </article>
 
       <article class="card installCard">
-        <p class="kicker">06 · PERMISSION TEST</p>
+        <p class="kicker">07 · PERMISSION TEST</p>
         <h2>Install Permission Test</h2>
         <p>Explicit only. Records the identity used, essential install payload, internal <code>ret/code/msg</code>, external callback and installed-app verification. Callback <code>0</code> alone is never treated as success.</p>
         <button id="installDiagnosticBtn" class="primaryAction">Test Install Permission</button>
