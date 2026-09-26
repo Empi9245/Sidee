@@ -158,6 +158,32 @@
         <div id="directRestoreState" class="microState">Restore uses only the immutable backup created by Sidee for this session.</div>
       </article>
 
+      <article class="card primary" id="legacyHspdkCard">
+        <div class="cardHead">
+          <div>
+            <p class="kicker">05B · LEGACY HSPDK FILE API</p>
+            <h2>Legacy Hisense File Writer</h2>
+          </div>
+          <button id="legacyHspdkWriteBtn" class="danger">Test HSPDK Write + Restore</button>
+        </div>
+        <p>Tests the older Hisense browser file stack used by historical VIDAA app stores: <code>HiBrowser/Hisense → libhspdk-jsx.so → File.read/File.write</code>. Sidee reads a valid AppInfo registry, creates an immutable PC backup, writes a structurally identical JSON that differs only by trailing whitespace, proves the changed bytes were read back, then immediately restores the exact original bytes.</p>
+        <div class="identityGrid">
+          <div><span>Host object</span><b id="legacyHspdkOwner" class="summaryValue">NONE</b></div>
+          <div><span>HSPDK library</span><b id="legacyHspdkLibrary" class="summaryValue">NOT_RUN</b></div>
+          <div><span>Registry path</span><b id="legacyHspdkPath" class="summaryValue">—</b></div>
+          <div><span>Whitespace probe</span><b id="legacyHspdkProbe" class="summaryValue">NOT_RUN</b></div>
+          <div><span>Restore</span><b id="legacyHspdkRestore" class="summaryValue">NOT_RUN</b></div>
+          <div><span>Capability</span><b id="legacyHspdkCapability" class="summaryValue">NOT_RUN</b></div>
+        </div>
+        <div id="legacyHspdkState" class="state">Not run yet.</div>
+        <div class="row runtimeActions">
+          <button id="addNuvioHspdkBtn" class="danger" disabled>Add Nuvio via HSPDK</button>
+          <button id="restoreHspdkBackupBtn" class="secondary" disabled>Restore HSPDK Backup</button>
+        </div>
+        <div id="legacyHspdkAddState" class="microState">Nuvio stays disabled until a byte-changing write and exact restore are both verified.</div>
+        <div id="legacyHspdkRestoreState" class="microState">The restore button uses only the immutable backup created before the HSPDK probe.</div>
+      </article>
+
       <article class="card" id="identityOverrideLabCard">
         <div class="cardHead">
           <div>
