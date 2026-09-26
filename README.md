@@ -33,46 +33,49 @@ It combines the useful ideas found in:
 Sidee is deliberately conservative on VIDAA 9. Direct `websdk/Appinfo.json` writes are available only through explicit, backup-protected flows: first an exact no-op write-back capability test, then separately triggered add/restore actions.
 
 
-## VIDAA Store catalog transport trace — 2026-09-26
+## VIDAA Store transport trace — 2026-09-26
 
-Sidee now has a pass-through-only observer for the real VIDAA Store catalog host:
+The real Q0707 passive DNS test showed that the official VIDAA Store uses several
+`*.vidaahub.com` hosts and did **not** show a request for the older
+`category-ui.vidaahub.com` endpoint during the observed flow.
 
-`category-ui.vidaahub.com`
+The current pass-through trace therefore covers these hosts separately:
 
-This was added after verifying the public `PhasedGapple/FuVIDAA-API` PoC, which proxies that host and handles `/api/v1.0.0/categoryApi/categoryFirstResult` with VIDAA catalog metadata including `appInfo.openMode`, `unifiedAppName`, `packaged` and related fields.
+- `category-ui.vidaahub.com` — retained for compatibility/reference;
+- `detail-ui-eu.vidaahub.com` — observed on the real TV;
+- `appstore-vidaa.vidaahub.com` — observed on the real TV;
+- `tvmodules-vidaa.vidaahub.com` — observed on the real TV.
 
-The Sidee implementation does **not** modify Store responses. When the TV DNS points to Sidee and the official VIDAA Store connects to that host, Sidee forwards the request to the real HTTPS upstream and records only bounded diagnostics:
+For each host, `storeCatalogTrace.hostStats` reports an independent state:
+`IDLE`, `DNS_ONLY`, `TLS_SNI_ONLY`, `HTTP_PROXY_ACTIVE`,
+`REQUESTS_CAPTURED`, or `PROXY_ERROR`.
 
-- DNS hit;
-- TLS SNI hit;
-- HTTP method/path;
-- query parameter names only;
-- upstream status/content type/response length;
-- bounded, non-sensitive catalog metadata from JSON responses.
+The trace remains pass-through only. Sidee forwards the request to the same real
+HTTPS hostname and returns the upstream response body unchanged. Persisted
+diagnostics are bounded to host, timestamp, HTTP method/path, query parameter
+names, response status/content type/length, and reduced non-sensitive JSON
+metadata. Request headers/bodies, query values, cookies, authorization values,
+tokens, sessions, signature material, and certificate-like values are not
+persisted.
 
-Sidee does not persist request headers, request bodies, query values, cookies, authorization values, tokens, session identifiers, signature material or certificate-like values. Sensitive JSON keys are skipped. The returned upstream body is passed through unchanged.
-
-Trace status is exposed at `GET /api/store-catalog-trace` and is also persisted in `storeCatalogTrace` reports with states such as `DNS_ONLY`, `TLS_SNI_ONLY`, `HTTP_PROXY_ACTIVE`, `REQUESTS_CAPTURED`, and `PROXY_ERROR`.
-
-The generated multihost certificate now uses a new filename and includes `category-ui.vidaahub.com` in its SAN, so an older Sidee certificate without that hostname is not silently reused.
-
-For the real-TV trace: start Sidee, point TV DNS to the Sidee PC, open the official VIDAA Store, browse a category, and open the detail page of an existing app. Do not press Install during this first transport-only phase.
-
-
+The generated certificate uses the versioned `store-v2` filename and includes
+all traced Store hostnames in its SAN so the previous certificate is not reused.
 
 ### Passive Store domain discovery
 
-If the fixed `category-ui.vidaahub.com` trace stays completely silent, Sidee now records a **passive DNS-only** discovery set while leaving those DNS answers untouched and forwarded normally.
+Other scoped VIDAA/Hisense DNS names are still observed without changing their
+DNS answers. This is kept separate from the dedicated trace. Hosts promoted to
+the dedicated trace are excluded from the generic discovery to avoid duplicate
+records.
 
-The persisted scope is deliberately narrow:
-- any `*.vidaahub.com` hostname;
-- `api-launcher-*.hismarttv.com`;
-- `auth-launcher-*.hismarttv.com`;
-- `unified-ter-*.hismarttv.com`.
+The Q0707 discovery session `sidee-20260926-201849-a7b2` captured 13 hosts.
+Besides the dedicated hosts above, useful discovery-only names included
+`home-ui-eu.vidaahub.com` and `recommend-ui-eu.vidaahub.com`.
 
-No generic browsing/DNS history is stored. The report section is `storeDomainDiscovery`; it keeps only hostname, DNS query type, count, and first/last timestamps. It does not spoof newly discovered hosts, intercept TLS, or store DNS payloads/query values.
-
-This exists because the Q0707 test produced no DNS/SNI/HTTP hit for `category-ui.vidaahub.com`. Public evidence also shows other VIDAA Store-family hosts such as `appstore-vidaa.vidaahub.com` and `vidaa-base-auth-oc.vidaahub.com`, so the next step is to observe which hostname this TV actually asks for before intercepting anything else.
+For the next TV test: pull/restart Sidee, keep the TV DNS pointed at the Sidee
+PC, open the official VIDAA Store, browse the home/category view and open one or
+more real app detail pages. Do not press Install. The useful result is the
+per-host `storeCatalogTrace.hostStats` plus any captured HTTP request paths.
 
 ## What it does
 
