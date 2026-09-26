@@ -81,16 +81,16 @@ hspdkResolveWriter()
 
 e prova concretamente entrambe le superfici, quindi non dobbiamo tornare alla vecchia logica "prendi il primo host object e fermati".
 
-## HEAD reale attuale
+## HEAD verificato prima di questo aggiornamento
 
-Il branch `main` è attualmente su:
+Mentre questa risposta veniva aggiornata, `main` è avanzato. Il commit immediatamente precedente a questo handoff era:
 
 ```text
-e93275fa6c698ccd35afadbd5583b90d46ec540f
-ui: add legacy HSPDK write lab
+e716c79546ca1739e661313822f4d80e095521c5
+docs: update write-path investigation handoff
 ```
 
-Il vecchio contenuto di questo file riportava un commit successivo `edaee...`, ma quell'HEAD non è quello reale di `main`. Da questo momento bisogna usare sempre l'HEAD reale del repository.
+Il vecchio contenuto del file riportava anche riferimenti a HEAD precedenti (`e932...` / `edaee...`). Non vanno più trattati come HEAD correnti: la prossima chat deve sempre leggere il branch reale prima di fare modifiche.
 
 ## Test da fare sulla TV
 
