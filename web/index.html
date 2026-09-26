@@ -6,16 +6,16 @@
   <meta http-equiv="Expires" content="0">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1">
-  <title>Sidee — VIDAA Identity Diagnostic</title>
+  <title>Sidee — VIDAA AppInfo Diagnostic</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <main class="shell">
     <header>
       <div>
-        <p class="eyebrow">VIDAA IDENTITY LAB</p>
+        <p class="eyebrow">VIDAA APPINFO LAB</p>
         <h1>Sidee</h1>
-        <p class="lead">Targeted VIDAA Identity / AppConfig Diagnostic.</p>
+        <p class="lead">Controlled VIDAA AppInfo / AppConfig Diagnostic.</p>
       </div>
       <div id="deviceBadge" class="badge">Detecting TV…</div>
     </header>
@@ -33,6 +33,7 @@
         <div><span>Service identifier</span><b id="summaryIdentifier" class="summaryValue">UNKNOWN</b></div>
         <div><span>Context init</span><b id="summaryContextInit" class="summaryValue">NOT_RUN</b></div>
         <div><span>Permission gate</span><b id="summaryPermissionGate" class="summaryValue">UNKNOWN</b></div>
+        <div><span>AppInfo direct write</span><b id="summaryAppInfoWrite" class="summaryValue">NOT_RUN</b></div>
       </div>
     </section>
 
@@ -44,7 +45,7 @@
         </div>
         <button id="remoteDiagnosticArmBtn" class="secondary">Enable remote diagnostics for this page</button>
       </div>
-      <p>When armed, this page may accept one fixed read-only diagnostic request through Sidee. Reloading or closing the page disarms it. Remote install/uninstall, setters, file writes and arbitrary commands are not supported.</p>
+      <p>When armed, this page may accept a fixed read-only diagnostic or the specifically bounded AppInfo no-op write test. The no-op path creates a local immutable backup first and writes back the exact registry it just read. Reloading or closing the page disarms it. Remote app addition, restore, install/uninstall, setters and arbitrary commands are not supported.</p>
       <div id="remoteDiagnosticState" class="state">DISARMED</div>
     </section>
 
@@ -108,10 +109,36 @@
         <div id="serviceTraceState" class="state">No trace yet.</div>
       </article>
 
-      <article class="card">
+      <article class="card primary">
         <div class="cardHead">
           <div>
-            <p class="kicker">05 · IDENTITY OVERRIDE LAB</p>
+            <p class="kicker">05 · DIRECT APPINFO WRITE</p>
+            <h2>Direct AppInfo Write Lab</h2>
+          </div>
+          <button id="directAppInfoWriteBtn" class="danger">Test AppInfo Direct Write</button>
+        </div>
+        <p>Backup-protected capability test. Reads <code>websdk/Appinfo.json</code>, saves the exact original on the Sidee PC, writes back the exact same content with <code>fileWrite</code>, then immediately reads and compares it. This first test does not add Nuvio.</p>
+        <div class="identityGrid">
+          <div><span>Original hash</span><b id="directWriteOriginalHash" class="summaryValue">—</b></div>
+          <div><span>AppInfo entries</span><b id="directWriteOriginalCount" class="summaryValue">—</b></div>
+          <div><span>Backup</span><b id="directWriteBackup" class="summaryValue">—</b></div>
+          <div><span>Write response</span><b id="directWriteResponse" class="summaryValue">—</b></div>
+          <div><span>Readback hash</span><b id="directWriteReadbackHash" class="summaryValue">—</b></div>
+          <div><span>Capability</span><b id="directWriteCapability" class="summaryValue">NOT_RUN</b></div>
+        </div>
+        <div id="directAppInfoWriteState" class="state">Not run yet.</div>
+        <div class="row runtimeActions">
+          <button id="addNuvioDirectBtn" class="danger" disabled>Add Nuvio to AppInfo</button>
+          <button id="restoreAppInfoBackupBtn" class="secondary" disabled>Restore AppInfo Backup</button>
+        </div>
+        <div id="directAddState" class="microState">Nuvio direct add stays disabled until the no-op write is proven identical.</div>
+        <div id="directRestoreState" class="microState">Restore uses only the immutable backup created by Sidee for this session.</div>
+      </article>
+
+      <article class="card" id="identityOverrideLabCard" hidden>
+        <div class="cardHead">
+          <div>
+            <p class="kicker">PAUSED · IDENTITY OVERRIDE LAB</p>
             <h2>Identity Override Lab</h2>
           </div>
           <button id="identityOverrideLabBtn" class="secondary">Run Identity Override Lab</button>
