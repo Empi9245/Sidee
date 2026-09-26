@@ -261,6 +261,17 @@ def _normalized_host(value):
     return str(value or "").split(":", 1)[0].strip().lower().rstrip(".")
 
 
+def _redact_store_message(value, limit=500):
+    text = str(value or "")
+    text = re.sub(
+        r"(?i)((?:token|authorization|cookie|secret|password|credential|signature|session|nonce|api[-_]?key|access[-_]?key)\s*[=:]\s*)[^\s&,;]+",
+        r"\1<redacted>",
+        text,
+    )
+    text = re.sub(r"(?i)\bBearer\s+[^\s,;]+", "Bearer <redacted>", text)
+    return text[:limit]
+
+
 def _store_trace_status(trace):
     if trace.get("errors"):
         return "PROXY_ERROR"
@@ -532,7 +543,7 @@ def _record_store_trace(event, detail=None):
                 "method": str(detail.get("method", ""))[:16],
                 "path": str(detail.get("path", ""))[:700],
                 "errorType": str(detail.get("errorType", ""))[:120],
-                "message": str(detail.get("message", ""))[:500],
+                "message": _redact_store_message(detail.get("message", "")),
             }
             trace["errors"].append(item)
             if len(trace["errors"]) > STORE_TRACE_MAX_ERRORS:
@@ -663,11 +674,7 @@ def _proxy_store_catalog_request(handler):
         })
         print(f"[STORE-PROXY] {method} {path_only} -> {upstream.status} ({len(response_body)} bytes)")
     except Exception as exc:
-        message = re.sub(
-            r"(?i)((?:token|authorization|cookie|secret|password|credential|signature|session|api[-_]?key)\s*[=:]\s*)[^\s&,;]+",
-            r"\1<redacted>",
-            str(exc),
-        )
+        message = _redact_store_message(exc)
         _record_store_trace("PROXY_ERROR", {
             "stage": "upstream",
             "method": method,
