@@ -1,10 +1,10 @@
 {
   "sessionId": "sidee-20260926-182425-cbe7",
-  "clientBuildId": "app-a009a09c47aa",
-  "serverBuildId": "app-a009a09c47aa",
+  "clientBuildId": "app-cf5e865f484a",
+  "serverBuildId": "app-cf5e865f484a",
   "buildMatch": true,
-  "startedAt": "2026-09-26T17:35:58.896Z",
-  "updatedAt": "2026-09-26T17:35:59.423Z",
+  "startedAt": "2026-09-26T17:52:32.630Z",
+  "updatedAt": "2026-09-26T17:53:08.493Z",
   "accessContext": {
     "href": "https://vidaahub.com/",
     "origin": "https://vidaahub.com",
@@ -50,350 +50,858 @@
   "candidatePermissionTest": null,
   "directAppInfoWriteLab": null,
   "legacyHspdkWriteLab": null,
+  "storeWorkflowProbe": {
+    "timestamp": "2026-09-26T17:53:08.492Z",
+    "readOnly": true,
+    "invoked": false,
+    "collectorVersion": 6,
+    "page": {
+      "href": "https://vidaahub.com/",
+      "origin": "https://vidaahub.com",
+      "userAgent": "Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Browser/5.2.20 Safari/537.36"
+    },
+    "status": "SOURCE_EVIDENCE_FOUND",
+    "metadataSourceMatches": [
+      {
+        "path": "window.Hisense_installApp",
+        "term": "configUrlDownload",
+        "sourceLength": 1929,
+        "truncated": false,
+        "excerpt": "function(appId, appName, thumbnail, iconSmall, iconBig, appUrl, storetype, callback, configUrl, configUrlDownload, mediaId) {\n        console.log('Install App begin' + appId)\n\n        let mydate = new Date()\n        let realMonth = mydate.getMonth() + 1\n        let StoreType = storetype\n        let newApp = {\n            'Id': appId,\n            'Thumb': thumbnail,\n            'Icon_96': iconSmall,\n            'Image': thumbnail,\n            'URL': appUrl,\n            'AppName': appName,\n            'Title': appName,\n            'configUrl': configUrl,\n            'configUrlDownload': configUrlDownload,\n            'mediaId': mediaId,\n            'IconURL': iconBig,\n            'StartCommand': appUrl,\n            'InstallTime': mydate.getFullYear() + '-' + realMonth + '-' + mydate.getDate(),\n            'RunTimes': 0,\n            'StoreType': StoreType,\n            'PreInstall': false }\n        let installAppObj = getInstalledAppJsonObj()\n        if (installAppObj) {\n            for (let i = 0; i < installAppObj.AppInfo.length; i++) {\n                if (appUrl == installAppObj.AppInfo[i].URL) {\n                    if (appName != installAppObj.AppInfo[i].AppName) {\n                        installAppObj.AppInfo[i].AppName = appName\n                        installAppObj.AppInfo[i].URL = appUrl\n                        installAppObj.AppInfo[i].Image = thumbnail\n                        ret = writeInstallAppObjToJson(installAppObj)\n                        return ret\n                    } else {\n                        console.log('same app' + appId)\n                        return true\n                    }\n                }\n            }\n        }\n        if (installAppObj) {\n            installAppObj.AppInfo.push(newApp)\n        } else {\n            installAppObj = { AppInfo: [newApp] }\n        }\n\n        const ret = writeInstallAppObjToJson(installAppObj)\n\n        cal",
+        "evidence": "Q0707_APPINFO_FIELD_SOURCE"
+      }
+    ],
+    "workflowSourceMatches": [
+      {
+        "path": "window.His_switchSource",
+        "term": "launcher",
+        "sourceLength": 527,
+        "truncated": false,
+        "excerpt": "function(AppName, source) {\n        var appevent = {};\n        appevent.type = \"APPMessage\";\n        appevent.MsgType = \"systemControl\";\n        appevent.action = \"switchSource\";\n        appevent.source = \"browser\";\n        appevent.target = \"launcher\";\n        appevent.param = {};\n        appevent.param.event = 'switchTvSource';\n        appevent.param.from = AppName;\n        appevent.param.source = source;\n        if(!!omi_platform) {\n            omi_platform.sendPlatformMessage(JSON.stringify(appevent));\n        }\n    }",
+        "evidence": "RUNTIME_STORE_WORKFLOW_SOURCE"
+      },
+      {
+        "path": "window.His_setSystemLanguage",
+        "term": "launcher",
+        "sourceLength": 542,
+        "truncated": false,
+        "excerpt": "function(AppName, language) {\n        var appevent = {};\n        appevent.type = \"APPMessage\";\n        appevent.MsgType = \"systemControl\";\n        appevent.action = \"settingSystemLanguage\";\n        appevent.source = \"browser\";\n        appevent.target = \"launcher\";\n        appevent.param = {};\n        appevent.param.event = 'appSetLanguage';\n        appevent.param.from = AppName;\n        appevent.param.language = language;\n        if(!!omi_platform) {\n            omi_platform.sendPlatformMessage(JSON.stringify(appevent));\n        }\n    }",
+        "evidence": "RUNTIME_STORE_WORKFLOW_SOURCE"
+      },
+      {
+        "path": "window.writeInstallAppObjToJson",
+        "term": "installApplication",
+        "sourceLength": 179,
+        "truncated": false,
+        "excerpt": "function(AppJsonObj) {\n        const writedata = JSON.stringify(AppJsonObj)\n        const ret = HiUtils_createRequest('installApplication', writedata)\n        return ret.ret\n    }",
+        "evidence": "RUNTIME_STORE_WORKFLOW_SOURCE"
+      },
+      {
+        "path": "window.Hisense_installApp_V2",
+        "term": "installApp",
+        "sourceLength": 1406,
+        "truncated": false,
+        "excerpt": "function(appinfo, callback) {\n        console.log('Install App V2 begin')\n        let ret = false\n\n        if (typeof (appinfo) != 'object') {\n            callback(-1)\n            return ret\n        }\n\n        const newAppInfo = mapAppInfoFields(appinfo)\n        let installAppObj = getInstalledAppJsonObj()\n        if (installAppObj) {\n            for (let i = 0; i < installAppObj.AppInfo.length; i++) {\n                if (newAppInfo.URL == installAppObj.AppInfo[i].URL) {\n                    if (newAppInfo.AppName != installAppObj.AppInfo[i].AppName) {\n                        installAppObj.AppInfo[i].AppName = newAppInfo.AppName\n                        installAppObj.AppInfo[i].URL = newAppInfo.URL\n                        installAppObj.AppInfo[i].Image = newAppInfo.Image\n                        writeInstallAppObjToJson(installAppObj)\n                        callback(0)\n                        return true\n                    } else {\n                        console.log('same app' + newAppInfo.Id)\n                        callback(0)\n                        return true\n                    }\n                }\n            }\n        }\n\n        if (installAppObj) {\n            installAppObj.AppInfo.push(newAppInfo)\n        } else {\n            installAppObj = { AppInfo: [newAppInfo] }\n        }\n\n        ret = writeInstallAppObjToJson(installAppObj)\n        callback(0)\n        return ret\n    }",
+        "evidence": "RUNTIME_STORE_WORKFLOW_SOURCE"
+      },
+      {
+        "path": "window.Hisense_installApp",
+        "term": "installApp",
+        "sourceLength": 1929,
+        "truncated": false,
+        "excerpt": "  'Image': thumbnail,\n            'URL': appUrl,\n            'AppName': appName,\n            'Title': appName,\n            'configUrl': configUrl,\n            'configUrlDownload': configUrlDownload,\n            'mediaId': mediaId,\n            'IconURL': iconBig,\n            'StartCommand': appUrl,\n            'InstallTime': mydate.getFullYear() + '-' + realMonth + '-' + mydate.getDate(),\n            'RunTimes': 0,\n            'StoreType': StoreType,\n            'PreInstall': false }\n        let installAppObj = getInstalledAppJsonObj()\n        if (installAppObj) {\n            for (let i = 0; i < installAppObj.AppInfo.length; i++) {\n                if (appUrl == installAppObj.AppInfo[i].URL) {\n                    if (appName != installAppObj.AppInfo[i].AppName) {\n                        installAppObj.AppInfo[i].AppName = appName\n                        installAppObj.AppInfo[i].URL = appUrl\n                        installAppObj.AppInfo[i].Image = thumbnail\n                        ret = writeInstallAppObjToJson(installAppObj)\n                        return ret\n                    } else {\n                        console.log('same app' + appId)\n                        return true\n                    }\n                }\n            }\n        }\n        if (installAppObj) {\n            installAppObj.AppInfo.push(newApp)\n        } else {\n            installAppObj = { AppInfo: [newApp] }\n        }\n\n        const ret = writeInstallAppObjToJson(installAppObj)\n\n        callback(0)\n        return ret\n    }",
+        "evidence": "RUNTIME_STORE_WORKFLOW_SOURCE"
+      },
+      {
+        "path": "window.Hisense_uninstallApp",
+        "term": "installApp",
+        "sourceLength": 645,
+        "truncated": false,
+        "excerpt": "function(appId, callback) {\n        console.log('Uninstall App begin' + appId)\n\n        let installAppObj = getInstalledAppJsonObj()\n        let appIndex = 0\n        let ret = false\n        if (installAppObj != 0) {\n            for (appIndex = 0; appIndex < installAppObj.AppInfo.length; appIndex++) {\n                if (installAppObj.AppInfo[appIndex].Id == appId) {\n                    installAppObj.AppInfo.splice(appIndex, 1)\n                    ret = true\n                }\n            }\n            if (ret) {\n                writeInstallAppObjToJson(installAppObj)\n            }\n        }\n\n        callback(ret)\n        return true\n    }",
+        "evidence": "RUNTIME_STORE_WORKFLOW_SOURCE"
+      }
+    ],
+    "omiMessageSourceMatches": [
+      {
+        "path": "window.Hisense_LoginWithVIDAA",
+        "term": "APPMessage",
+        "sourceLength": 857,
+        "truncated": false,
+        "excerpt": "function(apptype,callback){\n        console.log(\"Hisense_LoginWithVIDAA:\" + apptype);\n        var cmdInfo = {};\n        cmdInfo.type = \"APPMessage\";\n        cmdInfo.MsgType = \"account\";\n        cmdInfo.action = \"loginWithVidaa\";\n        cmdInfo.AppType = apptype;\n        cmdInfo.fromFlag = \"CSP\";\n        omi_platform.sendPlatformMessage(JSON.stringify(cmdInfo));\n\n        handleLoginWithVIDAAEvent = function(event){\n            var message = JSON.parse(event);\n            if(message.type == \"APPMessage\" && message.MsgType == \"LoginResult\"){\n                var GetResultInfo = message.AccoutInfo;\n                callback(GetResultInfo);\n            }\n        }\n        if(window.alreadyAddEventListener == 0){\n            omi_platform.addPlatformEventListener(handleLoginWithVIDAAEvent);\n            window.alreadyAddEventListener = 1;\n        }\n    }",
+        "evidence": "RUNTIME_OMI_MESSAGE_SOURCE"
+      },
+      {
+        "path": "window.His_switchSource",
+        "term": "APPMessage",
+        "sourceLength": 527,
+        "truncated": false,
+        "excerpt": "function(AppName, source) {\n        var appevent = {};\n        appevent.type = \"APPMessage\";\n        appevent.MsgType = \"systemControl\";\n        appevent.action = \"switchSource\";\n        appevent.source = \"browser\";\n        appevent.target = \"launcher\";\n        appevent.param = {};\n        appevent.param.event = 'switchTvSource';\n        appevent.param.from = AppName;\n        appevent.param.source = source;\n        if(!!omi_platform) {\n            omi_platform.sendPlatformMessage(JSON.stringify(appevent));\n        }\n    }",
+        "evidence": "RUNTIME_OMI_MESSAGE_SOURCE"
+      },
+      {
+        "path": "window.His_setDataStorage",
+        "term": "APPMessage",
+        "sourceLength": 595,
+        "truncated": false,
+        "excerpt": "function (key, value) {\n        key = JSON.stringify(key);\n        value = typeof value === 'string' ? value : JSON.stringify(value);\n        sessionStorage.setItem(key, value);\n        var appevent = {};\n        appevent.type = \"APPMessage\";\n        appevent.MsgType = \"hotelDataStorage\";\n        appevent.action = \"managerData\";\n        appevent.params = {};\n        appevent.params.action = \"setData\";\n        appevent.params.key = key;\n        appevent.params.value = value;\n        if(!!omi_platform) {\n            omi_platform.sendPlatformMessage(JSON.stringify(appevent));\n        }\n    }",
+        "evidence": "RUNTIME_OMI_MESSAGE_SOURCE"
+      },
+      {
+        "path": "window.His_removeDataStorage",
+        "term": "APPMessage",
+        "sourceLength": 473,
+        "truncated": false,
+        "excerpt": "function (key) {\n        key = JSON.stringify(key);\n        sessionStorage.removeItem(key);\n        var appevent = {};\n        appevent.type = \"APPMessage\";\n        appevent.MsgType = \"hotelDataStorage\";\n        appevent.action = \"managerData\";\n        appevent.params = {};\n        appevent.params.action = \"removeData\";\n        appevent.params.key = key;\n        if(!!omi_platform) {\n            omi_platform.sendPlatformMessage(JSON.stringify(appevent));\n        }\n    }",
+        "evidence": "RUNTIME_OMI_MESSAGE_SOURCE"
+      },
+      {
+        "path": "window.His_clearDataStorage",
+        "term": "APPMessage",
+        "sourceLength": 391,
+        "truncated": false,
+        "excerpt": "function () {\n        sessionStorage.clear();\n        var appevent = {};\n        appevent.type = \"APPMessage\";\n        appevent.MsgType = \"hotelDataStorage\";\n        appevent.action = \"managerData\";\n        appevent.params = {};\n        appevent.params.action = \"clearData\";\n        if(!!omi_platform) {\n            omi_platform.sendPlatformMessage(JSON.stringify(appevent));\n        }\n    }",
+        "evidence": "RUNTIME_OMI_MESSAGE_SOURCE"
+      },
+      {
+        "path": "window.His_setSystemLanguage",
+        "term": "APPMessage",
+        "sourceLength": 542,
+        "truncated": false,
+        "excerpt": "function(AppName, language) {\n        var appevent = {};\n        appevent.type = \"APPMessage\";\n        appevent.MsgType = \"systemControl\";\n        appevent.action = \"settingSystemLanguage\";\n        appevent.source = \"browser\";\n        appevent.target = \"launcher\";\n        appevent.param = {};\n        appevent.param.event = 'appSetLanguage';\n        appevent.param.from = AppName;\n        appevent.param.language = language;\n        if(!!omi_platform) {\n            omi_platform.sendPlatformMessage(JSON.stringify(appevent));\n        }\n    }",
+        "evidence": "RUNTIME_OMI_MESSAGE_SOURCE"
+      },
+      {
+        "path": "window.Hisense_setStartBandwidth",
+        "term": "sendPlatformMessage",
+        "sourceLength": 500,
+        "truncated": false,
+        "excerpt": "function(start_bps) {\n        console.log('set start bandwidth:' + start_bps)\n        if (navigator.userAgent.includes(' OMI/')) {\n            var cmdInfo = {}\n            cmdInfo.type = 'set_startBandwidth'\n            cmdInfo.data = (Number(start_bps) + 1).toString()\n            omi_platform.sendPlatformMessage(JSON.stringify(cmdInfo))\n            return true\n        } else {\n            console.warn('set start bandwidth not support for this UserAgent')\n            return false\n        }\n    }",
+        "evidence": "RUNTIME_OMI_MESSAGE_SOURCE"
+      },
+      {
+        "path": "window.Hisense_disableVKB",
+        "term": "sendPlatformMessage",
+        "sourceLength": 151,
+        "truncated": false,
+        "excerpt": "function() {\n        console.log('The VKB control Hisense_DisableVKB')\n        omi_platform.sendPlatformMessage('disableVKB')\n        return true\n    }",
+        "evidence": "RUNTIME_OMI_MESSAGE_SOURCE"
+      },
+      {
+        "path": "window.Hisense_enableVKB",
+        "term": "sendPlatformMessage",
+        "sourceLength": 149,
+        "truncated": false,
+        "excerpt": "function() {\n        console.log('The VKB control Hisense_EnableVKB')\n        omi_platform.sendPlatformMessage('enableVKB')\n        return true\n    }",
+        "evidence": "RUNTIME_OMI_MESSAGE_SOURCE"
+      },
+      {
+        "path": "window.Hisense_GetUpdatesVerInfo",
+        "term": "requestMsg",
+        "sourceLength": 782,
+        "truncated": false,
+        "excerpt": "function(callback) {\n        console.log('go to Hisense_GetUpdatesVerInfo')\n        var requestMsg = {}\n        requestMsg.type = 'getUpdatesVerInfo'\n\n        try {\n            if (window.omi_platform) {\n                omi_platform.sendPlatformMessage(JSON.stringify(requestMsg))\n            }\n        } catch (e) {\n            // handle the exception\n        }\n\n        handleGetVersionEvent = function(version) {\n            var message = JSON.parse(version)\n            if (!!message && version.indexOf('nssdb') != -1) {\n                callback(message)\n            }\n        }\n\n        if (window.alreadyAddUpdateEventListener == 0) {\n            omi_platform.addPlatformEventListener(handleGetVersionEvent)\n            window.alreadyAddUpdateEventListener = 1\n        }\n    }",
+        "evidence": "RUNTIME_OMI_MESSAGE_SOURCE"
+      },
+      {
+        "path": "window.Hisense_PrintLogMessage",
+        "term": "requestMsg",
+        "sourceLength": 708,
+        "truncated": false,
+        "excerpt": "function(level, contents) {\n        if (typeof level != 'number' || isNaN(level) ||\n        typeof contents == 'undefined' || contents == null || contents.length > 500) {\n        // invalid level OR contents are too long OR params are empty\n            console.log('Invalid params, please check.')\n            return\n        }\n\n        // print Log into log.txt\n        var requestMsg = {}\n        requestMsg.type = 'log'\n        requestMsg.level = level\n        requestMsg.text = contents\n\n        try {\n            if (window.omi_platform) {\n                omi_platform.sendPlatformMessage(JSON.stringify(requestMsg))\n            }\n        } catch (e) {\n            // handle the exception\n        }\n    }",
+        "evidence": "RUNTIME_OMI_MESSAGE_SOURCE"
+      },
+      {
+        "path": "window.Hisense_CloseBrowser",
+        "term": "closeOTTPage",
+        "sourceLength": 240,
+        "truncated": false,
+        "excerpt": "function(appname) {\n    console.log(\"Hisense_CloseBrowser\");\n    var event = {};\n    event.type = \"closeOTTPage\";\n    event.appname = appname;\n    if(!!omi_platform) {\n        omi_platform.sendPlatformMessage(JSON.stringify(event));\n    }\n}",
+        "evidence": "RUNTIME_OMI_MESSAGE_SOURCE"
+      },
+      {
+        "path": "window.Hisense_SendAppMessageEvent",
+        "term": "APPMessage",
+        "sourceLength": 303,
+        "truncated": false,
+        "excerpt": "function(event) {\n    console.log(\"sendAppMessageEvent\");\n\n    if(typeof event == 'object') {\n        event.type = \"APPMessage\";\n    } else {\n        console.log(\"invalid msg type\");\n        return;\n    }\n\n    if(!!omi_platform) {\n        omi_platform.sendPlatformMessage(JSON.stringify(event));\n    }\n}",
+        "evidence": "RUNTIME_OMI_MESSAGE_SOURCE"
+      }
+    ],
+    "runtimeInventory": {
+      "globals": [
+        {
+          "name": "MediaSourceHandle",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 46,
+            "truncated": false,
+            "excerpt": "function MediaSourceHandle() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaSource",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 40,
+            "truncated": false,
+            "excerpt": "function MediaSource() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaMetadata",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 42,
+            "truncated": false,
+            "excerpt": "function MediaMetadata() { [native code] }"
+          }
+        },
+        {
+          "name": "BrowserCaptureMediaStreamTrack",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 59,
+            "truncated": false,
+            "excerpt": "function BrowserCaptureMediaStreamTrack() { [native code] }"
+          }
+        },
+        {
+          "name": "webkitMediaStream",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 40,
+            "truncated": false,
+            "excerpt": "function MediaStream() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaStreamTrackProcessor",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 54,
+            "truncated": false,
+            "excerpt": "function MediaStreamTrackProcessor() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaStreamTrackGenerator",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 54,
+            "truncated": false,
+            "excerpt": "function MediaStreamTrackGenerator() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaStreamTrackEvent",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 50,
+            "truncated": false,
+            "excerpt": "function MediaStreamTrackEvent() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaStreamTrack",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 45,
+            "truncated": false,
+            "excerpt": "function MediaStreamTrack() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaStreamEvent",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 45,
+            "truncated": false,
+            "excerpt": "function MediaStreamEvent() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaStreamAudioSourceNode",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 55,
+            "truncated": false,
+            "excerpt": "function MediaStreamAudioSourceNode() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaStreamAudioDestinationNode",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 60,
+            "truncated": false,
+            "excerpt": "function MediaStreamAudioDestinationNode() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaStream",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 40,
+            "truncated": false,
+            "excerpt": "function MediaStream() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaRecorder",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 42,
+            "truncated": false,
+            "excerpt": "function MediaRecorder() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaQueryListEvent",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 48,
+            "truncated": false,
+            "excerpt": "function MediaQueryListEvent() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaQueryList",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 43,
+            "truncated": false,
+            "excerpt": "function MediaQueryList() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaList",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 38,
+            "truncated": false,
+            "excerpt": "function MediaList() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaError",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 39,
+            "truncated": false,
+            "excerpt": "function MediaError() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaEncryptedEvent",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 48,
+            "truncated": false,
+            "excerpt": "function MediaEncryptedEvent() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaElementAudioSourceNode",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 56,
+            "truncated": false,
+            "excerpt": "function MediaElementAudioSourceNode() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaCapabilities",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 46,
+            "truncated": false,
+            "excerpt": "function MediaCapabilities() { [native code] }"
+          }
+        },
+        {
+          "name": "IDBObjectStore",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 43,
+            "truncated": false,
+            "excerpt": "function IDBObjectStore() { [native code] }"
+          }
+        },
+        {
+          "name": "HTMLMediaElement",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 45,
+            "truncated": false,
+            "excerpt": "function HTMLMediaElement() { [native code] }"
+          }
+        },
+        {
+          "name": "CanvasCaptureMediaStreamTrack",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 58,
+            "truncated": false,
+            "excerpt": "function CanvasCaptureMediaStreamTrack() { [native code] }"
+          }
+        },
+        {
+          "name": "CSSMediaRule",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 41,
+            "truncated": false,
+            "excerpt": "function CSSMediaRule() { [native code] }"
+          }
+        },
+        {
+          "name": "styleMedia",
+          "descriptor": {
+            "status": "ACCESSOR_NOT_READ",
+            "ownerDepth": 0,
+            "type": "accessor",
+            "hasGetter": true,
+            "hasSetter": false
+          },
+          "source": null
+        },
+        {
+          "name": "oncontextrestored",
+          "descriptor": {
+            "status": "ACCESSOR_NOT_READ",
+            "ownerDepth": 0,
+            "type": "accessor",
+            "hasGetter": true,
+            "hasSetter": true
+          },
+          "source": null
+        },
+        {
+          "name": "matchMedia",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 39,
+            "truncated": false,
+            "excerpt": "function matchMedia() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaDeviceInfo",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 44,
+            "truncated": false,
+            "excerpt": "function MediaDeviceInfo() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaDevices",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 41,
+            "truncated": false,
+            "excerpt": "function MediaDevices() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaKeyMessageEvent",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 49,
+            "truncated": false,
+            "excerpt": "function MediaKeyMessageEvent() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaKeyStatusMap",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 46,
+            "truncated": false,
+            "excerpt": "function MediaKeyStatusMap() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaKeySystemAccess",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 49,
+            "truncated": false,
+            "excerpt": "function MediaKeySystemAccess() { [native code] }"
+          }
+        },
+        {
+          "name": "MediaKeys",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 38,
+            "truncated": false,
+            "excerpt": "function MediaKeys() { [native code] }"
+          }
+        }
+      ],
+      "objects": {
+        "vowOS.store": {
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "object",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "properties": [
+            {
+              "name": "getInstalledPkgs",
+              "descriptor": {
+                "status": "DATA",
+                "ownerDepth": 0,
+                "type": "function",
+                "hasGetter": false,
+                "hasSetter": false
+              },
+              "source": {
+                "sourceLength": 199,
+                "truncated": false,
+                "excerpt": "function() {\n            const ret = window.vowOS.service.syncExecute('pkgmgr', {\n                  api: 'getInstalledPkgs',\n                  args: ''\n            })\n            return ret\n        }"
+              }
+            },
+            {
+              "name": "installApp",
+              "descriptor": {
+                "status": "DATA",
+                "ownerDepth": 0,
+                "type": "function",
+                "hasGetter": false,
+                "hasSetter": false
+              },
+              "source": {
+                "sourceLength": 990,
+                "truncated": false,
+                "excerpt": "function(appinfo, callback) {\n            if (!appinfo || typeof (appinfo) != 'object') {\n                callback({ret: false, msg:{appId: '', message:'wrong param'}})\n                return false\n            }\n            if(!appinfo?.packageName) {\n                const ret = Hisense_installApp(appinfo.appId, appinfo.appName, appinfo.thumbnail, appinfo.iconSmall, appinfo.iconBig, appinfo.appUrl, appinfo.storetype, callback, appinfo.configUrl, appinfo.configUrlDownload, appinfo.mediaId)\n                callback({ret: ret, msg:{appId: appinfo?.appId, message: ret? \"succeed\" : \"install failed!\"}})\n                return ret\n            } else {\n                // package app\n                const param = {\n                     pkgName: appinfo?.packageName,\n                     version: '',\n                     appId: appinfo?.appId\n                }\n                this.sendPkgmgrRequest('install', param, appinfo, callback)\n                return true\n            }\n        }"
+              }
+            },
+            {
+              "name": "sendPkgmgrRequest",
+              "descriptor": {
+                "status": "DATA",
+                "ownerDepth": 0,
+                "type": "function",
+                "hasGetter": false,
+                "hasSetter": false
+              },
+              "source": {
+                "sourceLength": 1477,
+                "truncated": false,
+                "excerpt": "function(api, args, appinfo, callback) {\n            let ret = true\n            // encode param\n            const encodedData = encodeURIComponent(JSON.stringify(args));\n            const url = `https://localhost:9888/service/pkgmgr?api=${api}&args=${encodedData}`;\n            const xhr = new XMLHttpRequest();\n            xhr.onload = function() {\n                if (xhr.status >= 200 && xhr.status < 300) {\n                    // 请求成功，处理响应数据\n                    console.log(xhr.responseText)\n                    const response = JSON.parse(xhr.responseText)\n                    if(response?.ret && api == 'install') {\n                        // TODO: read from config file\n                        const path = `file:///APPS/pkgs/${args?.pkgName}/index.html`\n                        // write path into Appinfo.json\n                        ret = Hisense_installApp(args?.appId, args?.pkgName, appinfo?.thumbnail, appinfo?.iconSmall, appinfo?.iconBig, path, 'hisense', callback, appinfo?.configUrl, appinfo?.configUrlDownload, appinfo?.mediaId)\n                    }\n\n                    callback({ret: response?.ret, msg:{appId: args?.appId, message: response?.msg}})\n                } else {\n                    // 请求失败，处理错误\n                    ret = false\n                    callback({ret: ret, msg:{appId: args?.appId, message: xhr.responseText}})\n                }\n            }\n\n            xhr.open('GET', url);\n            xhr.send();\n            return ret\n        }"
+              }
+            }
+          ],
+          "invoked": false,
+          "truncated": false
+        },
+        "window.omi_platform": {
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "object",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "properties": [
+            {
+              "name": "addPlatformEventListener",
+              "descriptor": {
+                "status": "DATA",
+                "ownerDepth": 0,
+                "type": "function",
+                "hasGetter": false,
+                "hasSetter": false
+              },
+              "source": {
+                "sourceLength": 53,
+                "truncated": false,
+                "excerpt": "function addPlatformEventListener() { [native code] }"
+              }
+            },
+            {
+              "name": "sendPlatformMessage",
+              "descriptor": {
+                "status": "DATA",
+                "ownerDepth": 0,
+                "type": "function",
+                "hasGetter": false,
+                "hasSetter": false
+              },
+              "source": {
+                "sourceLength": 48,
+                "truncated": false,
+                "excerpt": "function sendPlatformMessage() { [native code] }"
+              }
+            }
+          ],
+          "invoked": false,
+          "truncated": false
+        },
+        "window.opera_omi": {
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "object",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "properties": [
+            {
+              "name": "addPlatformEventListener",
+              "descriptor": {
+                "status": "DATA",
+                "ownerDepth": 0,
+                "type": "function",
+                "hasGetter": false,
+                "hasSetter": false
+              },
+              "source": {
+                "sourceLength": 53,
+                "truncated": false,
+                "excerpt": "function addPlatformEventListener() { [native code] }"
+              }
+            },
+            {
+              "name": "sendPlatformMessage",
+              "descriptor": {
+                "status": "DATA",
+                "ownerDepth": 0,
+                "type": "function",
+                "hasGetter": false,
+                "hasSetter": false
+              },
+              "source": {
+                "sourceLength": 48,
+                "truncated": false,
+                "excerpt": "function sendPlatformMessage() { [native code] }"
+              }
+            }
+          ],
+          "invoked": false,
+          "truncated": false
+        }
+      },
+      "truncated": false,
+      "invoked": false
+    },
+    "scripts": [
+      {
+        "index": 0,
+        "src": "https://vidaahub.com/hspdk-context.js?v=app-cf5e865f484a",
+        "inline": false,
+        "sideeOwned": true
+      },
+      {
+        "index": 1,
+        "src": "https://vidaahub.com/app.js?v=app-cf5e865f484a",
+        "inline": false,
+        "sideeOwned": true
+      }
+    ],
+    "note": "Descriptor/source-only. No Store method, platform message, getter, install, download or write is invoked."
+  },
   "summary": {
     "runtimeIdentity": "MISSING",
     "contextInit": "NOT_RUN",
     "contextFingerprint": "NOT_RUN",
     "permissionGate": "UNKNOWN",
     "appInfoWrite": "NOT_RUN"
-  },
-  "pkgmgrPackageProbe": {
-    "timestamp": "2026-09-26T17:35:59.035Z",
-    "readOnly": true,
-    "pageContext": {
-      "href": "https://vidaahub.com/",
-      "origin": "https://vidaahub.com",
-      "protocol": "https:",
-      "hostname": "vidaahub.com",
-      "port": "443",
-      "host": "vidaahub.com",
-      "secureContext": true,
-      "accessMode": "VIDAAHUB_BROWSER_CONTEXT"
-    },
-    "packageName": "tv.vidaa.app.tvbrowser",
-    "attempts": [
-      {
-        "label": "pkgmgr-namespace",
-        "path": "APPS:pkgs/tv.vidaa.app.tvbrowser/index.html",
-        "mode": 0,
-        "basis": "Exact APPS: path form returned by pkgmgr getInstalledPkgs.",
-        "returnedType": "string",
-        "length": 0,
-        "error": null,
-        "hash": null,
-        "references": [],
-        "preview": ""
-      },
-      {
-        "label": "absolute-filesystem",
-        "path": "/APPS/pkgs/tv.vidaa.app.tvbrowser/index.html",
-        "mode": 0,
-        "basis": "Exact filesystem form implied by vowOS.store file:///APPS/pkgs/<pkgName>/index.html.",
-        "returnedType": "string",
-        "length": 0,
-        "error": null,
-        "hash": null,
-        "references": [],
-        "preview": ""
-      },
-      {
-        "label": "relative-filesystem",
-        "path": "../../../APPS/pkgs/tv.vidaa.app.tvbrowser/index.html",
-        "mode": 0,
-        "basis": "Absolute-path conversion used by the public vidaa-edge Hisense_FileRead scanner.",
-        "returnedType": "string",
-        "length": 0,
-        "error": null,
-        "hash": null,
-        "references": [],
-        "preview": ""
-      }
-    ],
-    "selected": null,
-    "sourceInventory": {
-      "matches": [
-        {
-          "path": "window.PaymentRequestUpdateEvent",
-          "term": "NAME_MATCH",
-          "sourceLength": 54,
-          "excerpt": "function PaymentRequestUpdateEvent() { [native code] }"
-        },
-        {
-          "path": "window.BackgroundFetchRegistration",
-          "term": "NAME_MATCH",
-          "sourceLength": 56,
-          "excerpt": "function BackgroundFetchRegistration() { [native code] }"
-        },
-        {
-          "path": "window.BackgroundFetchRecord",
-          "term": "NAME_MATCH",
-          "sourceLength": 50,
-          "excerpt": "function BackgroundFetchRecord() { [native code] }"
-        },
-        {
-          "path": "window.BackgroundFetchManager",
-          "term": "NAME_MATCH",
-          "sourceLength": 51,
-          "excerpt": "function BackgroundFetchManager() { [native code] }"
-        },
-        {
-          "path": "window.IDBObjectStore",
-          "term": "NAME_MATCH",
-          "sourceLength": 43,
-          "excerpt": "function IDBObjectStore() { [native code] }"
-        },
-        {
-          "path": "window.BeforeInstallPromptEvent",
-          "term": "NAME_MATCH",
-          "sourceLength": 53,
-          "excerpt": "function BeforeInstallPromptEvent() { [native code] }"
-        },
-        {
-          "path": "window.fetch",
-          "term": "NAME_MATCH",
-          "sourceLength": 34,
-          "excerpt": "function fetch() { [native code] }"
-        },
-        {
-          "path": "window.getInstalledAppJsonObj",
-          "term": "NAME_MATCH",
-          "sourceLength": 376,
-          "excerpt": "function() {\n        const installedAppJsonStr = Hisense_FileRead('websdk/Appinfo.json', 6)\n        if (isString(installedAppJsonStr)) {\n            try {\n                let presetAppObj = JSON.parse(installedAppJsonStr)\n                return presetAppObj\n            } catch (e) {\n                return 0\n            }\n        } else {\n            return 0\n        }\n    }"
-        },
-        {
-          "path": "window.writeInstallAppObjToJson",
-          "term": "NAME_MATCH",
-          "sourceLength": 179,
-          "excerpt": "function(AppJsonObj) {\n        const writedata = JSON.stringify(AppJsonObj)\n        const ret = HiUtils_createRequest('installApplication', writedata)\n        return ret.ret\n    }"
-        },
-        {
-          "path": "window.Hisense_installApp_V2",
-          "term": "NAME_MATCH",
-          "sourceLength": 1406,
-          "excerpt": "function(appinfo, callback) {\n        console.log('Install App V2 begin')\n        let ret = false\n\n        if (typeof (appinfo) != 'object') {\n            callback(-1)\n            return ret\n        }\n\n        const newAppInfo = mapAppInfoFields(appinfo)\n        let installAppObj = getInstalledAppJsonObj()\n        if (installAppObj) {\n            for (let i = 0; i < installAppObj.AppInfo.length; i++) {\n                if (newAppInfo.URL == installAppObj.AppInfo[i].URL) {\n                    if (newAppInfo.AppName != installAppObj.AppInfo[i].AppName) {\n                        installAppObj.AppInfo[i].AppName = newAppInfo.AppName\n                        installAppObj.AppInfo[i].URL = newAppInfo.URL\n                        installAppObj.AppInfo[i].Image = newAppInfo.Image\n                        writeInstallAppObjToJson(installAppObj)\n                        callback(0)\n                        return true\n                    } else {\n                        console.log('same app' + newAppInfo.Id)\n                        callback(0)\n                        return true\n                    }\n                }\n            }\n        }\n\n        if (installAppObj) {\n            installAppObj.AppInfo.push(newAppInfo)\n        } else {\n            installAppObj = { AppInfo: [newAppInfo] }\n        }\n\n        ret = writeInstallAppObjToJson(installAppObj)\n        callback(0)\n        return ret\n    }"
-        },
-        {
-          "path": "window.Hisense_installApp",
-          "term": "download",
-          "sourceLength": 1929,
-          "excerpt": "function(appId, appName, thumbnail, iconSmall, iconBig, appUrl, storetype, callback, configUrl, configUrlDownload, mediaId) {\n        console.log('Install App begin' + appId)\n\n        let mydate = new Date()\n        let realMonth = mydate.getMonth() + 1\n        let StoreType = storetype\n        let newApp = {\n            'Id': appId,\n            'Thumb': thumbnail,\n            'Icon_96': iconSmall,\n            'Image': thumbnail,\n            'URL': appUrl,\n            'AppName': appName,\n            'Title': appName,\n            'configUrl': configUrl,\n            'configUrlDownload': configUrlDownload,\n            'mediaId': mediaId,\n            'IconURL': iconBig,\n            'StartCommand': appUrl,\n            'InstallTime': mydate.getFullYear() + '-' + realMonth + '-' + mydate.getDate(),\n            'RunTimes': 0,\n            'StoreType': StoreType,\n            'PreInstall': false }\n        let installAppObj = getInstalledAppJsonObj()\n        if (installAppObj) {\n            for (let i = 0; i < installAppObj.AppInfo.length; i++) {\n                if (appUrl == installAppObj.AppInfo[i].URL) {\n                    if (appName != installAppObj.AppInfo[i].AppName) {\n                        installAppObj.AppInfo[i].AppName = appName\n                        installAppObj.AppInfo[i].URL = appUrl\n                        installAppObj.AppInfo[i].Image = thumbnail\n                        ret = writeInstallAppObjToJson(installAppObj)\n                        return ret\n                    } else {\n                        console.log('same app' + appId)\n                        return true\n                    }\n                }\n            }\n        }\n        if (installAppObj) {\n            installAppObj.AppInfo.push(newApp)\n        } else {\n            installAppObj = { AppInfo: [newApp] }\n        }\n\n        const ret = writeInstallAppObjToJson(installAppObj)\n\n        callback(0)\n        return ret\n    }"
-        },
-        {
-          "path": "window.Hisense_uninstallApp",
-          "term": "NAME_MATCH",
-          "sourceLength": 645,
-          "excerpt": "function(appId, callback) {\n        console.log('Uninstall App begin' + appId)\n\n        let installAppObj = getInstalledAppJsonObj()\n        let appIndex = 0\n        let ret = false\n        if (installAppObj != 0) {\n            for (appIndex = 0; appIndex < installAppObj.AppInfo.length; appIndex++) {\n                if (installAppObj.AppInfo[appIndex].Id == appId) {\n                    installAppObj.AppInfo.splice(appIndex, 1)\n                    ret = true\n                }\n            }\n            if (ret) {\n                writeInstallAppObjToJson(installAppObj)\n            }\n        }\n\n        callback(ret)\n        return true\n    }"
-        },
-        {
-          "path": "window.Hisense_getInstalledApps",
-          "term": "NAME_MATCH",
-          "sourceLength": 828,
-          "excerpt": "function(callback) {\n        console.log('getInstalledApps')\n\n        let count = 0\n        const allAppObj = getAllAppJsonObj()\n        let ret = ''\n\n        if (allAppObj.length == 0) {\n            errinfo = new Error()\n            errinfo.name = 'getInstalledApps'\n            errinfo.message = 'There is no App has installed!!!'\n            callback(errinfo, null)\n        } else {\n            let all_apps = allAppObj?.AppInfo\n            if(all_apps.length != 0) {\n                var newArray = all_apps.filter((item, i, arr) => {\n                    return item?.isShowOnLauncher != false\n                })\n                //console.log(newArray);\n            }\n            const result = {'AppInfo': newArray}\n            ret = JSON.stringify(result)\n            callback(null, ret)\n        }\n\n        return ret\n    }"
-        },
-        {
-          "path": "window.Hisense_GetUpdatesVerInfo",
-          "term": "NAME_MATCH",
-          "sourceLength": 782,
-          "excerpt": "function(callback) {\n        console.log('go to Hisense_GetUpdatesVerInfo')\n        var requestMsg = {}\n        requestMsg.type = 'getUpdatesVerInfo'\n\n        try {\n            if (window.omi_platform) {\n                omi_platform.sendPlatformMessage(JSON.stringify(requestMsg))\n            }\n        } catch (e) {\n            // handle the exception\n        }\n\n        handleGetVersionEvent = function(version) {\n            var message = JSON.parse(version)\n            if (!!message && version.indexOf('nssdb') != -1) {\n                callback(message)\n            }\n        }\n\n        if (window.alreadyAddUpdateEventListener == 0) {\n            omi_platform.addPlatformEventListener(handleGetVersionEvent)\n            window.alreadyAddUpdateEventListener = 1\n        }\n    }"
-        },
-        {
-          "path": "vowOS.store.getInstalledPkgs",
-          "term": "pkgmgr",
-          "sourceLength": 199,
-          "excerpt": "function() {\n            const ret = window.vowOS.service.syncExecute('pkgmgr', {\n                  api: 'getInstalledPkgs',\n                  args: ''\n            })\n            return ret\n        }"
-        },
-        {
-          "path": "vowOS.store.getInstalledPkgs",
-          "term": "getInstalledPkgs",
-          "sourceLength": 199,
-          "excerpt": "function() {\n            const ret = window.vowOS.service.syncExecute('pkgmgr', {\n                  api: 'getInstalledPkgs',\n                  args: ''\n            })\n            return ret\n        }"
-        },
-        {
-          "path": "vowOS.store.installApp",
-          "term": "pkgmgr",
-          "sourceLength": 990,
-          "excerpt": "installApp(appinfo.appId, appinfo.appName, appinfo.thumbnail, appinfo.iconSmall, appinfo.iconBig, appinfo.appUrl, appinfo.storetype, callback, appinfo.configUrl, appinfo.configUrlDownload, appinfo.mediaId)\n                callback({ret: ret, msg:{appId: appinfo?.appId, message: ret? \"succeed\" : \"install failed!\"}})\n                return ret\n            } else {\n                // package app\n                const param = {\n                     pkgName: appinfo?.packageName,\n                     version: '',\n                     appId: appinfo?.appId\n                }\n                this.sendPkgmgrRequest('install', param, appinfo, callback)\n                return true\n            }\n        }"
-        },
-        {
-          "path": "vowOS.store.installApp",
-          "term": "packageName",
-          "sourceLength": 990,
-          "excerpt": "function(appinfo, callback) {\n            if (!appinfo || typeof (appinfo) != 'object') {\n                callback({ret: false, msg:{appId: '', message:'wrong param'}})\n                return false\n            }\n            if(!appinfo?.packageName) {\n                const ret = Hisense_installApp(appinfo.appId, appinfo.appName, appinfo.thumbnail, appinfo.iconSmall, appinfo.iconBig, appinfo.appUrl, appinfo.storetype, callback, appinfo.configUrl, appinfo.configUrlDownload, appinfo.mediaId)\n                callback({ret: ret, msg:{appId: appinfo?.appId, message: ret? \"succeed\" : \"install failed!\"}})\n                return ret\n            } else {\n                // package app\n                const param = {\n                     pkgName: appinfo?.packageName,\n                     version: '',\n                     appId: appinfo?.appId\n                }\n                this.sendPkgmgrRequest('install', param, appinfo, callback)\n                return true\n            }\n        }"
-        },
-        {
-          "path": "vowOS.store.installApp",
-          "term": "pkgName",
-          "sourceLength": 990,
-          "excerpt": "d: '', message:'wrong param'}})\n                return false\n            }\n            if(!appinfo?.packageName) {\n                const ret = Hisense_installApp(appinfo.appId, appinfo.appName, appinfo.thumbnail, appinfo.iconSmall, appinfo.iconBig, appinfo.appUrl, appinfo.storetype, callback, appinfo.configUrl, appinfo.configUrlDownload, appinfo.mediaId)\n                callback({ret: ret, msg:{appId: appinfo?.appId, message: ret? \"succeed\" : \"install failed!\"}})\n                return ret\n            } else {\n                // package app\n                const param = {\n                     pkgName: appinfo?.packageName,\n                     version: '',\n                     appId: appinfo?.appId\n                }\n                this.sendPkgmgrRequest('install', param, appinfo, callback)\n                return true\n            }\n        }"
-        },
-        {
-          "path": "vowOS.store.installApp",
-          "term": "sendPkgmgrRequest",
-          "sourceLength": 990,
-          "excerpt": "nse_installApp(appinfo.appId, appinfo.appName, appinfo.thumbnail, appinfo.iconSmall, appinfo.iconBig, appinfo.appUrl, appinfo.storetype, callback, appinfo.configUrl, appinfo.configUrlDownload, appinfo.mediaId)\n                callback({ret: ret, msg:{appId: appinfo?.appId, message: ret? \"succeed\" : \"install failed!\"}})\n                return ret\n            } else {\n                // package app\n                const param = {\n                     pkgName: appinfo?.packageName,\n                     version: '',\n                     appId: appinfo?.appId\n                }\n                this.sendPkgmgrRequest('install', param, appinfo, callback)\n                return true\n            }\n        }"
-        },
-        {
-          "path": "vowOS.store.installApp",
-          "term": "download",
-          "sourceLength": 990,
-          "excerpt": "function(appinfo, callback) {\n            if (!appinfo || typeof (appinfo) != 'object') {\n                callback({ret: false, msg:{appId: '', message:'wrong param'}})\n                return false\n            }\n            if(!appinfo?.packageName) {\n                const ret = Hisense_installApp(appinfo.appId, appinfo.appName, appinfo.thumbnail, appinfo.iconSmall, appinfo.iconBig, appinfo.appUrl, appinfo.storetype, callback, appinfo.configUrl, appinfo.configUrlDownload, appinfo.mediaId)\n                callback({ret: ret, msg:{appId: appinfo?.appId, message: ret? \"succeed\" : \"install failed!\"}})\n                return ret\n            } else {\n                // package app\n                const param = {\n                     pkgName: appinfo?.packageName,\n                     version: '',\n                     appId: appinfo?.appId\n                }\n                this.sendPkgmgrRequest('install', param, appinfo, callback)\n                return true\n            }\n        }"
-        },
-        {
-          "path": "vowOS.store.sendPkgmgrRequest",
-          "term": "pkgmgr",
-          "sourceLength": 1477,
-          "excerpt": "function(api, args, appinfo, callback) {\n            let ret = true\n            // encode param\n            const encodedData = encodeURIComponent(JSON.stringify(args));\n            const url = `https://localhost:9888/service/pkgmgr?api=${api}&args=${encodedData}`;\n            const xhr = new XMLHttpRequest();\n            xhr.onload = function() {\n                if (xhr.status >= 200 && xhr.status < 300) {\n                    // 请求成功，处理响应数据\n                    console.log(xhr.responseText)\n                    const response = JSON.parse(xhr.responseText)\n                    if(response?.ret && api == 'install') {\n                        // TODO: read from config file\n                        const path = `file:///APPS/pkgs/${args?.pkgName}/index.html`\n                        // write path into Appinfo.json\n                        ret = Hisense_installApp(args?.appId, args?.pkgName, appinfo?.thumbnail, appinfo?.iconSmall, appinfo?.iconBig, path, 'hisense', callback, appinfo?.configUrl, appinfo?.configUrlDownload, appinfo?.mediaId)\n                    }\n\n                    callback({ret: response?.ret, msg:{appId: args?.appId, message: response?.msg}})\n                } else {\n                    // 请求失败，处理错误\n                    ret = false\n                    callback({ret: ret, msg:{appId: args?.appId, message: xhr.responseText}})\n                }\n            }\n\n            xhr.open('GET', url);\n            xhr.send();\n            return ret\n        }"
-        },
-        {
-          "path": "vowOS.store.sendPkgmgrRequest",
-          "term": "pkgName",
-          "sourceLength": 1477,
-          "excerpt": "onent(JSON.stringify(args));\n            const url = `https://localhost:9888/service/pkgmgr?api=${api}&args=${encodedData}`;\n            const xhr = new XMLHttpRequest();\n            xhr.onload = function() {\n                if (xhr.status >= 200 && xhr.status < 300) {\n                    // 请求成功，处理响应数据\n                    console.log(xhr.responseText)\n                    const response = JSON.parse(xhr.responseText)\n                    if(response?.ret && api == 'install') {\n                        // TODO: read from config file\n                        const path = `file:///APPS/pkgs/${args?.pkgName}/index.html`\n                        // write path into Appinfo.json\n                        ret = Hisense_installApp(args?.appId, args?.pkgName, appinfo?.thumbnail, appinfo?.iconSmall, appinfo?.iconBig, path, 'hisense', callback, appinfo?.configUrl, appinfo?.configUrlDownload, appinfo?.mediaId)\n                    }\n\n                    callback({ret: response?.ret, msg:{appId: args?.appId, message: response?.msg}})\n                } else {\n                    // 请求失败，处理错误\n                    ret = false\n                    callback({ret: ret, msg:{appId: args?.appId, message: xhr.responseText}})\n                }\n            }\n\n            xhr.open('GET', url);\n            xhr.send();\n            return ret\n        }"
-        },
-        {
-          "path": "vowOS.store.sendPkgmgrRequest",
-          "term": "/APPS/pkgs/",
-          "sourceLength": 1477,
-          "excerpt": "ata = encodeURIComponent(JSON.stringify(args));\n            const url = `https://localhost:9888/service/pkgmgr?api=${api}&args=${encodedData}`;\n            const xhr = new XMLHttpRequest();\n            xhr.onload = function() {\n                if (xhr.status >= 200 && xhr.status < 300) {\n                    // 请求成功，处理响应数据\n                    console.log(xhr.responseText)\n                    const response = JSON.parse(xhr.responseText)\n                    if(response?.ret && api == 'install') {\n                        // TODO: read from config file\n                        const path = `file:///APPS/pkgs/${args?.pkgName}/index.html`\n                        // write path into Appinfo.json\n                        ret = Hisense_installApp(args?.appId, args?.pkgName, appinfo?.thumbnail, appinfo?.iconSmall, appinfo?.iconBig, path, 'hisense', callback, appinfo?.configUrl, appinfo?.configUrlDownload, appinfo?.mediaId)\n                    }\n\n                    callback({ret: response?.ret, msg:{appId: args?.appId, message: response?.msg}})\n                } else {\n                    // 请求失败，处理错误\n                    ret = false\n                    callback({ret: ret, msg:{appId: args?.appId, message: xhr.responseText}})\n                }\n            }\n\n            xhr.open('GET', url);\n            xhr.send();\n            return ret\n        }"
-        },
-        {
-          "path": "vowOS.store.sendPkgmgrRequest",
-          "term": "download",
-          "sourceLength": 1477,
-          "excerpt": "             // 请求成功，处理响应数据\n                    console.log(xhr.responseText)\n                    const response = JSON.parse(xhr.responseText)\n                    if(response?.ret && api == 'install') {\n                        // TODO: read from config file\n                        const path = `file:///APPS/pkgs/${args?.pkgName}/index.html`\n                        // write path into Appinfo.json\n                        ret = Hisense_installApp(args?.appId, args?.pkgName, appinfo?.thumbnail, appinfo?.iconSmall, appinfo?.iconBig, path, 'hisense', callback, appinfo?.configUrl, appinfo?.configUrlDownload, appinfo?.mediaId)\n                    }\n\n                    callback({ret: response?.ret, msg:{appId: args?.appId, message: response?.msg}})\n                } else {\n                    // 请求失败，处理错误\n                    ret = false\n                    callback({ret: ret, msg:{appId: args?.appId, message: xhr.responseText}})\n                }\n            }\n\n            xhr.open('GET', url);\n            xhr.send();\n            return ret\n        }"
-        }
-      ],
-      "objects": [],
-      "error": null
-    },
-    "status": "READ_EMPTY",
-    "error": null
-  },
-  "pkgmgrPackageCorrelation": {
-    "timestamp": "2026-09-26T17:35:59.326Z",
-    "readOnly": true,
-    "status": "READ_OK",
-    "registry": {
-      "response": {
-        "ret": true,
-        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"URL\":\"http://vidaa.smartone-iptv.com\",\"AppName\":\"Smartone IPTV\",\"Title\":\"Smartone IPTV\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"StartCommand\":\"http://vidaa.smartone-iptv.com\",\"InstallTime\":\"2026-2-3\",\"RunTimes\":0,\"StoreType\":\"store\",\"configUrl\":\"\",\"configUrlDownload\":0,\"mediaId\":1470,\"initialFrom\":\"\",\"appInfo\":{\"url\":\"http://vidaa.smartone-iptv.com\",\"openMode\":\"98\",\"configUrlDownload\":0,\"configUrl\":\"\",\"appRelatedPics\":[{\"url\":\"https://img.vidaahub.com/vidaa/2022/5/202205250730009258.jpg\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/vidaa/2022/5/202205250730078223.jpg\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/vidaa/2022/5/202205250730149686.jpg\",\"width\":1920,\"height\":1080}],\"venderId\":9999,\"rating\":\"\",\"rate\":0,\"reviews\":0,\"categoryName\":\"Internet TV\",\"summary\":\"SmartOne IPTV is a media player for smart TVs, SmartOne IPTV app allow end-users of Xtream Code panel or similar panels to watch their contents via their API, SmartOne IPTV allow users to watch live channels, VOD (Video On Demand)and series in all smart TVs with easy tasks. Smartone IPTV is multi-languages and customizable APP.\",\"multiDesc\":{\"ita\":\"SmartOne IPTV è un lettore multimediale per smart TV, l'app SmartOne IPTV consente agli utenti finali del pannello Xtream Code o pannelli simili di guardare i propri contenuti tramite la loro API, SmartOne IPTV consente agli utenti di guardare i canali in diretta, VOD (Video On Demand) e le serie in tutte le smart TV con compiti facili. Smartone IPTV è un'APP multilingua e personalizzabile.\"},\"developer\":\"NH Group\",\"developerUrl\":\"\",\"appBundle\":\"\",\"fee\":1,\"pubdate\":\"\",\"latestUpgradeDate\":\"\",\"version\":\"0\",\"unifiedAppName\":\"1470\",\"hasDetailPage\":1,\"multiviewType\":0,\"unsearchable\":0,\"subCategory\":\"Internet TV\"},\"subCategory\":\"Internet TV\",\"categoryName\":\"Internet TV\",\"showInfo\":{\"promotionalPic\":\"https://img.vidaahub.com/vidaa/2022/5/202205250730328891.jpg\"}},{\"Id\":\"2568\",\"Thumb\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/a14b838fd3d7a02375371564a0545f89?f=webp&resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/a14b838fd3d7a02375371564a0545f89?f=webp&resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/a14b838fd3d7a02375371564a0545f89?f=webp&resize=w_300,h_300\",\"URL\":\"https://relvhgchz5.strem.io/hello-world/index.html\",\"AppName\":\"Stremio Lite\",\"Title\":\"Stremio Lite\",\"IconURL\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/a14b838fd3d7a02375371564a0545f89?f=webp&resize=w_300,h_300\",\"StartCommand\":\"https://relvhgchz5.strem.io/hello-world/index.html\",\"InstallTime\":\"2026-2-9\",\"RunTimes\":0,\"StoreType\":\"hisense\",\"configUrl\":\"\",\"configUrlDownload\":0,\"mediaId\":2568,\"initialFrom\":\"\",\"appInfo\":{\"url\":\"https://relvhgchz5.strem.io/hello-world/index.html\",\"openMode\":\"99\",\"configUrlDownload\":0,\"configUrl\":\"\",\"appRelatedPics\":[{\"url\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/4cf1fa429dfca796de5e754a34129399?f=webp\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/4889ea7af86f49d81ef7266b95ae74e6?f=webp\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/53ade93950c99a523592e48f4737903d?f=webp\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/d3dea6b45298362744ab6c34cd0d89a4?f=webp\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/d5d7c82815a3beb75e69fdedb3a0644f?f=webp\",\"width\":1920,\"height\":1080}],\"venderId\":9999,\"rating\":\"3\",\"rate\":0,\"reviews\":0,\"categoryName\":\"Film e serie TV \",\"summary\":\"Stremio is a video streaming application, that allows you to watch and organize video content from different services, including movies, series, live TV and video channels.\",\"multiDesc\":{\"ita\":\"Stremio è un'applicazione di streaming video che consente di guardare e organizzare contenuti video provenienti da diversi servizi, tra cui film, serie TV, programmi televisivi in diretta e canali video.\",\"eng\":\"Stremio is a video streaming application, that allows you to watch and organize video content from different services, including movies, series, live TV and video channels.\"},\"developer\":\"Stremio\",\"developerUrl\":\"\",\"appBundle\":\"\",\"fee\":0,\"pubdate\":\"\",\"latestUpgradeDate\":\"\",\"version\":\"0\",\"unifiedAppName\":\"2568\",\"hasDetailPage\":1,\"multiviewType\":0,\"unsearchable\":0,\"subCategory\":\"Movies & TV series\"},\"subCategory\":\"Movies & TV series\",\"categoryName\":\"Film e serie TV \",\"showInfo\":{\"promotionalPic\":\"\"}},{\"Id\":\"1876\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/11/202211102142287972.jpg?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/11/202211102142287972.jpg?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/11/202211102142287972.jpg?resize=w_300,h_300\",\"URL\":\"http://vidaa.duplecast.com/\",\"AppName\":\"Duplecast\",\"Title\":\"Duplecast\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/11/202211102142287972.jpg?resize=w_300,h_300\",\"StartCommand\":\"http://vidaa.duplecast.com/\",\"InstallTime\":\"2026-7-24\",\"RunTimes\":0,\"StoreType\":\"store\",\"configUrl\":\"\",\"configUrlDownload\":0,\"mediaId\":1876,\"initialFrom\":\"\",\"appInfo\":{\"icon\":\"https://img.vidaahub.com/vidaa/2022/11/202211102142454833.jpg\",\"fee\":1,\"unifiedAppName\":\"1876\",\"deletable\":1,\"hasDetailPage\":1,\"subCategory\":\"Internet TV\",\"categoryName\":\"Internet TV\",\"rating\":\"\",\"parentControlRating\":0,\"appBundle\":\"\",\"packaged\":0,\"multiviewType\":0,\"unsearchable\":0,\"venderId\":9999,\"rate\":0,\"reviews\":0,\"summary\":\"Duplecast is the most advanced and user friendly TV media player. With Duplecast you will enjoy your favorite media content on your TV.\",\"multiDesc\":{\"ita\":\"Duplecast è il lettore multimediale TV più avanzato e facile da usare. Con Duplecast potrai goderti i tuoi contenuti multimediali preferiti sulla tua TV.\"},\"developer\":\"CreativeKeys\",\"developerUrl\":\"\",\"pubdate\":\"\",\"latestUpgradeDate\":\"\",\"version\":\"0\",\"configUrl\":\"\",\"configUrlDownload\":0,\"url\":\"http://vidaa.duplecast.com/\",\"openMode\":\"98\",\"appRelatedPics\":[{\"url\":\"https://img.vidaahub.com/vidaa/2022/11/202211102143001943.jpg\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/vidaa/2022/11/202211102143041524.jpg\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/vidaa/2022/11/202211102143085531.jpg\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/vidaa/2022/11/202211102143139365.jpg\",\"width\":1920,\"height\":1080}]},\"subCategory\":\"Internet TV\",\"categoryName\":\"Internet TV\",\"showInfo\":{\"promotionalPic\":\"\"}}]}",
-        "sdkVersion": "1.5.0",
-        "code": 0
-      },
-      "appInfoCount": 3,
-      "length": 7166
-    },
-    "packages": [
-      {
-        "name": "tv.vidaa.app.browser",
-        "version": "9.6.0-r20260706x",
-        "type": "ns",
-        "path": "APPS:pkgs/tv.vidaa.app.browser/CHA/"
-      },
-      {
-        "name": "tv.vidaa.res.iot",
-        "version": "1.0.1-r20260706x",
-        "type": "res",
-        "path": "APPS:pkgs/tv.vidaa.res.iot/CHA/"
-      },
-      {
-        "name": "tv.vidaa.phony.btrc",
-        "version": "1.0.0-r20260706x",
-        "type": "phony",
-        "path": "APPS:pkgs/tv.vidaa.phony.btrc/"
-      },
-      {
-        "name": "tv.vidaa.lib.odin",
-        "version": "9.6.0-r20260706x",
-        "type": "native",
-        "path": "APPS:pkgs/tv.vidaa.lib.odin/CHA/"
-      },
-      {
-        "name": "tv.vidaa.phony.pkglimit",
-        "version": "1.0.0-r20260707a",
-        "type": "phony",
-        "path": "APPS:pkgs/tv.vidaa.phony.pkglimit/CHA/"
-      },
-      {
-        "name": "tv.vidaa.lib.mediamain",
-        "version": "3.6.0-r20260706w",
-        "type": "native",
-        "path": "APPS:pkgs/tv.vidaa.lib.mediamain/CHA/"
-      },
-      {
-        "name": "tv.vidaa.app.phoenix",
-        "version": "1.0.0-r20260706x",
-        "type": "ns",
-        "path": "APPS:pkgs/tv.vidaa.app.phoenix/CHA/"
-      },
-      {
-        "name": "tv.vidaa.res.odin",
-        "version": "9.6.0-r20260706x",
-        "type": "res",
-        "path": "APPS:pkgs/tv.vidaa.res.odin/CHA/"
-      },
-      {
-        "name": "tv.vidaa.res.youtube",
-        "version": "1.0.0-r20260707a",
-        "type": "native",
-        "path": "APPS:pkgs/tv.vidaa.res.youtube/"
-      },
-      {
-        "name": "tv.vidaa.app.youtube",
-        "version": "1.0.0-r20260707a",
-        "type": "native",
-        "path": "APPS:pkgs/tv.vidaa.app.youtube/"
-      },
-      {
-        "name": "tv.vidaa.app.operationui",
-        "version": "9.61.00-a20260727u",
-        "type": "system",
-        "path": "APPS:pkgs/tv.vidaa.app.operationui/CHB/"
-      },
-      {
-        "name": "tv.vidaa.res.matter",
-        "version": "1.0.0-r20260706x",
-        "type": "res",
-        "path": "APPS:pkgs/tv.vidaa.res.matter/CHA/"
-      },
-      {
-        "name": "tv.vidaa.res.webengine",
-        "version": "9.6.0-r20260706x",
-        "type": "res",
-        "path": "APPS:pkgs/tv.vidaa.res.webengine/CHA/"
-      },
-      {
-        "name": "tv.vidaa.jsservice.basic",
-        "version": "1.0.0-r20260706x",
-        "type": "js",
-        "path": "APPS:pkgs/tv.vidaa.jsservice.basic/CHA/"
-      },
-      {
-        "name": "tv.vidaa.jsservice.system",
-        "version": "1.0.0-r20260706x",
-        "type": "js",
-        "path": "APPS:pkgs/tv.vidaa.jsservice.system/CHA/"
-      },
-      {
-        "name": "tv.vidaa.app.osconfig",
-        "version": "1.0.0-r20260707a",
-        "type": "phony",
-        "path": "APPS:pkgs/tv.vidaa.app.osconfig/CHA/"
-      },
-      {
-        "name": "tv.vidaa.phony.keystore",
-        "version": "1.0.0-r20260706x",
-        "type": "phony",
-        "path": "APPS:pkgs/tv.vidaa.phony.keystore/CHA/"
-      },
-      {
-        "name": "tv.vidaa.app.tvbrowser",
-        "version": "9.6.0-r20260706x",
-        "type": "web",
-        "path": "APPS:pkgs/tv.vidaa.app.tvbrowser/"
-      }
-    ],
-    "matches": [],
-    "error": null
   }
 }
