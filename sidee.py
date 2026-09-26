@@ -48,6 +48,12 @@ APPINFO_MAX_BACKUP_BYTES = 4 * 1024 * 1024
 stop_event = threading.Event()
 REPORT_WRITE_LOCK = threading.Lock()
 SESSION_ID_RE = re.compile(r"^sidee-\d{8}-\d{6}-[a-f0-9]{4}$")
+APP_CONTEXT_HOSTS = {
+    "vidaa.smartone-iptv.com": {"id": "1470", "name": "Smartone IPTV", "mode": "SMARTONE_APP_CONTEXT"},
+    "vidaa.duplecast.com": {"id": "1876", "name": "Duplecast", "mode": "DUPLECAST_APP_CONTEXT"},
+}
+APP_CONTEXT_HIT_LOCK = threading.Lock()
+APP_CONTEXT_LAST_HIT = None
 
 
 def client_build_id():
@@ -211,6 +217,206 @@ REPORT_SYNC_STATUS = {
 
 def _utc_timestamp():
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+
+def _new_probe_session_id():
+    stamp = time.strftime("%Y%m%d-%H%M%S", time.localtime())
+    nonce = hashlib.sha256(f"{time.time_ns()}:{os.getpid()}".encode("utf-8")).hexdigest()[:4]
+    return f"sidee-{stamp}-{nonce}"
+
+
+def _normalized_host(value):
+    return str(value or "").split(":", 1)[0].strip().lower().rstrip(".")
+
+
+def _record_app_context_hit(host, path, client_ip, headers):
+    global APP_CONTEXT_LAST_HIT
+    app = APP_CONTEXT_HOSTS.get(host)
+    if not app:
+        return None
+    hit = {
+        "timestamp": _utc_timestamp(),
+        "host": host,
+        "path": str(path or "")[:500],
+        "clientIp": str(client_ip or "")[:80],
+        "userAgent": str(headers.get("User-Agent", ""))[:500],
+        "referer": str(headers.get("Referer", ""))[:500],
+        "expectedApp": dict(app),
+    }
+    with APP_CONTEXT_HIT_LOCK:
+        APP_CONTEXT_LAST_HIT = hit
+    print(f"[APP-CONTEXT] {client_ip} {host} {path}")
+    return hit
+
+
+def _app_context_bootstrap_html(host):
+    app = APP_CONTEXT_HOSTS[host]
+    app_json = json.dumps(app, ensure_ascii=False)
+    return f"""<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,height=device-height,initial-scale=1">
+<title>Sidee App Context Probe</title>
+<style>
+html,body{{margin:0;background:#101010;color:#fff;font-family:Arial,sans-serif}}
+main{{box-sizing:border-box;min-height:100vh;padding:6vh 6vw}}
+h1{{font-size:4vw;margin:0 0 2vh}}
+p,pre{{font-size:2vw;line-height:1.4}}
+pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-width:90vw}}
+.ok{{color:#9fe6ae}} .wait{{color:#f0d98a}}
+</style>
+</head>
+<body>
+<main>
+<h1>Sidee · native app context</h1>
+<p id="state" class="wait">Capturing read-only VIDAA identity…</p>
+<pre id="out">host: {host}\nexpected app: {app["name"]} ({app["id"]})</pre>
+</main>
+<script>
+(function(){{
+  "use strict";
+  var expected={app_json};
+  function safeValue(v){{
+    if(v===undefined)return "[undefined]";
+    if(v===null||typeof v==="string"||typeof v==="number"||typeof v==="boolean")return v;
+    return Object.prototype.toString.call(v);
+  }}
+  function prop(root,name){{
+    try{{return {{status:"RETURNED",value:safeValue(root&&root[name])}};}}
+    catch(e){{return {{status:"ERROR",value:null,error:String(e&&e.message||e)}};}}
+  }}
+  function call(root,name){{
+    try{{
+      if(!root||typeof root[name]!=="function")return {{status:"UNAVAILABLE",value:null}};
+      return {{status:"RETURNED",value:safeValue(root[name].call(root))}};
+    }}catch(e){{return {{status:"ERROR",value:null,error:String(e&&e.message||e)}};}}
+  }}
+  var svc=null,ctx=null;
+  try{{svc=window.vowOS&&window.vowOS.service;}}catch(e){{}}
+  try{{ctx=window.vowOSContext;}}catch(e){{}}
+  var payload={{
+    timestamp:new Date().toISOString(),
+    href:location.href,
+    origin:location.origin,
+    protocol:location.protocol,
+    hostname:location.hostname,
+    expectedApp:expected,
+    userAgent:navigator.userAgent,
+    identity:{{
+      navigatorAppIdentifier:prop(navigator,"appIdentifier"),
+      serviceIdentifier:call(svc,"getIdentifier"),
+      appIdentifier:call(ctx,"getAppIdentifier"),
+      appId:call(ctx,"getAppId"),
+      roleId:call(window,"Hisense_GetRoleID"),
+      customerId:call(window,"Hisense_GetCustomerID"),
+      supportAppConfig:call(window,"Hisense_SupportAppConfig")
+    }},
+    capabilities:{{
+      hiUtils:typeof window.HiUtils_createRequest==="function",
+      installLegacy:typeof window.Hisense_installApp==="function",
+      installV2:typeof window.Hisense_installApp_V2==="function",
+      fileRead:typeof window.Hisense_FileRead==="function",
+      fileWrite:typeof window.Hisense_FileWrite==="function",
+      vowService:!!svc,
+      vowContext:!!ctx
+    }}
+  }};
+  var out=document.getElementById("out"),state=document.getElementById("state");
+  out.textContent=JSON.stringify(payload,null,2);
+  try{{
+    var xhr=new XMLHttpRequest();
+    xhr.open("POST","/api/app-context-bootstrap",true);
+    xhr.setRequestHeader("Content-Type","application/json");
+    xhr.onreadystatechange=function(){{
+      if(xhr.readyState!==4)return;
+      if(xhr.status>=200&&xhr.status<300){{
+        state.textContent="Captured and synced. You can leave this screen open.";
+        state.className="ok";
+      }}else{{
+        state.textContent="Captured locally in the page; server sync failed ("+xhr.status+").";
+      }}
+    }};
+    xhr.send(JSON.stringify(payload));
+  }}catch(e){{
+    state.textContent="Capture complete; upload failed: "+String(e&&e.message||e);
+  }}
+}})();
+</script>
+</body>
+</html>"""
+
+
+def _save_app_context_bootstrap(data, server_host, client_ip):
+    host = _normalized_host(server_host)
+    expected = APP_CONTEXT_HOSTS.get(host)
+    if not expected:
+        raise ValueError("Unknown app-context host")
+    if not isinstance(data, dict):
+        raise ValueError("Expected JSON object")
+    session_id = _new_probe_session_id()
+    now = _utc_timestamp()
+    identity = data.get("identity") if isinstance(data.get("identity"), dict) else {}
+    report = {
+        "sessionId": session_id,
+        "clientBuildId": client_build_id(),
+        "serverBuildId": client_build_id(),
+        "buildMatch": True,
+        "startedAt": now,
+        "updatedAt": now,
+        "accessContext": {
+            "href": str(data.get("href") or "")[:1000],
+            "origin": str(data.get("origin") or "")[:500],
+            "protocol": str(data.get("protocol") or "")[:40],
+            "hostname": str(data.get("hostname") or host)[:255],
+            "host": host,
+            "accessMode": expected["mode"],
+        },
+        "accessMode": expected["mode"],
+        "serverAccess": {"host": server_host, "requestScheme": "http", "requestPort": 80},
+        "device": {"userAgent": str(data.get("userAgent") or "")[:1000]},
+        "baseline": {
+            "label": "appContextBootstrap",
+            "timestamp": str(data.get("timestamp") or now)[:80],
+            "navigatorAppIdentifier": identity.get("navigatorAppIdentifier"),
+            "serviceIdentifier": identity.get("serviceIdentifier"),
+            "appIdentifier": identity.get("appIdentifier"),
+            "appId": identity.get("appId"),
+            "roleId": identity.get("roleId"),
+            "customerId": identity.get("customerId"),
+        },
+        "contextIdentityFingerprint": {
+            "timestamp": str(data.get("timestamp") or now)[:80],
+            "automatic": True,
+            "bootstrap": True,
+            "pageContext": {
+                "href": str(data.get("href") or "")[:1000],
+                "origin": str(data.get("origin") or "")[:500],
+                "protocol": str(data.get("protocol") or "")[:40],
+                "hostname": str(data.get("hostname") or host)[:255],
+                "accessMode": expected["mode"],
+            },
+            "expectedContext": dict(expected),
+            "identity": identity,
+            "capabilities": data.get("capabilities") if isinstance(data.get("capabilities"), dict) else {},
+            "serverObserved": {"host": host, "clientIp": str(client_ip or "")[:80]},
+            "classification": "APP_CONTEXT_BOOTSTRAP_CAPTURED",
+            "safety": "Read-only bootstrap. No setters, install/uninstall, file writes or guessed native calls.",
+        },
+        "summary": {
+            "runtimeIdentity": "PRESENT" if any(
+                isinstance(identity.get(k), dict) and str(identity[k].get("value") or "").strip()
+                for k in ("navigatorAppIdentifier", "serviceIdentifier", "appIdentifier", "appId")
+            ) else "MISSING",
+            "contextInit": "NOT_RUN",
+            "contextFingerprint": "APP_CONTEXT_BOOTSTRAP_CAPTURED",
+            "permissionGate": "UNKNOWN",
+            "appInfoWrite": "NOT_RUN",
+        },
+    }
+    write_session_report(session_id, report)
+    queue_report_sync(session_id, report, "app-context-bootstrap")
+    return report
 
 
 def _report_sync_status():
@@ -808,6 +1014,21 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
+        host = _normalized_host(self.headers.get("Host", ""))
+
+        if host in APP_CONTEXT_HOSTS and not path.startswith("/api/"):
+            _record_app_context_hit(host, path, self.client_address[0], self.headers)
+            data = _app_context_bootstrap_html(host).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
+            self.send_header("X-Sidee-App-Context", APP_CONTEXT_HOSTS[host]["mode"])
+            self.end_headers()
+            self.wfile.write(data)
+            return
 
         if path == "/api/status":
             cfg = load_config()
@@ -828,6 +1049,11 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
 
         if path == "/api/reports/sync":
             return self._send_json(_report_sync_status())
+
+        if path == "/api/app-context/last-hit":
+            with APP_CONTEXT_HIT_LOCK:
+                hit = dict(APP_CONTEXT_LAST_HIT) if APP_CONTEXT_LAST_HIT else None
+            return self._send_json({"ok": True, "hit": hit})
 
         if path == "/api/remote-diagnostic/request":
             snapshot = _remote_diagnostic_snapshot(include_request=True)
@@ -900,6 +1126,24 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
             data = self._read_json()
         except Exception as exc:
             return self._send_json({"ok": False, "error": str(exc)}, 400)
+
+        if path == "/api/app-context-bootstrap":
+            try:
+                report = _save_app_context_bootstrap(
+                    data,
+                    self.headers.get("Host", ""),
+                    self.client_address[0],
+                )
+            except ValueError as exc:
+                return self._send_json({"ok": False, "error": str(exc)}, 400)
+            except OSError as exc:
+                return self._send_json({"ok": False, "error": f"Could not save app-context report: {exc}"}, 500)
+            return self._send_json({
+                "ok": True,
+                "sessionId": report["sessionId"],
+                "accessMode": report["accessMode"],
+                "summary": report["summary"],
+            })
 
         if path == "/api/appinfo/backup":
             if not isinstance(data, dict):
