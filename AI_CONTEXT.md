@@ -4033,3 +4033,56 @@ Dopo pull/restart:
 6. chiudere Store.
 
 Il prossimo report deve dirci quale hostname Store/launcher la Q0707 chiede davvero. Solo dopo si decide quale host, se necessario, merita un trace HTTP/TLS dedicato.
+
+
+## COMPATIBILITÀ — Store trace + passive domain discovery — 2026-09-26
+
+È stato ricontrollato il commit:
+
+`40f3149f356bb913f90ead04cf2a5ae4e6da30fb`
+`feat: discover active VIDAA Store domains`
+
+contro il trace `storeCatalogTrace` già implementato.
+
+### Git / codice
+
+Non c'è merge conflict: il commit discovery è un discendente diretto del trace precedente e aggiunge codice senza rimuovere la logica `category-ui`.
+
+Restano invariati:
+- `category-ui.vidaahub.com` in `spoof_domains`;
+- SAN/certificato multihost;
+- TLS SNI observer;
+- proxy HTTPS pass-through;
+- body upstream invariato;
+- redaction;
+- eventi bounded del trace.
+
+Il discovery nuovo osserva invece passivamente DNS per host VIDAA/Hisense mirati e non aggiunge tali host a `spoof_domains`.
+
+### Interferenza trovata nel report sync
+
+Il sistema generale di GitHub report sync usa un solo:
+
+`REPORT_SYNC_PENDING`
+
+e il debounce può sostituire il job precedente con quello più recente.
+
+Con due recorder indipendenti:
+- `storeCatalogTrace`;
+- `storeDomainDiscovery`;
+
+un evento quasi simultaneo poteva quindi far arrivare in `reports/latest.json` soltanto uno dei due report, anche se entrambi erano stati salvati localmente.
+
+La correzione applicata non cambia il resolver o il proxy. I due recorder ora si correlano a livello di snapshot:
+
+- quando il trace genera un report, incorpora `storeDomainDiscovery` se già disponibile;
+- quando il discovery genera un report, incorpora `storeCatalogTrace` se già disponibile.
+
+In questo modo l'ultimo job che sopravvive al debounce contiene entrambi i segnali osservati nella stessa esecuzione.
+
+Commit:
+- `aff70161da0e495a7879c3f720ad9d81509c7f20` — correlate Store trace and DNS discovery reports;
+- `bd22e01d5ab02f34e9f7288403e6388254be0c77` — avoid duplicate Store discovery sync;
+- `732438a13b2a0c7ba790fcbd3c04993283e808ba` — regression test for Store report sync blind spots.
+
+`LATEST_RESPONSE_AND_NEXT_CHAT.md` è stato riallineato al discovery passivo: non deve più chiedere di ripetere come test principale il vecchio `category-ui`, già risultato silenzioso nel test Q0707 osservato.
