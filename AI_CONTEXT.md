@@ -3115,3 +3115,51 @@ Interpretazione:
 - se compare un marker concreto, seguire esclusivamente quel path/funzione reale con un ulteriore probe descriptor/source-only;
 - passare a qualsiasi lettura/scrittura legacy solo se appare davvero una superficie callable `File.read + File.write`.
 
+
+
+---
+
+## RISULTATO TV — legacy launch markers + App Manager bridge — 2026-09-26
+
+Ultimo capture ricevuto dal branch `sidee-reports`:
+- sessione: `sidee-20260926-182425-cbe7`;
+- contesto: `VIDAAHUB_BROWSER_CONTEXT`;
+- collector HSPDK: schema v2;
+- `legacyLaunchContextMatches=[]`;
+- `discoveredSurfaces=[]`;
+- `HiBrowser` assente;
+- `Hisense.File` assente;
+- `Hisense.loadLibrary` assente;
+- stato: `NO_FILE_PAIR_OBSERVED`;
+- unico source match utile: `window.getInstalledAppJsonObj`, che usa il già noto `Hisense_FileRead('websdk/Appinfo.json', 6)`.
+
+Conclusione verificata: nel normale browser Q0707 testato non è esposto alcun riferimento source/descriptor ai target storici `hi_browser`, `lau_browser`, `tv_store` o alla famiglia filesystem `/3rd/internet_browser/`. Non lanciare questi nomi alla cieca.
+
+### Nuova evidenza storica più bassa nello stack
+
+Nel sorgente reale del vecchio launcher Hisense `giofrida/Hisense-Smart-TV-Enhancements/UI/hisenseUI/main.js`, la funzione:
+
+`sendAM(command)`
+
+delega il comando App Manager a:
+
+`modeljs.sendam(command)`
+
+Lo stesso launcher usa poi `sendAM` per avviare `hi_browser`, `lau_browser` e `tv_store`.
+
+Questo NON prova che `modeljs` esista su Q0707, ma fornisce un nome di bridge concreto trovato in codice Hisense storico, quindi è un candidato migliore dei target di processo lanciati alla cieca.
+
+### Implementazione successiva: descriptor-only App Manager probe
+
+`web/hspdk-context.js` è stato portato a schema v3 e ora cattura, senza invocare nulla:
+- `window.modeljs`;
+- descriptor di `modeljs.sendam`;
+- eventuale source serializzabile di `modeljs.sendam`;
+- descriptor/source degli eventuali globali `sendAM`, `asyncStartApp`, `startHiBrowser`, `startLauBrowser`, `startTVStore`;
+- source marker `modeljs.sendam`, `asyncStartApp`, `startHiBrowser`, `startLauBrowser`, `startTVStore`.
+
+Il report usa:
+- `legacyAppManagerBridge`;
+- `legacyAppManagerMatches`.
+
+Regola: anche se `modeljs.sendam` compare callable, questa fase NON lo chiama. Prima si registra presenza, descriptor e source. Solo dopo un risultato reale si decide un test successivo separato e minimo.
