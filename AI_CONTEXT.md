@@ -2826,3 +2826,29 @@ The installed-app bootstrap now also captures, read-only, bounded function sourc
 It also records bounded property names for `vowOS.service` and `vowOSContext`, excluding names that look like tokens, credentials, cookies, keys, signatures, certificates, nonces or sessions. No unknown accessor is invoked by this source capture.
 
 Goal: determine whether the JavaScript bridge passes only explicit `api + args` or whether native client/AppConfig metadata is attached out-of-band below the visible JavaScript identifier layer.
+
+
+## Bridge authorization finding — 2026-09-26
+
+A genuine launcher-created Duplecast context exposed the JavaScript bridge sources. The visible request path is now verified:
+
+```text
+HiUtils_createRequest(type,msg)
+  -> vowOS.service.syncExecute('hiutils', {api:type,args:msg})
+  -> vowOS.service.executeHttpRequest(...)
+  -> POST https://localhost:9888/service/hiutils
+     header: identifier = vowOS.service.getIdentifier()
+     body: JSON.stringify({api,args})
+```
+
+`vowOS.service.getIdentifier()` delegates to native `vowOSContext.getAppIdentifier()` when the runtime app context exists. No MD5, permissions object, origin metadata or AppInfo record is visibly appended by these JavaScript wrappers.
+
+The real Duplecast and Smartone launcher contexts both had:
+- correct real app IDs;
+- distinct app MD5 values in `navigator.appIdentifier`;
+- non-empty native app/service identifiers;
+- `Hisense_SupportAppConfig() === true`;
+- `permissions:""`;
+- the same code 503 AppConfig rejection for exact no-op `fileWrite`.
+
+Therefore the current evidence points to permission resolution below the visible JavaScript wrapper layer, keyed at least by the native identifier/session context. A valid installed-app identity is not equivalent to write permission.
