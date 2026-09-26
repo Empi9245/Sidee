@@ -100,6 +100,8 @@ class _Handler:
 class StoreCatalogTraceTests(unittest.TestCase):
     def test_json_summary_redacts_sensitive_values(self):
         body = json.dumps({
+            "resultCode": 0,
+            "categoryRoute": "featured",
             "signatureServer": "secret-signature",
             "items": [{
                 "id": "1470",
@@ -116,6 +118,8 @@ class StoreCatalogTraceTests(unittest.TestCase):
         self.assertNotIn("secret-signature", encoded)
         self.assertNotIn("hidden", encoded)
         self.assertIn("signatureServer", summary["redactedKeyNames"])
+        self.assertEqual(summary["resultCode"], 0)
+        self.assertIn("categoryRoute", summary["routeCategoryKeys"])
         self.assertEqual(summary["catalogApps"][0]["unifiedAppName"], "1470")
         self.assertEqual(summary["catalogApps"][0]["url"]["host"], "example.test")
 
@@ -146,6 +150,55 @@ class StoreCatalogTraceTests(unittest.TestCase):
         self.assertNotIn("secret", serialized)
         self.assertNotIn("must-not-appear", serialized)
         self.assertEqual(response_event["jsonSummary"]["catalogApps"][0]["url"]["host"], "example.test")
+
+    def test_event_trace_records_bounded_transport_events_and_redacts_errors(self):
+        previous = sidee.STORE_TRACE_REPORT
+        sidee.STORE_TRACE_REPORT = None
+        try:
+            with mock.patch.object(sidee, "write_session_report"), \
+                 mock.patch.object(sidee, "queue_report_sync"):
+                sidee._record_store_trace("DNS_A", {"host": sidee.STORE_CATALOG_HOST})
+                sidee._record_store_trace("TLS_SNI", {"host": sidee.STORE_CATALOG_HOST})
+                sidee._record_store_trace("HTTP_BEGIN", {
+                    "host": sidee.STORE_CATALOG_HOST,
+                    "method": "GET",
+                    "path": "/api/v1.0.0/categoryApi/categoryFirstResult",
+                    "queryParameterNames": ["country", "token"],
+                })
+                sidee._record_store_trace("HTTP_RESPONSE", {
+                    "host": sidee.STORE_CATALOG_HOST,
+                    "method": "GET",
+                    "path": "/api/v1.0.0/categoryApi/categoryFirstResult",
+                    "queryParameterNames": ["country", "token"],
+                    "upstreamStatus": 200,
+                    "contentType": "application/json",
+                    "responseLength": 123,
+                    "jsonSummary": {"resultCode": 0},
+                })
+                snapshot = sidee._record_store_trace("PROXY_ERROR", {
+                    "host": sidee.STORE_CATALOG_HOST,
+                    "stage": "upstream",
+                    "method": "GET",
+                    "path": "/detail",
+                    "errorType": "RuntimeError",
+                    "message": "authorization=topsecret Bearer anothersecret token=thirdsecret",
+                })
+
+            trace = snapshot["storeCatalogTrace"]
+            self.assertEqual(
+                [event["type"] for event in trace["events"]],
+                ["DNS", "TLS_SNI", "HTTP_REQUEST", "HTTP_RESPONSE", "PROXY_ERROR"],
+            )
+            self.assertLessEqual(len(trace["events"]), sidee.STORE_TRACE_MAX_EVENTS)
+            self.assertEqual(trace["events"][2]["queryParameterNames"], ["country", "token"])
+            self.assertEqual(trace["events"][3]["upstreamStatus"], 200)
+            serialized = json.dumps(trace)
+            self.assertNotIn("topsecret", serialized)
+            self.assertNotIn("anothersecret", serialized)
+            self.assertNotIn("thirdsecret", serialized)
+            self.assertIn("<redacted>", trace["errors"][-1]["message"])
+        finally:
+            sidee.STORE_TRACE_REPORT = previous
 
     def test_config_spoofs_store_host(self):
         cfg = sidee.load_config()
