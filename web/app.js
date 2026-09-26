@@ -50,7 +50,7 @@
     try{ const a=new Uint8Array(2); crypto.getRandomValues(a); tail=Array.from(a).map(x=>x.toString(16).padStart(2,"0")).join(""); }catch(e){}
     const id="sidee-"+stamp+"-"+tail; try{sessionStorage.setItem("sidee.sessionId",id);}catch(e){} return id;
   }
-  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",permissionGate:"UNKNOWN"}}; }
+  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,identityOverrideLab:null,candidatePermissionTest:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",permissionGate:"UNKNOWN"}}; }
   state.report=newReport();
 
   function meaningful(v){
@@ -665,6 +665,214 @@
     try{svc.getIdentifier=function(){return value;};r=await traced("temporary-identifier-readonly",()=>{if(typeof window.HiUtils_createRequest!=="function")throw new Error("HiUtils_createRequest unavailable");return window.HiUtils_createRequest("fileRead",{path:"websdk/Appinfo.json",mode:6});});set("temporaryIdentifierState","Test complete · identifier "+value+" · code "+String(r.trace.result&&r.trace.result.code));log("Temporary Identifier Test complete and restored",r.trace);}catch(e){set("temporaryIdentifierState","Test error: "+err(e));}finally{try{svc.getIdentifier=original;}catch(e){}}state.report.temporaryIdentifierTest={timestamp:new Date().toISOString(),identifier:value,trace:r&&r.trace?r.trace:null};await save("temporary-identifier-test");
   }
 
+
+  function labSafe(v,d,seen){
+    d=d||0;seen=seen||[];
+    if(v===undefined)return "[undefined]";
+    if(v===null||typeof v==="boolean"||typeof v==="number")return v;
+    if(typeof v==="string")return cut(v,20000);
+    if(typeof v==="function")return "[function "+(v.name||"anonymous")+"]";
+    if(typeof v!=="object")return cut(v,500);
+    if(d>=5)return Array.isArray(v)?"[array depth limit]":"[object depth limit]";
+    if(seen.indexOf(v)>=0)return "[circular]";
+    seen.push(v);
+    const out=Array.isArray(v)?[]:{};
+    try{
+      const keys=Object.keys(v).slice(0,120);
+      keys.forEach(k=>{try{out[k]=labSafe(v[k],d+1,seen);}catch(e){out[k]="[read error: "+err(e)+"]";}});
+      if(Array.isArray(v)&&v.length>120)out.push("[truncated "+(v.length-120)+" items]");
+    }catch(e){}
+    seen.pop();
+    return out;
+  }
+  function labScalar(v){
+    if(v===null||v===undefined)return null;
+    if(typeof v!=="string"&&typeof v!=="number")return null;
+    const s=String(v).trim();
+    if(!meaningful(s)||s.length>160||/^(https?:|file:|data:|blob:)/i.test(s))return null;
+    return s;
+  }
+  function addIdentityCandidate(list,map,value,provenance,score,meta){
+    const s=labScalar(value);if(!s)return;
+    const key=s.toLowerCase();
+    if(!map[key]){
+      map[key]={value:s,score:score||0,provenance:[],meta:meta||null};
+      list.push(map[key]);
+    }else if((score||0)>map[key].score)map[key].score=score||0;
+    if(provenance&&map[key].provenance.indexOf(provenance)<0)map[key].provenance.push(provenance);
+  }
+  function targetedRuntimeIdentifierCandidates(add){
+    const nameRe=/^(?:app_?identifier|appidentifier|identifier|app_?id|appid|application_?id|client_?id|clientid)$/i;
+    const secretRe=/(token|secret|password|cookie|auth|key)/i;
+    let names=[];try{names=Object.getOwnPropertyNames(window);}catch(e){return;}
+    const scan=(owner,prefix,limit)=>{
+      let props=[];try{props=Object.getOwnPropertyNames(owner);}catch(e){return;}
+      for(let i=0;i<props.length&&i<limit;i++){
+        const name=props[i];if(!nameRe.test(name)||secretRe.test(name))continue;
+        let d=null;try{d=Object.getOwnPropertyDescriptor(owner,name);}catch(e){}
+        if(!d||!Object.prototype.hasOwnProperty.call(d,"value"))continue;
+        const s=labScalar(d.value);if(s)add(s,prefix+"."+name,55,{kind:"runtime-data-descriptor"});
+      }
+    };
+    scan(window,"window",1200);
+    for(let i=0;i<names.length&&i<1200;i++){
+      let d=null;try{d=Object.getOwnPropertyDescriptor(window,names[i]);}catch(e){}
+      if(!d||!Object.prototype.hasOwnProperty.call(d,"value")||!d.value||typeof d.value!=="object")continue;
+      const obj=d.value;if(obj===window||obj===document||obj===navigator)continue;
+      let child=[];try{child=Object.getOwnPropertyNames(obj);}catch(e){continue;}
+      if(child.length>120)continue;
+      scan(obj,"window."+names[i],120);
+    }
+  }
+  function addRecordCandidates(prepared,sourceBase,add,baseScore){
+    (prepared||[]).slice(0,120).forEach((entry,idx)=>{
+      const n=entry&&entry.norm||{},label=String(n.name||n.title||"");
+      const bonus=/(vidaa|hisense|store|browser|launcher|system|stremio|smartone|duplecast)/i.test(label)?15:0;
+      ["id","appId","unifiedAppName"].forEach(field=>{
+        if(meaningful(n[field]))add(n[field],sourceBase+"["+idx+"]."+field,baseScore+bonus,{kind:"installed-app-id",appName:label||null,field:field});
+      });
+    });
+  }
+  function responseJson(v){try{return JSON.stringify(v);}catch(e){return String(v);}}
+  function labDiff(base,test){
+    const br=base.result||{},tr=test.result||{};
+    const retChanged=JSON.stringify(br.ret)!==JSON.stringify(tr.ret);
+    const codeChanged=JSON.stringify(br.code)!==JSON.stringify(tr.code);
+    const msgChanged=String(br.msg||"")!==String(tr.msg||"");
+    const responseChanged=base._responseJson!==test._responseJson;
+    return {retChanged:retChanged,codeChanged:codeChanged,msgChanged:msgChanged,responseChanged:responseChanged,backendChanged:retChanged||codeChanged||msgChanged||responseChanged};
+  }
+  async function withTemporaryServiceIdentifier(value,operation){
+    let svc=null;try{svc=window.vowOS&&window.vowOS.service;}catch(e){}
+    if(!svc||typeof svc.getIdentifier!=="function")throw new Error("vowOS.service.getIdentifier is unavailable");
+    const hadOwn=Object.prototype.hasOwnProperty.call(svc,"getIdentifier");
+    const ownDescriptor=hadOwn?Object.getOwnPropertyDescriptor(svc,"getIdentifier"):null;
+    const originalResolved=svc.getIdentifier;
+    let originalIdentifier=null;try{originalIdentifier=compact(originalResolved.call(svc));}catch(e){}
+    const replacement=function(){return value;};
+    const meta={originalIdentifier:originalIdentifier,identifierTested:value,method:null,applied:false,restored:false,restoredIdentifier:null,error:null};
+    try{
+      try{svc.getIdentifier=replacement;}catch(e){}
+      if(svc.getIdentifier===replacement){meta.method="assignment";meta.applied=true;}
+      else{
+        try{
+          Object.defineProperty(svc,"getIdentifier",{value:replacement,writable:true,configurable:true,enumerable:ownDescriptor?!!ownDescriptor.enumerable:true});
+          if(svc.getIdentifier===replacement){meta.method="defineOwnProperty";meta.applied=true;}
+        }catch(e){meta.error="override failed: "+err(e);}
+      }
+      if(!meta.applied)throw new Error(meta.error||"Could not apply temporary identifier override");
+      const valueOut=await operation(meta);
+      return {value:valueOut,meta:meta};
+    }finally{
+      try{
+        if(hadOwn)Object.defineProperty(svc,"getIdentifier",ownDescriptor);
+        else delete svc.getIdentifier;
+      }catch(e){meta.error=(meta.error?meta.error+"; ":"")+"restore failed: "+err(e);}
+      try{meta.restored=svc.getIdentifier===originalResolved;}catch(e){meta.restored=false;}
+      try{meta.restoredIdentifier=compact(svc.getIdentifier());}catch(e){meta.restoredIdentifier=null;}
+    }
+  }
+  async function labReadProbe(identifier,label){
+    const request={service:"hiutils",api:"fileRead",args:{path:"websdk/Appinfo.json",mode:6}};
+    let result=null,override=null;
+    if(identifier===null){
+      result=await traced(label||"identity-lab-baseline",()=>{if(typeof window.HiUtils_createRequest!=="function")throw new Error("HiUtils_createRequest unavailable");return window.HiUtils_createRequest("fileRead",request.args);});
+    }else{
+      const wrapped=await withTemporaryServiceIdentifier(identifier,async()=>{
+        return traced(label||"identity-lab-test",()=>{if(typeof window.HiUtils_createRequest!=="function")throw new Error("HiUtils_createRequest unavailable");return window.HiUtils_createRequest("fileRead",request.args);});
+      });
+      result=wrapped.value;override=wrapped.meta;
+    }
+    const response=labSafe(result&&result.value),trace=result&&result.trace||{},summary=trace.result||traceResult(result&&result.value);
+    return {timestamp:new Date().toISOString(),identifierTested:identifier,override:override,request:request,response:response,responseRef:null,result:summary,error:result&&result.error||null,_rawValue:result&&result.value,_responseJson:responseJson(response)};
+  }
+  function publicLabProbe(p){
+    return {timestamp:p.timestamp,identifierTested:p.identifierTested,override:p.override,request:p.request,response:p.response,responseRef:p.responseRef,result:p.result,error:p.error};
+  }
+  function renderIdentityLab(r){
+    set("identityLabOriginal",r&&meaningful(r.originalIdentifier)?r.originalIdentifier:"EMPTY");
+    set("identityLabCandidates",r?r.candidateIdentifiers.length:0);
+    set("identityLabTests",r?r.tests.length:0);
+    set("identityLabDifferences",r?r.tests.filter(x=>x.responseDiff&&x.responseDiff.backendChanged).length:0);
+    set("identityLabConclusion",r?r.conclusionHint:"NOT_RUN");
+    set("identityOverrideLabState",r?(r.conclusionHint+" · "+r.tests.length+" read-only override test(s)."):"Not run yet.");
+    const input=$("identityPermissionIdentifier");
+    if(r&&input&&!input.value&&r.candidateIdentifiers.length)input.value=r.candidateIdentifiers[0].value;
+  }
+  async function identityOverrideLab(){
+    if(state.running)return;
+    state.running=true;set("identityOverrideLabState","Running controlled read-only identity tests…");
+    try{
+      let svc=null;try{svc=window.vowOS&&window.vowOS.service;}catch(e){}
+      const original=svc&&typeof svc.getIdentifier==="function"?call(svc,"getIdentifier"):{status:"UNAVAILABLE",value:null};
+      const baselineProbe=await labReadProbe(null,"identity-lab-baseline");
+      const candidates=[],candidateMap={};
+      const add=(value,provenance,score,meta)=>addIdentityCandidate(candidates,candidateMap,value,provenance,score,meta);
+      const snap=current()||capture("identityLabDiscovery");
+      [["serviceIdentifier",snap&&snap.serviceIdentifier],["appIdentifier",snap&&snap.appIdentifier],["appId",snap&&snap.appId],["navigatorAppIdentifier",snap&&snap.navigatorAppIdentifier]].forEach(pair=>{const x=pair[1];if(x&&x.status==="RETURNED")add(x.value,"runtime."+pair[0],100,{kind:"runtime-identity"});});
+      try{
+        const raw=[];collectAppRecords(baselineProbe._rawValue,raw,0,[]);
+        addRecordCandidates(prepareRecords(raw),"websdk/Appinfo.json",add,80);
+      }catch(e){}
+      try{
+        const installedSource=await installedMetadataSource();
+        addRecordCandidates(installedSource.records,"Hisense_getInstalledApps",add,65);
+      }catch(e){}
+      targetedRuntimeIdentifierCandidates(add);
+      candidates.sort((a,b)=>b.score-a.score||a.value.localeCompare(b.value));
+      const listed=candidates.slice(0,40).map(c=>({value:c.value,score:c.score,provenance:c.provenance,meta:c.meta}));
+      const selected=candidates.slice(0,8),tests=[];
+      for(let i=0;i<selected.length;i++){
+        const candidate=selected[i];
+        let probe;
+        try{probe=await labReadProbe(candidate.value,"identity-lab-candidate");}
+        catch(e){probe={timestamp:new Date().toISOString(),identifierTested:candidate.value,override:{applied:false,restored:false,error:err(e)},request:{service:"hiutils",api:"fileRead",args:{path:"websdk/Appinfo.json",mode:6}},response:null,responseRef:null,result:{ret:null,code:null,msg:null},error:err(e),_responseJson:""};}
+        const difference=labDiff(baselineProbe,probe);
+        if(!difference.responseChanged){probe.response=null;probe.responseRef="identityOverrideLab.baselineProbe.response";}
+        tests.push({candidate:{value:candidate.value,score:candidate.score,provenance:candidate.provenance,meta:candidate.meta},probe:publicLabProbe(probe),responseDiff:difference});
+      }
+      let conclusion="INCONCLUSIVE",note="Read-only fileRead behavior did not prove how installApplication validates AppConfig.";
+      if(!listed.length){conclusion="NO_REAL_IDENTIFIER_AVAILABLE";note="No concrete non-empty identifier candidate was available from the targeted runtime and installed-app sources.";}
+      else if(tests.some(x=>x.responseDiff.backendChanged)){conclusion="IDENTIFIER_AFFECTS_BACKEND";note="At least one concrete identifier changed the read-only local-service response. This does not by itself prove install permission.";}
+      else if(tests.length){note="Concrete identifiers were accepted by the temporary client wrapper, but the harmless fileRead response stayed equivalent to baseline. The install permission gate remains untested by this lab.";}
+      const report={timestamp:new Date().toISOString(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:state.report.serverBuildId,buildMatch:state.report.buildMatch,originalIdentifier:original&&original.value,candidateIdentifiers:listed,baselineProbe:publicLabProbe(baselineProbe),tests:tests,backendDifferenceCount:tests.filter(x=>x.responseDiff.backendChanged).length,restored:tests.every(x=>x.probe&&x.probe.override&&x.probe.override.restored!==false),conclusionHint:conclusion,conclusionNote:note,permissionProbe:{status:"NOT_RUN",reason:"No known harmless request has been shown to hit the installApplication AppConfig permission gate. Use the separate explicit candidate permission test only if you accept that a permitted request may install the target app."}};
+      state.report.identityOverrideLab=report;renderIdentityLab(report);log("Identity Override Lab complete",{candidates:listed.length,tested:tests.length,differences:report.backendDifferenceCount,conclusion:conclusion});await save("identity-override-lab");
+    }catch(e){
+      const report={timestamp:new Date().toISOString(),candidateIdentifiers:[],tests:[],restored:false,conclusionHint:"INCONCLUSIVE",error:err(e)};
+      state.report.identityOverrideLab=report;renderIdentityLab(report);set("identityOverrideLabState","Lab failed: "+err(e));log("Identity Override Lab failed",err(e));await save("identity-override-lab-error");
+    }finally{state.running=false;}
+  }
+  async function candidatePermissionGateTest(){
+    const input=$("identityPermissionIdentifier"),value=input?input.value.trim():"";
+    if(!value)return set("candidatePermissionState","Enter a concrete identifier first. No install request was sent.");
+    if(state.running)return;
+    state.running=true;set("candidatePermissionState","Running explicit permission-gate test…");
+    try{
+      const wrapped=await withTemporaryServiceIdentifier(value,async()=>{
+        const chosen=typeof window.Hisense_installApp_V2==="function"?"v2":"legacy";
+        const test=await installCall(chosen);
+        const verification=await verify();
+        return {chosen:chosen,test:test,verification:verification};
+      });
+      const payload=wrapped.value,test=payload.test,verification=payload.verification,internal=test.trace&&test.trace.result||{ret:null,code:null,msg:null},status=gate(test,verification,state.report.installTest);
+      const record={timestamp:new Date().toISOString(),identifier:value,override:wrapped.meta,method:payload.chosen,internal:internal,returnValue:test.returnValue,externalCallback:test.externalCallback,error:test.error,verification:verification,status:status,warning:"This was an explicit install permission request; if the permission gate passed, the target app may have been registered/installed."};
+      state.report.candidatePermissionTest=record;
+      if(state.report.identityOverrideLab){
+        if(Number(internal.code)===503&&/permission|appconfig/i.test(String(internal.msg||""))){
+          state.report.identityOverrideLab.conclusionHint="IDENTIFIER_STRING_NOT_SUFFICIENT";
+          state.report.identityOverrideLab.conclusionNote="This concrete identifier still reached the AppConfig permission rejection. This conclusion applies to the tested identifier, not to every possible identity.";
+        }else if(status==="CHANGED"||status==="PASSED"||verification.verified){
+          state.report.identityOverrideLab.conclusionHint="IDENTIFIER_AFFECTS_BACKEND";
+          state.report.identityOverrideLab.conclusionNote="The explicit permission-gate response changed for the tested identifier. Verification remains the only proof of installation.";
+        }
+        renderIdentityLab(state.report.identityOverrideLab);
+      }
+      set("candidatePermissionState",status+" · code "+String(internal.code)+" · "+(verification.verified?"VERIFIED INSTALLED":"not verified")+" · override restored "+(wrapped.meta.restored?"YES":"NO"));
+      log("Candidate permission-gate test",record);await save("candidate-permission-gate-test");
+    }catch(e){set("candidatePermissionState","Permission-gate test failed: "+err(e));log("Candidate permission-gate test failed",err(e));}
+    finally{state.running=false;}
+  }
+
   function syncTarget(){state.report.target=compact(target());}
   async function saveTarget(){syncTarget();try{const r=await fetch("/api/config",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({nuvio:target()})}),d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||"Could not save target");state.config.nuvio=d.nuvio;set("targetState","Target saved.");await save("target");}catch(e){set("targetState","Save failed: "+err(e));}}
   async function watchReportSync(sessionId){
@@ -765,13 +973,14 @@
       startedAt:started,
       completedAt:null,
       status:"RUNNING",
-      workflow:["baseline","permission-source-trace","installed-metadata","verification","export"],
+      workflow:["baseline","identity-override-lab","permission-source-trace","installed-metadata","verification","export"],
       error:null
     };
     renderRemoteDiagnosticState("RUNNING · read-only diagnostic");
     await remoteDiagnosticAck(request,"RUNNING","TV accepted the armed read-only diagnostic");
     try{
       await baseline();
+      await identityOverrideLab();
       await permissionSourceTrace();
       await inspectInstalledMetadata();
       const verification=await verify();
@@ -825,6 +1034,6 @@
   function nextControl(cur,key,list){const from=center(cur);let best=null,score=Infinity;list.forEach(el=>{if(el===cur)return;const to=center(el),dx=to.x-from.x,dy=to.y-from.y;let p=null,c=0;if(key==="ArrowUp"&&dy<-4){p=-dy;c=Math.abs(dx);}if(key==="ArrowDown"&&dy>4){p=dy;c=Math.abs(dx);}if(key==="ArrowLeft"&&dx<-4){p=-dx;c=Math.abs(dy);}if(key==="ArrowRight"&&dx>4){p=dx;c=Math.abs(dy);}if(p===null)return;const s=p*10+c;if(s<score){score=s;best=el;}});return best;}
   window.addEventListener("keydown",e=>{const key=e.key||({13:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[e.keyCode]),active=document.activeElement;if((key==="Enter"||key==="OK")&&active&&(active.tagName==="BUTTON"||active.tagName==="SUMMARY")){e.preventDefault();active.click();return;}if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(key)<0)return;if(active&&active.tagName==="INPUT"&&(key==="ArrowLeft"||key==="ArrowRight"))return;const list=controls();if(!list.length)return;const cur=list.indexOf(active)>=0?active:list[0],to=nextControl(cur,key,list);if(to){to.focus();e.preventDefault();}else if(list.indexOf(active)<0){cur.focus();e.preventDefault();}});
 
-  $("remoteDiagnosticArmBtn").addEventListener("click",toggleRemoteDiagnostics);   $("baselineBtn").addEventListener("click",baseline); $("runtimeContextInitBtn").addEventListener("click",initContext); $("clientInformationBtn").addEventListener("click",readClient); $("serviceTraceBtn").addEventListener("click",readTrace); $("permissionSourceTraceBtn").addEventListener("click",permissionSourceTrace); $("installedMetadataBtn").addEventListener("click",inspectInstalledMetadata); $("installDiagnosticBtn").addEventListener("click",()=>installTest()); $("installLegacyBtn").addEventListener("click",()=>installTest("legacy")); $("installV2Btn").addEventListener("click",()=>installTest("v2")); $("temporaryIdentifierBtn").addEventListener("click",tempIdentifier); $("saveBtn").addEventListener("click",saveTarget); $("verifyBtn").addEventListener("click",async()=>{const r=await verify();log("Verification",r);await save("verification");}); $("reportBtn").addEventListener("click",()=>save("export"));
+  $("remoteDiagnosticArmBtn").addEventListener("click",toggleRemoteDiagnostics);   $("baselineBtn").addEventListener("click",baseline); $("runtimeContextInitBtn").addEventListener("click",initContext); $("clientInformationBtn").addEventListener("click",readClient); $("serviceTraceBtn").addEventListener("click",readTrace); $("identityOverrideLabBtn").addEventListener("click",identityOverrideLab); $("candidatePermissionBtn").addEventListener("click",candidatePermissionGateTest); $("permissionSourceTraceBtn").addEventListener("click",permissionSourceTrace); $("installedMetadataBtn").addEventListener("click",inspectInstalledMetadata); $("installDiagnosticBtn").addEventListener("click",()=>installTest()); $("installLegacyBtn").addEventListener("click",()=>installTest("legacy")); $("installV2Btn").addEventListener("click",()=>installTest("v2")); $("temporaryIdentifierBtn").addEventListener("click",tempIdentifier); $("saveBtn").addEventListener("click",saveTarget); $("verifyBtn").addEventListener("click",async()=>{const r=await verify();log("Verification",r);await save("verification");}); $("reportBtn").addEventListener("click",()=>save("export"));
   load().then(()=>{renderSummary();set("deviceBadge",typeof window.Hisense_GetFirmWareVersion==="function"?"VIDAA browser detected":"Waiting for VIDAA APIs");log("Sidee targeted identity diagnostic ready.");startRemoteDiagnosticPolling();}).catch(e=>log("Config load failed",err(e)));
 })();

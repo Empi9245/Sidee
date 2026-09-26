@@ -2188,3 +2188,77 @@ Ogni richiesta reale richiede:
 - `expiresAt` futuro.
 
 Il report salva `remoteDiagnostic.lastRequestId`, timestamps, workflow e status. Prima di analizzare un risultato remoto, verificare sempre che `lastRequestId` corrisponda alla richiesta inviata.
+
+
+---
+
+## IMPLEMENTAZIONE — Identity Override Lab — 2026-09-26
+
+Questa fase parte dall'evidenza già consolidata: nel contesto Sidee l'identifier nativo è vuoto e la normale pipeline `installApplication` viene respinta dal permission/AppConfig gate. Non sono state rifatte ricerche VIDAA generiche.
+
+È stato aggiunto un nuovo step separato: **Run Identity Override Lab**.
+
+### Candidate identifier reali
+
+Il lab non genera stringhe casuali e non fa brute force. Raccoglie soltanto valori concreti già esposti dalla TV/runtime:
+
+- identity fields correnti (`serviceIdentifier`, `appIdentifier`, `appId`, `navigator.appIdentifier`) quando realmente non vuoti;
+- ID/appId/unifiedAppName presenti nella risposta read-only già nota di `websdk/Appinfo.json`;
+- ID/appId/unifiedAppName restituiti da `Hisense_getInstalledApps`;
+- data-property runtime con nomi fortemente identity-like (`appIdentifier`, `identifier`, `appId`, `clientId`, ecc.), senza invocare accessor.
+
+Token/secret/password/cookie/auth-like values, URL e stringhe eccessivamente lunghe non vengono usati come candidate.
+
+Le candidate vengono deduplicate, ordinate per provenance e nel report ne vengono elencate al massimo 40. Solo le prime 8 vengono realmente provate, evitando test massivi.
+
+### Baseline + override read-only
+
+Il lab usa una sola API innocua già verificata:
+
+`HiUtils_createRequest('fileRead', {path:'websdk/Appinfo.json', mode:6})`
+
+Prima acquisisce la baseline con l'identifier originale.
+
+Per ogni candidate:
+
+1. salva il descriptor/stato originale di `vowOS.service.getIdentifier`;
+2. applica un override temporaneo;
+3. ripete esattamente la stessa `fileRead`;
+4. salva request, `ret/code/msg`, risposta e differenza dalla baseline;
+5. ripristina sempre l'implementazione originale in `finally`;
+6. registra se il restore è riuscito.
+
+Se una risposta è identica alla baseline, il test salva un riferimento alla risposta baseline invece di duplicare il grande payload Appinfo.
+
+### Conclusioni automatiche
+
+Il lab può produrre:
+
+- `NO_REAL_IDENTIFIER_AVAILABLE`;
+- `IDENTIFIER_AFFECTS_BACKEND`;
+- `INCONCLUSIVE`.
+
+Il semplice fatto che una candidate non cambi `fileRead` NON viene trasformato in `IDENTIFIER_STRING_NOT_SUFFICIENT`, perché `fileRead` non è noto per usare lo stesso permission gate di `installApplication`.
+
+`IDENTIFIER_STRING_NOT_SUFFICIENT` viene usato soltanto dopo il nuovo **Candidate Permission Gate Test** esplicito se quella candidate continua a ricevere il noto errore AppConfig/permission 503.
+
+### Permission gate esplicito
+
+Sotto Advanced è presente **Candidate Permission Gate Test**.
+
+È volutamente separato dal lab e dal workflow remoto perché invia una reale richiesta install con l'identifier temporaneo. Se il firmware la accetta, il target potrebbe realmente essere registrato/installato. Il callback esterno `0` continua a non essere considerato successo; la verification resta l'unica prova di installazione.
+
+### Report
+
+Il report di sessione contiene:
+
+- `identityOverrideLab`: timestamp/build IDs, originalIdentifier, candidateIdentifiers con provenance, baselineProbe, tests, responseDiff, restore state, conclusionHint/conclusionNote;
+- `candidatePermissionTest` per il test install esplicito separato.
+
+### Remote diagnostics
+
+Il workflow remoto session-armed resta read-only ma ora include anche Identity Override Lab:
+
+`baseline -> identity-override-lab -> permission-source-trace -> installed-metadata -> verification -> export`
+
+Non sono stati aggiunti install/uninstall, setter, fileWrite, reset o comandi arbitrari al canale remoto.

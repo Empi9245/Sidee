@@ -17,6 +17,7 @@ Sidee is deliberately more conservative on VIDAA 9: **direct writes to `websdk/A
 - TV-friendly interface
 - read-only scanner for Hisense / VIDAA / HiUtils / OMI APIs
 - device/model/firmware diagnostics
+- controlled **Identity Override Lab**: discovers concrete identifiers already exposed by the TV/runtime and tests at most 8 of them against the same harmless read-only Appinfo request with guaranteed restoration
 - one explicit **Run Install Diagnostic** workflow: before snapshot → Legacy diagnostic → verification → V2 diagnostic → verification → final summary
 - Legacy-only and V2-only controls kept under **Advanced diagnostics**, not presented as competing solutions
 - internal `HiUtils_createRequest` tracing during native install calls (including `installApplication` results)
@@ -97,6 +98,23 @@ It records, without setters or security calls:
 To avoid repeating the already-proven anonymous-client 503 path, Legacy/V2 install diagnostics are blocked until the Runtime Identity Probe finds at least one non-empty app identity field.
 
 The report also includes a compact runtime identity assessment: `IDENTITY PRESENT`, `ANONYMOUS-LIKE`, or `INCOMPLETE`. It explicitly keeps the unresolved lifecycle questions as **NOT PROVEN** rather than guessing that the launcher, browser, origin, or AppConfig is responsible. A manual `clientInformation` read is retained across later probe runs instead of being overwritten by a fresh inspect-only snapshot.
+
+## Identity Override Lab
+
+The **Identity Override Lab** is a controlled, reversible experiment for the VIDAA 9 AppConfig investigation.
+
+It does not invent or brute-force identifiers. Candidate values are taken only from concrete data already exposed by the TV/runtime: current identity fields, app IDs present in the read-only `websdk/Appinfo.json`, IDs returned by `Hisense_getInstalledApps`, and narrowly matched scalar runtime data descriptors. Candidate strings are deduplicated, ranked by provenance, and only the first 8 are tested.
+
+The lab first performs a baseline `HiUtils_createRequest("fileRead", {path:"websdk/Appinfo.json", mode:6})`. For each candidate it temporarily replaces only `vowOS.service.getIdentifier()`, repeats that same read-only request, records `ret/code/msg` plus the response, compares it with baseline, and restores the original function in `finally`. Responses identical to baseline reference the baseline copy instead of duplicating a large Appinfo payload.
+
+Automatic conclusions are deliberately conservative:
+
+- `NO_REAL_IDENTIFIER_AVAILABLE` when no concrete non-empty candidate exists;
+- `IDENTIFIER_AFFECTS_BACKEND` only when the harmless local-service response actually changes;
+- `INCONCLUSIVE` when the read-only response is equivalent, because `fileRead` is not known to share the `installApplication` permission gate;
+- `IDENTIFIER_STRING_NOT_SUFFICIENT` is only used after the separate explicit candidate permission-gate test still receives the AppConfig permission rejection.
+
+The separate **Candidate Permission Gate Test** lives under Advanced diagnostics. It is never part of the read-only lab or remote workflow. It may issue a real install request and therefore may install/register the target if the candidate is accepted.
 
 ## Target app profile
 
@@ -222,7 +240,7 @@ This is not a general remote-control channel. The TV page starts **disarmed** on
 
 Once armed, and only while that page remains open, Sidee may accept one fixed read-only workflow requested through Git:
 
-`baseline → Permission Source Trace → Installed App Metadata → verification → report export/sync`
+`baseline → Identity Override Lab → Permission Source Trace → Installed App Metadata → verification → report export/sync`
 
 The request channel defaults to branch `sidee-control`, file `control/request.json`. The Python host polls that file and the TV polls only the local Sidee server.
 
