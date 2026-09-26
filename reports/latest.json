@@ -1,10 +1,10 @@
 {
   "sessionId": "sidee-20260926-182425-cbe7",
-  "clientBuildId": "app-7de485fa2f67",
-  "serverBuildId": "app-7de485fa2f67",
+  "clientBuildId": "app-028fe4092f84",
+  "serverBuildId": "app-028fe4092f84",
   "buildMatch": true,
-  "startedAt": "2026-09-26T16:34:11.795Z",
-  "updatedAt": "2026-09-26T16:34:44.366Z",
+  "startedAt": "2026-09-26T16:41:22.553Z",
+  "updatedAt": "2026-09-26T16:41:42.211Z",
   "accessContext": {
     "href": "https://vidaahub.com/",
     "origin": "https://vidaahub.com",
@@ -58,8 +58,8 @@
     "appInfoWrite": "NOT_RUN"
   },
   "legacyHspdkContext": {
-    "version": 3,
-    "timestamp": "2026-09-26T16:34:27.247Z",
+    "version": 4,
+    "timestamp": "2026-09-26T16:41:42.029Z",
     "readOnly": true,
     "page": {
       "href": "https://vidaahub.com/",
@@ -78,7 +78,156 @@
         },
         "properties": [
           {
-            "error": "ReferenceError: sensitive is not defined"
+            "depth": 0,
+            "truncated": false,
+            "properties": [
+              {
+                "name": "log",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "VirtualKeyboard",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "object",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              }
+            ]
+          },
+          {
+            "depth": 1,
+            "truncated": false,
+            "properties": [
+              {
+                "name": "constructor",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "__defineGetter__",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "__defineSetter__",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "hasOwnProperty",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "__lookupGetter__",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "__lookupSetter__",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "isPrototypeOf",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "propertyIsEnumerable",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "toString",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "valueOf",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "__proto__",
+                "descriptor": {
+                  "status": "ACCESSOR_NOT_READ",
+                  "ownerDepth": 0,
+                  "type": "accessor",
+                  "hasGetter": true,
+                  "hasSetter": true
+                }
+              },
+              {
+                "name": "toLocaleString",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              }
+            ]
           }
         ],
         "loadLibrary": {
@@ -126,7 +275,15 @@
       }
     ],
     "discoveredSurfaces": [],
-    "sourceMatches": [],
+    "sourceMatches": [
+      {
+        "path": "window.getInstalledAppJsonObj",
+        "term": "websdk/Appinfo.json",
+        "sourceLength": 376,
+        "truncated": false,
+        "excerpt": "function() {\n        const installedAppJsonStr = Hisense_FileRead('websdk/Appinfo.json', 6)\n        if (isString(installedAppJsonStr)) {\n            try {\n                let presetAppObj = JSON.parse(installedAppJsonStr)\n                return presetAppObj\n            } catch (e) {\n                return 0\n            }\n        } else {\n            return 0\n        }\n    }"
+      }
+    ],
     "legacyLaunchContextMatches": [],
     "legacyAppManagerMatches": [],
     "legacyAppManagerBridge": {
@@ -180,25 +337,2699 @@
       "callableObserved": false,
       "invoked": false
     },
+    "modernBridgeInventory": {
+      "globals": [
+        {
+          "name": "omi_platform",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "object",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": null
+        },
+        {
+          "name": "opera_omi",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "object",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": null
+        },
+        {
+          "name": "vowOSContext",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "object",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": null
+        },
+        {
+          "name": "Hisense_LoginWithVIDAA",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 857,
+            "truncated": false,
+            "excerpt": "function(apptype,callback){\n        console.log(\"Hisense_LoginWithVIDAA:\" + apptype);\n        var cmdInfo = {};\n        cmdInfo.type = \"APPMessage\";\n        cmdInfo.MsgType = \"account\";\n        cmdInfo.action = \"loginWithVidaa\";\n        cmdInfo.AppType = apptype;\n        cmdInfo.fromFlag = \"CSP\";\n        omi_platform.sendPlatformMessage(JSON.stringify(cmdInfo));\n\n        handleLoginWithVIDAAEvent = function(event){\n            var message = JSON.parse(event);\n            if(message.type == \"APPMessage\" && message.MsgType == \"LoginResult\"){\n                var GetResultInfo = message.AccoutInfo;\n                callback(GetResultInfo);\n            }\n        }\n        if(window.alreadyAddEventListener == 0){\n            omi_platform.addPlatformEventListener(handleLoginWithVIDAAEvent);\n            window.alreadyAddEventListener = 1;\n        }\n    }"
+          }
+        },
+        {
+          "name": "Hisense_installApp_V2",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 1406,
+            "truncated": false,
+            "excerpt": "function(appinfo, callback) {\n        console.log('Install App V2 begin')\n        let ret = false\n\n        if (typeof (appinfo) != 'object') {\n            callback(-1)\n            return ret\n        }\n\n        const newAppInfo = mapAppInfoFields(appinfo)\n        let installAppObj = getInstalledAppJsonObj()\n        if (installAppObj) {\n            for (let i = 0; i < installAppObj.AppInfo.length; i++) {\n                if (newAppInfo.URL == installAppObj.AppInfo[i].URL) {\n                    if (newAppInfo.AppName != installAppObj.AppInfo[i].AppName) {\n                        installAppObj.AppInfo[i].AppName = newAppInfo.AppName\n                        installAppObj.AppInfo[i].URL = newAppInfo.URL\n                        installAppObj.AppInfo[i].Image = newAppInfo.Image\n                        writeInstallAppObjToJson(installAppObj)\n                        callback(0)\n                        return true\n                    } else {\n                        console.log('same app' + newAppInfo.Id)\n                        callback(0)\n                        return true\n                    }\n                }\n            }\n        }\n\n        if (installAppObj) {\n            installAppObj.AppInfo.push(newAppInfo)\n        } else {\n            installAppObj = { AppInfo: [newAppInfo] }\n        }\n\n        ret = writeInstallAppObjToJson(installAppObj)\n        callback(0)\n        return ret\n    }"
+          }
+        },
+        {
+          "name": "Hisense_installApp",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 1929,
+            "truncated": false,
+            "excerpt": "function(appId, appName, thumbnail, iconSmall, iconBig, appUrl, storetype, callback, configUrl, configUrlDownload, mediaId) {\n        console.log('Install App begin' + appId)\n\n        let mydate = new Date()\n        let realMonth = mydate.getMonth() + 1\n        let StoreType = storetype\n        let newApp = {\n            'Id': appId,\n            'Thumb': thumbnail,\n            'Icon_96': iconSmall,\n            'Image': thumbnail,\n            'URL': appUrl,\n            'AppName': appName,\n            'Title': appName,\n            'configUrl': configUrl,\n            'configUrlDownload': configUrlDownload,\n            'mediaId': mediaId,\n            'IconURL': iconBig,\n            'StartCommand': appUrl,\n            'InstallTime': mydate.getFullYear() + '-' + realMonth + '-' + mydate.getDate(),\n            'RunTimes': 0,\n            'StoreType': StoreType,\n            'PreInstall': false }\n        let installAppObj = getInstalledAppJsonObj()\n        if (installAppObj) {\n            for (let i = 0; i < installAppObj.AppInfo.length; i++) {\n                if (appUrl == installAppObj.AppInfo[i].URL) {\n                    if (appName != installAppObj.AppInfo[i].AppName) {\n                        installAppObj.AppInfo[i].AppName = appName\n                        installAppObj.AppInfo[i].URL = appUrl\n                        installAppObj.AppInfo[i].Image = thumbnail\n                        ret = writeInstallAppObjToJson(installAppObj)\n                        return ret\n                    } else {\n                        console.log('same app' + appId)\n                        return true\n                    }\n                }\n            }\n        }\n        if (installAppObj) {\n            installAppObj.AppInfo.push(newApp)\n        } else {\n            installAppObj = { AppInfo: [newApp] }\n        }\n\n        const ret = writeInstallAppObjToJson(installAppObj)\n\n        callback(0)\n        return ret\n    }"
+          }
+        },
+        {
+          "name": "Hisense_uninstallApp",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 645,
+            "truncated": false,
+            "excerpt": "function(appId, callback) {\n        console.log('Uninstall App begin' + appId)\n\n        let installAppObj = getInstalledAppJsonObj()\n        let appIndex = 0\n        let ret = false\n        if (installAppObj != 0) {\n            for (appIndex = 0; appIndex < installAppObj.AppInfo.length; appIndex++) {\n                if (installAppObj.AppInfo[appIndex].Id == appId) {\n                    installAppObj.AppInfo.splice(appIndex, 1)\n                    ret = true\n                }\n            }\n            if (ret) {\n                writeInstallAppObjToJson(installAppObj)\n            }\n        }\n\n        callback(ret)\n        return true\n    }"
+          }
+        },
+        {
+          "name": "Hisense_getInstalledApps",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 828,
+            "truncated": false,
+            "excerpt": "function(callback) {\n        console.log('getInstalledApps')\n\n        let count = 0\n        const allAppObj = getAllAppJsonObj()\n        let ret = ''\n\n        if (allAppObj.length == 0) {\n            errinfo = new Error()\n            errinfo.name = 'getInstalledApps'\n            errinfo.message = 'There is no App has installed!!!'\n            callback(errinfo, null)\n        } else {\n            let all_apps = allAppObj?.AppInfo\n            if(all_apps.length != 0) {\n                var newArray = all_apps.filter((item, i, arr) => {\n                    return item?.isShowOnLauncher != false\n                })\n                //console.log(newArray);\n            }\n            const result = {'AppInfo': newArray}\n            ret = JSON.stringify(result)\n            callback(null, ret)\n        }\n\n        return ret\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetApiVersion",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 92,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetApiVersion')\n        return '3.0.1'\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetDeviceInfo",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 683,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetDeviceInfo')\n        var info = {\n            chipset: Hisense_GetChipSetName(),\n            software_version: Hisense_GetFirmWareVersion(),\n            os_version: 'VIDAA ' + Hisense_GetOSVersion(),\n            api_version: Hisense_GetApiVersion(),\n            runtime_version: 'Chromium ' + Hisense_GetChromiumVersion(),\n            brand: Hisense_GetBrand(),\n            uuid: Hisense_GetUuid(),\n            region: Hisense_GetRegion(),\n            capability_code: Hisense_GetCapabilityCode(),\n            feature_code: Hisense_GetFeatureCode(),\n            model_name: Hisense_GetModelName()\n        }\n        return info\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetTTSInfo",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 404,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetTTSInfo')\n        var info = {\n            enable: Hisense_GetTTSEnable(),\n            tts_language: Hisense_GetTTSLanguage(),\n            tts_language_list: ['eng', 'fre', 'spa'],\n            tts_pitch: Hisense_GetTTSPitch(),\n            tts_volume: Hisense_GetTTSVolume(),\n            tts_rate: Hisense_GetTTSRate()\n        }\n        return info\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetDrmInfo",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 228,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetDrmInfo')\n        var info = {\n            widevine: true,\n            playready: true,\n            clearkey: true,\n            marlin: false\n        }\n        return info\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetDialInfo",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 249,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetDialInfo')\n        var info = {\n            enable: true,\n            app_list: ['Youtube', 'Youtube_Tv', 'Youtube_Kids', 'Netflix', 'AMAZON', 'catel', 'iplayer']\n        }\n        return info\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetNetworkInfo",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 356,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetNetworkInfo')\n        var info = {\n            net_status: Hisense_GetNetStatus(),\n            net_type: Hisense_GetNetType(),\n            wow_enable: Hisense_GetWowEnable(),\n            wol_enable: Hisense_GetWolEnable(),\n            ip_address: Hisense_GetIPAddress()\n        }\n        return info\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetParentControlInfo",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 373,
+            "truncated": false,
+            "excerpt": "function() {\n        var parent_controls = {\n            enable: Hisense_GetParentControlEnabled(),\n            level: Hisense_GetParentControlLevel(),\n            block_start_time: Hisense_GetBlockStartTime(),\n            block_end_time: Hisense_GetBlockEndTime(),\n            block_time_weekly: Hisense_GetBlockTimeWeekly()\n        }\n\n        return parent_controls\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetPictureInfo",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 377,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetDeviceInfo')\n        var info = {\n            support_4k: Hisense_Get4KSupportState(),\n            panel_resolution: Hisense_GetPanelResolution(),\n            app_resolution: '720p',\n            picture_mode: Hisense_GetPictureMode(),\n            hdr_support: Hisense_GetSupportForHDRInfo()\n        }\n        return info\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetSoundInfo",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 321,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetDeviceInfo')\n        var info = {\n            dobly_atmos: Hisense_GetSupportForDolbyAtmos(),\n            dts: Hisense_GetSupportForDts(),\n            dbx: Hisense_GetSupportForDbx(),\n            current_dev: Hisense_GetMainSoundDev()\n        }\n        return info\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetChromiumVersion",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 356,
+            "truncated": false,
+            "excerpt": "function() {\n        var arr = navigator.userAgent.split(' ')\n        var chromiumVersion = ''\n        for (var i = 0; i < arr.length; i++) {\n            if (/chrome/i.test(arr[i])) { chromiumVersion = arr[i] }\n        }\n        if (chromiumVersion) {\n            return Number(chromiumVersion.split('/')[1].split('.')[0])\n        }\n\n        return 0\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetCurrentBrowser",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 193,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetCurrentBrowser')\n\n        if (window.__omi_window_type) {\n            return 'vewd'\n        } else {\n            return 'odin'\n        }\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetDeviceID",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 536,
+            "truncated": false,
+            "excerpt": "function(num) {\n        console.log('go to Hisense_GetDeviceID')\n        var originDeviceID = TvInfo_getParam('deviceID')\n\n        if (originDeviceID.length == 0) {\n        // retry\n            var deviceID = TvInfo_getCurrentParam('deviceID')\n            originDeviceID = deviceID['deviceID']\n        }\n\n        if ((num == 32) && (originDeviceID.length == 56)) {\n            console.log('go to Hisense_GetDeviceID(32)')\n            return originDeviceID.substring(24)\n        } else {\n            return originDeviceID\n        }\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetFirmWareVersion",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 124,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetFirmWareVersion')\n        return TvInfo_getParam('softwareVersion')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetDeviceCode",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 228,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetDeviceCode')\n        var ret = HiUtils_createRequest('deviceCode')\n        if (ret.ret) {\n            return ret.msg\n        } else {\n            return '000000'\n        }\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetVersionStatus",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 156,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetVersionStatus')\n        var ret = HiUtils_createRequest('getVersionStatus')\n        return ret?.msg\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetChipSetName",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 116,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetChipSetName')\n        return TvInfo_getParam('chipsetName')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetSerialType",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 114,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetSerialType')\n        return TvInfo_getParam('serialType')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetAdsID",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 104,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetAdsID')\n        return TvInfo_getParam('adsID')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetEulaAdEnable",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 118,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetEulaAdEnable')\n        return TvInfo_getParam('eulaAdEnable')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetAdTargetEnable",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 122,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetAdTargetEnable')\n        return TvInfo_getParam('adTargetEnable')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetOSVersion",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 231,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetOSVersion')\n        var ret = HiUtils_createRequest('getOSVersion')\n        if (ret?.ret) {\n            return ret?.msg\n        } else {\n            return 'U07.00'\n        }\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetCountryCode",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 114,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetCountryCode')\n        return TvInfo_getParam('countryID')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_Get4KSupportState",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 114,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to get4KSupportState')\n        return (TvInfo_getParam('4kState') != 0)\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetNetStatus",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 114,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetNetStatus.')\n        return (TvInfo_getParam('netStatus') != 0)\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetNetType",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 103,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetNetType.')\n        return TvInfo_getParam('netType')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetWolEnable",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 107,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetWolEnable.')\n        return TvInfo_getParam('wolEnable')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetWowEnable",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 107,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetWowEnable.')\n        return TvInfo_getParam('wowEnable')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetRegion",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 101,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetRegion.')\n        return TvInfo_getParam('region')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetPanelResolution",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 119,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetPanelResolution.')\n        return TvInfo_getParam('panelResolution')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetMute",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 102,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetMute.')\n        return TvInfo_getParam('soundMute')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetSubtitleStyle",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 943,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log(\"Hisense_GetSubtitleStyle.\");\n        try {\n            const cc_style = {\n                \"stylemode\": TvInfo_getParam(\"CCStyleMode\"),\n                \"fontstyle\": TvInfo_getParam(\"CCFontStyle\"),\n                \"fontsize\": TvInfo_getParam(\"CCFontSize\"),\n                \"textcolor\": TvInfo_getParam(\"CCTextColor\"),\n                \"textopacity\": TvInfo_getParam(\"CCTextOpacity\"),\n                \"bgcolor\": TvInfo_getParam(\"CCBgColor\"),\n                \"bgopacity\": TvInfo_getParam(\"CCBgOpacity\"),\n                \"edgeeffect\": TvInfo_getParam(\"CCEdgeEffect\"),\n                \"edgecolor\": TvInfo_getParam(\"CCEdgeColor\"),\n                \"windowcolor\": TvInfo_getParam(\"CCWindowColor\"),\n                \"windowopacity\": TvInfo_getParam(\"CCWindowOpacity\")\n            }\n            return cc_style;\n        } catch(e) {\n            console.log(\"Not supported format.\")\n            return null;\n        }\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetIPAddress",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 107,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetIPAddress.')\n        return TvInfo_getParam('ipAddress')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetPictureMode",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 111,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetPictureMode.')\n        return TvInfo_getParam('pictureMode')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetResolution",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 109,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetResolution.')\n        return TvInfo_getParam('resolution')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetMenuLanguageCode",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 115,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetMenuLanguageCode.')\n        return TvInfo_getParam('languageID')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetLocaleLanguage",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 113,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetLocaleLanguage.')\n        return TvInfo_getParam('languageID')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetSubtitleStatus",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 409,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log(\"Hisense_GetSubtitleStatus.\");\n        var rtn;\n        switch(TvInfo_getParam(\"CCModeStatus\")) {\n            case 0:\n            default:\n                rtn = \"off\";\n                break;\n            case 1:\n                rtn = \"on\";\n                break;\n            case 2:\n                rtn = \"onWhenMute\";\n                break;\n        }\n        return rtn;\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetHighContrastMenuStatus",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 132,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetHighContrastMenuStatus.')\n        return (TvInfo_getParam('isContrastMenu') == 1)\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetFeatureCode",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 111,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetFeatureCode.')\n        return TvInfo_getParam('featureCode')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetCapabilityCode",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 117,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetCapabilityCode.')\n        return TvInfo_getParam('capabilityCode')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetIsHotelMode",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 118,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetIsHotelMode.')\n        return (TvInfo_getParam('isHotelMode') == 1)\n    }"
+          }
+        },
+        {
+          "name": "Hisense_RegisterObserver",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 299,
+            "truncated": false,
+            "excerpt": "function(key, callback) {\n        console.log('Hisense_SetObserver.')\n        if (key == '' || key == null || key == undefined || typeof callback != 'function') {\n            console.log('unvalid param!')\n            return false\n        }\n        return TvInfo_setParamObserver(key, callback)\n    }"
+          }
+        },
+        {
+          "name": "Hisense_UnregisterObserver",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 204,
+            "truncated": false,
+            "excerpt": "function(key) {\n        if (key == '' || key == null || key == undefined) {\n            console.log('unvalid param!')\n            return false\n        }\n        return TvInfo_clearParamObserver(key)\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetBrand",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 97,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('get TV brand.')\n        return TvInfo_getParam('tvBrand')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetSupportForDolbyAtmos",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 123,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('get support for Dolby Atmos.')\n        return (TvInfo_getParam('atmosSwtich') == 1)\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetUuid",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 102,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetUuid')\n        return TvInfo_getParam('uuid')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetMainSoundDev",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 118,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetMainSoundDev')\n        return TvInfo_getParam('mainSoundDev')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetSupportForHDR",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 117,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('get HDR support.')\n        return TvInfo_getParam('supportHdrAndDolbyVision')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetSupportForHDRInfo",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 497,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('get HDR and Dobly Vision support.')\n        var supporthdr = TvInfo_getParam('supportHdrAndDolbyVision')\n        var ss = supporthdr.split('+')\n        var hdr_full_list = {\n            'SDR': ss.indexOf('SDR') != -1,\n            'HDR10': ss.indexOf('HDR10') != -1,\n            'HLG': ss.indexOf('HLG') != -1,\n            'HDR10Plus': ss.indexOf('HDR10Plus') != -1,\n            'DOVI': ss.indexOf('DolbyVision') != -1\n        }\n\n        return hdr_full_list\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetPlayerFeatureInfo",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 129,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetPlayerFeatureInfo.')\n        return TvInfo_getParam('playerFeatureInfo')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetModelName",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 226,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to get model name.')\n        var modelName = TvInfo_getParam('modelName')\n        if (modelName) {\n            return modelName\n        } else {\n            return 'unknown'\n        }\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetTunerSupport",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 119,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetTunerSupport.')\n        return TvInfo_getParam('tunerSupport')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetTvLogo",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 101,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetTvLogo.')\n        return TvInfo_getParam('tvLogo')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetTTSEnable",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 114,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetTTSEnable.')\n        return (TvInfo_getParam('ttsEnable') == 1)\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetTTSLanguage",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 111,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetTTSLanguage.')\n        return TvInfo_getParam('ttsLanguage')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetTTSPitch",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 105,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetTTSPitch.')\n        return TvInfo_getParam('ttsPitch')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetTTSVolume",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 107,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetTTSVolume.')\n        return TvInfo_getParam('ttsVolume')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetTTSRate",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 103,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetTTSRate.')\n        return TvInfo_getParam('ttsRate')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetTimeZone",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 105,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetTimeZone.')\n        return TvInfo_getParam('timeZone')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetVolume",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 106,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetVolume.')\n        return TvInfo_getParam('soundVolume')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetVolumeType",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 109,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetVolumeType.')\n        return TvInfo_getParam('volumeType')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetArcMode",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 103,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetArcMode.')\n        return TvInfo_getParam('arcMode')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetMenuScheme",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 109,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetMenuScheme.')\n        return TvInfo_getParam('schemeMenu')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetMenuTransparecy",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 119,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetMenuTransparecy.')\n        return TvInfo_getParam('transparecyMenu')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetVolumeBarMode",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 115,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetVolumeBarMode.')\n        return TvInfo_getParam('volumeBarMode')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetVolumeBarVisible",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 121,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetVolumeBarVisible.')\n        return TvInfo_getParam('volumeBarVisible')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetParentControlEnabled",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 121,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to getPCLockEnabled')\n        return TvInfo_getParam('parentalControlEnabled')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetBlockStartTime",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 117,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetBlockStartTime.')\n        return TvInfo_getParam('blockStartTime')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetBlockEndTime",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 113,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetBlockEndTime.')\n        return TvInfo_getParam('blockEndTime')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetBlockTimeWeekly",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 119,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetBlockTimeWeekly.')\n        return TvInfo_getParam('blockTimeWeekly')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetDatePattern",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 111,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetDatePattern.')\n        return TvInfo_getParam('datePattern')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_setStartBandwidth",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 500,
+            "truncated": false,
+            "excerpt": "function(start_bps) {\n        console.log('set start bandwidth:' + start_bps)\n        if (navigator.userAgent.includes(' OMI/')) {\n            var cmdInfo = {}\n            cmdInfo.type = 'set_startBandwidth'\n            cmdInfo.data = (Number(start_bps) + 1).toString()\n            omi_platform.sendPlatformMessage(JSON.stringify(cmdInfo))\n            return true\n        } else {\n            console.warn('set start bandwidth not support for this UserAgent')\n            return false\n        }\n    }"
+          }
+        },
+        {
+          "name": "Hisense_disableVKB",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 151,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('The VKB control Hisense_DisableVKB')\n        omi_platform.sendPlatformMessage('disableVKB')\n        return true\n    }"
+          }
+        },
+        {
+          "name": "Hisense_enableVKB",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 149,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('The VKB control Hisense_EnableVKB')\n        omi_platform.sendPlatformMessage('enableVKB')\n        return true\n    }"
+          }
+        },
+        {
+          "name": "Hisense_SetRemoteKeyboard",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 376,
+            "truncated": false,
+            "excerpt": "function(contents) {\n        console.log('Hisense_SetRemoteKeyboard.')\n        if (contents == '' || contents == null || contents == undefined) {\n            console.log('Donot send empty string to RemoteNow!')\n            return -1\n        } else {\n            console.log('content:', contents)\n            return TvInfo_setParam('keyboardContents', contents)\n        }\n    }"
+          }
+        },
+        {
+          "name": "Hisense_SupportAppConfig",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 86,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_SupportAppConfig')\n        return true\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetSubtitleMode",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 112,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetSubtitleMode')\n        return TvInfo_getParam('subtitleMode')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetPrimarySubtitle",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 118,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetPrimarySubtitle')\n        return TvInfo_getParam('primarySubtitle')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetSecondarySubtitle",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 122,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetSecondarySubtitle')\n        return TvInfo_getParam('secondarySubtitle')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetSubtitleStorage",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 118,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetSubtitleStorage')\n        return TvInfo_getParam('subtitleStorage')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetCCAtvChannel",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 112,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetCCAtvchannel')\n        return TvInfo_getParam('CCAtvchannel')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetCCDtvService",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 112,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetCCDtvservice')\n        return TvInfo_getParam('CCDtvservice')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetCCAtvSupport",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 112,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetCCAtvSupport')\n        return TvInfo_getParam('CCAtvSupport')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetAudioMode",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 106,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetAudioMode')\n        return TvInfo_getParam('audioMode')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetAudioFormat",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 110,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetAudioFormat')\n        return TvInfo_getParam('audioFormat')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetFaderMode",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 106,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetFaderMode')\n        return TvInfo_getParam('faderMode')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetSupportTTS",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 108,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetSupportTTS')\n        return TvInfo_getParam('supportTTS')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetTTSFocusAudio",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 114,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetTTSFocusAudio')\n        return TvInfo_getParam('ttsFocusAudio')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetTTSSupportLanguage",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 124,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetTTSSupportLanguage')\n        return TvInfo_getParam('ttsSupportLanguage')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetMagnification",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 114,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetMagnification')\n        return TvInfo_getParam('magnification')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetMagnificationEnable",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 126,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetMagnificationEnable')\n        return TvInfo_getParam('magnificationEnable')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetDtvStandard",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 110,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetDtvStandard')\n        return TvInfo_getParam('dtvStandard')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_SetVolume",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 125,
+            "truncated": false,
+            "excerpt": "function(Volume) {\n        console.log('Hisense_SetVolume is ${Volume}')\n        TvInfo_setParam('soundVolume', Volume)\n    }"
+          }
+        },
+        {
+          "name": "Hisense_RegisterVolumeObserver",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 84,
+            "truncated": false,
+            "excerpt": "function (callback) {\n      Hisense_RegisterObserver('soundVolume', callback);\n    }"
+          }
+        },
+        {
+          "name": "vowOS",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "object",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": null
+        },
+        {
+          "name": "TvInfo_getParam",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 688,
+            "truncated": false,
+            "excerpt": "function(key) {\n        if (!(TvInfo_Json.hasOwnProperty(key) && TvInfo_Json[key] != undefined)) {\n            var ret = vowOS.service.syncExecute('tvinfo', {\n                api: key\n            })\n\n            if (ret?.ret) {\n                var value = ret?.msg\n                if (value[key] != null) {\n                    console.log('[tvinfo] key:' + key + ', value: ' + value[key])\n                    return value[key]\n                }\n            } else {\n                console.log('HTTP ERROR CODE: ' + ret.msg)\n            }\n\n            return null\n        }\n\n        console.log('[tvinfo] key:' + key + ', value: ' + TvInfo_Json[key])\n        return TvInfo_Json[key]\n    }"
+          }
+        },
+        {
+          "name": "TvInfo_setParam",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 444,
+            "truncated": false,
+            "excerpt": "function(key, value) {\n        vowOS.service.execute('phoenix://service/tvinfo', {\n            method: 'callAPI',\n            parameters: {\n                api: 'setbiz',\n                args: {\n                    key: key,\n                    value: value.toString()\n                }\n            },\n            timeout: 2,\n            onSuccess: function(ret) { console.log('got result: %d - %s', ret) }\n        })\n\n        return true\n    }"
+          }
+        },
+        {
+          "name": "TvInfo_getCurrentParam",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 184,
+            "truncated": false,
+            "excerpt": "function(key, value) {\n        const xhr_response = vowOS.service.syncExecute('tvinfo', {\n            api: key,\n            args: value\n        })\n        return xhr_response.msg\n    }"
+          }
+        },
+        {
+          "name": "TvInfo_setParamObserver",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 462,
+            "truncated": false,
+            "excerpt": "function(key, callback) {\n        console.log('set observer: ' + key)\n        vowOS.service.execute('phoenix://service/tvinfo', {\n            method: 'register',\n            parameters: {\n                api: key\n            },\n            timeout: 2,\n            onMessage: function(ret) {\n                if (ret) {\n                    updateJSON(ret)\n                    callback(ret?.msg)\n                }\n            }\n        })\n\n        return true\n    }"
+          }
+        },
+        {
+          "name": "TvInfo_clearParamObserver",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 287,
+            "truncated": false,
+            "excerpt": "function(key) {\n        console.log('unregister observer: ' + key)\n        vowOS.service.execute('phoenix://service/tvinfo', {\n            method: 'unregister',\n            parameters: {\n                api: key\n            },\n            timeout: 2\n        })\n\n        return true\n    }"
+          }
+        },
+        {
+          "name": "TvInfo_writeTvRunLog",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 542,
+            "truncated": false,
+            "excerpt": "function(type, msg) {\n        var runlog = {}\n        runlog.type = type\n        runlog.msg = msg\n        if (!_validateWriteTvRunLogInput(runlog)) {\n            return false\n        }\n        vowOS.service.execute('phoenix://service/hiutils', {\n            method: 'callAPI',\n            parameters: {\n                api: 'writeTvRunLog',\n                args: JSON.stringify(runlog)\n            },\n            timeout: 2,\n            onSuccess: function(ret) { console.log('got result: %d - %s', ret) }\n        })\n        return true\n    }"
+          }
+        },
+        {
+          "name": "HiUtils_createRequest",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 179,
+            "truncated": false,
+            "excerpt": "function(type, msg) {\n        const xhr_response = vowOS.service.syncExecute('hiutils', {\n            api: type,\n            args: msg\n        })\n        return xhr_response\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetTestApiList",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 740,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetTestApiList')\n        var list =\n    [\n        'Hisense_GetApiVersion',\n        'Hisense_GetCurrentBrowser',\n        'Hisense_GetDeviceID',\n        'Hisense_GetFeatureCode',\n        'Hisense_GetCapabilityCode',\n        'Hisense_GetSerialType',\n        'Hisense_GetModelName',\n        'Hisense_GetBrand',\n        'Hisense_GetCountryCode',\n        'Hisense_GetMenuLanguageCode',\n        'Hisense_GetNetStatus',\n        'Hisense_GetNetType',\n        'Hisense_Get4KSupportState',\n        'Hisense_GetPanelResolution',\n        'Hisense_GetRegion',\n        'Hisense_GetSupportForDolbyAtmos',\n        'Hisense_GetSupportForHDRInfo',\n        'Hisense_GetCustomerID'\n    ]\n        return list\n    }"
+          }
+        },
+        {
+          "name": "Hisense_HiSdkSignCreate",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 172,
+            "truncated": false,
+            "excerpt": "function(sign_str) {\n        console.log('go to Hisense_HiSdkSignCreate.')\n        var ret = HiUtils_createRequest('hiSdkSignCreate', sign_str)\n        return ret.msg\n    }"
+          }
+        },
+        {
+          "name": "Hisense_HiSdkSignCreateSoundbar",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 188,
+            "truncated": false,
+            "excerpt": "function(sign_str) {\n        console.log('go to Hisense_HiSdkSignCreateSoundbar.')\n        var ret = HiUtils_createRequest('hiSdkSignCreateSoundbar', sign_str)\n        return ret.msg\n    }"
+          }
+        },
+        {
+          "name": "Hisense_HiSdkJsonVerifyHeap",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 180,
+            "truncated": false,
+            "excerpt": "function(sign_str) {\n        console.log('go to Hisense_HiSdkJsonVerifyHeap.')\n        var ret = HiUtils_createRequest('hiSdkJsonVerifyHeap', sign_str)\n        return ret.msg\n    }"
+          }
+        },
+        {
+          "name": "Hisense_WriteTvRunLog",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 125,
+            "truncated": false,
+            "excerpt": "function(type, msg) {\n        console.log('go to Hisense_WriteTvRunLog')\n        return TvInfo_writeTvRunLog(type, msg)\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetCustomerID",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 109,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetCustomerID.')\n        return TvInfo_getParam('customerID')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_SetCustomerID",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 131,
+            "truncated": false,
+            "excerpt": "function(customerid) {\n        console.log('Hisense_SetCustomerID.')\n        return TvInfo_setParam('customerID', customerid)\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetRoleID",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 101,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetRoleID.')\n        return TvInfo_getParam('roleID')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_SetRoleID",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 115,
+            "truncated": false,
+            "excerpt": "function(roleid) {\n        console.log('Hisense_SetRoleID.')\n        return TvInfo_setParam('roleID', roleid)\n    }"
+          }
+        },
+        {
+          "name": "Hisense_SetDNS",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 150,
+            "truncated": false,
+            "excerpt": "function(dns, code) {\n        console.log('go to Hisense_SetDNS')\n        var ret = HiUtils_createRequest('setDns', dns)\n        return ret?.ret\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetDNS",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 95,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetDNS.')\n        return TvInfo_getParam('dns')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetMacAddress",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 109,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetMacAddress.')\n        return TvInfo_getParam('macAddress')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_ResetDevice",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 160,
+            "truncated": false,
+            "excerpt": "function(code) {\n        console.log('go to Hisense_ResetDevice')\n        code = code || '00000'\n        return TvInfo_setParam('actionResetDevice', code)\n    }"
+          }
+        },
+        {
+          "name": "Hisense_Encrypt",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 161,
+            "truncated": false,
+            "excerpt": "function(content) {\n        console.log('go to Hisense_Encrypt')\n        var ret = HiUtils_createRequest('securityEncrypt', content)\n        return ret.msg\n    }"
+          }
+        },
+        {
+          "name": "Hisense_Decrypt",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 161,
+            "truncated": false,
+            "excerpt": "function(content) {\n        console.log('go to Hisense_Decrypt')\n        var ret = HiUtils_createRequest('securityDecrypt', content)\n        return ret.msg\n    }"
+          }
+        },
+        {
+          "name": "Hisense_RSADecrypt",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 133,
+            "truncated": false,
+            "excerpt": "function(content) {\n        console.log('go to Hisense_RSADecrypt')\n        return HiUtils_createRequest('rsaDecrypt', content)\n    }"
+          }
+        },
+        {
+          "name": "Hisense_CheckCodeValid",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 147,
+            "truncated": false,
+            "excerpt": "function(securecode) {\n        console.log('go to Hisense_CheckCodeValid')\n        return HiUtils_createRequest('checkCodeValid', securecode)\n    }"
+          }
+        },
+        {
+          "name": "Hisense_CheckAccessCode",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 179,
+            "truncated": false,
+            "excerpt": "function(code) {\n        console.log('go to Hisense_CheckAccessCode')\n        var ret = HiUtils_createRequest('checkAccessCode', code)\n        return JSON.stringify(ret.msg)\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetUpdatesVerInfo",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 782,
+            "truncated": false,
+            "excerpt": "function(callback) {\n        console.log('go to Hisense_GetUpdatesVerInfo')\n        var requestMsg = {}\n        requestMsg.type = 'getUpdatesVerInfo'\n\n        try {\n            if (window.omi_platform) {\n                omi_platform.sendPlatformMessage(JSON.stringify(requestMsg))\n            }\n        } catch (e) {\n            // handle the exception\n        }\n\n        handleGetVersionEvent = function(version) {\n            var message = JSON.parse(version)\n            if (!!message && version.indexOf('nssdb') != -1) {\n                callback(message)\n            }\n        }\n\n        if (window.alreadyAddUpdateEventListener == 0) {\n            omi_platform.addPlatformEventListener(handleGetVersionEvent)\n            window.alreadyAddUpdateEventListener = 1\n        }\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetDebugLevelForHisenseUI",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 133,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetDebugLevelForHisenseUI.')\n        return TvInfo_getParam('debugLevelForHisenseUI')\n    }"
+          }
+        },
+        {
+          "name": "Hisense_EnableDebugLog",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 166,
+            "truncated": false,
+            "excerpt": "function(module) {\n        console.log('go to Hisense_EnableDebugLog')\n        var result = HiUtils_createRequest('openModuleLog', module)\n        return result\n    }"
+          }
+        },
+        {
+          "name": "Hisense_PrintLogMessage",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 708,
+            "truncated": false,
+            "excerpt": "function(level, contents) {\n        if (typeof level != 'number' || isNaN(level) ||\n        typeof contents == 'undefined' || contents == null || contents.length > 500) {\n        // invalid level OR contents are too long OR params are empty\n            console.log('Invalid params, please check.')\n            return\n        }\n\n        // print Log into log.txt\n        var requestMsg = {}\n        requestMsg.type = 'log'\n        requestMsg.level = level\n        requestMsg.text = contents\n\n        try {\n            if (window.omi_platform) {\n                omi_platform.sendPlatformMessage(JSON.stringify(requestMsg))\n            }\n        } catch (e) {\n            // handle the exception\n        }\n    }"
+          }
+        },
+        {
+          "name": "Hisense_setDebugPort",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 175,
+            "truncated": false,
+            "excerpt": "function(type, code) {\n        console.log('Hisense_setDebugPort: ' + type)\n        var ret = HiUtils_createRequest('setDebugPort', type)\n        return ret.ret ? 0 : -1\n    }"
+          }
+        },
+        {
+          "name": "Hisense_getDebugPort",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 152,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_getDebugPort')\n        var ret = HiUtils_createRequest('getDebugPort', '')\n        return (ret.msg != 0)\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetRebrandingEnable",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 271,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('Hisense_GetRebrandingEnable')\n        var ret = HiUtils_createRequest('getRebrandingEnable', '')\n        if (!ret?.ret) {\n            console.log('rebranding not configured!')\n            return 0;\n        }\n        return ret?.msg\n    }"
+          }
+        },
+        {
+          "name": "Hisense_SetSeleniumDebug",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 168,
+            "truncated": false,
+            "excerpt": "function(value) {\n        console.log('go to Hisense_SetSeleniumDebug')\n        var ret = HiUtils_createRequest('setSeleniumDebug', value)\n        return ret?.ret\n    }"
+          }
+        },
+        {
+          "name": "Hisense_GetSeleniumDebug",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 168,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_GetSeleniumDebug')\n        var ret = HiUtils_createRequest('getSeleniumDebug', '')\n        return ret?.ret ? 1 : 0\n    }"
+          }
+        },
+        {
+          "name": "Hisense_getMemInfo",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 148,
+            "truncated": false,
+            "excerpt": "function() {\n        console.log('go to Hisense_getMemInfo.')\n        var ret = HiUtils_createRequest('getMemInfo', '')\n        return ret.msg\n    }"
+          }
+        },
+        {
+          "name": "Hisense_FileRead",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 324,
+            "truncated": false,
+            "excerpt": "function(path, mode) {\n        var param = {\n            'path': path,\n            'mode': mode\n        }\n\n        var ret = HiUtils_createRequest('fileRead', param)\n        if (ret.ret) {\n            return ret.msg\n        } else {\n            console.log('read file error:' + ret.msg)\n            return ''\n        }\n    }"
+          }
+        },
+        {
+          "name": "Hisense_FileWrite",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 241,
+            "truncated": false,
+            "excerpt": "function(path, writedata, mode) {\n        var param = {\n            'path': path,\n            'writedata': writedata,\n            'mode': mode\n        }\n        var rtn = HiUtils_createRequest('fileWrite', param)\n        return rtn.ret\n    }"
+          }
+        },
+        {
+          "name": "Hisense_RegisterAppMessageListener",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 2517,
+            "truncated": false,
+            "excerpt": "function(eventType, callback) {\n    console.log(\"registerAppMessageListeners\");\n    registeredEvent.push(eventType);\n\n    function cb_CCMode(value) {\n        var obj = {};\n        obj.from = \"browser\";\n        obj.event = \"statemode\";\n        obj.data = {};\n        switch(value) {\n        case 0:\n        default:\n            obj.data.msgVal=\"off\";\n            break;\n        case 1:\n            obj.data.msgVal=\"on\";\n            break;\n        case 2:\n            obj.data.msgVal=\"onWhenMute\";\n            break;\n        }\n\n        return callback(obj);\n    }\n\n    function cb_CCStyle(value) {\n        var obj = {};\n        obj.from = \"browser\";\n        obj.data = {'CCStyleMode': value};\n        obj.event = \"subtitleStyle\";\n        return callback(obj);\n    }\n\n    function cb_Mute(value) {\n        var obj = {};\n        obj.from = \"browser\";\n        obj.event = \"mute\";\n        obj.data = {};\n        if(value != null || value != undefined) {\n            obj.data.msgVal = value;\n        }\n        return callback(obj);\n    }\n\n    if(registeredEvent.join().indexOf(\"subtitleStyle\") != -1) {\n        Hisense_RegisterObserver(\"CCStyleMode\", cb_CCStyle);\n        Hisense_RegisterObserver(\"CCFontStyle\", cb_CCStyle);\n        Hisense_RegisterObserver(\"CCFontSize\", cb_CCStyle);\n        Hisense_RegisterObserver(\"CCTextColor\", cb_CCStyle);\n        Hisense_RegisterObserver(\"CCTextOpacity\", cb_CCStyle);\n        Hisense_RegisterObserver(\"CCBgColor\", cb_CCStyle);\n        Hisense_RegisterObserver(\"CCBgOpacity\", cb_CCStyle);\n        Hisense_RegisterObserver(\"CCEdgeEffect\", cb_CCStyle);\n        Hisense_RegisterObserver(\"CCEdgeColor\", cb_CCStyle);\n        Hisense_RegisterObserver(\"CCWindowOpacity\", cb_CCStyle);\n        Hisense_RegisterObserver(\"CCWindowColor\", cb_CCStyle);\n    }\n\n    if(registeredEvent.join().indexOf(\"statemode\") != -1) {\n        Hisense_RegisterObserver(\"CCModeStatus\", cb_CCMode);\n    }\n\n    if(registeredEvent.join().indexOf(\"mute\") != -1) {\n        Hisense_RegisterObserver(\"soundMute\", cb_Mute);\n    }\n\n    playEventListener = function playEventListener(data) {\n        var msg = null;\n        try {\n            msg = JSON.parse(data);\n        } catch(e) {\n            console.log(\"Error: \"+e);\n        }\n\n        if(registeredEvent.join().indexOf(msg.event) != -1) {\n            callback(msg);\n        } else {\n            console.log(\"invalid event type\");\n            return;\n        }\n    }\n\n    if(!!omi_platform) {\n        omi_platform.addPlatformEventListener(playEventListener);\n    }\n}"
+          }
+        },
+        {
+          "name": "Hisense_CloseBrowser",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 240,
+            "truncated": false,
+            "excerpt": "function(appname) {\n    console.log(\"Hisense_CloseBrowser\");\n    var event = {};\n    event.type = \"closeOTTPage\";\n    event.appname = appname;\n    if(!!omi_platform) {\n        omi_platform.sendPlatformMessage(JSON.stringify(event));\n    }\n}"
+          }
+        },
+        {
+          "name": "Hisense_SendAppMessageEvent",
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "function",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "source": {
+            "sourceLength": 303,
+            "truncated": false,
+            "excerpt": "function(event) {\n    console.log(\"sendAppMessageEvent\");\n\n    if(typeof event == 'object') {\n        event.type = \"APPMessage\";\n    } else {\n        console.log(\"invalid msg type\");\n        return;\n    }\n\n    if(!!omi_platform) {\n        omi_platform.sendPlatformMessage(JSON.stringify(event));\n    }\n}"
+          }
+        }
+      ],
+      "objects": {
+        "vowOS": {
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "object",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "properties": [
+            {
+              "depth": 0,
+              "truncated": false,
+              "properties": [
+                {
+                  "name": "service",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "object",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "tvinfo",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "object",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "store",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "object",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                }
+              ]
+            },
+            {
+              "depth": 1,
+              "truncated": false,
+              "properties": [
+                {
+                  "name": "constructor",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "__defineGetter__",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "__defineSetter__",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "hasOwnProperty",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "__lookupGetter__",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "__lookupSetter__",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "isPrototypeOf",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "propertyIsEnumerable",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "toString",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "valueOf",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "__proto__",
+                  "descriptor": {
+                    "status": "ACCESSOR_NOT_READ",
+                    "ownerDepth": 0,
+                    "type": "accessor",
+                    "hasGetter": true,
+                    "hasSetter": true
+                  }
+                },
+                {
+                  "name": "toLocaleString",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "omi_platform": {
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "object",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "properties": [
+            {
+              "depth": 0,
+              "truncated": false,
+              "properties": [
+                {
+                  "name": "addPlatformEventListener",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "sendPlatformMessage",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                }
+              ]
+            },
+            {
+              "depth": 1,
+              "truncated": false,
+              "properties": [
+                {
+                  "name": "constructor",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                }
+              ]
+            },
+            {
+              "depth": 2,
+              "truncated": false,
+              "properties": [
+                {
+                  "name": "constructor",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "__defineGetter__",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "__defineSetter__",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "hasOwnProperty",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "__lookupGetter__",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "__lookupSetter__",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "isPrototypeOf",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "propertyIsEnumerable",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "toString",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "valueOf",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "__proto__",
+                  "descriptor": {
+                    "status": "ACCESSOR_NOT_READ",
+                    "ownerDepth": 0,
+                    "type": "accessor",
+                    "hasGetter": true,
+                    "hasSetter": true
+                  }
+                },
+                {
+                  "name": "toLocaleString",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "opera_omi": {
+          "descriptor": {
+            "status": "DATA",
+            "ownerDepth": 0,
+            "type": "object",
+            "hasGetter": false,
+            "hasSetter": false
+          },
+          "properties": [
+            {
+              "depth": 0,
+              "truncated": false,
+              "properties": [
+                {
+                  "name": "addPlatformEventListener",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "sendPlatformMessage",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                }
+              ]
+            },
+            {
+              "depth": 1,
+              "truncated": false,
+              "properties": [
+                {
+                  "name": "constructor",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                }
+              ]
+            },
+            {
+              "depth": 2,
+              "truncated": false,
+              "properties": [
+                {
+                  "name": "constructor",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "__defineGetter__",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "__defineSetter__",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "hasOwnProperty",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "__lookupGetter__",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "__lookupSetter__",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "isPrototypeOf",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "propertyIsEnumerable",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "toString",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "valueOf",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                },
+                {
+                  "name": "__proto__",
+                  "descriptor": {
+                    "status": "ACCESSOR_NOT_READ",
+                    "ownerDepth": 0,
+                    "type": "accessor",
+                    "hasGetter": true,
+                    "hasSetter": true
+                  }
+                },
+                {
+                  "name": "toLocaleString",
+                  "descriptor": {
+                    "status": "DATA",
+                    "ownerDepth": 0,
+                    "type": "function",
+                    "hasGetter": false,
+                    "hasSetter": false
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "TvInfo_Json": {
+          "descriptor": {
+            "status": "ABSENT",
+            "error": null
+          },
+          "properties": []
+        }
+      },
+      "truncated": false,
+      "invoked": false
+    },
     "scripts": [
       {
         "index": 0,
-        "src": "https://vidaahub.com/hspdk-context.js?v=app-7de485fa2f67",
+        "src": "https://vidaahub.com/hspdk-context.js?v=app-028fe4092f84",
         "inline": false,
         "sideeOwned": true
       },
       {
         "index": 1,
-        "src": "https://vidaahub.com/app.js?v=app-7de485fa2f67",
+        "src": "https://vidaahub.com/app.js?v=app-028fe4092f84",
         "inline": false,
         "sideeOwned": true
       }
     ],
-    "scannedGlobals": 0,
-    "scannedFunctions": 0,
-    "truncated": false,
-    "note": "Presence is not permission. No getter, App Manager method, loader, file read/write or discovered function is invoked.",
-    "error": "ReferenceError: sensitive is not defined",
+    "scannedGlobals": 1285,
+    "scannedFunctions": 1241,
+    "truncated": true,
+    "note": "Presence is not permission. Modern bridge inventory is descriptor/source-only. No getter, App Manager method, loader, file read/write or discovered function is invoked.",
     "status": "NO_FILE_PAIR_OBSERVED"
   }
 }
