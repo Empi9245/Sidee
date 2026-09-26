@@ -2530,3 +2530,87 @@ Interpretazione:
 - se le API non vengono iniettate su raw IP, il trusted hostname resta necessario solo per l'esposizione API;
 - se fileRead funziona ma fileWrite restituisce ancora 503, DNS/origin è sostanzialmente escluso come causa del gate;
 - se il no-op write diventa `WRITE_ALLOWED_AND_IDENTICAL`, allora l'origin/launch path è materialmente rilevante e va investigato prima dell'identity spoofing.
+
+
+---
+
+## RISULTATO — RAW-IP HTTP A/B + NUOVA PISTA APP-CONTEXT — 2026-09-26
+
+### Raw-IP A/B concluso
+
+Sessione raw-IP:
+- origin: `http://192.168.1.5:8080`;
+- protocollo: HTTP;
+- DNS TV: automatico;
+- buildMatch: true;
+- `fileRead websdk/Appinfo.json`: `ret:true`, `code:0`, 3 entry;
+- no-op `fileWrite`: `ret:false`, `code:503`, `client request permission check error, please check appconfig`;
+- readback identico, nessuna modifica al registry.
+
+Conclusione:
+- DNS spoof e hostname `vidaahub.com` NON sono la causa del 503;
+- la capability `fileRead` è esposta anche da raw IP su questo firmware;
+- il write gate resta AppConfig/permission e dipende da qualcosa di diverso dall'origin DNS.
+
+### Evidenza pubblica coerente
+
+Issue `weinzii/vidaa-edge#30`:
+- firmware `V0000.09.60F.Q0528`: stesso errore AppConfig su new method;
+- commenti successivi riportano lo stesso errore anche su:
+  - `V0000.09.60C.Q0516`;
+  - `V0000.09.60A.Q0602`;
+- un commento dell'autore di vidaa-edge sostiene che firmware >= v9 possa esporre le funzioni senza DNS rewrite, ma altri utenti 09.60 confermano che il write resta bloccato con o senza DNS.
+
+La TV Sidee usa `V0000.09.60A.Q0707`, coerente con questa famiglia di comportamento.
+
+### HiZ-Store / simonbuehler
+
+Nel thread `PhasedGapple/HiZ-Store#1`, simonbuehler pubblicò nel 2025 il direct AppInfo `fileWrite` e dichiarò anche di aver ottenuto developer mode / controllo completo del servizio su una sua TV. Il direct-write risultava funzionante su almeno firmware `V0000.09.09P.P0930`, ma non dimostra compatibilità con le build 09.60.
+
+Esiste inoltre `PhasedGapple/FuVIDAA-API`, che sperimenta l'API della app store moderna su `category-ui.vidaahub.com`; è una pista futura perché il vero app-store context potrebbe possedere un AppConfig privilegiato, ma il PoC pubblico non dimostra ancora una procedura completa e stabile sulle build 09.60.
+
+### Nuova ipotesi ad alta priorità: installed-app context trampoline
+
+Il runtime già osservato mostra che `vowOS.service.getIdentifier()` prende l'identità da `vowOSContext.getAppIdentifier()`. Il browser manuale restituisce identità vuota.
+
+Ipotesi:
+- un'app realmente lanciata dal VIDAA launcher può ricevere una identity nativa non vuota;
+- se carichiamo Sidee dentro quel container tramite DNS temporaneo, il service request potrebbe essere autorizzato diversamente.
+
+Scelti due target già installati con URL HTTP, così non serve MITM TLS:
+- Smartone IPTV:
+  - Id `1470`;
+  - URL `http://vidaa.smartone-iptv.com`;
+- Duplecast:
+  - Id `1876`;
+  - URL `http://vidaa.duplecast.com/`.
+
+Implementazione:
+- entrambi i domini aggiunti a `spoof_domains`;
+- nuovo listener HTTP Sidee su porta 80;
+- config `app_context_probe` documenta app/host;
+- report registra `accessMode`;
+- modalità riconosciute:
+  - `SMARTONE_APP_CONTEXT`;
+  - `DUPLECAST_APP_CONTEXT`;
+  - `VIDAAHUB_BROWSER_CONTEXT`;
+  - `RAW_IP_BROWSER_CONTEXT`;
+  - `OTHER_CONTEXT`;
+- UI mostra `Access mode`.
+
+Protocollo:
+1. git pull + restart Sidee;
+2. TV DNS -> IP PC;
+3. non aprire browser;
+4. lancia Smartone IPTV dal launcher VIDAA;
+5. se carica Sidee, Capture Baseline;
+6. controllare identity reale;
+7. eseguire solo no-op Direct AppInfo Write;
+8. se Smartone non carica, provare Duplecast;
+9. Add Nuvio solo con `WRITE_ALLOWED_AND_IDENTICAL`;
+10. ripristinare DNS automatico a fine test.
+
+Interpretazione:
+- identity non vuota + write consentito => soluzione pratica: usare installed-app container come trampoline per registrare Nuvio;
+- identity non vuota + 503 => AppConfig permission è per-app e l'app normale non ha write privilege; prossima pista = official App Store context / category-ui;
+- identity vuota => launcher non assegna identity utile a quel tipo di app; passare al contesto store ufficiale.
