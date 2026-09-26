@@ -210,3 +210,22 @@ GET /api/reports/sync
 ```
 
 Once a report has synced, another ChatGPT conversation with access to the GitHub repository can read `reports/latest.json` from branch `sidee-reports` directly; there is no need to download and attach the JSON manually.
+
+
+## Session-armed remote read-only diagnostics
+
+Sidee supports a deliberately narrow way to request a diagnostic from another ChatGPT conversation while the Sidee page is already open on the TV.
+
+This is not a general remote-control channel. The TV page starts **disarmed** on every load. The user must press:
+
+`Enable remote diagnostics for this page`
+
+Once armed, and only while that page remains open, Sidee may accept one fixed read-only workflow requested through Git:
+
+`baseline → Permission Source Trace → Installed App Metadata → verification → report export/sync`
+
+The request channel defaults to branch `sidee-control`, file `control/request.json`. The Python host polls that file and the TV polls only the local Sidee server.
+
+The remote path cannot select arbitrary functions and cannot perform install/uninstall, Role/Customer setters, file writes, resets, arbitrary JavaScript or guessed HiUtils calls.
+
+Each real request must carry a fresh `sidee-request-YYYYMMDD-HHMMSS-xxxx` ID and a future `expiresAt`. The page records the request ID and completion state in the normal diagnostic report. Therefore a ChatGPT turn can verify that its exact request completed by reading `remoteDiagnostic.lastRequestId` in `sidee-reports/reports/latest.json`.

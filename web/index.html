@@ -36,6 +36,18 @@
       </div>
     </section>
 
+    <section class="card remoteDiagnosticCard" aria-live="polite">
+      <div class="cardHead">
+        <div>
+          <p class="kicker">REMOTE READ-ONLY DIAGNOSTICS</p>
+          <h2>ChatGPT diagnostic access</h2>
+        </div>
+        <button id="remoteDiagnosticArmBtn" class="secondary">Enable remote diagnostics for this page</button>
+      </div>
+      <p>When armed, this page may accept one fixed read-only diagnostic request through Sidee. Reloading or closing the page disarms it. Remote install/uninstall, setters, file writes and arbitrary commands are not supported.</p>
+      <div id="remoteDiagnosticState" class="state">DISARMED</div>
+    </section>
+
     <section class="grid workflow">
       <article class="card primary">
         <div class="cardHead">

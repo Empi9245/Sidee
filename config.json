@@ -25,5 +25,12 @@
     "latest_path": "reports/latest.json",
     "history_dir": "reports/sessions",
     "debounce_seconds": 2
+  },
+  "remote_diagnostics": {
+    "enabled": true,
+    "remote": "origin",
+    "branch": "sidee-control",
+    "request_path": "control/request.json",
+    "poll_seconds": 2
   }
 }

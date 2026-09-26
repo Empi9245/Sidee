@@ -364,6 +364,161 @@ def report_sync_worker():
                 commit=None,
             )
 
+
+REMOTE_DIAGNOSTIC_LOCK = threading.Lock()
+REMOTE_DIAGNOSTIC_CONFIG = {}
+REMOTE_DIAGNOSTIC_REQUEST = None
+REMOTE_DIAGNOSTIC_LAST_ID = None
+REMOTE_DIAGNOSTIC_STATUS = {
+    "enabled": False,
+    "state": "DISABLED",
+    "message": "Remote diagnostic requests are disabled.",
+    "requestId": None,
+    "fetchedAt": None,
+    "acknowledgedAt": None,
+}
+
+
+def configure_remote_diagnostics(config):
+    global REMOTE_DIAGNOSTIC_CONFIG
+    raw = config.get("remote_diagnostics", {}) if isinstance(config, dict) else {}
+    REMOTE_DIAGNOSTIC_CONFIG = {
+        "enabled": bool(raw.get("enabled", False)),
+        "remote": str(raw.get("remote", "origin")).strip() or "origin",
+        "branch": str(raw.get("branch", "sidee-control")).strip() or "sidee-control",
+        "request_path": str(raw.get("request_path", "control/request.json")).strip() or "control/request.json",
+        "poll_seconds": max(1.0, min(float(raw.get("poll_seconds", 2.0)), 30.0)),
+    }
+    with REMOTE_DIAGNOSTIC_LOCK:
+        REMOTE_DIAGNOSTIC_STATUS.update({
+            "enabled": REMOTE_DIAGNOSTIC_CONFIG["enabled"],
+            "state": "IDLE" if REMOTE_DIAGNOSTIC_CONFIG["enabled"] else "DISABLED",
+            "message": (
+                "Waiting for a read-only diagnostic request."
+                if REMOTE_DIAGNOSTIC_CONFIG["enabled"]
+                else "Remote diagnostic requests are disabled."
+            ),
+            "requestId": None,
+            "fetchedAt": None,
+            "acknowledgedAt": None,
+        })
+
+
+def _remote_diagnostic_snapshot(include_request=False):
+    with REMOTE_DIAGNOSTIC_LOCK:
+        out = dict(REMOTE_DIAGNOSTIC_STATUS)
+        out["request"] = dict(REMOTE_DIAGNOSTIC_REQUEST) if include_request and REMOTE_DIAGNOSTIC_REQUEST else None
+        return out
+
+
+def _remote_request_expired(expires_at):
+    if not isinstance(expires_at, str) or not expires_at:
+        return True
+    try:
+        from datetime import datetime, timezone
+        normalized = expires_at[:-1] + "+00:00" if expires_at.endswith("Z") else expires_at
+        expiry = datetime.fromisoformat(normalized)
+        if expiry.tzinfo is None:
+            expiry = expiry.replace(tzinfo=timezone.utc)
+        return expiry.timestamp() <= time.time()
+    except Exception:
+        return True
+
+
+def _fetch_remote_diagnostic_request():
+    cfg = dict(REMOTE_DIAGNOSTIC_CONFIG)
+    remote = _validate_remote_name(cfg["remote"])
+    branch = _validate_git_name(cfg["branch"], "remote diagnostic branch")
+    request_path = _validate_repo_relative_path(cfg["request_path"], "remote diagnostic request path").as_posix()
+
+    fetch = _run_git(["fetch", "--quiet", "--no-tags", remote, branch], timeout=30, check=False)
+    if fetch.returncode != 0:
+        detail = (fetch.stderr or fetch.stdout or "git fetch failed").strip()
+        raise RuntimeError(detail[:500])
+
+    show = _run_git(["show", f"FETCH_HEAD:{request_path}"], timeout=15, check=False)
+    if show.returncode != 0:
+        detail = (show.stderr or show.stdout or "diagnostic request file unavailable").strip()
+        raise RuntimeError(detail[:500])
+    return json.loads(show.stdout)
+
+
+def remote_diagnostic_worker():
+    global REMOTE_DIAGNOSTIC_REQUEST, REMOTE_DIAGNOSTIC_LAST_ID
+    while not stop_event.is_set():
+        try:
+            raw = _fetch_remote_diagnostic_request()
+            if not isinstance(raw, dict) or raw.get("runSafeDiagnostic") is not True:
+                with REMOTE_DIAGNOSTIC_LOCK:
+                    if REMOTE_DIAGNOSTIC_STATUS["state"] not in ("RUNNING", "COMPLETED"):
+                        REMOTE_DIAGNOSTIC_STATUS.update({
+                            "state": "IDLE",
+                            "message": "Waiting for a read-only diagnostic request.",
+                            "fetchedAt": _utc_timestamp(),
+                        })
+            else:
+                request_id = raw.get("requestId")
+                if not isinstance(request_id, str) or not re.fullmatch(r"sidee-request-\d{8}-\d{6}-[a-f0-9]{4}", request_id):
+                    raise ValueError("Invalid diagnostic requestId")
+                if _remote_request_expired(raw.get("expiresAt")):
+                    raise ValueError("Diagnostic request expired")
+                request = {
+                    "requestId": request_id,
+                    "createdAt": raw.get("createdAt"),
+                    "expiresAt": raw.get("expiresAt"),
+                    "requestedBy": str(raw.get("requestedBy") or "unknown")[:80],
+                    "note": str(raw.get("note") or "")[:300],
+                }
+                with REMOTE_DIAGNOSTIC_LOCK:
+                    if request_id != REMOTE_DIAGNOSTIC_LAST_ID:
+                        REMOTE_DIAGNOSTIC_LAST_ID = request_id
+                        REMOTE_DIAGNOSTIC_REQUEST = request
+                        REMOTE_DIAGNOSTIC_STATUS.update({
+                            "state": "PENDING",
+                            "message": "Read-only diagnostic requested; waiting for an armed TV page.",
+                            "requestId": request_id,
+                            "fetchedAt": _utc_timestamp(),
+                            "acknowledgedAt": None,
+                        })
+        except ValueError as exc:
+            with REMOTE_DIAGNOSTIC_LOCK:
+                if REMOTE_DIAGNOSTIC_STATUS["state"] not in ("RUNNING", "COMPLETED"):
+                    REMOTE_DIAGNOSTIC_STATUS.update({
+                        "state": "IDLE",
+                        "message": str(exc)[:500],
+                        "fetchedAt": _utc_timestamp(),
+                    })
+        except Exception as exc:
+            with REMOTE_DIAGNOSTIC_LOCK:
+                if REMOTE_DIAGNOSTIC_STATUS["state"] not in ("RUNNING", "COMPLETED"):
+                    REMOTE_DIAGNOSTIC_STATUS.update({
+                        "state": "ERROR",
+                        "message": ("Diagnostic request fetch failed: " + str(exc))[:500],
+                        "fetchedAt": _utc_timestamp(),
+                    })
+        stop_event.wait(float(REMOTE_DIAGNOSTIC_CONFIG.get("poll_seconds", 2.0)))
+
+
+def acknowledge_remote_diagnostic(data):
+    global REMOTE_DIAGNOSTIC_REQUEST
+    if not isinstance(data, dict):
+        raise ValueError("Expected JSON object")
+    request_id = data.get("requestId")
+    status = data.get("status")
+    if status not in ("RUNNING", "COMPLETED", "FAILED"):
+        raise ValueError("Invalid diagnostic status")
+    with REMOTE_DIAGNOSTIC_LOCK:
+        if not REMOTE_DIAGNOSTIC_REQUEST or request_id != REMOTE_DIAGNOSTIC_REQUEST.get("requestId"):
+            raise ValueError("Unknown diagnostic requestId")
+        REMOTE_DIAGNOSTIC_STATUS.update({
+            "state": status,
+            "message": str(data.get("message") or status)[:500],
+            "acknowledgedAt": _utc_timestamp(),
+        })
+        if status in ("COMPLETED", "FAILED"):
+            REMOTE_DIAGNOSTIC_REQUEST = None
+        return dict(REMOTE_DIAGNOSTIC_STATUS)
+
 def load_config():
     with CONFIG_PATH.open("r", encoding="utf-8") as f:
         return json.load(f)
@@ -544,6 +699,9 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
         if path == "/api/reports/sync":
             return self._send_json(_report_sync_status())
 
+        if path == "/api/remote-diagnostic/request":
+            return self._send_json(_remote_diagnostic_snapshot(include_request=True))
+
         if path == "/api/reports/latest":
             REPORTS_DIR.mkdir(parents=True, exist_ok=True)
             files = sorted(REPORTS_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
@@ -633,6 +791,13 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
                 "githubSync": sync_state,
             })
 
+        if path == "/api/remote-diagnostic/ack":
+            try:
+                status = acknowledge_remote_diagnostic(data)
+            except ValueError as exc:
+                return self._send_json({"ok": False, "error": str(exc)}, 400)
+            return self._send_json({"ok": True, "remoteDiagnostic": status})
+
         if path == "/api/report":
             return self._send_json({
                 "ok": False,
@@ -691,6 +856,7 @@ def main():
     local_ip = get_local_ip()
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     configure_report_sync(cfg)
+    configure_remote_diagnostics(cfg)
 
     print("\nSidee - VIDAA local toolkit")
     print("=" * 52)
@@ -716,6 +882,11 @@ def main():
         sync_thread = threading.Thread(target=report_sync_worker, daemon=True)
         sync_thread.start()
         threads.append(sync_thread)
+
+    if REMOTE_DIAGNOSTIC_CONFIG.get("enabled"):
+        remote_diagnostic_thread = threading.Thread(target=remote_diagnostic_worker, daemon=True)
+        remote_diagnostic_thread.start()
+        threads.append(remote_diagnostic_thread)
 
     http_thread = threading.Thread(target=run_http, args=(int(cfg.get("http_port", 8080)),), daemon=True)
     http_thread.start()

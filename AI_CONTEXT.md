@@ -2151,3 +2151,40 @@ Procedere con l'analisi del probe solo se `buildMatch === true`.
 
 Il Global Native Identity Usage Trace resta presente in `web/app.js`; una build aggiornata deve quindi produrre anche:
 `permissionSourceTrace.globalIdentityUsage`.
+
+
+---
+
+## IMPLEMENTAZIONE — SESSION-ARMED REMOTE READ-ONLY DIAGNOSTICS — 2026-09-26
+
+È stato aggiunto un canale remoto volutamente ristretto per poter avviare da una chat il prossimo probe quando la pagina Sidee è già aperta sulla TV.
+
+Vincolo di consenso locale:
+- ad ogni load la pagina parte DISARMED;
+- l'utente deve premere `Enable remote diagnostics for this page`;
+- l'abilitazione esiste solo in memoria e non viene persistita;
+- chiusura/reload della pagina la disattiva.
+
+Il comando remoto NON contiene un nome funzione arbitrario. Può richiedere soltanto il workflow fisso read-only:
+1. baseline;
+2. Permission Source Trace;
+3. Installed App Metadata;
+4. verification;
+5. report export/sync.
+
+Il canale non espone install/uninstall, setter Role/Customer, fileWrite, reset, JavaScript arbitrario o chiamate HiUtils inventate.
+
+Trasporto:
+- branch: `sidee-control`;
+- request file: `control/request.json`;
+- Sidee PC fa polling Git;
+- TV legge soltanto `GET /api/remote-diagnostic/request` sul server locale;
+- ACK locale: `POST /api/remote-diagnostic/ack`;
+- risultato: normale sync in `sidee-reports/reports/latest.json`.
+
+Ogni richiesta reale richiede:
+- `requestId` formato `sidee-request-YYYYMMDD-HHMMSS-xxxx`;
+- `runSafeDiagnostic: true`;
+- `expiresAt` futuro.
+
+Il report salva `remoteDiagnostic.lastRequestId`, timestamps, workflow e status. Prima di analizzare un risultato remoto, verificare sempre che `lastRequestId` corrisponda alla richiesta inviata.

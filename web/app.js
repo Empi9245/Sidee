@@ -13,7 +13,7 @@
   const SESSION_RE = /^sidee-\d{8}-\d{6}-[a-f0-9]{4}$/;
   const CLIENT_KEYS = /(app|identifier|appid|role|customer|origin|url|permission|appconfig|store|package|security)/i;
   const logBox = $("console");
-  const state = { config:null, report:null, running:false, saveChain:Promise.resolve(), syncWatchToken:0 };
+  const state = { config:null, report:null, running:false, saveChain:Promise.resolve(), syncWatchToken:0, remoteDiagnosticArmed:false, remoteDiagnosticRunning:false, remoteDiagnosticTimer:null };
 
   function err(e){ return String(e && e.message || e); }
   function cut(v,n){ const s=String(v); return s.length>n?s.slice(0,n)+"…":s; }
@@ -733,11 +733,98 @@
     const a=d.nuvio||{};$("appId").value=a.app_id||"nuviodebug";$("appName").value=a.app_name||"Nuvio TV";$("appUrl").value=a.app_url||"";$("iconUrl").value=a.icon_url||"";syncTarget();
   }
 
+  function lastRemoteDiagnosticId(){
+    try{return sessionStorage.getItem("sidee.remoteDiagnostic.lastRequest")||"";}catch(e){return "";}
+  }
+  function rememberRemoteDiagnosticId(id){
+    try{sessionStorage.setItem("sidee.remoteDiagnostic.lastRequest",id);}catch(e){}
+  }
+  function renderRemoteDiagnosticState(text){
+    set("remoteDiagnosticState",text);
+    const btn=$("remoteDiagnosticArmBtn");
+    if(btn)btn.textContent=state.remoteDiagnosticArmed?"Disable remote diagnostics":"Enable remote diagnostics for this page";
+  }
+  async function remoteDiagnosticAck(request,status,message){
+    try{
+      await fetch("/api/remote-diagnostic/ack",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({requestId:request.requestId,status:status,message:message||status})
+      });
+    }catch(e){}
+  }
+  async function runSafeRemoteDiagnostic(request){
+    if(!state.remoteDiagnosticArmed||state.remoteDiagnosticRunning||state.running)return;
+    if(!request||lastRemoteDiagnosticId()===request.requestId)return;
+    state.remoteDiagnosticRunning=true;
+    rememberRemoteDiagnosticId(request.requestId);
+    const started=new Date().toISOString();
+    state.report.remoteDiagnostic={
+      lastRequestId:request.requestId,
+      requestedBy:request.requestedBy||null,
+      startedAt:started,
+      completedAt:null,
+      status:"RUNNING",
+      workflow:["baseline","permission-source-trace","installed-metadata","verification","export"],
+      error:null
+    };
+    renderRemoteDiagnosticState("RUNNING · read-only diagnostic");
+    await remoteDiagnosticAck(request,"RUNNING","TV accepted the armed read-only diagnostic");
+    try{
+      await baseline();
+      await permissionSourceTrace();
+      await inspectInstalledMetadata();
+      const verification=await verify();
+      log("Remote diagnostic verification",verification);
+      state.report.remoteDiagnostic.completedAt=new Date().toISOString();
+      state.report.remoteDiagnostic.status="COMPLETED";
+      await save("remote-safe-diagnostic-complete");
+      renderRemoteDiagnosticState("ARMED · last request completed");
+      await remoteDiagnosticAck(request,"COMPLETED","Read-only diagnostic completed");
+    }catch(e){
+      state.report.remoteDiagnostic.completedAt=new Date().toISOString();
+      state.report.remoteDiagnostic.status="FAILED";
+      state.report.remoteDiagnostic.error=err(e);
+      await save("remote-safe-diagnostic-failed");
+      renderRemoteDiagnosticState("ARMED · last request failed");
+      await remoteDiagnosticAck(request,"FAILED",err(e));
+    }finally{
+      state.remoteDiagnosticRunning=false;
+    }
+  }
+  async function pollRemoteDiagnostic(){
+    try{
+      const r=await fetch("/api/remote-diagnostic/request",{cache:"no-store"}),d=await r.json();
+      if(!r.ok)return;
+      if(d.state==="PENDING"&&d.request){
+        if(!state.remoteDiagnosticArmed){
+          renderRemoteDiagnosticState("DISARMED · request waiting");
+          return;
+        }
+        if(!state.running&&!state.remoteDiagnosticRunning)await runSafeRemoteDiagnostic(d.request);
+      }else if(!state.remoteDiagnosticRunning){
+        renderRemoteDiagnosticState(state.remoteDiagnosticArmed?"ARMED · waiting":"DISARMED");
+      }
+    }catch(e){
+      if(!state.remoteDiagnosticRunning)renderRemoteDiagnosticState(state.remoteDiagnosticArmed?"ARMED · PC control offline":"DISARMED");
+    }
+  }
+  function toggleRemoteDiagnostics(){
+    state.remoteDiagnosticArmed=!state.remoteDiagnosticArmed;
+    renderRemoteDiagnosticState(state.remoteDiagnosticArmed?"ARMED · waiting":"DISARMED");
+    if(state.remoteDiagnosticArmed)pollRemoteDiagnostic();
+  }
+  function startRemoteDiagnosticPolling(){
+    if(state.remoteDiagnosticTimer)return;
+    renderRemoteDiagnosticState("DISARMED");
+    state.remoteDiagnosticTimer=setInterval(pollRemoteDiagnostic,1500);
+  }
+
   function controls(){return Array.prototype.slice.call(document.querySelectorAll("button,input,summary")).filter(el=>{if(!el||el.disabled||el.hidden)return false;const s=getComputedStyle(el);return s.display!=="none"&&s.visibility!=="hidden"&&el.getClientRects().length>0;});}
   function center(el){const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};}
   function nextControl(cur,key,list){const from=center(cur);let best=null,score=Infinity;list.forEach(el=>{if(el===cur)return;const to=center(el),dx=to.x-from.x,dy=to.y-from.y;let p=null,c=0;if(key==="ArrowUp"&&dy<-4){p=-dy;c=Math.abs(dx);}if(key==="ArrowDown"&&dy>4){p=dy;c=Math.abs(dx);}if(key==="ArrowLeft"&&dx<-4){p=-dx;c=Math.abs(dy);}if(key==="ArrowRight"&&dx>4){p=dx;c=Math.abs(dy);}if(p===null)return;const s=p*10+c;if(s<score){score=s;best=el;}});return best;}
   window.addEventListener("keydown",e=>{const key=e.key||({13:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[e.keyCode]),active=document.activeElement;if((key==="Enter"||key==="OK")&&active&&(active.tagName==="BUTTON"||active.tagName==="SUMMARY")){e.preventDefault();active.click();return;}if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(key)<0)return;if(active&&active.tagName==="INPUT"&&(key==="ArrowLeft"||key==="ArrowRight"))return;const list=controls();if(!list.length)return;const cur=list.indexOf(active)>=0?active:list[0],to=nextControl(cur,key,list);if(to){to.focus();e.preventDefault();}else if(list.indexOf(active)<0){cur.focus();e.preventDefault();}});
 
-  $("baselineBtn").addEventListener("click",baseline); $("runtimeContextInitBtn").addEventListener("click",initContext); $("clientInformationBtn").addEventListener("click",readClient); $("serviceTraceBtn").addEventListener("click",readTrace); $("permissionSourceTraceBtn").addEventListener("click",permissionSourceTrace); $("installedMetadataBtn").addEventListener("click",inspectInstalledMetadata); $("installDiagnosticBtn").addEventListener("click",()=>installTest()); $("installLegacyBtn").addEventListener("click",()=>installTest("legacy")); $("installV2Btn").addEventListener("click",()=>installTest("v2")); $("temporaryIdentifierBtn").addEventListener("click",tempIdentifier); $("saveBtn").addEventListener("click",saveTarget); $("verifyBtn").addEventListener("click",async()=>{const r=await verify();log("Verification",r);await save("verification");}); $("reportBtn").addEventListener("click",()=>save("export"));
-  load().then(()=>{renderSummary();set("deviceBadge",typeof window.Hisense_GetFirmWareVersion==="function"?"VIDAA browser detected":"Waiting for VIDAA APIs");log("Sidee targeted identity diagnostic ready.");}).catch(e=>log("Config load failed",err(e)));
+  $("remoteDiagnosticArmBtn").addEventListener("click",toggleRemoteDiagnostics);   $("baselineBtn").addEventListener("click",baseline); $("runtimeContextInitBtn").addEventListener("click",initContext); $("clientInformationBtn").addEventListener("click",readClient); $("serviceTraceBtn").addEventListener("click",readTrace); $("permissionSourceTraceBtn").addEventListener("click",permissionSourceTrace); $("installedMetadataBtn").addEventListener("click",inspectInstalledMetadata); $("installDiagnosticBtn").addEventListener("click",()=>installTest()); $("installLegacyBtn").addEventListener("click",()=>installTest("legacy")); $("installV2Btn").addEventListener("click",()=>installTest("v2")); $("temporaryIdentifierBtn").addEventListener("click",tempIdentifier); $("saveBtn").addEventListener("click",saveTarget); $("verifyBtn").addEventListener("click",async()=>{const r=await verify();log("Verification",r);await save("verification");}); $("reportBtn").addEventListener("click",()=>save("export"));
+  load().then(()=>{renderSummary();set("deviceBadge",typeof window.Hisense_GetFirmWareVersion==="function"?"VIDAA browser detected":"Waiting for VIDAA APIs");log("Sidee targeted identity diagnostic ready.");startRemoteDiagnosticPolling();}).catch(e=>log("Config load failed",err(e)));
 })();
