@@ -289,6 +289,8 @@ def _is_store_discovery_host(host):
         return False
     if host == "vidaahub.com" or host.endswith(".vidaahub.com"):
         return True
+    if host == "app-appstore.hismarttv.com":
+        return True
     if re.fullmatch(r"(?:api-launcher|auth-launcher)-[^.]+\.hismarttv\.com", host):
         return True
     if re.fullmatch(r"unified-ter-[^.]+\.hismarttv\.com", host):
@@ -319,6 +321,7 @@ def _new_store_domain_discovery_report():
                 "*.vidaahub.com",
                 "api-launcher-*.hismarttv.com",
                 "auth-launcher-*.hismarttv.com",
+                "app-appstore.hismarttv.com",
                 "unified-ter-*.hismarttv.com",
             ],
             "status": "IDLE",
