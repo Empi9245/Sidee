@@ -101,7 +101,7 @@
           </div>
           <button id="permissionSourceTraceBtn" class="secondary">Trace Permission Sources</button>
         </div>
-        <p>Read-only inspection of the install pipeline and native runtime bridge. It now inventories all own/prototype properties of vowOSContext, vowOS.service and omi_platform, saving descriptors and visible function/getter/setter source without invoking them.</p>
+        <p>Read-only inspection of the install pipeline and native runtime bridge. It also scans existing global function sources for vowOS.service.execute(), phoenix://service/ paths and register wrappers without invoking any Phoenix service.</p>
         <div id="permissionSourceTraceState" class="state">Not traced yet.</div>
       </article>
 
