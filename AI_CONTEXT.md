@@ -3280,3 +3280,63 @@ Per ogni namespace registra:
 - `invoked=false`.
 
 Nessun getter o metodo viene eseguito.
+
+
+---
+
+## RISULTATO TV — vowOS.store espone pkgmgr install — 2026-09-26
+
+Capture reale schema v5 dal browser Q0707:
+
+`vowOS.store` espone realmente:
+- `getInstalledPkgs()`;
+- `installApp(appinfo, callback)`;
+- `sendPkgmgrRequest(api, args, appinfo, callback)`.
+
+Source verificato:
+
+`getInstalledPkgs()` chiama:
+
+`vowOS.service.syncExecute('pkgmgr', {api:'getInstalledPkgs', args:''})`.
+
+`installApp()` ha due rami:
+1. se `appinfo.packageName` manca, ricade nel già noto `Hisense_installApp(...)`, quindi nel percorso AppInfo/fileWrite già bloccato dal 503;
+2. se `appinfo.packageName` è presente, costruisce `{pkgName, version:'', appId}` e chiama `sendPkgmgrRequest('install', ...)`.
+
+`sendPkgmgrRequest()` per l'install package usa direttamente:
+
+`GET https://localhost:9888/service/pkgmgr?api=install&args=<encoded-json>`
+
+e NON passa attraverso `HiUtils_createRequest('fileWrite', ...)`.
+
+Dopo una risposta package con `response.ret=true`, il wrapper costruisce il path:
+
+`file:///APPS/pkgs/<pkgName>/index.html`
+
+e solo a quel punto chiama `Hisense_installApp(...)` per aggiungere/aggiornare la voce launcher.
+
+Interpretazione importante:
+- l'installazione fisica del package e la registrazione in AppInfo/launcher sono due fasi separate;
+- è plausibile che `pkgmgr` possa avere capacità diverse dal servizio `hiutils`;
+- NON è ancora provato che `pkgmgr install` accetti pacchetti arbitrari o che funzioni dal browser corrente;
+- NON invocare ancora `install`: prima leggere i package installati e ricostruire formato/naming reali.
+
+### Implementazione Sidee
+
+Aggiunto un test separato:
+`Inspect pkgmgr installed packages (read-only)`.
+
+Chiama esclusivamente:
+`vowOS.store.getInstalledPkgs()`.
+
+Salva il risultato in:
+`pkgmgrInstalledPackages`.
+
+Non chiama:
+- install;
+- uninstall;
+- fileWrite;
+- Hisense_installApp;
+- sendPlatformMessage mutanti.
+
+Questo è il prossimo dato necessario per capire il formato reale dei package VIDAA e se la pista package manager è praticabile.
