@@ -4,7 +4,7 @@
   "serverBuildId": "app-05842432cb14",
   "buildMatch": true,
   "startedAt": "2026-09-26T13:30:38.452Z",
-  "updatedAt": "2026-09-26T13:31:22.334Z",
+  "updatedAt": "2026-09-26T13:31:29.358Z",
   "accessContext": {
     "href": "https://vidaahub.com/",
     "origin": "https://vidaahub.com",
@@ -364,12 +364,2222 @@
         "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
       },
       "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T13:31:29.262Z",
+      "source": "installed-app-metadata-appinfo",
+      "service": "hiutils",
+      "api": "fileRead",
+      "identifier": "",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6
+      },
+      "result": {
+        "ret": true,
+        "code": 0,
+        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
+      },
+      "errors": []
     }
   ],
   "permissionSourceTrace": null,
   "installTest": null,
   "verification": null,
-  "installedAppMetadata": null,
+  "installedAppMetadata": {
+    "timestamp": "2026-09-26T13:31:29.347Z",
+    "sources": {
+      "installedApps": {
+        "available": true,
+        "status": "RETURNED",
+        "callbackStatus": "RETURNED",
+        "count": 61,
+        "fields": [
+          "AppName",
+          "StoreType",
+          "URL",
+          "appId",
+          "from",
+          "isShowOnLauncher",
+          "mediaId",
+          "remove"
+        ],
+        "error": null
+      },
+      "appInfo": {
+        "available": true,
+        "status": "RETURNED",
+        "path": "websdk/Appinfo.json",
+        "count": 3,
+        "fields": [
+          "AppName",
+          "Id",
+          "InstallTime",
+          "RunTimes",
+          "StartCommand",
+          "StoreType",
+          "Title",
+          "URL",
+          "appInfo",
+          "categoryName",
+          "configUrl",
+          "configUrlDownload",
+          "initialFrom",
+          "mediaId",
+          "showInfo",
+          "subCategory"
+        ],
+        "ret": true,
+        "code": 0,
+        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…",
+        "error": null
+      }
+    },
+    "apps": [
+      {
+        "identity": {
+          "appId": "284",
+          "name": "TV Channels▶",
+          "url": "vidaa-plus"
+        },
+        "installedApps": {
+          "appId": "284",
+          "name": "TV Channels▶",
+          "url": "vidaa-plus",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1",
+          "name": "Netflix",
+          "url": "netflix"
+        },
+        "installedApps": {
+          "appId": "1",
+          "name": "Netflix",
+          "url": "netflix",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "2387",
+          "name": "Canali DTV",
+          "url": "live-tv"
+        },
+        "installedApps": {
+          "appId": "2387",
+          "name": "Canali DTV",
+          "url": "live-tv",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "295",
+          "name": "Disney+",
+          "url": "https://cd-dmgz.bamgrid.com/bbd/hisense_tv/index.html"
+        },
+        "installedApps": {
+          "appId": "295",
+          "name": "Disney+",
+          "url": "https://cd-dmgz.bamgrid.com/bbd/hisense_tv/index.html",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "2",
+          "name": "Prime Video",
+          "url": "amazon"
+        },
+        "installedApps": {
+          "appId": "2",
+          "name": "Prime Video",
+          "url": "amazon",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "2378",
+          "name": "HBO Max",
+          "url": "https://vidaa.play.max.com/"
+        },
+        "installedApps": {
+          "appId": "2378",
+          "name": "HBO Max",
+          "url": "https://vidaa.play.max.com/",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "3",
+          "name": "YouTube",
+          "url": "pkgapp://tv.vidaa.app.youtube/apps/start_youtube.sh"
+        },
+        "installedApps": {
+          "appId": "3",
+          "name": "YouTube",
+          "url": "pkgapp://tv.vidaa.app.youtube/apps/start_youtube.sh",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "2562",
+          "name": "V Home",
+          "url": "https://tvmodules-vidaa.vidaahub.com/home-os/V1.0/index-home-os.html?canLaunchingVidaaTV=true"
+        },
+        "installedApps": {
+          "appId": "2562",
+          "name": "V Home",
+          "url": "https://tvmodules-vidaa.vidaahub.com/home-os/V1.0/index-home-os.html?canLaunchingVidaaTV=true",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "221",
+          "name": "Rai Play",
+          "url": "https://www.raiplay.it/appTv/rp2020SmartTV/prod/"
+        },
+        "installedApps": {
+          "appId": "221",
+          "name": "Rai Play",
+          "url": "https://www.raiplay.it/appTv/rp2020SmartTV/prod/",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "2256",
+          "name": "Spotify : Music & Podcasts",
+          "url": "https://api-partner.spotify.com/tvapp?platform=vidaa"
+        },
+        "installedApps": {
+          "appId": "2256",
+          "name": "Spotify : Music & Podcasts",
+          "url": "https://api-partner.spotify.com/tvapp?platform=vidaa",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "351",
+          "name": "Apple TV",
+          "url": "https://atve.tv.apple.com/94819831-5404-4438-810e-afb648d6a826/tvw_1dc2aab0a313427dbc11818be8a18bd9/"
+        },
+        "installedApps": {
+          "appId": "351",
+          "name": "Apple TV",
+          "url": "https://atve.tv.apple.com/94819831-5404-4438-810e-afb648d6a826/tvw_1dc2aab0a313427dbc11818be8a18bd9/",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "2584",
+          "name": "XBOX",
+          "url": "https://play.xbox.com/_external/init"
+        },
+        "installedApps": {
+          "appId": "2584",
+          "name": "XBOX",
+          "url": "https://play.xbox.com/_external/init",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "2470",
+          "name": "Ads Privacy",
+          "url": "https://ads-privacy.vidaahub.com/"
+        },
+        "installedApps": {
+          "appId": "2470",
+          "name": "Ads Privacy",
+          "url": "https://ads-privacy.vidaahub.com/",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "2181",
+          "name": "Kids",
+          "url": "kidsLauncher"
+        },
+        "installedApps": {
+          "appId": "2181",
+          "name": "Kids",
+          "url": "kidsLauncher",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "2243",
+          "name": "Art Gallery",
+          "url": "https://tvmodules-vidaa.vidaahub.com/vidaa-art/V1.0/index-vidaa-art.html"
+        },
+        "installedApps": {
+          "appId": "2243",
+          "name": "Art Gallery",
+          "url": "https://tvmodules-vidaa.vidaahub.com/vidaa-art/V1.0/index-vidaa-art.html",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "164",
+          "name": "APP STORE",
+          "url": "vidaa-store"
+        },
+        "installedApps": {
+          "appId": "164",
+          "name": "APP STORE",
+          "url": "vidaa-store",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "173",
+          "name": "Pluto TV - Film & Serie TV",
+          "url": "https://app-hisense.pluto.tv/"
+        },
+        "installedApps": {
+          "appId": "173",
+          "name": "Pluto TV - Film & Serie TV",
+          "url": "https://app-hisense.pluto.tv/",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "47",
+          "name": "DEEZER",
+          "url": "https://tv2.deezer.com/hisense"
+        },
+        "installedApps": {
+          "appId": "47",
+          "name": "DEEZER",
+          "url": "https://tv2.deezer.com/hisense",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "184",
+          "name": "On Demand",
+          "url": "vidaa-free"
+        },
+        "installedApps": {
+          "appId": "184",
+          "name": "On Demand",
+          "url": "vidaa-free",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "79",
+          "name": "Red Bull TV",
+          "url": "https://vidaa-v2.redbull.tv"
+        },
+        "installedApps": {
+          "appId": "79",
+          "name": "Red Bull TV",
+          "url": "https://vidaa-v2.redbull.tv",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "338",
+          "name": "GloboPlay",
+          "url": "https://tv.globoplay.com.br/r/index.html"
+        },
+        "installedApps": {
+          "appId": "338",
+          "name": "GloboPlay",
+          "url": "https://tv.globoplay.com.br/r/index.html",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "372",
+          "name": "France24",
+          "url": "https://france24.tv.dotscreen.com/hisense/index.html?languages=EN,FR,ES,AR"
+        },
+        "installedApps": {
+          "appId": "372",
+          "name": "France24",
+          "url": "https://france24.tv.dotscreen.com/hisense/index.html?languages=EN,FR,ES,AR",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "42",
+          "name": "Plex",
+          "url": "https://app.plex.tv/tv-vidaa"
+        },
+        "installedApps": {
+          "appId": "42",
+          "name": "Plex",
+          "url": "https://app.plex.tv/tv-vidaa",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "376",
+          "name": "Amazon Music",
+          "url": "https://html5tv.music.amazon.dev/?deviceModel=A27F3L5WMHDOWD"
+        },
+        "installedApps": {
+          "appId": "376",
+          "name": "Amazon Music",
+          "url": "https://html5tv.music.amazon.dev/?deviceModel=A27F3L5WMHDOWD",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "234",
+          "name": "AntenaPlay",
+          "url": "https://tv-app.antenaplay.ro/"
+        },
+        "installedApps": {
+          "appId": "234",
+          "name": "AntenaPlay",
+          "url": "https://tv-app.antenaplay.ro/",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "16",
+          "name": "TV Browser",
+          "url": "browser"
+        },
+        "installedApps": {
+          "appId": "16",
+          "name": "TV Browser",
+          "url": "browser",
+          "storeType": 100,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 100,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 100,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1411",
+          "name": "Tet+",
+          "url": "https://vidaa.tet.plus/"
+        },
+        "installedApps": {
+          "appId": "1411",
+          "name": "Tet+",
+          "url": "https://vidaa.tet.plus/",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "15",
+          "name": "AccuWeather",
+          "url": "accuweather"
+        },
+        "installedApps": {
+          "appId": "15",
+          "name": "AccuWeather",
+          "url": "accuweather",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "44",
+          "name": "Media",
+          "url": "media"
+        },
+        "installedApps": {
+          "appId": "44",
+          "name": "Media",
+          "url": "media",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "230",
+          "name": "MUBI",
+          "url": "https://tv-production.mubi.com/vidaa/4.0.0/"
+        },
+        "installedApps": {
+          "appId": "230",
+          "name": "MUBI",
+          "url": "https://tv-production.mubi.com/vidaa/4.0.0/",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "36",
+          "name": "ToonGoggles",
+          "url": "https://html5.toongoggles.com/"
+        },
+        "installedApps": {
+          "appId": "36",
+          "name": "ToonGoggles",
+          "url": "https://html5.toongoggles.com/",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "2368",
+          "name": "Smart Life",
+          "url": "AIOT"
+        },
+        "installedApps": {
+          "appId": "2368",
+          "name": "Smart Life",
+          "url": "AIOT",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "166",
+          "name": "E-Manual",
+          "url": "file:///APPS/emanual/Local_ebook/index.html"
+        },
+        "installedApps": {
+          "appId": "166",
+          "name": "E-Manual",
+          "url": "file:///APPS/emanual/Local_ebook/index.html",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "280",
+          "name": "EON TV",
+          "url": "https://vewd.global.united.cloud/"
+        },
+        "installedApps": {
+          "appId": "280",
+          "name": "EON TV",
+          "url": "https://vewd.global.united.cloud/",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "288",
+          "name": "Kyivstar TV",
+          "url": "https://prod.hisense.hisense.vidmind.cc/"
+        },
+        "installedApps": {
+          "appId": "288",
+          "name": "Kyivstar TV",
+          "url": "https://prod.hisense.hisense.vidmind.cc/",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "id": "1470",
+          "appId": "1470",
+          "name": "Smartone IPTV",
+          "title": "Smartone IPTV",
+          "url": "http://vidaa.smartone-iptv.com",
+          "startCommand": "http://vidaa.smartone-iptv.com"
+        },
+        "installedApps": {
+          "appId": "1470",
+          "name": "Smartone IPTV",
+          "url": "http://vidaa.smartone-iptv.com",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {
+          "id": "1470",
+          "name": "Smartone IPTV",
+          "title": "Smartone IPTV",
+          "url": "http://vidaa.smartone-iptv.com",
+          "startCommand": "http://vidaa.smartone-iptv.com",
+          "storeType": "store",
+          "initialFrom": "",
+          "configUrl": "",
+          "configUrlDownload": 0,
+          "categoryName": "Internet TV",
+          "subCategory": "Internet TV"
+        },
+        "matchedSources": [
+          "Hisense_getInstalledApps",
+          "websdk/Appinfo.json"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true,
+          "appInfo.InstallTime": "2026-2-3",
+          "appInfo.StoreType": "store",
+          "appInfo.configUrl": "",
+          "appInfo.configUrlDownload": 0,
+          "appInfo.appInfo.configUrlDownload": 0,
+          "appInfo.appInfo.configUrl": "",
+          "appInfo.appInfo.appBundle": ""
+        },
+        "classification": {
+          "type": "store",
+          "evidence": {
+            "storeType": "store",
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "id": "2568",
+          "appId": "2568",
+          "name": "Stremio Lite",
+          "title": "Stremio Lite",
+          "url": "https://relvhgchz5.strem.io/hello-world/index.html",
+          "startCommand": "https://relvhgchz5.strem.io/hello-world/index.html"
+        },
+        "installedApps": {
+          "appId": "2568",
+          "name": "Stremio Lite",
+          "url": "https://relvhgchz5.strem.io/hello-world/index.html",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {
+          "id": "2568",
+          "name": "Stremio Lite",
+          "title": "Stremio Lite",
+          "url": "https://relvhgchz5.strem.io/hello-world/index.html",
+          "startCommand": "https://relvhgchz5.strem.io/hello-world/index.html",
+          "storeType": "hisense",
+          "initialFrom": "",
+          "configUrl": "",
+          "configUrlDownload": 0,
+          "categoryName": "Film e serie TV ",
+          "subCategory": "Movies & TV series"
+        },
+        "matchedSources": [
+          "Hisense_getInstalledApps",
+          "websdk/Appinfo.json"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true,
+          "appInfo.InstallTime": "2026-2-9",
+          "appInfo.StoreType": "hisense",
+          "appInfo.configUrl": "",
+          "appInfo.configUrlDownload": 0,
+          "appInfo.appInfo.configUrlDownload": 0,
+          "appInfo.appInfo.configUrl": "",
+          "appInfo.appInfo.appBundle": ""
+        },
+        "classification": {
+          "type": "hisense",
+          "evidence": {
+            "storeType": "hisense",
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "id": "1876",
+          "appId": "1876",
+          "name": "Duplecast",
+          "title": "Duplecast",
+          "url": "http://vidaa.duplecast.com/",
+          "startCommand": "http://vidaa.duplecast.com/"
+        },
+        "installedApps": {
+          "appId": "1876",
+          "name": "Duplecast",
+          "url": "http://vidaa.duplecast.com/",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {
+          "id": "1876",
+          "name": "Duplecast",
+          "title": "Duplecast",
+          "url": "http://vidaa.duplecast.com/",
+          "startCommand": "http://vidaa.duplecast.com/",
+          "storeType": "store",
+          "initialFrom": "",
+          "configUrl": "",
+          "configUrlDownload": 0,
+          "categoryName": "Internet TV",
+          "subCategory": "Internet TV"
+        },
+        "matchedSources": [
+          "Hisense_getInstalledApps",
+          "websdk/Appinfo.json"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true,
+          "appInfo.InstallTime": "2026-7-24",
+          "appInfo.StoreType": "store",
+          "appInfo.configUrl": "",
+          "appInfo.configUrlDownload": 0,
+          "appInfo.appInfo.appBundle": "",
+          "appInfo.appInfo.packaged": 0,
+          "appInfo.appInfo.configUrl": "",
+          "appInfo.appInfo.configUrlDownload": 0
+        },
+        "classification": {
+          "type": "store",
+          "evidence": {
+            "storeType": "store",
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "2504",
+          "name": "Antstream Arcade",
+          "url": "https://live.antstream.com/"
+        },
+        "installedApps": {
+          "appId": "2504",
+          "name": "Antstream Arcade",
+          "url": "https://live.antstream.com/",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "2252",
+          "name": "Boosteroid TV",
+          "url": "https://vidaa.boosteroid.com/"
+        },
+        "installedApps": {
+          "appId": "2252",
+          "name": "Boosteroid TV",
+          "url": "https://vidaa.boosteroid.com/",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "2205",
+          "name": "Blacknut",
+          "url": "https://app.blacknut.com?device=tv"
+        },
+        "installedApps": {
+          "appId": "2205",
+          "name": "Blacknut",
+          "url": "https://app.blacknut.com?device=tv",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "35",
+          "name": "Game Center",
+          "url": "http://apps.tvgam.es/tv_games/hisense_portal/production/portal/index.html"
+        },
+        "installedApps": {
+          "appId": "35",
+          "name": "Game Center",
+          "url": "http://apps.tvgam.es/tv_games/hisense_portal/production/portal/index.html",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "2116",
+          "name": "Couchplay Games",
+          "url": "https://vidaa.itsmy.tv/spielecenter/vidaa.php?from=app&app=couchplayapp"
+        },
+        "installedApps": {
+          "appId": "2116",
+          "name": "Couchplay Games",
+          "url": "https://vidaa.itsmy.tv/spielecenter/vidaa.php?from=app&app=couchplayapp",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1432",
+          "name": "Ono with Friends",
+          "url": "https://service.play.works/service/apps/ono/index.html?parent=portal&platform=vidaa"
+        },
+        "installedApps": {
+          "appId": "1432",
+          "name": "Ono with Friends",
+          "url": "https://service.play.works/service/apps/ono/index.html?parent=portal&platform=vidaa",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1425",
+          "name": "Free Games by Play.Works",
+          "url": "https://service.play.works/service/apps/portal_vidaa/index.html?platform=vidaa"
+        },
+        "installedApps": {
+          "appId": "1425",
+          "name": "Free Games by Play.Works",
+          "url": "https://service.play.works/service/apps/portal_vidaa/index.html?platform=vidaa",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1431",
+          "name": "Neon Rider",
+          "url": "https://service.play.works/service/apps/rider/index.html?parent=portal&platform=vidaa"
+        },
+        "installedApps": {
+          "appId": "1431",
+          "name": "Neon Rider",
+          "url": "https://service.play.works/service/apps/rider/index.html?parent=portal&platform=vidaa",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1441",
+          "name": "Solitaire Scorpion",
+          "url": "https://service.play.works/service/apps/solitaire/index.html?mode=scorpion&parent=portal&platform=vidaa"
+        },
+        "installedApps": {
+          "appId": "1441",
+          "name": "Solitaire Scorpion",
+          "url": "https://service.play.works/service/apps/solitaire/index.html?mode=scorpion&parent=portal&platform=vidaa",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1449",
+          "name": "Mah Jongg",
+          "url": "https://service.play.works/service/apps/mah_jongg/index.html?parent=portal&platform=vidaa"
+        },
+        "installedApps": {
+          "appId": "1449",
+          "name": "Mah Jongg",
+          "url": "https://service.play.works/service/apps/mah_jongg/index.html?parent=portal&platform=vidaa",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1966",
+          "name": "Tankee",
+          "url": "https://service.play.works/stage/video_portals/tankee/index.html"
+        },
+        "installedApps": {
+          "appId": "1966",
+          "name": "Tankee",
+          "url": "https://service.play.works/stage/video_portals/tankee/index.html",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1468",
+          "name": "Play.Works",
+          "url": "https://service.play.works/video_portals/html5_hub/index.html?config=..%2Fplay_works%2Fconfig.json&platform=vidaa"
+        },
+        "installedApps": {
+          "appId": "1468",
+          "name": "Play.Works",
+          "url": "https://service.play.works/video_portals/html5_hub/index.html?config=..%2Fplay_works%2Fconfig.json&platform=vidaa",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1898",
+          "name": "Pac Rat",
+          "url": "https://lala.games/h5/vidaa-os/pac_rat/index.html"
+        },
+        "installedApps": {
+          "appId": "1898",
+          "name": "Pac Rat",
+          "url": "https://lala.games/h5/vidaa-os/pac_rat/index.html",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1897",
+          "name": "Nugget Seeker",
+          "url": "https://lala.games/h5/vidaa-os/nugget-seeker/index.html"
+        },
+        "installedApps": {
+          "appId": "1897",
+          "name": "Nugget Seeker",
+          "url": "https://lala.games/h5/vidaa-os/nugget-seeker/index.html",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1893",
+          "name": "Maze Game",
+          "url": "https://lala.games/h5/vidaa-os/Maze_Game/index.html"
+        },
+        "installedApps": {
+          "appId": "1893",
+          "name": "Maze Game",
+          "url": "https://lala.games/h5/vidaa-os/Maze_Game/index.html",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1891",
+          "name": "Little Dino Adventure",
+          "url": "https://lala.games/h5/vidaa-os/Little-Dino-Adventure/index.html"
+        },
+        "installedApps": {
+          "appId": "1891",
+          "name": "Little Dino Adventure",
+          "url": "https://lala.games/h5/vidaa-os/Little-Dino-Adventure/index.html",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1438",
+          "name": "Soccer",
+          "url": "https://service.play.works/service/apps/soccer/index.html?parent=portal&platform=vidaa"
+        },
+        "installedApps": {
+          "appId": "1438",
+          "name": "Soccer",
+          "url": "https://service.play.works/service/apps/soccer/index.html?parent=portal&platform=vidaa",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1423",
+          "name": "Dino Jump",
+          "url": "https://service.play.works/service/apps/dino_jump/index.html?parent=portal&platform=vidaa"
+        },
+        "installedApps": {
+          "appId": "1423",
+          "name": "Dino Jump",
+          "url": "https://service.play.works/service/apps/dino_jump/index.html?parent=portal&platform=vidaa",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1884",
+          "name": "Car Rush",
+          "url": "https://lala.games/h5/vidaa-os/car_rush/index.html"
+        },
+        "installedApps": {
+          "appId": "1884",
+          "name": "Car Rush",
+          "url": "https://lala.games/h5/vidaa-os/car_rush/index.html",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1424",
+          "name": "Deal or No Deal",
+          "url": "https://service.play.works/service/apps/dond/index.html?parent=portal&platform=vidaa"
+        },
+        "installedApps": {
+          "appId": "1424",
+          "name": "Deal or No Deal",
+          "url": "https://service.play.works/service/apps/dond/index.html?parent=portal&platform=vidaa",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1900",
+          "name": "Snake and Ladders",
+          "url": "https://gameflix.tv/media/vidaa-os/snake_and_ladders/index.html"
+        },
+        "installedApps": {
+          "appId": "1900",
+          "name": "Snake and Ladders",
+          "url": "https://gameflix.tv/media/vidaa-os/snake_and_ladders/index.html",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1433",
+          "name": "Pongoal",
+          "url": "https://service.play.works/service/apps/pongoal/index.html?parent=portal&platform=vidaa"
+        },
+        "installedApps": {
+          "appId": "1433",
+          "name": "Pongoal",
+          "url": "https://service.play.works/service/apps/pongoal/index.html?parent=portal&platform=vidaa",
+          "storeType": 98,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 98,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 98,
+            "preInstall": null
+          }
+        }
+      },
+      {
+        "identity": {
+          "appId": "1902",
+          "name": "Water Craft Rush",
+          "url": "https://lala.games/h5/vidaa-os/watercraft_rush/index.html"
+        },
+        "installedApps": {
+          "appId": "1902",
+          "name": "Water Craft Rush",
+          "url": "https://lala.games/h5/vidaa-os/watercraft_rush/index.html",
+          "storeType": 99,
+          "isShowOnLauncher": true
+        },
+        "appInfo": {},
+        "matchedSources": [
+          "Hisense_getInstalledApps"
+        ],
+        "interestingMetadata": {
+          "installedApps.StoreType": 99,
+          "installedApps.isShowOnLauncher": true
+        },
+        "classification": {
+          "type": "unknown",
+          "evidence": {
+            "storeType": 99,
+            "preInstall": null
+          }
+        }
+      }
+    ],
+    "appInfoDeepDump": {
+      "path": "websdk/Appinfo.json",
+      "readOnly": true,
+      "recordCount": 3,
+      "records": [
+        {
+          "Id": "1470",
+          "Thumb": "https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300",
+          "Icon_96": "https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300",
+          "Image": "https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300",
+          "URL": "http://vidaa.smartone-iptv.com",
+          "AppName": "Smartone IPTV",
+          "Title": "Smartone IPTV",
+          "IconURL": "https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300",
+          "StartCommand": "http://vidaa.smartone-iptv.com",
+          "InstallTime": "2026-2-3",
+          "RunTimes": 0,
+          "StoreType": "store",
+          "configUrl": "",
+          "configUrlDownload": 0,
+          "mediaId": 1470,
+          "initialFrom": "",
+          "appInfo": {
+            "url": "http://vidaa.smartone-iptv.com",
+            "openMode": "98",
+            "configUrlDownload": 0,
+            "configUrl": "",
+            "appRelatedPics": [
+              {
+                "url": "https://img.vidaahub.com/vidaa/2022/5/202205250730009258.jpg",
+                "width": 1920,
+                "height": 1080
+              },
+              {
+                "url": "https://img.vidaahub.com/vidaa/2022/5/202205250730078223.jpg",
+                "width": 1920,
+                "height": 1080
+              },
+              {
+                "url": "https://img.vidaahub.com/vidaa/2022/5/202205250730149686.jpg",
+                "width": 1920,
+                "height": 1080
+              }
+            ],
+            "venderId": 9999,
+            "rating": "",
+            "rate": 0,
+            "reviews": 0,
+            "categoryName": "Internet TV",
+            "summary": "SmartOne IPTV is a media player for smart TVs, SmartOne IPTV app allow end-users of Xtream Code panel or similar panels to watch their contents via their API, SmartOne IPTV allow users to watch live channels, VOD (Video On Demand)and series in all smart TVs with easy tasks. Smartone IPTV is multi-languages and customizable APP.",
+            "multiDesc": {
+              "ita": "SmartOne IPTV è un lettore multimediale per smart TV, l'app SmartOne IPTV consente agli utenti finali del pannello Xtream Code o pannelli simili di guardare i propri contenuti tramite la loro API, SmartOne IPTV consente agli utenti di guardare i canali in diretta, VOD (Video On Demand) e le serie in tutte le smart TV con compiti facili. Smartone IPTV è un'APP multilingua e personalizzabile."
+            },
+            "developer": "NH Group",
+            "developerUrl": "",
+            "appBundle": "",
+            "fee": 1,
+            "pubdate": "",
+            "latestUpgradeDate": "",
+            "version": "0",
+            "unifiedAppName": "1470",
+            "hasDetailPage": 1,
+            "multiviewType": 0,
+            "unsearchable": 0,
+            "subCategory": "Internet TV"
+          },
+          "subCategory": "Internet TV",
+          "categoryName": "Internet TV",
+          "showInfo": {
+            "promotionalPic": "https://img.vidaahub.com/vidaa/2022/5/202205250730328891.jpg"
+          }
+        },
+        {
+          "Id": "2568",
+          "Thumb": "https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/a14b838fd3d7a02375371564a0545f89?f=webp&resize=w_300,h_300",
+          "Icon_96": "https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/a14b838fd3d7a02375371564a0545f89?f=webp&resize=w_300,h_300",
+          "Image": "https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/a14b838fd3d7a02375371564a0545f89?f=webp&resize=w_300,h_300",
+          "URL": "https://relvhgchz5.strem.io/hello-world/index.html",
+          "AppName": "Stremio Lite",
+          "Title": "Stremio Lite",
+          "IconURL": "https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/a14b838fd3d7a02375371564a0545f89?f=webp&resize=w_300,h_300",
+          "StartCommand": "https://relvhgchz5.strem.io/hello-world/index.html",
+          "InstallTime": "2026-2-9",
+          "RunTimes": 0,
+          "StoreType": "hisense",
+          "configUrl": "",
+          "configUrlDownload": 0,
+          "mediaId": 2568,
+          "initialFrom": "",
+          "appInfo": {
+            "url": "https://relvhgchz5.strem.io/hello-world/index.html",
+            "openMode": "99",
+            "configUrlDownload": 0,
+            "configUrl": "",
+            "appRelatedPics": [
+              {
+                "url": "https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/4cf1fa429dfca796de5e754a34129399?f=webp",
+                "width": 1920,
+                "height": 1080
+              },
+              {
+                "url": "https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/4889ea7af86f49d81ef7266b95ae74e6?f=webp",
+                "width": 1920,
+                "height": 1080
+              },
+              {
+                "url": "https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/53ade93950c99a523592e48f4737903d?f=webp",
+                "width": 1920,
+                "height": 1080
+              },
+              {
+                "url": "https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/d3dea6b45298362744ab6c34cd0d89a4?f=webp",
+                "width": 1920,
+                "height": 1080
+              },
+              {
+                "url": "https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/d5d7c82815a3beb75e69fdedb3a0644f?f=webp",
+                "width": 1920,
+                "height": 1080
+              }
+            ],
+            "venderId": 9999,
+            "rating": "3",
+            "rate": 0,
+            "reviews": 0,
+            "categoryName": "Film e serie TV ",
+            "summary": "Stremio is a video streaming application, that allows you to watch and organize video content from different services, including movies, series, live TV and video channels.",
+            "multiDesc": {
+              "ita": "Stremio è un'applicazione di streaming video che consente di guardare e organizzare contenuti video provenienti da diversi servizi, tra cui film, serie TV, programmi televisivi in diretta e canali video.",
+              "eng": "Stremio is a video streaming application, that allows you to watch and organize video content from different services, including movies, series, live TV and video channels."
+            },
+            "developer": "Stremio",
+            "developerUrl": "",
+            "appBundle": "",
+            "fee": 0,
+            "pubdate": "",
+            "latestUpgradeDate": "",
+            "version": "0",
+            "unifiedAppName": "2568",
+            "hasDetailPage": 1,
+            "multiviewType": 0,
+            "unsearchable": 0,
+            "subCategory": "Movies & TV series"
+          },
+          "subCategory": "Movies & TV series",
+          "categoryName": "Film e serie TV ",
+          "showInfo": {
+            "promotionalPic": ""
+          }
+        },
+        {
+          "Id": "1876",
+          "Thumb": "https://img.vidaahub.com/vidaa/2022/11/202211102142287972.jpg?resize=w_300,h_300",
+          "Icon_96": "https://img.vidaahub.com/vidaa/2022/11/202211102142287972.jpg?resize=w_300,h_300",
+          "Image": "https://img.vidaahub.com/vidaa/2022/11/202211102142287972.jpg?resize=w_300,h_300",
+          "URL": "http://vidaa.duplecast.com/",
+          "AppName": "Duplecast",
+          "Title": "Duplecast",
+          "IconURL": "https://img.vidaahub.com/vidaa/2022/11/202211102142287972.jpg?resize=w_300,h_300",
+          "StartCommand": "http://vidaa.duplecast.com/",
+          "InstallTime": "2026-7-24",
+          "RunTimes": 0,
+          "StoreType": "store",
+          "configUrl": "",
+          "configUrlDownload": 0,
+          "mediaId": 1876,
+          "initialFrom": "",
+          "appInfo": {
+            "icon": "https://img.vidaahub.com/vidaa/2022/11/202211102142454833.jpg",
+            "fee": 1,
+            "unifiedAppName": "1876",
+            "deletable": 1,
+            "hasDetailPage": 1,
+            "subCategory": "Internet TV",
+            "categoryName": "Internet TV",
+            "rating": "",
+            "parentControlRating": 0,
+            "appBundle": "",
+            "packaged": 0,
+            "multiviewType": 0,
+            "unsearchable": 0,
+            "venderId": 9999,
+            "rate": 0,
+            "reviews": 0,
+            "summary": "Duplecast is the most advanced and user friendly TV media player. With Duplecast you will enjoy your favorite media content on your TV.",
+            "multiDesc": {
+              "ita": "Duplecast è il lettore multimediale TV più avanzato e facile da usare. Con Duplecast potrai goderti i tuoi contenuti multimediali preferiti sulla tua TV."
+            },
+            "developer": "CreativeKeys",
+            "developerUrl": "",
+            "pubdate": "",
+            "latestUpgradeDate": "",
+            "version": "0",
+            "configUrl": "",
+            "configUrlDownload": 0,
+            "url": "http://vidaa.duplecast.com/",
+            "openMode": "98",
+            "appRelatedPics": [
+              {
+                "url": "https://img.vidaahub.com/vidaa/2022/11/202211102143001943.jpg",
+                "width": 1920,
+                "height": 1080
+              },
+              {
+                "url": "https://img.vidaahub.com/vidaa/2022/11/202211102143041524.jpg",
+                "width": 1920,
+                "height": 1080
+              },
+              {
+                "url": "https://img.vidaahub.com/vidaa/2022/11/202211102143085531.jpg",
+                "width": 1920,
+                "height": 1080
+              },
+              {
+                "url": "https://img.vidaahub.com/vidaa/2022/11/202211102143139365.jpg",
+                "width": 1920,
+                "height": 1080
+              }
+            ]
+          },
+          "subCategory": "Internet TV",
+          "categoryName": "Internet TV",
+          "showInfo": {
+            "promotionalPic": ""
+          }
+        }
+      ]
+    },
+    "fieldDistribution": {
+      "storeType": {
+        "98": 23,
+        "99": 34,
+        "100": 1,
+        "store": 2,
+        "hisense": 1
+      },
+      "isShowOnLauncher": {
+        "true": 61
+      },
+      "configUrlDownload": {
+        "0": 3
+      },
+      "categoryName": {
+        "Internet TV": 2,
+        "Film e serie TV ": 1
+      },
+      "subCategory": {
+        "Internet TV": 2,
+        "Movies & TV series": 1
+      },
+      "InstallTime": {
+        "2026-2-3": 1,
+        "2026-2-9": 1,
+        "2026-7-24": 1
+      },
+      "configUrl": {
+        "(empty)": 3
+      },
+      "appBundle": {
+        "(empty)": 3
+      },
+      "packaged": {
+        "0": 1
+      }
+    },
+    "discoveredReferences": [
+      {
+        "appId": "166",
+        "field": "installedApps.URL",
+        "value": "file:///APPS/emanual/Local_ebook/index.html",
+        "reason": "json/config/path-like"
+      }
+    ],
+    "summary": {
+      "installedAppsCount": 61,
+      "appInfoCount": 3,
+      "matchedCount": 3,
+      "appsCount": 61,
+      "storeTypes": {
+        "store": 2,
+        "hisense": 1,
+        "preinstalled": 0,
+        "unknown": 58
+      },
+      "interestingFieldsSeen": [
+        "InstallTime",
+        "StoreType",
+        "appBundle",
+        "categoryName",
+        "configUrl",
+        "configUrlDownload",
+        "isShowOnLauncher",
+        "packaged",
+        "subCategory"
+      ],
+      "permissionLikeFieldsSeen": [],
+      "configLikeFieldsSeen": [
+        "configUrl",
+        "configUrlDownload"
+      ],
+      "appInfoDeepDumpCount": 3
+    }
+  },
   "target": {
     "app_id": "nuviodebug",
     "app_name": "Nuvio TV",
