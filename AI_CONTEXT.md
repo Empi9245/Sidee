@@ -2806,3 +2806,23 @@ The bootstrap page now exposes an explicit **Run backup-protected AppInfo no-op 
 Possible classifications are `WRITE_ALLOWED_AND_IDENTICAL`, `WRITE_DENIED`, `WRITE_CHANGED_CONTENT`, `READBACK_FAILED`, or `INCONCLUSIVE`.
 
 No Nuvio entry is added by this test. A successful native-context no-op write is still only a capability result; app addition remains a separate later decision.
+
+
+## Native app-context bridge-source capture — 2026-09-26
+
+Smartone IPTV and Duplecast both produced the same protected-write result from their genuine launcher-created app contexts: native identity present, `navigator.appIdentifier` containing the real app ID plus an MD5 and `permissions:""`, `Hisense_SupportAppConfig() === true`, but exact no-op `HiUtils_createRequest('fileWrite', ...)` still rejected with code 503 and unchanged readback.
+
+This rules out hostname/origin alone, a simple app-ID override, and merely launching inside an installed store app as sufficient explanations.
+
+The installed-app bootstrap now also captures, read-only, bounded function source/descriptors for:
+- `HiUtils_createRequest`;
+- `vowOS.service.syncExecute`;
+- `vowOS.service.getIdentifier`;
+- `vowOS.service.executeHttpRequest`;
+- `vowOSContext.init`;
+- `vowOSContext.getAppIdentifier`;
+- `vowOSContext.getAppId`.
+
+It also records bounded property names for `vowOS.service` and `vowOSContext`, excluding names that look like tokens, credentials, cookies, keys, signatures, certificates, nonces or sessions. No unknown accessor is invoked by this source capture.
+
+Goal: determine whether the JavaScript bridge passes only explicit `api + args` or whether native client/AppConfig metadata is attached out-of-band below the visible JavaScript identifier layer.
