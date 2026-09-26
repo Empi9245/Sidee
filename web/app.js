@@ -952,15 +952,54 @@
     }
     return report;
   }
-  function hspdkHost(){
-    const names=["HiBrowser","Hisense"];
+  function hspdkHosts(){
+    const names=["Hisense","HiBrowser"],out=[];
     for(let i=0;i<names.length;i++){
       try{
         const value=window[names[i]];
-        if(value&&(typeof value==="object"||typeof value==="function"))return {name:names[i],value:value};
+        if(value&&(typeof value==="object"||typeof value==="function"))out.push({name:names[i],value:value});
       }catch(e){}
     }
-    return {name:null,value:null};
+    return out;
+  }
+  function hspdkHost(preferredName){
+    const hosts=hspdkHosts();
+    if(preferredName){
+      hosts.sort((a,b)=>(a.name===preferredName?-1:0)-(b.name===preferredName?-1:0));
+    }
+    for(let i=0;i<hosts.length;i++){
+      const file=hspdkFile(hosts[i].value);
+      if(file&&typeof file.read==="function"&&typeof file.write==="function")return hosts[i];
+    }
+    for(let i=0;i<hosts.length;i++){
+      try{if(typeof hosts[i].value.loadLibrary==="function")return hosts[i];}catch(e){}
+    }
+    return hosts[0]||{name:null,value:null};
+  }
+  function hspdkResolveWriter(preferredName){
+    const hosts=hspdkHosts();
+    if(preferredName){
+      hosts.sort((a,b)=>(a.name===preferredName?-1:0)-(b.name===preferredName?-1:0));
+    }
+    const attempts=[];
+    for(let i=0;i<hosts.length;i++){
+      const host=hosts[i],attempt={owner:host.name,direct:false,loadAttempted:false,loadReturnValue:null,loadError:null,ready:false};
+      let file=hspdkFile(host.value);
+      if(file&&typeof file.read==="function"&&typeof file.write==="function"){
+        attempt.direct=true;attempt.ready=true;attempts.push(attempt);
+        return {name:host.name,value:host.value,file:file,attempts:attempts};
+      }
+      let loader=null;try{loader=host.value.loadLibrary;}catch(e){}
+      if(typeof loader==="function"){
+        attempt.loadAttempted=true;
+        try{attempt.loadReturnValue=labSafe(loader.call(host.value,"libhspdk-jsx.so"));}catch(e){attempt.loadError=err(e);}
+        file=hspdkFile(host.value);
+        attempt.ready=!!(file&&typeof file.read==="function"&&typeof file.write==="function");
+        attempts.push(attempt);
+        if(attempt.ready)return {name:host.name,value:host.value,file:file,attempts:attempts};
+      }else attempts.push(attempt);
+    }
+    return {name:null,value:null,file:null,attempts:attempts};
   }
   function hspdkFnMeta(owner,name){
     if(!owner)return {available:false};
@@ -970,19 +1009,31 @@
     }catch(e){return {available:false,error:err(e)};}
   }
   function hspdkSnapshot(){
-    const selected=hspdkHost(),owner=selected.value;
-    let file=null,fileError=null;
-    if(owner){try{file=owner.File||null;}catch(e){fileError=err(e);}}
+    const hosts=hspdkHosts(),surfaces=hosts.map(entry=>{
+      const owner=entry.value;let file=null,fileError=null;
+      try{file=owner.File||null;}catch(e){fileError=err(e);}
+      return {
+        owner:entry.name,
+        ownerType:typeof owner,
+        loadLibrary:hspdkFnMeta(owner,"loadLibrary"),
+        fileAvailable:!!file,
+        fileError:fileError,
+        fileProperties:file?(()=>{try{return Object.getOwnPropertyNames(file).slice(0,80);}catch(e){return [];}})():[],
+        read:hspdkFnMeta(file,"read"),
+        write:hspdkFnMeta(file,"write")
+      };
+    }),selected=hspdkHost(),surface=surfaces.find(x=>x.owner===selected.name)||null;
     return {
       owner:selected.name,
-      ownerAvailable:!!owner,
-      ownerType:owner?typeof owner:"missing",
-      loadLibrary:hspdkFnMeta(owner,"loadLibrary"),
-      fileAvailable:!!file,
-      fileError:fileError,
-      fileProperties:file?(()=>{try{return Object.getOwnPropertyNames(file).slice(0,80);}catch(e){return [];}})():[],
-      read:hspdkFnMeta(file,"read"),
-      write:hspdkFnMeta(file,"write")
+      ownerAvailable:!!selected.value,
+      ownerType:surface?surface.ownerType:"missing",
+      loadLibrary:surface?surface.loadLibrary:{available:false},
+      fileAvailable:surface?surface.fileAvailable:false,
+      fileError:surface?surface.fileError:null,
+      fileProperties:surface?surface.fileProperties:[],
+      read:surface?surface.read:{available:false},
+      write:surface?surface.write:{available:false},
+      surfaces:surfaces
     };
   }
   function hspdkFile(owner){
@@ -1041,7 +1092,7 @@
     return out;
   }
   function renderLegacyHspdkLab(r){
-    set("legacyHspdkOwner",r&&r.afterLoad&&r.afterLoad.owner?r.afterLoad.owner:r&&r.beforeLoad&&r.beforeLoad.owner?r.beforeLoad.owner:"NONE");
+    set("legacyHspdkOwner",r&&r.selectedOwner?r.selectedOwner:r&&r.afterLoad&&r.afterLoad.owner?r.afterLoad.owner:r&&r.beforeLoad&&r.beforeLoad.owner?r.beforeLoad.owner:"NONE");
     set("legacyHspdkLibrary",r&&r.libraryLoad?(r.libraryLoad.attempted?(r.libraryLoad.error?"ERROR":"CALLED"):"NOT_NEEDED"):"NOT_RUN");
     set("legacyHspdkPath",r&&r.registry?r.registry.path:"—");
     set("legacyHspdkProbe",r&&r.probe?r.probe.status:"NOT_RUN");
@@ -1057,18 +1108,19 @@
   async function legacyHspdkWriteLab(){
     if(state.running)return null;
     state.running=true;set("legacyHspdkState","Probing legacy Hisense/HSPDK file writer…");
-    const report={timestamp:new Date().toISOString(),pageContext:pageContext(),source:{article:"https://bananamafia.dev/post/hisensehax/",legacyImplementation:"hisense-app-store/hisense-app-store.github.io · libhspdk-jsx.so"},beforeLoad:null,libraryLoad:{attempted:false,library:"libhspdk-jsx.so",returnValue:null,error:null},afterLoad:null,registry:null,readAttempts:[],backup:null,probe:null,restore:null,writeCapability:"INCONCLUSIVE",error:null};
+    const report={timestamp:new Date().toISOString(),pageContext:pageContext(),source:{article:"https://4pda.to/forum/index.php?showtopic=1004810&st=5220",legacyImplementation:"Hisense.File.read/write('launcher/Appinfo.json', mode 1) + libhspdk-jsx.so fallback"},beforeLoad:null,libraryLoad:{attempted:false,library:"libhspdk-jsx.so",returnValue:null,error:null},resolutionAttempts:[],selectedOwner:null,afterLoad:null,registry:null,readAttempts:[],backup:null,probe:null,restore:null,writeCapability:"INCONCLUSIVE",error:null};
     try{
       await refreshDirectBuildMatch();
-      const selected=hspdkHost();report.beforeLoad=hspdkSnapshot();
-      if(!selected.value)throw new Error("Neither window.HiBrowser nor window.Hisense is exposed in this context");
-      let file=hspdkFile(selected.value);
-      if((!file||typeof file.read!=="function"||typeof file.write!=="function")&&typeof selected.value.loadLibrary==="function"){
-        report.libraryLoad.attempted=true;
-        try{report.libraryLoad.returnValue=labSafe(selected.value.loadLibrary("libhspdk-jsx.so"));}catch(e){report.libraryLoad.error=err(e);}
+      report.beforeLoad=hspdkSnapshot();
+      const resolved=hspdkResolveWriter();
+      report.resolutionAttempts=resolved.attempts;report.selectedOwner=resolved.name;
+      const chosenAttempt=resolved.attempts.find(x=>x.owner===resolved.name)||resolved.attempts[resolved.attempts.length-1]||null;
+      if(chosenAttempt){
+        report.libraryLoad={attempted:!!chosenAttempt.loadAttempted,library:"libhspdk-jsx.so",returnValue:chosenAttempt.loadReturnValue,error:chosenAttempt.loadError||null};
       }
-      report.afterLoad=hspdkSnapshot();file=hspdkFile(selected.value);
-      if(!file||typeof file.read!=="function"||typeof file.write!=="function")throw new Error("Legacy File.read/File.write not exposed after HSPDK probe");
+      report.afterLoad=hspdkSnapshot();
+      const file=resolved.file;
+      if(!file)throw new Error("Neither Hisense nor HiBrowser exposed a usable legacy File.read/File.write surface");
       const found=await hspdkFindRegistry(file);report.readAttempts=found.attempts;
       if(!found.registry)throw new Error("No valid AppInfo registry readable through the legacy File API");
       const before=found.registry;report.registry={path:before.path,hash:before.hash,length:before.length,appInfoCount:before.appInfoCount};
@@ -1098,10 +1150,9 @@
     let result={timestamp:new Date().toISOString(),status:"INCONCLUSIVE",error:null};
     try{
       await refreshDirectBuildMatch();
-      const selected=hspdkHost();if(!selected.value)throw new Error("Legacy host object unavailable");
-      let file=hspdkFile(selected.value);
-      if((!file||typeof file.write!=="function")&&typeof selected.value.loadLibrary==="function")selected.value.loadLibrary("libhspdk-jsx.so");
-      file=hspdkFile(selected.value);if(!file||typeof file.write!=="function"||typeof file.read!=="function")throw new Error("Legacy File API unavailable");
+      const resolved=hspdkResolveWriter(lab.selectedOwner||null),file=resolved.file;
+      result.resolutionAttempts=resolved.attempts;result.selectedOwner=resolved.name;
+      if(!file)throw new Error("Legacy File API unavailable on both Hisense and HiBrowser surfaces");
       const backup=await loadAppInfoBackup(lab.backup),write=hspdkWrite(file,lab.registry.path,backup.raw),after=await hspdkReadRegistry(file,lab.registry.path),hash=await hashText(backup.raw);
       result.write=write;result.readbackHash=after.hash;result.status=write.completed&&after.ok&&after.raw===backup.raw&&after.hash&&hash&&after.hash.value===hash.value?"RESTORED_IDENTICAL":"RESTORE_NOT_VERIFIED";
     }catch(e){result.error=err(e);}
@@ -1114,10 +1165,9 @@
     let result={timestamp:new Date().toISOString(),status:"INCONCLUSIVE",backup:null,candidate:null,refresh:null,error:null};
     try{
       await refreshDirectBuildMatch();
-      const selected=hspdkHost();if(!selected.value)throw new Error("Legacy host object unavailable");
-      let file=hspdkFile(selected.value);
-      if((!file||typeof file.write!=="function")&&typeof selected.value.loadLibrary==="function")selected.value.loadLibrary("libhspdk-jsx.so");
-      file=hspdkFile(selected.value);if(!file||typeof file.write!=="function"||typeof file.read!=="function")throw new Error("Legacy File API unavailable");
+      const resolved=hspdkResolveWriter(lab.selectedOwner||null),file=resolved.file;
+      result.resolutionAttempts=resolved.attempts;result.selectedOwner=resolved.name;
+      if(!file)throw new Error("Legacy File API unavailable on both Hisense and HiBrowser surfaces");
       const before=await hspdkReadRegistry(file,lab.registry.path);if(!before.ok)throw new Error(before.error||"Could not read current legacy AppInfo");
       result.backup=await createAppInfoBackup(before.raw,before.hash);
       const candidate=hspdkCandidateEntry(before.parsed);result.candidate=candidate;
