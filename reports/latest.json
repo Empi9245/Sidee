@@ -4,7 +4,7 @@
   "serverBuildId": "app-4ce89e866abf",
   "buildMatch": true,
   "startedAt": "2026-09-26T18:45:50Z",
-  "updatedAt": "2026-09-26T18:46:07Z",
+  "updatedAt": "2026-09-26T18:46:14Z",
   "accessMode": "VIDAA_STORE_DOMAIN_DISCOVERY",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,8 +18,8 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 18,
-    "hostCount": 14,
+    "totalQueries": 25,
+    "hostCount": 20,
     "hosts": [
       {
         "host": "layout-ui-eu.vidaahub.com",
@@ -51,8 +51,8 @@
       {
         "host": "static-ui.vidaahub.com",
         "firstSeen": "2026-09-26T18:45:51Z",
-        "lastSeen": "2026-09-26T18:45:51Z",
-        "queryCount": 1,
+        "lastSeen": "2026-09-26T18:46:12Z",
+        "queryCount": 2,
         "qtypes": [
           "A"
         ]
@@ -144,6 +144,60 @@
         "host": "tvmodules-vidaa.vidaahub.com",
         "firstSeen": "2026-09-26T18:46:07Z",
         "lastSeen": "2026-09-26T18:46:07Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "img.vidaahub.com",
+        "firstSeen": "2026-09-26T18:46:12Z",
+        "lastSeen": "2026-09-26T18:46:12Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "home-ui-eu.vidaahub.com",
+        "firstSeen": "2026-09-26T18:46:12Z",
+        "lastSeen": "2026-09-26T18:46:12Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "rsc-mntz.vidaahub.com",
+        "firstSeen": "2026-09-26T18:46:12Z",
+        "lastSeen": "2026-09-26T18:46:12Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "detail-ui-eu.vidaahub.com",
+        "firstSeen": "2026-09-26T18:46:13Z",
+        "lastSeen": "2026-09-26T18:46:13Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "crtv-mntz.vidaahub.com",
+        "firstSeen": "2026-09-26T18:46:14Z",
+        "lastSeen": "2026-09-26T18:46:14Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "rpt-mntz-azure.vidaahub.com",
+        "firstSeen": "2026-09-26T18:46:14Z",
+        "lastSeen": "2026-09-26T18:46:14Z",
         "queryCount": 1,
         "qtypes": [
           "A"
