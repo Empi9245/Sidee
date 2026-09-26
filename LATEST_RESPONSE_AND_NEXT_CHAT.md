@@ -2,113 +2,87 @@
 
 Data: 2026-09-26
 
-## Stato da cui partire
+## Stato reale
 
 Repository: `Empi9245/Sidee`  
 Branch: `main`
 
-Il **VIDAA Store Catalog / Transport Trace** pass-through è implementato.
+Il test reale del trace dedicato a:
 
-Commit principali della fase:
-- `7d3bfbd5a6e342014c54e590b99d41b2b1f6009e` — trace Store iniziale;
-- `e3b980a85f1dc49145184338d990e8e346b82ef4` — hardening pass-through;
-- `ad7a5e0ff6e33ddde60768d85fb49086c6f61e16` — dedupe metadata catalogo;
-- `6effa59708db28cbbb3e6b25827808f4902cef55` — eventi trasporto bounded + resultCode/route-category;
-- `f3e40ef01dd63d36764de1973c5f0b23cd18811d` — redaction errori nel recorder;
-- `149ba71e9d37bba8beceb06718054e001975ffca` — test aggiornati;
-- `2d96de0dd00d2d289a4ad14d646a71cc82a3ba4e` — AI_CONTEXT aggiornato.
+`category-ui.vidaahub.com`
 
-La prossima chat deve comunque controllare l'HEAD reale prima di fare qualsiasi modifica.
+è già stato effettuato e **non ha prodotto alcun DNS hit osservato** sul flusso VIDAA Store provato.
 
-## Cosa fa adesso Sidee
+Quindi la priorità corrente non è ripetere lo stesso test, ma usare il nuovo:
 
-Per `category-ui.vidaahub.com`:
+`storeDomainDiscovery`
 
-- DNS spoof verso il PC Sidee;
-- SAN dedicato nel certificato multihost versionato;
-- osservazione TLS SNI;
-- proxy HTTPS verso il vero `https://category-ui.vidaahub.com`;
-- metodo/path/query/body inoltrati quando necessari;
-- body upstream restituito invariato;
-- nessuna tile custom;
-- nessuna installazione;
-- nessun fileWrite;
-- nessuna chiamata HiUtils/OMI inventata.
+aggiunto dal commit:
 
-`storeCatalogTrace.events` è bounded e usa:
+`40f3149f356bb913f90ead04cf2a5ae4e6da30fb` — `feat: discover active VIDAA Store domains`
 
-- `DNS`;
-- `TLS_SNI`;
-- `HTTP_REQUEST`;
-- `HTTP_RESPONSE`;
-- `PROXY_ERROR`.
+Il discovery è DNS-only e passivo. Osserva soltanto host VIDAA/Hisense mirati e lascia le risposte DNS normali/inoltrate senza aggiungere nuovi spoof.
 
-Il report conserva soltanto dati diagnostici ridotti:
-- timestamp;
-- host;
-- method/path;
-- soli nomi delle query parameter;
-- status/content-type/response length;
-- top-level JSON keys;
-- `resultCode` se presente;
-- nomi bounded delle chiavi route/category;
-- metadata catalogo/app non sensibili.
+## Compatibilità con il trace precedente
 
-Non vengono persistiti request headers/body, query values, Cookie/Authorization, token, session, nonce, key, password, credential, signature/certificate material. Gli header eventualmente necessari continuano a essere inoltrati all'upstream senza essere loggati.
+Il trace `storeCatalogTrace` per `category-ui.vidaahub.com` resta attivo e non è stato rimosso.
 
-## Ultimo report reale disponibile
+È stato verificato che il nuovo discovery non modifica:
+- il proxy HTTPS Store;
+- il certificato/SAN;
+- il pass-through byte-for-byte;
+- la redaction;
+- gli eventi DNS/TLS/HTTP;
+- le risposte DNS dei nuovi host scoperti.
 
-L'ultimo `reports/latest.json` controllato su `sidee-reports` è ancora:
+È stato però trovato un possibile conflitto nel sistema di sync: Sidee usa un solo `REPORT_SYNC_PENDING`, quindi due report diversi generati nello stesso debounce potevano far sì che uno sostituisse l'altro prima del push di `reports/latest.json`.
 
-`sidee-20260926-182425-cbe7`
+Correzioni applicate:
 
-con build match true ma **senza `storeCatalogTrace`**, perché appartiene alla fase precedente.
+- `aff70161da0e495a7879c3f720ad9d81509c7f20` — correla `storeCatalogTrace` e `storeDomainDiscovery`;
+- `bd22e01d5ab02f34e9f7288403e6388254be0c77` — evita sync duplicati nel discovery;
+- `732438a13b2a0c7ba790fcbd3c04993283e808ba` — test di regressione per evitare blind spot nel report.
 
-Quindi non abbiamo ancora il risultato TV del nuovo trace Store.
+Ora, se i due sistemi si attivano nella stessa esecuzione:
+- un report trace include anche lo snapshot discovery già disponibile;
+- un report discovery include anche lo snapshot trace già disponibile.
 
-# Test da fare adesso sulla TV
+Quindi qualunque dei due finisca per ultimo in `reports/latest.json` conserva entrambi i segnali disponibili.
 
-1. Sul PC fai pull di `main`.
-2. Chiudi eventuali vecchie istanze Sidee e riavvia Sidee.
-3. Imposta il DNS della TV sull'IP del PC Sidee.
-4. **Non aprire Smartone o Duplecast.**
-5. Dal launcher apri il **VIDAA Store ufficiale**.
-6. Naviga almeno una categoria.
-7. Apri la detail page di una app reale; meglio una già installata.
-8. In questa fase **non premere Install**.
-9. Torna pure indietro/naviga un'altra app se serve per produrre una seconda chiamata.
-10. Attendi il normale sync del report su `sidee-reports`.
+## Prossimo test TV
 
-Non serve aprire `https://vidaahub.com` per questo test: il traffico che ci interessa deve essere generato dallo Store ufficiale.
+1. `git pull` sul PC.
+2. Riavvia Sidee.
+3. Lascia il DNS della TV puntato al PC Sidee.
+4. Non aprire browser, Smartone o Duplecast.
+5. Apri il **VIDAA Store ufficiale**.
+6. Naviga home, almeno una categoria e una detail page.
+7. Rimani nello Store abbastanza da generare le normali richieste DNS.
+8. Non premere Install.
+9. Chiudi lo Store e attendi il sync.
 
-## Come interpretare il report
+Il dato principale da leggere nel prossimo `reports/latest.json` è:
 
-- nessun `storeCatalogTrace` / nessun DNS → la Q0707 non ha usato `category-ui.vidaahub.com` nel flusso testato;
-- `DNS_ONLY` → hostname richiesto ma nessun SNI visto;
-- `TLS_SNI_ONLY` → il client arriva all'handshake ma probabilmente rifiuta il certificato prima dell'HTTP;
-- `HTTP_PROXY_ACTIVE` → almeno una richiesta HTTP ha raggiunto il proxy;
-- `REQUESTS_CAPTURED` → abbiamo endpoint reali Q0707 da seguire;
-- `PROXY_ERROR` → prima risolvere il trasporto/upstream, senza cambiare payload.
+`storeDomainDiscovery`
 
-Se compare `categoryFirstResult`, il PoC FuVIDAA è compatibile almeno a livello catalogo con questa generazione. Se compaiono endpoint diversi, ignorare il vecchio endpoint e seguire solo quelli realmente osservati.
+In particolare:
+- `status`;
+- `hostCount`;
+- `hosts[].host`;
+- `hosts[].qtypes`;
+- `hosts[].queryCount`;
+- `firstSeen`;
+- `lastSeen`.
 
-# Prossima chat — obiettivo unico
+Se nello stesso test dovesse comparire anche `storeCatalogTrace`, analizzare entrambe le sezioni insieme.
 
-Leggi il nuovo `reports/latest.json` su `sidee-reports` e analizza **solo `storeCatalogTrace`**.
+## Obiettivo della prossima chat
 
-Rispondi prima a:
+Rispondere a una sola domanda:
 
-> La Q0707 usa davvero `category-ui.vidaahub.com`, e quali endpoint vengono chiamati quando apro catalogo e detail page?
+> Quale hostname Store/launcher chiede realmente la Q0707 quando apro il VIDAA Store ufficiale?
 
-Per ogni chiamata utile confronta in ordine:
-- evento DNS/SNI/HTTP;
-- method + path;
-- query parameter names;
-- upstream status/content-type/length;
-- topLevelKeys;
-- resultCode;
-- routeCategoryKeys;
-- catalogApps / unifiedAppName / openMode / packaged / hasDetailPage.
+Solo dopo aver osservato un hostname concreto si decide se aggiungere per quell'host un trace TLS/HTTP dedicato.
 
 Non fare ancora:
 - injection Nuvio;
@@ -118,5 +92,3 @@ Non fare ancora:
 - pkgmgr inventato;
 - brute force HiUtils/OMI;
 - ritorno ai vecchi test AppConfig/identity/HSPDK.
-
-Se `REQUESTS_CAPTURED` conferma il backend, il passo successivo deve essere deciso esclusivamente dagli endpoint reali osservati.
