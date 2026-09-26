@@ -965,6 +965,51 @@
   }
   $("hspdkContextBtn").addEventListener("click",inspectHspdkContext);
 
+  function parsePkgmgrPayload(raw){
+    const out={raw:labSafe(raw),parsed:null,count:null,error:null};
+    try{
+      let value=raw;
+      if(value&&typeof value==="object"&&typeof value.msg==="string"){
+        const t=value.msg.trim();
+        if((t.startsWith("{")&&t.endsWith("}"))||(t.startsWith("[")&&t.endsWith("]")))value=JSON.parse(t);
+      }else if(typeof value==="string"){
+        const t=value.trim();
+        if((t.startsWith("{")&&t.endsWith("}"))||(t.startsWith("[")&&t.endsWith("]")))value=JSON.parse(t);
+      }
+      out.parsed=labSafe(value);
+      const candidate=value&&typeof value==="object"&&Object.prototype.hasOwnProperty.call(value,"msg")?value.msg:value;
+      if(Array.isArray(candidate))out.count=candidate.length;
+      else if(candidate&&typeof candidate==="object"){
+        const arrays=Object.keys(candidate).map(k=>candidate[k]).filter(Array.isArray);
+        if(arrays.length)out.count=arrays[0].length;
+      }
+    }catch(e){out.error=err(e);}
+    return out;
+  }
+  async function inspectPkgmgrInstalled(){
+    if(state.running)return;
+    state.running=true;
+    set("pkgmgrInstalledState","Reading installed package metadata from vowOS.store…");
+    const report={timestamp:new Date().toISOString(),readOnly:true,pageContext:pageContext(),api:"vowOS.store.getInstalledPkgs",source:"vowOS.store.getInstalledPkgs -> vowOS.service.syncExecute('pkgmgr',{api:'getInstalledPkgs',args:''})",status:"NOT_RUN",response:null,error:null};
+    try{
+      const store=window.vowOS&&window.vowOS.store;
+      if(!store||typeof store.getInstalledPkgs!=="function")throw new Error("vowOS.store.getInstalledPkgs is unavailable");
+      const raw=store.getInstalledPkgs();
+      report.response=parsePkgmgrPayload(raw);
+      report.status=raw&&typeof raw==="object"&&raw.ret===false?"READ_FAILED":"READ_OK";
+      set("pkgmgrInstalledState",report.status+(report.response.count!==null?" · "+report.response.count+" packages":"")+(report.response.error?" · parse: "+report.response.error:""));
+    }catch(e){
+      report.status="READ_ERROR";report.error=err(e);
+      set("pkgmgrInstalledState","READ_ERROR · "+report.error);
+    }finally{
+      state.report.pkgmgrInstalledPackages=report;
+      log("pkgmgr installed packages",{status:report.status,count:report.response&&report.response.count,error:report.error});
+      state.running=false;
+      await save("pkgmgr-installed-packages");
+    }
+  }
+  $("pkgmgrInstalledBtn").addEventListener("click",inspectPkgmgrInstalled);
+
   function hspdkHosts(){
     const names=["Hisense","HiBrowser"],out=[];
     for(let i=0;i<names.length;i++){
