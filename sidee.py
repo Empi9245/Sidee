@@ -333,7 +333,7 @@ def _new_store_domain_discovery_report():
 def _record_store_domain_query(host, qtype):
     global STORE_DISCOVERY_REPORT
     host = _normalized_host(host)
-    if host in STORE_TRACE_HOST_SET or not _is_store_discovery_host(host):
+    if not _is_store_discovery_host(host):
         return None
 
     qtype_name = _dns_qtype_name(qtype)
@@ -1948,7 +1948,7 @@ def run_dns(config, local_ip):
             break
         try:
             host, qtype, _ = parse_dns_question(data)
-            if _is_store_discovery_host(host) and host not in STORE_TRACE_HOST_SET:
+            if _is_store_discovery_host(host) and host not in domains:
                 try:
                     _record_store_domain_query(host, qtype)
                 except Exception as exc:
