@@ -355,6 +355,44 @@ pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-w
       return {{status:"RETURNED",value:safeValue(root[name].call(root))}};
     }}catch(e){{return {{status:"ERROR",value:null,error:String(e&&e.message||e)}};}}
   }}
+  function descriptorInfo(root,name){{
+    var cur=root;
+    for(var depth=0;cur&&depth<6;depth++){{
+      try{{
+        var d=Object.getOwnPropertyDescriptor(cur,name);
+        if(d)return {{
+          found:true,ownerDepth:depth,enumerable:!!d.enumerable,configurable:!!d.configurable,
+          writable:Object.prototype.hasOwnProperty.call(d,"writable")?!!d.writable:null,
+          hasGetter:typeof d.get==="function",hasSetter:typeof d.set==="function"
+        }};
+        cur=Object.getPrototypeOf(cur);
+      }}catch(e){{return {{found:false,error:String(e&&e.message||e)}};}}
+    }}
+    return {{found:false}};
+  }}
+  function sourceInfo(root,name){{
+    var out={{path:name,available:false,descriptor:descriptorInfo(root,name),length:null,name:null,source:null,error:null}};
+    try{{
+      var fn=root&&root[name];
+      if(typeof fn!=="function")return out;
+      out.available=true;
+      out.length=fn.length;
+      out.name=fn.name||null;
+      out.source=String(Function.prototype.toString.call(fn)).slice(0,6000);
+    }}catch(e){{out.error=String(e&&e.message||e);}}
+    return out;
+  }}
+  function objectShape(root){{
+    var out={{available:!!root,properties:[],error:null}};
+    if(!root)return out;
+    try{{
+      var names=Object.getOwnPropertyNames(root).slice(0,160);
+      out.properties=names.filter(function(name){{
+        return !/(token|secret|password|cookie|auth|key|sign|cert|nonce|session)/i.test(name);
+      }}).slice(0,100);
+    }}catch(e){{out.error=String(e&&e.message||e);}}
+    return out;
+  }}
   var svc=null,ctx=null;
   try{{svc=window.vowOS&&window.vowOS.service;}}catch(e){{}}
   try{{ctx=window.vowOSContext;}}catch(e){{}}
@@ -383,6 +421,20 @@ pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-w
       fileWrite:typeof window.Hisense_FileWrite==="function",
       vowService:!!svc,
       vowContext:!!ctx
+    }},
+    bridgeSources:{{
+      hiUtilsCreateRequest:sourceInfo(window,"HiUtils_createRequest"),
+      serviceSyncExecute:sourceInfo(svc,"syncExecute"),
+      serviceGetIdentifier:sourceInfo(svc,"getIdentifier"),
+      serviceExecuteHttpRequest:sourceInfo(svc,"executeHttpRequest"),
+      contextInit:sourceInfo(ctx,"init"),
+      contextGetAppIdentifier:sourceInfo(ctx,"getAppIdentifier"),
+      contextGetAppId:sourceInfo(ctx,"getAppId")
+    }},
+    bridgeObjects:{{
+      service:objectShape(svc),
+      context:objectShape(ctx),
+      navigatorAppIdentifierDescriptor:descriptorInfo(navigator,"appIdentifier")
     }}
   }};
   var out=document.getElementById("out"),state=document.getElementById("state");
@@ -556,6 +608,8 @@ def _save_app_context_bootstrap(data, server_host, client_ip):
             "expectedContext": dict(expected),
             "identity": identity,
             "capabilities": data.get("capabilities") if isinstance(data.get("capabilities"), dict) else {},
+            "bridgeSources": data.get("bridgeSources") if isinstance(data.get("bridgeSources"), dict) else {},
+            "bridgeObjects": data.get("bridgeObjects") if isinstance(data.get("bridgeObjects"), dict) else {},
             "serverObserved": {"host": host, "clientIp": str(client_ip or "")[:80]},
             "classification": "APP_CONTEXT_BOOTSTRAP_CAPTURED",
             "safety": "Read-only bootstrap. No setters, install/uninstall, file writes or guessed native calls.",
