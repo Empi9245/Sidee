@@ -101,7 +101,7 @@
           </div>
           <button id="permissionSourceTraceBtn" class="secondary">Trace Permission Sources</button>
         </div>
-        <p>Read-only inspection of the install pipeline, loaded scripts and runtime identity surfaces. It captures descriptors/source for appIdentifier, vowOSContext and vowOS.service identity/config methods without invoking getters, setters, init methods or discovered functions.</p>
+        <p>Read-only inspection of the install pipeline and native runtime bridge. It now inventories all own/prototype properties of vowOSContext, vowOS.service and omi_platform, saving descriptors and visible function/getter/setter source without invoking them.</p>
         <div id="permissionSourceTraceState" class="state">Not traced yet.</div>
       </article>
 
