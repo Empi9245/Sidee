@@ -1776,3 +1776,38 @@ Prossimo test TV consigliato:
 4. Export Report
 
 Non serve ripetere un install test per ottenere il Source Trace.
+
+
+---
+
+## IMPLEMENTAZIONE — Install pipeline helper source trace — 2026-09-26
+
+Il Source Trace reale ha esposto il codice dei wrapper VIDAA:
+- `Hisense_installApp`
+- `Hisense_installApp_V2`
+- `HiUtils_createRequest`
+- `Hisense_SupportAppConfig`
+- `vowOS.service.syncExecute`
+- `vowOS.service.getIdentifier`
+
+Il codice reale mostra che i wrapper install non chiamano direttamente `installApplication`: entrambi passano l'intero registro `AppInfo` a `writeInstallAppObjToJson(installAppObj)`. Inoltre `HiUtils_createRequest(type,msg)` è solo un wrapper di `vowOS.service.syncExecute('hiutils',{api:type,args:msg})`, mentre `getIdentifier()` restituisce `vowOSContext.getAppIdentifier()` solo se `navigator.appIdentifier !== 'undefined'`, altrimenti restituisce stringa vuota.
+
+Per seguire la catena senza eseguire nuove operazioni, il Permission Source Trace è stato esteso ai quattro helper concreti appena rivelati:
+- `window.writeInstallAppObjToJson`
+- `window.getInstalledAppJsonObj`
+- `window.mapAppInfoFields`
+- `window.vowOS.service.executeHttpRequest`
+
+Questi helper vengono soltanto ispezionati tramite descriptor e `Function.prototype.toString()`; non vengono invocati.
+
+Il filtro dei riferimenti concreti ora include anche:
+- `installApplication`
+- `executeHttpRequest`
+- `fileRead`
+- `fileWrite`
+- `AppInfo`
+- i nomi dei tre helper AppInfo sopra
+
+Obiettivo del prossimo report: ricostruire precisamente `Hisense_installApp[_V2] -> writeInstallAppObjToJson -> HiUtils_createRequest -> syncExecute -> executeHttpRequest` e verificare se l'HTTP executor aggiunge identifier/header/client metadata alla richiesta localhost.
+
+Per questo test non serve eseguire un nuovo install test: basta **Trace Permission Sources** seguito da **Export Report**.
