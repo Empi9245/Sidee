@@ -1571,7 +1571,16 @@ def run_http(port, *, fatal=False, purpose="HTTP"):
 
 
 def run_https(port, cert, key):
-    server = ThreadingHTTPServer(("0.0.0.0", port), SideeHandler)
+    try:
+        server = ThreadingHTTPServer(("0.0.0.0", port), SideeHandler)
+    except OSError as exc:
+        print(f"[ERROR] HTTPS could not listen on TCP/{port}: {exc}")
+        if os.name == "nt" and getattr(exc, "winerror", None) == 10048:
+            print(f"[ERROR] TCP/{port} is already in use. A previous Sidee instance is probably still running.")
+            print(f'[ERROR] Check the owner with: netstat -ano -p tcp | findstr ":{port}"')
+            print('[ERROR] Then inspect it with: tasklist /FI "PID eq <PID>"')
+        stop_event.set()
+        return
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.load_cert_chain(certfile=str(cert), keyfile=str(key))
 
@@ -1607,6 +1616,13 @@ def main():
 
     print("\nSidee - VIDAA local toolkit")
     print("=" * 52)
+    print(f"Build ID: {client_build_id()}")
+    try:
+        head = _run_git(["rev-parse", "HEAD"], check=False).stdout.strip()
+        if head:
+            print(f"Git HEAD: {head}")
+    except Exception:
+        pass
     print(f"PC IP: {local_ip}")
     print(f"PC dashboard: http://{local_ip}:{cfg.get('http_port', 8080)}")
     print(f"Installed-app context probe HTTP: http://{local_ip}:{cfg.get('app_context_http_port', 80)}")
