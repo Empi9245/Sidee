@@ -61,6 +61,13 @@ APP_CONTEXT_TRANSPORT_LOCK = threading.Lock()
 APP_CONTEXT_TRANSPORT_LAST = {}
 
 STORE_CATALOG_HOST = "category-ui.vidaahub.com"
+STORE_TRACE_HOSTS = (
+    STORE_CATALOG_HOST,
+    "detail-ui-eu.vidaahub.com",
+    "appstore-vidaa.vidaahub.com",
+    "tvmodules-vidaa.vidaahub.com",
+)
+STORE_TRACE_HOST_SET = set(STORE_TRACE_HOSTS)
 STORE_TRACE_LOCK = threading.Lock()
 STORE_TRACE_REPORT = None
 STORE_TRACE_MAX_REQUESTS = 80
@@ -326,7 +333,7 @@ def _new_store_domain_discovery_report():
 def _record_store_domain_query(host, qtype):
     global STORE_DISCOVERY_REPORT
     host = _normalized_host(host)
-    if host == STORE_CATALOG_HOST or not _is_store_discovery_host(host):
+    if host in STORE_TRACE_HOST_SET or not _is_store_discovery_host(host):
         return None
 
     qtype_name = _dns_qtype_name(qtype)
@@ -415,6 +422,18 @@ def _store_trace_status(trace):
     if trace.get("dnsHit"):
         return "DNS_ONLY"
     return "IDLE"
+
+
+def _new_store_host_stats(host):
+    return {
+        "host": _normalized_host(host),
+        "dnsHit": False,
+        "tlsSniHit": False,
+        "httpProxyHit": False,
+        "requestCount": 0,
+        "errorCount": 0,
+        "status": "IDLE",
+    }
 
 
 def _safe_catalog_scalar(value, limit=300):
@@ -578,6 +597,11 @@ def _new_store_trace_report():
         "accessMode": "VIDAA_STORE_CATALOG_TRACE",
         "storeCatalogTrace": {
             "host": STORE_CATALOG_HOST,
+            "hosts": list(STORE_TRACE_HOSTS),
+            "hostStats": {
+                host: _new_store_host_stats(host)
+                for host in STORE_TRACE_HOSTS
+            },
             "passThroughOnly": True,
             "responsesModified": False,
             "requestBodiesPersisted": False,
@@ -620,11 +644,15 @@ def _record_store_trace(event, detail=None):
             "HTTP_RESPONSE": "HTTP_RESPONSE",
             "PROXY_ERROR": "PROXY_ERROR",
         }.get(event, str(event)[:80])
+        event_host = _normalized_host(detail.get("host") or STORE_CATALOG_HOST)
         event_item = {
             "timestamp": now,
             "type": event_type,
-            "host": _normalized_host(detail.get("host") or STORE_CATALOG_HOST),
+            "host": event_host,
         }
+        host_stats = trace.setdefault("hostStats", {}).setdefault(
+            event_host, _new_store_host_stats(event_host)
+        )
         if event_type in ("HTTP_REQUEST", "HTTP_RESPONSE", "PROXY_ERROR"):
             event_item["method"] = str(detail.get("method", ""))[:16]
             event_item["path"] = str(detail.get("path", ""))[:700]
@@ -645,13 +673,18 @@ def _record_store_trace(event, detail=None):
 
         if event in ("DNS_A", "DNS_AAAA"):
             trace["dnsHit"] = True
+            host_stats["dnsHit"] = True
         elif event == "TLS_SNI":
             trace["tlsSniHit"] = True
+            host_stats["tlsSniHit"] = True
         elif event == "HTTP_BEGIN":
             trace["httpProxyHit"] = True
+            host_stats["httpProxyHit"] = True
         elif event == "HTTP_RESPONSE":
             trace["httpProxyHit"] = True
             trace["requestCount"] = int(trace.get("requestCount", 0)) + 1
+            host_stats["httpProxyHit"] = True
+            host_stats["requestCount"] = int(host_stats.get("requestCount", 0)) + 1
             item = {
                 "timestamp": now,
                 "method": str(detail.get("method", ""))[:16],
@@ -668,6 +701,8 @@ def _record_store_trace(event, detail=None):
                 trace["requests"] = trace["requests"][-STORE_TRACE_MAX_REQUESTS:]
         elif event == "PROXY_ERROR":
             trace["httpProxyHit"] = True
+            host_stats["httpProxyHit"] = True
+            host_stats["errorCount"] = int(host_stats.get("errorCount", 0)) + 1
             item = {
                 "timestamp": now,
                 "stage": str(detail.get("stage", "proxy"))[:80],
@@ -680,8 +715,20 @@ def _record_store_trace(event, detail=None):
             if len(trace["errors"]) > STORE_TRACE_MAX_ERRORS:
                 trace["errors"] = trace["errors"][-STORE_TRACE_MAX_ERRORS:]
 
+        host_status_source = {
+            "dnsHit": host_stats.get("dnsHit"),
+            "tlsSniHit": host_stats.get("tlsSniHit"),
+            "httpProxyHit": host_stats.get("httpProxyHit"),
+            "requestCount": host_stats.get("requestCount", 0),
+            "errors": [True] if int(host_stats.get("errorCount", 0)) > 0 else [],
+        }
+        host_stats["status"] = _store_trace_status(host_status_source)
         trace["status"] = _store_trace_status(trace)
         report["summary"]["storeCatalogTrace"] = trace["status"]
+        report["summary"]["storeTraceHosts"] = {
+            host: stats.get("status", "IDLE")
+            for host, stats in trace.get("hostStats", {}).items()
+        }
         snapshot = json.loads(json.dumps(report))
 
     discovery_snapshot = _store_domain_discovery_snapshot()
@@ -705,6 +752,11 @@ def _store_trace_snapshot():
         if STORE_TRACE_REPORT is None:
             return {
                 "host": STORE_CATALOG_HOST,
+                "hosts": list(STORE_TRACE_HOSTS),
+                "hostStats": {
+                    host: _new_store_host_stats(host)
+                    for host in STORE_TRACE_HOSTS
+                },
                 "status": "IDLE",
                 "passThroughOnly": True,
                 "responsesModified": False,
@@ -721,7 +773,8 @@ def _store_query_parameter_names(path):
         return []
 
 
-def _proxy_request_headers(headers):
+def _proxy_request_headers(headers, upstream_host=STORE_CATALOG_HOST):
+    upstream_host = _normalized_host(upstream_host)
     connection_tokens = set()
     try:
         connection_tokens = {
@@ -737,17 +790,22 @@ def _proxy_request_headers(headers):
         if lower == "host" or lower == "content-length" or lower in STORE_PROXY_HOP_HEADERS or lower in connection_tokens:
             continue
         out[str(key)] = str(value)
-    out["Host"] = STORE_CATALOG_HOST
+    out["Host"] = upstream_host
     return out
 
 
-def _proxy_store_catalog_request(handler):
+def _proxy_store_catalog_request(handler, upstream_host=None):
+    upstream_host = _normalized_host(
+        upstream_host or handler.headers.get("Host", "")
+    )
+    if upstream_host not in STORE_TRACE_HOST_SET:
+        raise ValueError("Unsupported Store trace host")
     parsed = urllib.parse.urlsplit(handler.path)
     path_only = parsed.path or "/"
     query_names = _store_query_parameter_names(handler.path)
     method = str(handler.command or "GET").upper()
     _record_store_trace("HTTP_BEGIN", {
-        "host": STORE_CATALOG_HOST,
+        "host": upstream_host,
         "method": method,
         "path": path_only,
         "queryParameterNames": query_names,
@@ -761,11 +819,11 @@ def _proxy_store_catalog_request(handler):
     if length > 0:
         body = handler.rfile.read(length)
 
-    headers = _proxy_request_headers(handler.headers)
+    headers = _proxy_request_headers(handler.headers, upstream_host)
     conn = None
     try:
         conn = http.client.HTTPSConnection(
-            STORE_CATALOG_HOST,
+            upstream_host,
             443,
             timeout=20,
             context=ssl.create_default_context(),
@@ -799,6 +857,7 @@ def _proxy_store_catalog_request(handler):
             handler.wfile.write(response_body)
 
         _record_store_trace("HTTP_RESPONSE", {
+            "host": upstream_host,
             "method": method,
             "path": path_only,
             "queryParameterNames": query_names,
@@ -808,10 +867,11 @@ def _proxy_store_catalog_request(handler):
             "responseLength": len(response_body),
             "jsonSummary": json_summary,
         })
-        print(f"[STORE-PROXY] {method} {path_only} -> {upstream.status} ({len(response_body)} bytes)")
+        print(f"[STORE-PROXY] {upstream_host} {method} {path_only} -> {upstream.status} ({len(response_body)} bytes)")
     except Exception as exc:
         message = _redact_store_message(exc)
         _record_store_trace("PROXY_ERROR", {
+            "host": upstream_host,
             "stage": "upstream",
             "method": method,
             "path": path_only,
@@ -826,7 +886,7 @@ def _proxy_store_catalog_request(handler):
         handler.end_headers()
         if method != "HEAD":
             handler.wfile.write(payload)
-        print(f"[STORE-PROXY] ERROR {method} {path_only}: {type(exc).__name__}")
+        print(f"[STORE-PROXY] ERROR {upstream_host} {method} {path_only}: {type(exc).__name__}")
     finally:
         if conn is not None:
             try:
