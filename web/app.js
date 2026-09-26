@@ -1071,30 +1071,36 @@
     if(state.running)return;
     state.running=true;
     set("pkgmgrPackageProbeState","Reading installed tvbrowser package entry…");
-    const absolutePath="/APPS/pkgs/tv.vidaa.app.tvbrowser/index.html";
-    const relativePath="../../../APPS/pkgs/tv.vidaa.app.tvbrowser/index.html";
-    const report={timestamp:new Date().toISOString(),readOnly:true,pageContext:pageContext(),packageName:"tv.vidaa.app.tvbrowser",absolutePath:absolutePath,readPath:relativePath,mode:0,file:null,sourceInventory:null,status:"NOT_RUN",error:null};
+    const attempts=[
+      {label:"pkgmgr-namespace",path:"APPS:pkgs/tv.vidaa.app.tvbrowser/index.html",mode:0,basis:"Exact APPS: path form returned by pkgmgr getInstalledPkgs."},
+      {label:"absolute-filesystem",path:"/APPS/pkgs/tv.vidaa.app.tvbrowser/index.html",mode:0,basis:"Exact filesystem form implied by vowOS.store file:///APPS/pkgs/<pkgName>/index.html."},
+      {label:"relative-filesystem",path:"../../../APPS/pkgs/tv.vidaa.app.tvbrowser/index.html",mode:0,basis:"Absolute-path conversion used by the public vidaa-edge Hisense_FileRead scanner."}
+    ];
+    const report={timestamp:new Date().toISOString(),readOnly:true,pageContext:pageContext(),packageName:"tv.vidaa.app.tvbrowser",attempts:[],selected:null,sourceInventory:null,status:"NOT_RUN",error:null};
     try{
       if(typeof window.Hisense_FileRead!=="function")throw new Error("Hisense_FileRead is unavailable");
-      const raw=window.Hisense_FileRead(relativePath,0);
-      const text=typeof raw==="string"?raw:"";
-      report.file={
-        returnedType:raw===null?"null":typeof raw,
-        length:text.length,
-        hash:text?await hashText(text):null,
-        references:htmlRefs(text),
-        preview:text.slice(0,32000)
-      };
+      for(const attempt of attempts){
+        let raw=null,error=null;
+        try{raw=window.Hisense_FileRead(attempt.path,attempt.mode);}catch(e){error=err(e);}
+        const text=typeof raw==="string"?raw:"";
+        const item={
+          label:attempt.label,path:attempt.path,mode:attempt.mode,basis:attempt.basis,
+          returnedType:raw===null?"null":typeof raw,length:text.length,error:error,
+          hash:text?await hashText(text):null,references:htmlRefs(text),preview:text.slice(0,32000)
+        };
+        report.attempts.push(item);
+        if(!report.selected&&text)report.selected=item;
+      }
       report.sourceInventory=pkgmgrSourceInventory();
-      report.status=text?"READ_OK":"READ_EMPTY";
-      set("pkgmgrPackageProbeState",report.status+" · "+text.length+" bytes · "+report.file.references.length+" refs · "+report.sourceInventory.matches.length+" pkgmgr source matches");
+      report.status=report.selected?"READ_OK":report.attempts.some(x=>x.error)?"READ_PARTIAL_ERRORS":"READ_EMPTY";
+      set("pkgmgrPackageProbeState",report.status+" · "+report.attempts.length+" path forms · "+(report.selected?report.selected.length:0)+" bytes · "+report.sourceInventory.matches.length+" pkgmgr source matches");
     }catch(e){
       report.status="READ_ERROR";report.error=err(e);
       report.sourceInventory=pkgmgrSourceInventory();
       set("pkgmgrPackageProbeState","READ_ERROR · "+report.error);
     }finally{
       state.report.pkgmgrPackageProbe=report;
-      log("tvbrowser package probe",{status:report.status,length:report.file&&report.file.length,refs:report.file&&report.file.references&&report.file.references.length,sourceMatches:report.sourceInventory&&report.sourceInventory.matches&&report.sourceInventory.matches.length,error:report.error});
+      log("tvbrowser package probe",{status:report.status,selected:report.selected&&report.selected.label,attempts:report.attempts.map(x=>({label:x.label,length:x.length,error:x.error})),sourceMatches:report.sourceInventory&&report.sourceInventory.matches&&report.sourceInventory.matches.length,error:report.error});
       state.running=false;
       await save("pkgmgr-tvbrowse-package-probe");
     }
