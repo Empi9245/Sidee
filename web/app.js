@@ -12,6 +12,8 @@
   })();
   const SESSION_RE = /^sidee-\d{8}-\d{6}-[a-f0-9]{4}$/;
   const CLIENT_KEYS = /(app|identifier|appid|role|customer|origin|url|permission|appconfig|store|package|security)/i;
+  const CONTEXT_IDENTITY_KEYS = /(app.?config|permission|capabilit|privileg|identifier|app.?id|client|context|role|customer|origin|domain|host|package|bundle|store|vendor|launcher|browser|profile)/i;
+  const CONTEXT_SENSITIVE_KEYS = /(token|secret|password|cookie|credential|authorization|\bauth\b|private|\bkey\b|certificate|signature|nonce|session)/i;
   const logBox = $("console");
   const state = { config:null, report:null, running:false, saveChain:Promise.resolve(), syncWatchToken:0, remoteDiagnosticArmed:false, remoteDiagnosticRunning:false, remoteDiagnosticTimer:null };
 
@@ -50,7 +52,7 @@
     try{ const a=new Uint8Array(2); crypto.getRandomValues(a); tail=Array.from(a).map(x=>x.toString(16).padStart(2,"0")).join(""); }catch(e){}
     const id="sidee-"+stamp+"-"+tail; try{sessionStorage.setItem("sidee.sessionId",id);}catch(e){} return id;
   }
-  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,accessContext:pageContext(),accessMode:accessMode(),serverAccess:null,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,identityOverrideLab:null,identityWriteGateLab:null,candidatePermissionTest:null,directAppInfoWriteLab:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",permissionGate:"UNKNOWN",appInfoWrite:"NOT_RUN"}}; }
+  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,accessContext:pageContext(),accessMode:accessMode(),serverAccess:null,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},contextIdentityFingerprint:null,clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,identityOverrideLab:null,identityWriteGateLab:null,candidatePermissionTest:null,directAppInfoWriteLab:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",contextFingerprint:"NOT_RUN",permissionGate:"UNKNOWN",appInfoWrite:"NOT_RUN"}}; }
   state.report=newReport();
 
   function meaningful(v){
@@ -92,6 +94,123 @@
     let service=null,ctx=null; try{service=window.vowOS&&window.vowOS.service;}catch(e){} try{ctx=window.vowOSContext;}catch(e){}
     return {label:label||null,timestamp:new Date().toISOString(),navigatorAppIdentifier:prop(navigator,"appIdentifier"),serviceIdentifier:call(service,"getIdentifier"),appIdentifier:call(ctx,"getAppIdentifier"),appId:call(ctx,"getAppId"),roleId:call(window,"Hisense_GetRoleID"),customerId:call(window,"Hisense_GetCustomerID"),roleSetterAvailable:typeof window.Hisense_SetRoleID==="function",customerSetterAvailable:typeof window.Hisense_SetCustomerID==="function",clientInformation:clientInfo()};
   }
+  function expectedInstalledAppContext(){
+    const host=String(location.hostname||"").toLowerCase();
+    if(host==="vidaa.smartone-iptv.com")return {id:"1470",name:"Smartone IPTV",host:host,mode:"SMARTONE_APP_CONTEXT"};
+    if(host==="vidaa.duplecast.com")return {id:"1876",name:"Duplecast",host:host,mode:"DUPLECAST_APP_CONTEXT"};
+    return null;
+  }
+  function primitiveIdentityPreview(value,name){
+    const sensitive=CONTEXT_SENSITIVE_KEYS.test(String(name||""));
+    const type=value===null?"null":typeof value;
+    if(sensitive)return {type:type,redacted:true,value:"[redacted by Sidee]"};
+    if(value===null||["string","number","boolean"].indexOf(type)>=0)return {type:type,redacted:false,value:compact(value)};
+    return {type:type,redacted:false,value:null};
+  }
+  function shallowIdentityObject(value,path,depth,seen){
+    depth=depth||0;seen=seen||[];
+    if(!value||typeof value!=="object"||depth>1||seen.indexOf(value)>=0)return null;
+    seen.push(value);
+    const out={},names=[];
+    let props=[];try{props=Object.getOwnPropertyNames(value);}catch(e){seen.pop();return {error:err(e)};}
+    for(let i=0;i<props.length&&names.length<40;i++){
+      const name=props[i];
+      let d=null;try{d=Object.getOwnPropertyDescriptor(value,name);}catch(e){}
+      if(!d||!Object.prototype.hasOwnProperty.call(d,"value"))continue;
+      const child=d.value,childType=child===null?"null":typeof child;
+      if(CONTEXT_SENSITIVE_KEYS.test(name)){out[name]={type:childType,redacted:true,value:"[redacted by Sidee]"};names.push(name);continue;}
+      if(child===null||["string","number","boolean"].indexOf(childType)>=0){out[name]=compact(child);names.push(name);continue;}
+      if(depth===0&&child&&childType==="object"&&CONTEXT_IDENTITY_KEYS.test(name)){
+        out[name]=shallowIdentityObject(child,path+"."+name,depth+1,seen);names.push(name);
+      }
+    }
+    seen.pop();
+    return out;
+  }
+  function inspectIdentityDataOwner(owner,path,limit){
+    const out={path:path,available:!!owner,propertyCount:0,matches:[],error:null};
+    if(!owner)return out;
+    let names=[];try{names=Object.getOwnPropertyNames(owner);}catch(e){out.error=err(e);return out;}
+    out.propertyCount=names.length;
+    for(let i=0;i<names.length&&i<(limit||120);i++){
+      const name=names[i];
+      if(!CONTEXT_IDENTITY_KEYS.test(name))continue;
+      let d=null;try{d=Object.getOwnPropertyDescriptor(owner,name);}catch(e){out.matches.push({name:name,error:err(e)});continue;}
+      if(!d)continue;
+      const rec={name:name,path:path+"."+name,enumerable:!!d.enumerable,configurable:!!d.configurable,writable:Object.prototype.hasOwnProperty.call(d,"writable")?!!d.writable:null,hasGetter:typeof d.get==="function",hasSetter:typeof d.set==="function",kind:Object.prototype.hasOwnProperty.call(d,"value")?"data":"accessor",type:null,value:null,preview:null,redacted:false};
+      if(Object.prototype.hasOwnProperty.call(d,"value")){
+        const v=d.value;rec.type=v===null?"null":typeof v;
+        if(CONTEXT_SENSITIVE_KEYS.test(name)){rec.redacted=true;rec.value="[redacted by Sidee]";}
+        else if(v===null||["string","number","boolean"].indexOf(typeof v)>=0)rec.value=compact(v);
+        else if(v&&typeof v==="object")rec.preview=shallowIdentityObject(v,rec.path,0,[]);
+        else if(typeof v==="function"){rec.functionName=v.name||null;rec.functionLength=v.length;rec.references=sourceReferences(functionSource(v)).slice(0,30);}
+      }
+      out.matches.push(rec);
+      if(out.matches.length>=50)break;
+    }
+    return out;
+  }
+  function identityExpectedMatches(identity,expected){
+    if(!expected)return [];
+    const fields=["navigatorAppIdentifier","serviceIdentifier","appIdentifier","appId"],out=[];
+    fields.forEach(name=>{
+      const item=identity&&identity[name],value=item&&item.status==="RETURNED"?item.value:null;
+      out.push({field:name,value:meaningful(value)?compact(value):null,matchesExpected:String(value==null?"":value).trim()===String(expected.id)});
+    });
+    return out;
+  }
+  function contextFingerprintClassification(identity,expected,owners,support){
+    const core=[identity&&identity.navigatorAppIdentifier,identity&&identity.serviceIdentifier,identity&&identity.appIdentifier,identity&&identity.appId];
+    const hasCore=core.some(x=>x&&x.status==="RETURNED"&&meaningful(x.value));
+    const matchesExpected=identityExpectedMatches(identity,expected).some(x=>x.matchesExpected);
+    const metadataHits=(owners||[]).reduce((n,x)=>n+(x&&x.matches?x.matches.length:0),0);
+    if(expected&&matchesExpected)return "INSTALLED_APP_IDENTITY_MATCH";
+    if(expected&&hasCore)return "INSTALLED_APP_IDENTITY_PRESENT";
+    if(expected&&metadataHits>0)return "INSTALLED_APP_METADATA_PRESENT";
+    if(expected)return "INSTALLED_APP_CONTEXT_ANONYMOUS";
+    if(hasCore)return "BROWSER_IDENTITY_PRESENT";
+    if(support&&support.status==="RETURNED"&&meaningful(support.value))return "APPCONFIG_SIGNAL_ONLY";
+    return "ANONYMOUS_LIKE";
+  }
+  function renderContextIdentityFingerprint(r){
+    set("contextFingerprintExpected",r&&r.expectedContext?(r.expectedContext.name+" · "+r.expectedContext.id):"none");
+    set("contextFingerprintIdentity",r&&r.identity?identityStatus(r.identity):"MISSING");
+    set("contextFingerprintMatch",r&&r.expectedMatches?(r.expectedMatches.some(x=>x.matchesExpected)?"YES":"NO"):"—");
+    set("contextFingerprintAppConfig",r&&r.supportAppConfig?display(r.supportAppConfig):"UNAVAILABLE");
+    set("contextFingerprintMetadata",r&&r.metadataHitCount!=null?r.metadataHitCount:"0");
+    set("contextFingerprintConclusion",r&&r.classification?r.classification:"NOT_RUN");
+    set("contextIdentityFingerprintState",r?(r.classification+" · "+(r.automatic?"automatic app-context capture":"manual read-only capture")):"Not run yet.");
+    state.report.summary.contextFingerprint=r&&r.classification||"NOT_RUN";
+    renderSummary();
+  }
+  async function contextIdentityFingerprint(options){
+    if(state.running)return null;
+    state.running=true;
+    set("contextIdentityFingerprintState","Capturing read-only native client context…");
+    const automatic=!!(options&&options.automatic);
+    let service=null,ctx=null;try{service=window.vowOS&&window.vowOS.service;}catch(e){}try{ctx=window.vowOSContext;}catch(e){}
+    const identity=capture("contextIdentityFingerprint");
+    let support={status:"UNAVAILABLE",value:null};
+    try{support=call(window,"Hisense_SupportAppConfig");}catch(e){support={status:"ERROR",value:null,error:err(e)};}
+    const owners=[
+      inspectIdentityDataOwner(service,"window.vowOS.service",180),
+      inspectIdentityDataOwner(ctx,"window.vowOSContext",180),
+      inspectIdentityDataOwner(navigator,"window.navigator",180),
+      inspectIdentityDataOwner(window,"window",1200)
+    ];
+    const expected=expectedInstalledAppContext(),matches=identityExpectedMatches(identity,expected);
+    const metadataHitCount=owners.reduce((n,x)=>n+(x.matches?x.matches.length:0),0);
+    const report={timestamp:new Date().toISOString(),automatic:automatic,remote:!!(options&&options.remote),pageContext:pageContext(),expectedContext:expected,identity:identity,expectedMatches:matches,supportAppConfig:support,owners:owners,metadataHitCount:metadataHitCount,classification:contextFingerprintClassification(identity,expected,owners,support),safety:"Read-only descriptor/data-property inspection only. Unknown accessors are not invoked. Token/secret/auth/cookie/key/signature/session-like fields are redacted."};
+    state.report.contextIdentityFingerprint=report;
+    if(!state.report.baseline){state.report.baseline=identity;state.report.clientInformation=identity.clientInformation;renderIdentity(identity);}
+    state.report.summary.runtimeIdentity=identityStatus(identity);
+    renderContextIdentityFingerprint(report);
+    log("Context identity fingerprint", {classification:report.classification,mode:pageContext().accessMode,expected:expected,identity:identityStatus(identity),metadataHitCount:metadataHitCount});
+    state.running=false;
+    await save("context-identity-fingerprint");
+    return report;
+  }
+
   function identityStatus(s){
     if(!s)return "MISSING";
     const core=[s.navigatorAppIdentifier,s.serviceIdentifier,s.appIdentifier,s.appId];
@@ -106,7 +225,7 @@
   }
   function current(){ return state.report.contextInit&&state.report.contextInit.after||state.report.baseline; }
   function renderIdentity(s){ s=s||{}; set("navigatorAppIdentifierValue",display(s.navigatorAppIdentifier)); set("serviceIdentifierValue",display(s.serviceIdentifier)); set("appIdentifierValue",display(s.appIdentifier)); set("appIdValue",display(s.appId)); set("roleIdValue",display(s.roleId)); set("customerIdValue",display(s.customerId)); set("roleSetterValue",s.roleSetterAvailable?"YES":"NO"); set("customerSetterValue",s.customerSetterAvailable?"YES":"NO"); }
-  function renderSummary(){ state.report.summary.runtimeIdentity=identityStatus(current()); set("summaryRuntimeIdentity",state.report.summary.runtimeIdentity); set("summaryContextInit",state.report.summary.contextInit); set("summaryPermissionGate",state.report.summary.permissionGate); set("summaryAppInfoWrite",state.report.summary.appInfoWrite||"NOT_RUN"); set("summaryIdentifier",current()?display(current().serviceIdentifier):"UNKNOWN"); set("summaryAccessOrigin",location.origin); set("summaryAccessMode",accessMode()); set("reportFileName","sidee-session-"+state.report.sessionId.slice(6)+".json"); }
+  function renderSummary(){ state.report.summary.runtimeIdentity=identityStatus(current()); set("summaryRuntimeIdentity",state.report.summary.runtimeIdentity); set("summaryContextInit",state.report.summary.contextInit); set("summaryContextFingerprint",state.report.summary.contextFingerprint||"NOT_RUN"); set("summaryPermissionGate",state.report.summary.permissionGate); set("summaryAppInfoWrite",state.report.summary.appInfoWrite||"NOT_RUN"); set("summaryIdentifier",current()?display(current().serviceIdentifier):"UNKNOWN"); set("summaryAccessOrigin",location.origin); set("summaryAccessMode",accessMode()); set("reportFileName","sidee-session-"+state.report.sessionId.slice(6)+".json"); }
   function renderDiff(d){ if(!d)return set("contextDiff","No comparison yet."); set("contextDiff",[["App identifier",d.appIdentifierChanged],["App ID",d.appIdChanged],["Service identifier",d.serviceIdentifierChanged],["Role",d.roleChanged],["Customer",d.customerChanged],["Client information",d.clientInformationChanged]].map(x=>x[0]+": "+(x[1]?"CHANGED":"NO CHANGE")).join(" · ")); }
   function getter(name){ try{const fn=window[name]; return typeof fn==="function"?compact(fn()):null;}catch(e){return null;} }
   function accessMode(){
@@ -1369,7 +1488,7 @@
       startedAt:started,
       completedAt:null,
       status:"RUNNING",
-      workflow:directNoop?["direct-appinfo-write-noop","export"]:identityWriteGate?["baseline","identity-write-gate-lab","export"]:["baseline","permission-source-trace","installed-metadata","verification","export"],
+      workflow:directNoop?["direct-appinfo-write-noop","export"]:identityWriteGate?["baseline","identity-write-gate-lab","export"]:["baseline","context-identity-fingerprint","permission-source-trace","installed-metadata","verification","export"],
       error:null
     };
     renderRemoteDiagnosticState(directNoop?"RUNNING · backup-protected AppInfo no-op write":identityWriteGate?"RUNNING · identifier write-gate lab":"RUNNING · read-only diagnostic");
@@ -1384,6 +1503,7 @@
         log("Remote identifier write-gate result",{conclusion:gateResult&&gateResult.conclusionHint,tested:gateResult&&gateResult.tests&&gateResult.tests.length,interestingCandidate:gateResult&&gateResult.interestingCandidate||null});
       }else{
         await baseline();
+        await contextIdentityFingerprint({remote:true});
         await permissionSourceTrace();
         await inspectInstalledMetadata();
         const verification=await verify();
@@ -1438,6 +1558,6 @@
   function nextControl(cur,key,list){const from=center(cur);let best=null,score=Infinity;list.forEach(el=>{if(el===cur)return;const to=center(el),dx=to.x-from.x,dy=to.y-from.y;let p=null,c=0;if(key==="ArrowUp"&&dy<-4){p=-dy;c=Math.abs(dx);}if(key==="ArrowDown"&&dy>4){p=dy;c=Math.abs(dx);}if(key==="ArrowLeft"&&dx<-4){p=-dx;c=Math.abs(dy);}if(key==="ArrowRight"&&dx>4){p=dx;c=Math.abs(dy);}if(p===null)return;const s=p*10+c;if(s<score){score=s;best=el;}});return best;}
   window.addEventListener("keydown",e=>{const key=e.key||({13:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[e.keyCode]),active=document.activeElement;if((key==="Enter"||key==="OK")&&active&&(active.tagName==="BUTTON"||active.tagName==="SUMMARY")){e.preventDefault();active.click();return;}if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(key)<0)return;if(active&&active.tagName==="INPUT"&&(key==="ArrowLeft"||key==="ArrowRight"))return;const list=controls();if(!list.length)return;const cur=list.indexOf(active)>=0?active:list[0],to=nextControl(cur,key,list);if(to){to.focus();e.preventDefault();}else if(list.indexOf(active)<0){cur.focus();e.preventDefault();}});
 
-  $("remoteDiagnosticArmBtn").addEventListener("click",toggleRemoteDiagnostics);   $("baselineBtn").addEventListener("click",baseline); $("runtimeContextInitBtn").addEventListener("click",initContext); $("clientInformationBtn").addEventListener("click",readClient); $("serviceTraceBtn").addEventListener("click",readTrace); $("directAppInfoWriteBtn").addEventListener("click",()=>directAppInfoWriteLab()); $("addNuvioDirectBtn").addEventListener("click",addNuvioDirect); $("restoreAppInfoBackupBtn").addEventListener("click",restoreAppInfoBackup); $("identityOverrideLabBtn").addEventListener("click",()=>identityWriteGateLab()); $("candidatePermissionBtn").addEventListener("click",candidatePermissionGateTest); $("permissionSourceTraceBtn").addEventListener("click",permissionSourceTrace); $("installedMetadataBtn").addEventListener("click",inspectInstalledMetadata); $("installDiagnosticBtn").addEventListener("click",()=>installTest()); $("installLegacyBtn").addEventListener("click",()=>installTest("legacy")); $("installV2Btn").addEventListener("click",()=>installTest("v2")); $("temporaryIdentifierBtn").addEventListener("click",tempIdentifier); $("saveBtn").addEventListener("click",saveTarget); $("verifyBtn").addEventListener("click",async()=>{const r=await verify();log("Verification",r);await save("verification");}); $("reportBtn").addEventListener("click",()=>save("export"));
-  load().then(()=>{renderSummary();set("deviceBadge",typeof window.Hisense_GetFirmWareVersion==="function"?"VIDAA browser detected":"Waiting for VIDAA APIs");log("Sidee targeted identity diagnostic ready.");startRemoteDiagnosticPolling();}).catch(e=>log("Config load failed",err(e)));
+  $("remoteDiagnosticArmBtn").addEventListener("click",toggleRemoteDiagnostics);   $("baselineBtn").addEventListener("click",baseline); $("contextIdentityFingerprintBtn").addEventListener("click",()=>contextIdentityFingerprint()); $("runtimeContextInitBtn").addEventListener("click",initContext); $("clientInformationBtn").addEventListener("click",readClient); $("serviceTraceBtn").addEventListener("click",readTrace); $("directAppInfoWriteBtn").addEventListener("click",()=>directAppInfoWriteLab()); $("addNuvioDirectBtn").addEventListener("click",addNuvioDirect); $("restoreAppInfoBackupBtn").addEventListener("click",restoreAppInfoBackup); $("identityOverrideLabBtn").addEventListener("click",()=>identityWriteGateLab()); $("candidatePermissionBtn").addEventListener("click",candidatePermissionGateTest); $("permissionSourceTraceBtn").addEventListener("click",permissionSourceTrace); $("installedMetadataBtn").addEventListener("click",inspectInstalledMetadata); $("installDiagnosticBtn").addEventListener("click",()=>installTest()); $("installLegacyBtn").addEventListener("click",()=>installTest("legacy")); $("installV2Btn").addEventListener("click",()=>installTest("v2")); $("temporaryIdentifierBtn").addEventListener("click",tempIdentifier); $("saveBtn").addEventListener("click",saveTarget); $("verifyBtn").addEventListener("click",async()=>{const r=await verify();log("Verification",r);await save("verification");}); $("reportBtn").addEventListener("click",()=>save("export"));
+  load().then(async()=>{renderSummary();set("deviceBadge",typeof window.Hisense_GetFirmWareVersion==="function"?"VIDAA browser detected":"Waiting for VIDAA APIs");log("Sidee targeted identity diagnostic ready.");if(expectedInstalledAppContext())await contextIdentityFingerprint({automatic:true});startRemoteDiagnosticPolling();}).catch(e=>log("Config load failed",err(e)));
 })();
