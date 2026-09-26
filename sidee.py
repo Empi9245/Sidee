@@ -93,11 +93,14 @@ STORE_PROXY_HOP_HEADERS = {
 STORE_DISCOVERY_LOCK = threading.Lock()
 STORE_DISCOVERY_REPORT = None
 STORE_DISCOVERY_MAX_HOSTS = 40
-STORE_INSTALL_PROBE_MAX_EVENTS = 180
+STORE_INSTALL_PROBE_MAX_EVENTS = 320
+STORE_INSTALL_PROBE_MAX_HOSTS = 140
 STORE_INSTALL_PROBE_TARGET = {
     "name": "Duplecast",
     "appId": "1876",
+    "host": "vidaa.duplecast.com",
 }
+STORE_INSTALL_PROBE_CLIENT = None
 
 
 def client_build_id():
@@ -339,6 +342,134 @@ def _new_store_domain_discovery_report():
     }
 
 
+def _store_install_probe_auto_start(trigger_host, client_ip):
+    global STORE_DISCOVERY_REPORT, STORE_INSTALL_PROBE_CLIENT
+    trigger_host = _normalized_host(trigger_host)
+    with STORE_DISCOVERY_LOCK:
+        existing = (
+            STORE_DISCOVERY_REPORT
+            and STORE_DISCOVERY_REPORT.get("storeInstallProbe")
+        )
+        if isinstance(existing, dict):
+            return False
+        if STORE_DISCOVERY_REPORT is None:
+            STORE_DISCOVERY_REPORT = _new_store_domain_discovery_report()
+        report = STORE_DISCOVERY_REPORT
+        now = _utc_timestamp()
+        STORE_INSTALL_PROBE_CLIENT = str(client_ip or "")
+        report["accessMode"] = "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO"
+        report["updatedAt"] = now
+        report["storeInstallProbe"] = {
+            "passiveDnsOnly": True,
+            "tlsIntercepted": False,
+            "captureMode": "AUTO_TV_DNS_TIMELINE",
+            "target": dict(STORE_INSTALL_PROBE_TARGET),
+            "status": "AUTO_CAPTURING",
+            "startedAt": now,
+            "triggerHost": trigger_host,
+            "markers": [{"type": "AUTO_START", "timestamp": now, "host": trigger_host}],
+            "dnsEvents": [],
+            "allDnsHosts": [],
+            "allDnsQueryCount": 0,
+            "targetDomainHit": False,
+            "targetDomainFirstSeenAt": None,
+            "note": (
+                "Automatic passive DNS timeline. Capture starts on the first VIDAA "
+                "Store-family DNS query after Sidee restart and then records bounded "
+                "DNS hostname activity from that same TV client. No HTTPS content is "
+                "intercepted and the client IP is not persisted."
+            ),
+        }
+        report.setdefault("summary", {})["storeInstallProbe"] = "AUTO_CAPTURING"
+        snapshot = json.loads(json.dumps(report))
+    try:
+        write_session_report(snapshot["sessionId"], snapshot)
+    except Exception as exc:
+        print(f"[STORE-INSTALL] auto-start report error: {exc}")
+    try:
+        queue_report_sync(snapshot["sessionId"], snapshot, "store-install-auto-start")
+    except Exception as exc:
+        print(f"[STORE-INSTALL] auto-start sync error: {exc}")
+    print(f"[STORE-INSTALL] AUTO_START · {trigger_host}")
+    return True
+
+
+def _record_store_install_dns_timeline(host, qtype, client_ip):
+    global STORE_DISCOVERY_REPORT
+    host = _normalized_host(host)
+    if not host:
+        return None
+    with STORE_DISCOVERY_LOCK:
+        report = STORE_DISCOVERY_REPORT
+        probe = report.get("storeInstallProbe") if isinstance(report, dict) else None
+        if not isinstance(probe, dict) or probe.get("status") not in (
+            "AUTO_CAPTURING", "CAPTURING_NAVIGATION", "DETAIL_OPEN", "INSTALL_ARMED"
+        ):
+            return None
+        if STORE_INSTALL_PROBE_CLIENT and str(client_ip or "") != STORE_INSTALL_PROBE_CLIENT:
+            return None
+
+        now = _utc_timestamp()
+        qtype_name = _dns_qtype_name(qtype)
+        phase = "AUTO_TIMELINE" if probe.get("status") == "AUTO_CAPTURING" else _store_install_probe_phase(probe)
+        event = {
+            "timestamp": now,
+            "phase": phase,
+            "host": host,
+            "qtype": qtype_name,
+            "vendorScoped": _is_store_discovery_host(host),
+        }
+        probe.setdefault("dnsEvents", []).append(event)
+        if len(probe["dnsEvents"]) > STORE_INSTALL_PROBE_MAX_EVENTS:
+            probe["dnsEvents"] = probe["dnsEvents"][-STORE_INSTALL_PROBE_MAX_EVENTS:]
+
+        probe["allDnsQueryCount"] = int(probe.get("allDnsQueryCount", 0)) + 1
+        hosts = probe.setdefault("allDnsHosts", [])
+        item = next((entry for entry in hosts if entry.get("host") == host), None)
+        new_host = item is None
+        if item is None and len(hosts) < STORE_INSTALL_PROBE_MAX_HOSTS:
+            item = {
+                "host": host,
+                "firstSeen": now,
+                "lastSeen": now,
+                "firstSeenIndex": probe["allDnsQueryCount"],
+                "queryCount": 0,
+                "qtypes": [],
+                "vendorScoped": _is_store_discovery_host(host),
+            }
+            hosts.append(item)
+        new_qtype = False
+        if item is not None:
+            item["lastSeen"] = now
+            item["queryCount"] = int(item.get("queryCount", 0)) + 1
+            if qtype_name not in item["qtypes"]:
+                item["qtypes"].append(qtype_name)
+                item["qtypes"].sort()
+                new_qtype = True
+
+        target_host = _normalized_host((probe.get("target") or {}).get("host", ""))
+        if target_host and host == target_host:
+            probe["targetDomainHit"] = True
+            if not probe.get("targetDomainFirstSeenAt"):
+                probe["targetDomainFirstSeenAt"] = now
+
+        report["updatedAt"] = now
+        report.setdefault("summary", {})["storeInstallProbe"] = probe.get("status", "AUTO_CAPTURING")
+        snapshot = json.loads(json.dumps(report))
+        should_sync = new_host or new_qtype or probe["allDnsQueryCount"] % 25 == 0
+
+    try:
+        write_session_report(snapshot["sessionId"], snapshot)
+    except Exception as exc:
+        print(f"[STORE-INSTALL] timeline report error: {exc}")
+    if should_sync:
+        try:
+            queue_report_sync(snapshot["sessionId"], snapshot, "store-install-auto-dns")
+        except Exception as exc:
+            print(f"[STORE-INSTALL] timeline sync error: {exc}")
+    return snapshot
+
+
 def _store_install_probe_phase(probe):
     status = str((probe or {}).get("status") or "")
     return {
@@ -392,12 +523,13 @@ def _store_install_probe_refresh(probe, discovery):
 
 
 def _store_install_probe_mark(action, target=None):
-    global STORE_DISCOVERY_REPORT
+    global STORE_DISCOVERY_REPORT, STORE_INSTALL_PROBE_CLIENT
     action = str(action or "").strip().upper()
     now = _utc_timestamp()
     with STORE_DISCOVERY_LOCK:
         if action == "START":
             STORE_DISCOVERY_REPORT = _new_store_domain_discovery_report()
+            STORE_INSTALL_PROBE_CLIENT = None
             report = STORE_DISCOVERY_REPORT
             report["accessMode"] = "VIDAA_STORE_INSTALL_DNS_PROBE"
             report["storeInstallProbe"] = {
@@ -545,13 +677,18 @@ def _record_store_domain_query(host, qtype):
         report["summary"]["storeDomainDiscovery"] = discovery["status"]
 
         probe = report.get("storeInstallProbe")
-        if isinstance(probe, dict) and probe.get("status") != "COMPLETED":
+        if (
+            isinstance(probe, dict)
+            and probe.get("status") != "COMPLETED"
+            and probe.get("status") != "AUTO_CAPTURING"
+        ):
             phase = _store_install_probe_phase(probe)
             probe.setdefault("dnsEvents", []).append({
                 "timestamp": now,
                 "phase": phase,
                 "host": host,
                 "qtype": qtype_name,
+                "vendorScoped": True,
             })
             if len(probe["dnsEvents"]) > STORE_INSTALL_PROBE_MAX_EVENTS:
                 probe["dnsEvents"] = probe["dnsEvents"][-STORE_INSTALL_PROBE_MAX_EVENTS:]
@@ -2137,6 +2274,15 @@ def run_dns(config, local_ip):
             break
         try:
             host, qtype, _ = parse_dns_question(data)
+            if _is_store_discovery_host(host):
+                try:
+                    _store_install_probe_auto_start(host, client[0])
+                except Exception as exc:
+                    print(f"[DNS] store-install auto-start error: {exc}")
+            try:
+                _record_store_install_dns_timeline(host, qtype, client[0])
+            except Exception as exc:
+                print(f"[DNS] store-install timeline error: {exc}")
             if _is_store_discovery_host(host) and host not in domains:
                 try:
                     _record_store_domain_query(host, qtype)
