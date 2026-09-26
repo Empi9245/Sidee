@@ -9,7 +9,13 @@ const window = {
   Hisense: {},
   HiBrowser: host,
   OtherObservedHost: host,
-  modeljs: { sendam: forbidden }
+  modeljs: { sendam: forbidden },
+  Hisense_TestRead: forbidden,
+  HiUtils_probe: forbidden,
+  vowOS: { service: { syncExecute: forbidden } },
+  omi_platform: { inspectOnly: forbidden },
+  opera_omi: { inspectOnly: forbidden },
+  TvInfo_Json: { readOnlyValue: 1 }
 };
 Object.defineProperty(window, 'UnknownGetter', { get: forbidden });
 Object.defineProperty(window.Hisense, 'File', { get: forbidden });
@@ -23,7 +29,14 @@ const context = vm.createContext({ window, location: { href: 'https://vidaahub.c
 vm.runInContext(source, context);
 const result = window.SideeHspdkContext();
 assert.equal(calls, 0);
-assert.equal(result.version, 3);
+assert.equal(result.version, 4);
+assert(result.modernBridgeInventory.globals.some(g => g.name === 'Hisense_TestRead' && g.descriptor.type === 'function'));
+assert(result.modernBridgeInventory.globals.some(g => g.name === 'HiUtils_probe' && g.descriptor.type === 'function'));
+assert.equal(result.modernBridgeInventory.objects.vowOS.descriptor.status, 'DATA');
+assert.equal(result.modernBridgeInventory.objects.omi_platform.descriptor.status, 'DATA');
+assert.equal(result.modernBridgeInventory.objects.opera_omi.descriptor.status, 'DATA');
+assert.equal(result.modernBridgeInventory.objects.TvInfo_Json.descriptor.status, 'DATA');
+assert.equal(result.modernBridgeInventory.invoked, false);
 assert.equal(result.legacyAppManagerBridge.modeljs.status, 'DATA');
 assert.equal(result.legacyAppManagerBridge.sendam.type, 'function');
 assert.equal(result.legacyAppManagerBridge.callableObserved, true);
@@ -44,10 +57,18 @@ delete window.OtherObservedHost;
 delete window.modeljs;
 delete window.sendAM;
 delete window.asyncStartApp;
+delete window.Hisense_TestRead;
+delete window.HiUtils_probe;
+delete window.vowOS;
+delete window.omi_platform;
+delete window.opera_omi;
+delete window.TvInfo_Json;
 const missing = window.SideeHspdkContext();
 assert.equal(missing.exact[1].root.status, 'ABSENT');
 assert.equal(missing.legacyAppManagerBridge.modeljs.status, 'ABSENT');
 assert.equal(missing.legacyAppManagerBridge.sendam.status, 'ABSENT');
+assert.equal(missing.modernBridgeInventory.objects.vowOS.descriptor.status, 'ABSENT');
+assert.equal(missing.modernBridgeInventory.objects.omi_platform.descriptor.status, 'ABSENT');
 assert.equal(missing.status, 'NO_FILE_PAIR_OBSERVED');
 assert.equal(calls, 0);
 
