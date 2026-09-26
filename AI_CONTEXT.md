@@ -4378,3 +4378,88 @@ Direzione:
 - ricostruzione read-only da fonti pubbliche/statiche;
 - non usare né copiare credenziali/segreti pubblicati in repository terzi;
 - usare solo struttura host/path e metadata non sensibili.
+
+
+## IMPLEMENTAZIONE — Duplecast Store install/download DNS differential — 2026-09-26
+
+È stato aggiunto un probe passivo specifico per il passaggio successivo dell'indagine: osservare cosa cambia quando l'utente avvia Install/Download nello Store ufficiale.
+
+Target fisso:
+- nome: Duplecast;
+- App ID: `1876`.
+
+Non viene chiamata nessuna API install da Sidee e non viene riattivato il MITM TLS Store.
+
+### Endpoint Sidee
+
+`GET /api/store-install-probe`
+- restituisce lo stato corrente del probe.
+
+`POST /api/store-install-probe`
+azioni consentite:
+- `START`;
+- `DETAIL_OPEN`;
+- `ARM_INSTALL`;
+- `FINISH`.
+
+### Logica
+
+`START` crea una nuova sessione discovery isolata e azzera la baseline.
+
+Durante il probe, ogni DNS query vendor-scoped viene salvata anche in:
+`storeInstallProbe.dnsEvents`
+
+con:
+- timestamp;
+- fase;
+- host;
+- qtype.
+
+Fasi:
+- `NAVIGATION`;
+- `DETAIL_IDLE`;
+- `INSTALL_WINDOW`.
+
+`ARM_INSTALL` deve essere premuto subito prima del tasto Install/Download sulla TV, così le prime query generate dal click non vengono perse.
+
+Il report calcola:
+- `hostSnapshotAtDetail`;
+- `hostSnapshotAtInstallArm`;
+- `hostSnapshotAtFinish`;
+- `contactedAfterInstallArm`;
+- `newHostsAfterInstallArm`;
+- `queryDeltaAfterInstallArm`;
+- `phaseHosts`.
+
+`contactedAfterInstallArm` è importante quanto `newHostsAfterInstallArm`: un backend install può essere già stato risolto durante la navigazione e venire semplicemente ricontattato quando parte il download.
+
+### UI
+
+Il dashboard Sidee ha una nuova card:
+`Duplecast Install/Download Probe`
+
+Sequenza:
+1. Start capture;
+2. aprire Duplecast nello Store ufficiale;
+3. Detail page visible;
+4. Arm install capture;
+5. premere Install/Download sulla TV;
+6. Finish capture.
+
+### Safety / privacy
+
+- solo DNS passivo;
+- nessun HTTPS Store intercettato;
+- nessun header/body/path HTTPS letto;
+- nessun token/cookie/auth salvato;
+- target fisso Duplecast per evitare payload arbitrari nel report.
+
+### Test
+
+Aggiunti test unitari per:
+- lifecycle START -> DETAIL_OPEN -> ARM_INSTALL -> FINISH;
+- distinzione tra host ricontattati e host nuovi post-arm;
+- conteggio query nella finestra install;
+- errore se FINISH viene eseguito prima di ARM_INSTALL.
+
+La sintassi JavaScript aggiornata è stata verificata tramite parser JS. Non risultano workflow GitHub Actions associati ai commit, quindi non c'è un risultato CI remoto da riportare.
