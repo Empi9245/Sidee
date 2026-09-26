@@ -1811,3 +1811,46 @@ Il filtro dei riferimenti concreti ora include anche:
 Obiettivo del prossimo report: ricostruire precisamente `Hisense_installApp[_V2] -> writeInstallAppObjToJson -> HiUtils_createRequest -> syncExecute -> executeHttpRequest` e verificare se l'HTTP executor aggiunge identifier/header/client metadata alla richiesta localhost.
 
 Per questo test non serve eseguire un nuovo install test: basta **Trace Permission Sources** seguito da **Export Report**.
+
+
+---
+
+## IMPLEMENTAZIONE — Loaded Script Source Trace — 2026-09-26
+
+Il report reale successivo ha confermato il confine del permission gate:
+- `writeInstallAppObjToJson(AppJsonObj)` serializza l'intero registro AppInfo e chiama `HiUtils_createRequest('installApplication', writedata)`;
+- `vowOS.service.executeHttpRequest(url,args)` invia una POST al servizio localhost e imposta esplicitamente l'header HTTP `identifier` con `this.getIdentifier()`;
+- `vowOS.service.getIdentifier()` restituisce `vowOSContext.getAppIdentifier()` solo quando `navigator.appIdentifier !== 'undefined'`, altrimenti restituisce stringa vuota;
+- nel contesto Sidee l'identifier osservato resta vuoto.
+
+Per cercare da dove VIDAA normalmente popola l'identità client/AppConfig senza eseguire nuove API, il Permission Source Trace ora include anche un inventario read-only di `document.scripts`.
+
+Comportamento:
+- enumera fino a 80 script già caricati;
+- per script inline legge soltanto `textContent`;
+- per script esterni esegue solo una GET sullo stesso URL se è same-origin;
+- script cross-origin vengono elencati ma non letti;
+- `/app.js` di Sidee viene elencato ma escluso dalla scansione per evitare falsi positivi creati dal codice diagnostico stesso;
+- nessun sorgente recuperato viene eseguito o modificato.
+
+Termini cercati:
+- `mapAppInfoFields`
+- `appIdentifier`
+- `getAppIdentifier`
+- `AppConfig`
+- `permission`
+- `identifier`
+- `client`
+- `service`
+- `vowOSContext`
+- `getIdentifier`
+- `executeHttpRequest`
+- `installApplication`
+- `HiUtils_createRequest`
+
+Il report salva i risultati in:
+`permissionSourceTrace.loadedScripts`
+
+Per ogni script vengono salvati URL/indice/tipo, stato della lettura, same-origin, lunghezza sorgente, termini trovati ed estratti contestuali limitati attorno ai match. Non viene salvato l'intero bundle per evitare report enormi.
+
+Obiettivo del prossimo test TV: eseguire soltanto **Trace Permission Sources** e poi **Export Report**. Cercare in particolare `loadedScripts.entries` per definizioni di `mapAppInfoFields`, inizializzazione di `navigator.appIdentifier` / `vowOSContext`, riferimenti ad AppConfig/permission/client identity e codice che precede `getIdentifier`.
