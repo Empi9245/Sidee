@@ -4,7 +4,7 @@
   "serverBuildId": "app-c022f88e412f",
   "buildMatch": true,
   "startedAt": "2026-09-26T18:32:19Z",
-  "updatedAt": "2026-09-26T18:32:19Z",
+  "updatedAt": "2026-09-26T18:32:25Z",
   "accessMode": "VIDAA_STORE_DOMAIN_DISCOVERY",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -17,22 +17,117 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 2,
-    "hostCount": 1,
+    "totalQueries": 6,
+    "hostCount": 3,
     "hosts": [
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-26T18:32:19Z",
         "lastSeen": "2026-09-26T18:32:19Z",
-        "queryCount": 2,
+        "queryCount": 4,
         "qtypes": [
           "A",
           "AAAA"
+        ]
+      },
+      {
+        "host": "rsc-mntz.vidaahub.com",
+        "firstSeen": "2026-09-26T18:32:24Z",
+        "lastSeen": "2026-09-26T18:32:24Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "rpt-mntz-azure.vidaahub.com",
+        "firstSeen": "2026-09-26T18:32:25Z",
+        "lastSeen": "2026-09-26T18:32:25Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
         ]
       }
     ]
   },
   "summary": {
-    "storeDomainDiscovery": "QUERIES_CAPTURED"
+    "storeDomainDiscovery": "QUERIES_CAPTURED",
+    "storeCatalogTrace": "TLS_SNI_ONLY"
+  },
+  "storeCatalogTrace": {
+    "host": "category-ui.vidaahub.com",
+    "hosts": [
+      "category-ui.vidaahub.com",
+      "detail-ui-eu.vidaahub.com",
+      "appstore-vidaa.vidaahub.com",
+      "tvmodules-vidaa.vidaahub.com"
+    ],
+    "hostStats": {
+      "category-ui.vidaahub.com": {
+        "host": "category-ui.vidaahub.com",
+        "dnsHit": false,
+        "tlsSniHit": false,
+        "httpProxyHit": false,
+        "requestCount": 0,
+        "errorCount": 0,
+        "status": "IDLE"
+      },
+      "detail-ui-eu.vidaahub.com": {
+        "host": "detail-ui-eu.vidaahub.com",
+        "dnsHit": true,
+        "tlsSniHit": true,
+        "httpProxyHit": false,
+        "requestCount": 0,
+        "errorCount": 0,
+        "status": "TLS_SNI_ONLY"
+      },
+      "appstore-vidaa.vidaahub.com": {
+        "host": "appstore-vidaa.vidaahub.com",
+        "dnsHit": false,
+        "tlsSniHit": false,
+        "httpProxyHit": false,
+        "requestCount": 0,
+        "errorCount": 0,
+        "status": "IDLE"
+      },
+      "tvmodules-vidaa.vidaahub.com": {
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "dnsHit": false,
+        "tlsSniHit": false,
+        "httpProxyHit": false,
+        "requestCount": 0,
+        "errorCount": 0,
+        "status": "IDLE"
+      }
+    },
+    "passThroughOnly": true,
+    "responsesModified": false,
+    "requestBodiesPersisted": false,
+    "requestHeadersPersisted": false,
+    "dnsHit": true,
+    "tlsSniHit": true,
+    "httpProxyHit": false,
+    "requestCount": 0,
+    "status": "TLS_SNI_ONLY",
+    "events": [
+      {
+        "timestamp": "2026-09-26T18:32:24Z",
+        "type": "DNS",
+        "host": "detail-ui-eu.vidaahub.com"
+      },
+      {
+        "timestamp": "2026-09-26T18:32:24Z",
+        "type": "TLS_SNI",
+        "host": "detail-ui-eu.vidaahub.com"
+      }
+    ],
+    "requests": [],
+    "errors": [],
+    "redactionPolicy": {
+      "queryValues": "NOT_STORED",
+      "requestHeaders": "NOT_STORED",
+      "requestBodies": "NOT_STORED",
+      "sensitiveJsonValues": "NOT_STORED"
+    }
   }
 }
