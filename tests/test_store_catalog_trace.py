@@ -258,6 +258,18 @@ class StoreCatalogTraceTests(unittest.TestCase):
         finally:
             sidee.STORE_DISCOVERY_REPORT = previous
 
+    def test_traced_store_hosts_are_excluded_from_generic_discovery(self):
+        previous = sidee.STORE_DISCOVERY_REPORT
+        sidee.STORE_DISCOVERY_REPORT = None
+        try:
+            with mock.patch.object(sidee, "write_session_report"), \
+                 mock.patch.object(sidee, "queue_report_sync"):
+                for host in sidee.STORE_TRACE_HOSTS:
+                    self.assertIsNone(sidee._record_store_domain_query(host, 1))
+            self.assertIsNone(sidee.STORE_DISCOVERY_REPORT)
+        finally:
+            sidee.STORE_DISCOVERY_REPORT = previous
+
     def test_store_trace_and_domain_discovery_cross_correlate(self):
         previous_trace = sidee.STORE_TRACE_REPORT
         previous_discovery = sidee.STORE_DISCOVERY_REPORT
