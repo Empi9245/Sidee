@@ -1,61 +1,60 @@
-# Sidee — stato aggiornato
+# Sidee — prossimo test: Duplecast Install/Download
 
 Data: 2026-09-26
 
-## Ultimo test passivo
+## Obiettivo
 
-Report:
-- sessionId: `sidee-20260926-210157-6704`
-- build: `app-8aaa5c0cb359`
-- buildMatch: `true`
-- 30 query DNS
-- 20 host osservati
+Non stiamo più cercando di leggere il path HTTPS.
 
-Sono ricomparsi:
-- `layout-ui-eu.vidaahub.com`
-- `appstore-vidaa.vidaahub.com`
-- `tvmodules-vidaa.vidaahub.com`
-- `home-ui-eu.vidaahub.com`
-- `detail-ui-eu.vidaahub.com`
-- `recommend-ui-eu.vidaahub.com`
-- `partner.vidaahub.com`
-- `vidaa-base-auth-eu.vidaahub.com`
+Il test nuovo serve a capire quali host VIDAA vengono:
+- contattati specificamente durante Install/Download;
+- ricontattati dopo il click;
+- oppure compaiono per la prima volta solo nella fase install.
 
-`category-ui-eu.vidaahub.com` non è ricomparso in questa singola sessione, ma era stato osservato realmente nella sessione precedente; una mancata seconda query DNS può dipendere dalla cache.
+Target fisso:
+- Duplecast
+- App ID `1876`
 
-## Priorità corretta
+## Modifiche implementate
 
-Core Store/UI:
-1. `category-ui-eu.vidaahub.com`
-2. `detail-ui-eu.vidaahub.com`
-3. `layout-ui-eu.vidaahub.com`
-4. `appstore-vidaa.vidaahub.com`
+Nuova card nel dashboard:
 
-Secondari/supporto:
-- `home-ui-eu`
-- `recommend-ui-eu`
-- `search-ui-eu`
-- `partner.vidaahub.com`
+`Duplecast Install/Download Probe`
 
-`vidaa-base-auth-eu` resta interessante, ma riferimenti pubblici recenti lo associano anche a servizi base/OTA/update VIDAA, quindi non va considerato automaticamente un backend Store.
+Nuovo report:
 
-## Endpoint pubblicamente documentati su backend VIDAA moderni
+`storeInstallProbe`
 
-Un progetto recente usa:
-- `/api/v1.0.0/layoutApi/activityResources`
-- `/api/v1.0.0/layoutApi/columnData`
-- `/api/v1.0.0/detailApi/mediasInfo`
+Campi principali:
+- `hostSnapshotAtInstallArm`
+- `contactedAfterInstallArm`
+- `newHostsAfterInstallArm`
+- `queryDeltaAfterInstallArm`
+- `dnsEvents`
+- `phaseHosts`
 
-su host VIDAA dedicati a layout/detail.
+Il traffico Store HTTPS resta diretto ai server VIDAA reali. Sidee osserva solo DNS.
 
-Questo non prova ancora che la Q0707 Store usi gli stessi path, ma è il riferimento migliore per ricostruire la superficie API senza MITM.
+## Test da fare
 
-## Prossimo passo
+1. `git pull`
+2. riavvia Sidee
+3. lascia il DNS TV puntato al PC
+4. apri il dashboard Sidee dal PC/telefono
+5. premi **Start capture**
+6. sulla TV apri lo Store e la scheda Duplecast
+7. quando la scheda è visibile, premi **Detail page visible** sul dashboard
+8. sul dashboard premi **Arm install capture**
+9. subito dopo, sulla TV premi il normale **Install/Download**
+10. quando lo Store ha restituito il suo risultato, premi **Finish capture**
 
-Non servono altri test TV immediati.
+Poi basta dire **fatto**.
 
-Continuare lato PC/repo:
-- mappare solo endpoint read-only/publici;
-- correlare `category-ui-eu`, `detail-ui-eu`, `layout-ui-eu`, `appstore-vidaa`;
-- non riattivare lo spoof TLS Store;
-- non usare credenziali/token/segreti provenienti da sorgenti pubbliche.
+Leggere:
+- `reports/latest.json` su `sidee-reports`;
+- prima `storeInstallProbe.newHostsAfterInstallArm`;
+- poi `storeInstallProbe.contactedAfterInstallArm`;
+- poi `storeInstallProbe.queryDeltaAfterInstallArm`;
+- infine gli eventi `INSTALL_WINDOW`.
+
+Questo test non modifica risposte Store, non intercetta TLS e non invoca install API da Sidee.
