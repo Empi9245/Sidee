@@ -323,6 +323,24 @@ The report classifies the context as `SMARTONE_APP_CONTEXT` or `DUPLECAST_APP_CO
 
 After the experiment, restore DNS to Automatic so the original apps resolve normally again.
 
+## Native client context fingerprint
+
+The installed-app trampoline now has a dedicated read-only fingerprint step. When Sidee is opened from the VIDAA launcher through the spoofed Smartone or Duplecast hostname, the fingerprint runs automatically before remote polling starts.
+
+It records and correlates:
+
+- expected launcher app (`1470` Smartone or `1876` Duplecast);
+- `navigator.appIdentifier`, `vowOS.service.getIdentifier()`, `vowOSContext.getAppIdentifier()` and `getAppId()`;
+- Role ID / Customer ID;
+- `Hisense_SupportAppConfig()`;
+- bounded own data-property metadata already present on `vowOS.service`, `vowOSContext`, `navigator` and `window`.
+
+Unknown accessors are not invoked. Fields whose names look like tokens, secrets, credentials, auth/cookies, keys, signatures, certificates, nonces or sessions are redacted instead of copied into the report.
+
+The classification is deliberately descriptive: `INSTALLED_APP_IDENTITY_MATCH`, `INSTALLED_APP_IDENTITY_PRESENT`, `INSTALLED_APP_METADATA_PRESENT`, `INSTALLED_APP_CONTEXT_ANONYMOUS`, `BROWSER_IDENTITY_PRESENT`, `APPCONFIG_SIGNAL_ONLY` or `ANONYMOUS_LIKE`.
+
+This fingerprint does **not** claim that matching an app ID grants permission. The previous Identifier Write-Gate Lab already proved that changing only the JavaScript identifier string to installed-app IDs is insufficient. The useful comparison is now whether launching through a real store-installed app container changes the native identity/config state and, separately, whether the backup-protected no-op AppInfo write changes from the same 503 rejection.
+
 ## Identifier Write-Gate Lab
 
 After raw-IP and `vidaahub.com` produced the same AppConfig 503 on direct `fileWrite`, the decisive identity test now targets the protected operation itself rather than comparing `fileRead` responses.
