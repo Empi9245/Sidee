@@ -4234,3 +4234,52 @@ Leggere prima:
 - `storeCatalogTrace.requests`.
 
 Obiettivo: determinare quale dei tre host reali arriva a TLS/HTTP e quali path effettivi usa la Q0707.
+
+
+## RISULTATO — multihost TLS rejected by Q0707 — 2026-09-26
+
+Test reale dopo l'attivazione del trace multihost.
+
+Report:
+- sessionId `sidee-20260926-203224-8ef2`;
+- build `app-c022f88e412f`;
+- buildMatch `true`.
+
+Risultato per-host:
+- `category-ui.vidaahub.com` -> `IDLE`;
+- `detail-ui-eu.vidaahub.com` -> `TLS_SNI_ONLY`;
+- `appstore-vidaa.vidaahub.com` -> `TLS_SNI_ONLY`;
+- `tvmodules-vidaa.vidaahub.com` -> `TLS_SNI_ONLY`.
+
+Per tutti e tre gli host reali:
+- DNS hit presente;
+- TLS SNI presente;
+- zero HTTP request;
+- zero HTTP response;
+- zero proxy error applicativo.
+
+Durante il test la UI Store ha mostrato "impossibile caricare contenuto" e la detail page non si è aperta.
+
+Conclusione supportata dai dati:
+- la TV raggiunge Sidee per TLS sui tre host;
+- il fallimento avviene prima dell'HTTP;
+- il certificato locale Sidee non è accettato dal client Store;
+- il MITM HTTPS con certificato self-signed non è una strada utile per osservare endpoint su questa Q0707.
+
+Correzione:
+- rimossi da `config.json -> spoof_domains` tutti gli host Store tracciati, incluso `category-ui`;
+- il codice multihost resta disponibile ma è inattivo di default;
+- gli host Store tornano a essere osservati tramite `storeDomainDiscovery` passivo;
+- `run_dns` registra nel discovery gli host VIDAA che non sono attualmente spoofati;
+- aggiunto `app-appstore.hismarttv.com` alla scope passiva perché riferimenti pubblici lo associano all'ecosistema app-store Hisense/VIDAA.
+
+Nuovo dato pubblico utile:
+- `tvmodules-vidaa.vidaahub.com/deviceapi/vidaatv.js` è usato pubblicamente come script VIDAA/device API, quindi `tvmodules-vidaa` è probabilmente infrastruttura JS/native API e non il backend catalog/detail;
+- `appstore-vidaa.vidaahub.com` risulta dietro CloudFront/AmazonS3;
+- la funzione precisa di `detail-ui-eu` resta da determinare senza MITM TLS.
+
+Prossima direzione:
+- non riattivare lo spoof TLS Store;
+- usare DNS passivo + ricerca pubblica/statica;
+- se serve osservare più host Hisense Store, includere esattamente host pertinenti nel discovery senza intercettazione;
+- cercare endpoint in asset/script pubblici o in sorgenti/repository, non nel traffico HTTPS decriptato della TV.
