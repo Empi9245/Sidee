@@ -2,6 +2,14 @@
   "use strict";
 
   const $ = id => document.getElementById(id);
+  const CLIENT_BUILD_ID = (() => {
+    try {
+      const src = document.currentScript && document.currentScript.src;
+      if (!src) return "unversioned";
+      const value = new URL(src, location.href).searchParams.get("v");
+      return value || "unversioned";
+    } catch (e) { return "unversioned"; }
+  })();
   const SESSION_RE = /^sidee-\d{8}-\d{6}-[a-f0-9]{4}$/;
   const CLIENT_KEYS = /(app|identifier|appid|role|customer|origin|url|permission|appconfig|store|package|security)/i;
   const logBox = $("console");
@@ -42,7 +50,7 @@
     try{ const a=new Uint8Array(2); crypto.getRandomValues(a); tail=Array.from(a).map(x=>x.toString(16).padStart(2,"0")).join(""); }catch(e){}
     const id="sidee-"+stamp+"-"+tail; try{sessionStorage.setItem("sidee.sessionId",id);}catch(e){} return id;
   }
-  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),startedAt:now,updatedAt:now,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",permissionGate:"UNKNOWN"}}; }
+  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",permissionGate:"UNKNOWN"}}; }
   state.report=newReport();
 
   function meaningful(v){
@@ -686,6 +694,7 @@
   }
   async function persist(reason){
     syncTarget();
+    state.report.clientBuildId=CLIENT_BUILD_ID;
     state.report.updatedAt=new Date().toISOString();
     try{
       const r=await fetch("/api/reports/session",{
@@ -695,6 +704,13 @@
       }),d=await r.json();
       if(!r.ok||!d.ok)throw new Error(d.error||"Report save failed");
       set("reportFileName",d.file);
+      state.report.serverBuildId=d.serverBuildId||null;
+      state.report.buildMatch=d.buildMatch===true;
+      if(d.buildMatch===false){
+        set("reportSaveState","STALE CLIENT · "+CLIENT_BUILD_ID+" ≠ "+(d.serverBuildId||"unknown")+" · reload Sidee before testing.");
+        log("Client/server build mismatch",{clientBuildId:CLIENT_BUILD_ID,serverBuildId:d.serverBuildId});
+        return d;
+      }
       const sync=d.githubSync||{};
       if(sync.state==="DISABLED")set("reportSaveState","Saved locally · GitHub sync disabled.");
       else{
@@ -708,7 +724,14 @@
     }
   }
   function save(reason){state.saveChain=state.saveChain.catch(()=>null).then(()=>persist(reason));return state.saveChain;}
-  async function load(){const r=await fetch("/api/config",{cache:"no-store"}),d=await r.json();state.config=d;const a=d.nuvio||{};$("appId").value=a.app_id||"nuviodebug";$("appName").value=a.app_name||"Nuvio TV";$("appUrl").value=a.app_url||"";$("iconUrl").value=a.icon_url||"";syncTarget();}
+  async function load(){
+    const bust=Date.now();
+    const responses=await Promise.all([fetch("/api/config?cb="+bust,{cache:"no-store"}),fetch("/api/status?cb="+bust,{cache:"no-store"})]);
+    const d=await responses[0].json(),status=await responses[1].json();
+    state.config=d;state.report.serverBuildId=status.clientBuildId||null;state.report.buildMatch=!!status.clientBuildId&&status.clientBuildId===CLIENT_BUILD_ID;
+    if(state.report.buildMatch===false)log("Client/server build mismatch detected on load",{clientBuildId:CLIENT_BUILD_ID,serverBuildId:status.clientBuildId});
+    const a=d.nuvio||{};$("appId").value=a.app_id||"nuviodebug";$("appName").value=a.app_name||"Nuvio TV";$("appUrl").value=a.app_url||"";$("iconUrl").value=a.icon_url||"";syncTarget();
+  }
 
   function controls(){return Array.prototype.slice.call(document.querySelectorAll("button,input,summary")).filter(el=>{if(!el||el.disabled||el.hidden)return false;const s=getComputedStyle(el);return s.display!=="none"&&s.visibility!=="hidden"&&el.getClientRects().length>0;});}
   function center(el){const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};}
