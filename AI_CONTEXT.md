@@ -1708,3 +1708,32 @@ Il report reale ha inoltre mostrato `StoreType` numerico 98/99/100 nella fonte `
 È stata corretta anche la `fieldDistribution`: i campi normalizzati e i corrispondenti metadata raw con differenze solo di maiuscole/minuscole non vengono più contati due volte (nel report precedente `isShowOnLauncher:true` risultava 122 su 61 app).
 
 Il prossimo test TV deve rieseguire soltanto `Inspect Installed Apps` e poi `Export Report`. Il risultato atteso è `appInfoCount > 0`, match per ID con almeno le app presenti in entrambe le fonti, metadata Appinfo come StoreType/openMode/venderId/unifiedAppName/configUrl e distribuzioni senza duplicazione.
+
+
+---
+
+## IMPLEMENTAZIONE — AppInfo Deep Dump read-only — 2026-09-26
+
+Dopo il report reale `sidee-session-20260926-104537-d029` (61 InstalledApps, 3 AppInfo, 3 match), l'Installed App Metadata Inspector è stato esteso senza aggiungere nuovi path o nuove API.
+
+La stessa lettura read-only già verificata:
+
+`HiUtils_createRequest('fileRead', { path: 'websdk/Appinfo.json', mode: 6 })`
+
+ora conserva anche i record AppInfo originali completi nel report sotto:
+
+`installedAppMetadata.appInfoDeepDump`
+
+Struttura:
+- `path`
+- `readOnly: true`
+- `recordCount`
+- `records`
+
+`records` contiene gli oggetti AppInfo originali usati dall'Inspector, senza filtraggio dei campi, normalizzazione o truncation applicata a questa copia. Restano quindi presenti anche valori vuoti e gli oggetti annidati `appInfo` / `showInfo` quando esistono.
+
+La vista compatta/normalizzata precedente (`apps`, `fieldDistribution`, `discoveredReferences`, `summary`) è mantenuta invariata per il confronto.
+
+Nessuna modifica è stata fatta a install/uninstall, fileWrite, permission test, Role/Customer setter o path discovery.
+
+Prossimo test TV: eseguire soltanto **Inspect Installed Apps** e poi **Export Report**. Nel nuovo JSON controllare in particolare `installedAppMetadata.appInfoDeepDump.records` per package/bundle/identifier/manifest/config/permission/security/signature/auth metadata che la vista normalizzata potrebbe non evidenziare.
