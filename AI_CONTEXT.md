@@ -2934,3 +2934,182 @@ il nuovo pulsante e nei contesti Smartone/Duplecast tramite il bootstrap. Questo
 è un confronto di superfici di sola lettura, non un nuovo test permission/write.
 Analizzare `legacyHspdkContext` dai report sincronizzati senza richiedere allegati.
 Nuvio non è stato aggiunto; nessuna scrittura TV eseguita in questa fase.
+
+---
+
+## RICERCA — Legacy HSPDK launch/runtime context — 2026-09-26
+
+Questa fase NON ripete il confronto HSPDK tra vidaahub e Smartone. Il dato reale già acquisito resta che una normale pagina browser e un vero store-app launcher context non ricevono automaticamente `HiBrowser / loadLibrary / Hisense.File`. La ricerca qui serve esclusivamente a identificare nomi e host storici concreti da cercare in modo read-only sul runtime corrente.
+
+### Fonte primaria: hisense-app-store
+
+Repository verificato:
+- https://github.com/hisense-app-store/hisense-app-store.github.io
+- file: `assets/js/lib.js`
+
+Il codice storico:
+- preferisce `window.HiBrowser`, con fallback a `window.Hisense`;
+- chiama `loadLibrary('libhspdk-jsx.so')`;
+- usa `File.read(path, 1)` e `File.write(path, ..., 1)`;
+- legge `launcher/preset.txt` e `launcher/Appinfo.json`;
+- scrive `launcher/Appinfo.json`.
+
+`index.html` è una normale pagina web e `browser.html` è una pagina che naviga a un URL con `window.location`; il repository non crea lato JavaScript `HiBrowser`, `Hisense.File` o `loadLibrary`. Il binding deve quindi essere fornito dal browser/runtime host.
+
+### Fonte primaria: vecchio launcher Hisense — nomi di componenti reali
+
+Repository verificato:
+- https://github.com/giofrida/Hisense-Smart-TV-Enhancements
+- README: progetto per modelli Hisense 2016/2017, testato dall'autore su H43M3000;
+- file principali:
+  - `UI/hisenseUI/main.js`
+  - `UI/hisenseUI/modulePages/appPages/hiBrowser.js`
+
+Nel launcher storico esistono tre target App Manager concreti e distinti:
+
+```text
+hi_browser
+lau_browser
+tv_store
+```
+
+`main.js` contiene realmente:
+
+```text
+:am,am,hi_browser:start=hi_browser
+:am,am,hi_browser:start=[hi_browser,-u,<url>]
+:am,am,lau_browser:start=[lau_browser,-u,<url>]
+:am,am,tv_store:start=...
+```
+
+`hiBrowser.js` identifica inoltre il componente con:
+
+```text
+amName: "hi_browser"
+```
+
+e lo arresta con un comando `:stop=hi_browser`.
+
+Lo stesso vecchio codice launcher usa in più punti `Hisense.File.read/write`, incluso `launcher/Appinfo.json`. Questo prova l'esistenza storica della famiglia File nel system UI di quella generazione, ma NON prova da solo che il processo `hi_browser` fosse l'oggetto che iniettava HSPDK e soprattutto NON prova che questi target esistano ancora su VIDAA 9.60 Q0707.
+
+### Fonte primaria: host browser storico su filesystem
+
+Repository verificato:
+- https://github.com/giofrida/Hisense-Amazon-Enabler
+- file: `README.md`
+
+Un log reale riportato dal progetto, ottenuto avviando l'app Amazon su un vecchio Hisense, mostra il browser applicativo come:
+
+```text
+/3rd/internet_browser/browser
+```
+
+e documenta configurazioni sotto:
+
+```text
+/3rd/internet_browser/apps/amazon_ruby/bws_profile.ini
+/3rd_rw/internet_browser/browser_config.ini
+/3rd_rw/internet_browser/bws_profile.ini
+```
+
+Questi path costituiscono evidenza concreta di una storica browser-host family `internet_browser`. Non vanno interpretati come prova che gli stessi file/path siano presenti o raggiungibili sulla Q0707.
+
+### Corroborazione 4PDA — launch context
+
+Nel thread 4PDA A7300F/A7500F del marzo 2022, il codice `hisense-app-store` viene esplicitamente servito da un PC e aperto nel browser TV via HTTP; lo stesso autore del post successivamente indica che si può aprire direttamente `https://hisense-app-store.github.io/` nel browser TV. Sono testimonianze di terzi, non documentazione Hisense.
+
+Altri post 4PDA dello stesso periodo riportano comportamento dipendente da modello/generazione e discussioni VIDAA 3/4: quindi il successo storico del sito non è trasferibile automaticamente al firmware Q0707.
+
+Le query esatte effettuate per `PikaHub` + HSPDK/HiBrowser/libhspdk non hanno prodotto una nuova evidenza di launch context utile in questa fase; non basare test nuovi sul solo nome finché non emerge una URL/repository concreta.
+
+### Conclusione di ricerca
+
+Il candidato storico più concreto per il browser esplicito è ora:
+
+```text
+hi_browser
+```
+
+con contesti vicini documentati:
+
+```text
+lau_browser
+tv_store
+/3rd/internet_browser/browser
+```
+
+Questi sono marker trovati in sorgenti reali, non nomi inventati.
+
+Stato sulla TV attuale:
+
+```text
+PRESENZA_SU_Q0707 = NOT_PROVEN
+HSPDK_IN_HI_BROWSER = HISTORICAL_CANDIDATE_NOT_PROVEN_ON_Q0707
+```
+
+Per questo NON è stato eseguito alcun comando App Manager e NON è stato tentato di avviare `hi_browser/lau_browser/tv_store`.
+
+### Implementazione Sidee: source-only legacy launch marker probe
+
+`web/hspdk-context.js` è stato portato a schema version 2.
+
+Il collector continua a essere descriptor-only/read-only e ora aggiunge:
+
+```text
+legacyLaunchContextMatches
+```
+
+Durante la scansione del source di funzioni già esposte cerca soltanto marker storici verificati:
+
+```text
+:am,am,hi_browser:start
+:am,am,lau_browser:start
+:am,am,tv_store:start
+:am,am,:start=[hi_browser|lau_browser|tv_store
+app_hi_browser
+app_lau_browser
+app_tv_store
+amName: "hi_browser"
+/3rd/internet_browser/browser
+/3rd/internet_browser/apps/
+/3rd_rw/internet_browser/
+```
+
+Ogni match viene marcato:
+
+```text
+evidence = HISTORICAL_LAUNCH_MARKER_ONLY
+```
+
+Il probe NON:
+- chiama `sendAM`;
+- avvia componenti;
+- invoca getter sconosciuti;
+- chiama `loadLibrary`;
+- chiama `File.read/File.write`;
+- inventa URL, app ID o API.
+
+Il bootstrap Smartone/Duplecast incorpora già il contenuto corrente di `web/hspdk-context.js` e `client_build_id()` include quel file nel digest, quindi la nuova build è automaticamente cache-bound anche nei launch-context capture.
+
+### Validazione locale
+
+Verificati localmente:
+- parsing JavaScript del collector v2 con `node --check`;
+- harness VM con getter/native methods proibiti;
+- rilevazione della coppia File ereditata invariata;
+- rilevazione source HSPDK invariata;
+- rilevazione del marker reale `:am,am,hi_browser:start=[hi_browser,-u,...]`;
+- rilevazione del path storico `/3rd/internet_browser/browser`;
+- nessun getter/metodo proibito invocato.
+
+Il clone completo della repo dal container di verifica non era disponibile per risoluzione DNS esterna, quindi non è stato rieseguito lì l'intero unittest Python; il collegamento bootstrap è stato però ricontrollato direttamente in `sidee.py`: legge `web/hspdk-context.js`, lo incorpora inline e salva `window.SideeHspdkContext()`.
+
+### Prossimo dato utile
+
+Dopo pull/restart, un normale capture HSPDK può ora dirci anche se nel runtime Q0707 esiste già qualche funzione/namespace che contiene riferimenti ai componenti storici sopra.
+
+Interpretazione:
+- se `legacyLaunchContextMatches` è vuoto, non inventare il passo successivo e non lanciare nomi alla cieca;
+- se compare un marker concreto, seguire esclusivamente quel path/funzione reale con un ulteriore probe descriptor/source-only;
+- passare a qualsiasi lettura/scrittura legacy solo se appare davvero una superficie callable `File.read + File.write`.
+
