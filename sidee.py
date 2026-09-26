@@ -1059,6 +1059,15 @@ def main():
     http_thread.start()
     threads.append(http_thread)
 
+    app_context_http_port = int(cfg.get("app_context_http_port", 80))
+    if app_context_http_port != int(cfg.get("http_port", 8080)):
+        app_context_http_thread = threading.Thread(
+            target=run_http,
+            args=(app_context_http_port,),
+            daemon=True,
+        )
+        app_context_http_thread.start()
+        threads.append(app_context_http_thread)
 
     if not args.no_dns:
         dns_thread = threading.Thread(target=run_dns, args=(cfg, local_ip), daemon=True)
