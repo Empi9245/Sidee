@@ -178,9 +178,11 @@
         <div id="legacyHspdkState" class="state">Not run yet.</div>
         <div class="row runtimeActions">
           <button id="hspdkContextBtn" class="secondary">Inspect HSPDK Context (read-only)</button>
+          <button id="pkgmgrInstalledBtn" class="secondary">Inspect pkgmgr installed packages (read-only)</button>
           <button id="addNuvioHspdkBtn" class="danger" disabled>Add Nuvio via HSPDK</button>
           <button id="restoreHspdkBackupBtn" class="secondary" disabled>Restore HSPDK Backup</button>
         </div>
+        <div id="pkgmgrInstalledState" class="microState">Reads only <code>vowOS.store.getInstalledPkgs()</code>; it does not install, remove or modify packages.</div>
         <div id="legacyHspdkAddState" class="microState">Nuvio stays disabled until a byte-changing write and exact restore are both verified.</div>
         <div id="legacyHspdkRestoreState" class="microState">The restore button uses only the immutable backup created before the HSPDK probe.</div>
         <div id="hspdkContextState" class="microState">Inspect the actual host objects before another write test.</div>
