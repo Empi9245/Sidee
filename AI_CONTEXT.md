@@ -2614,3 +2614,36 @@ Interpretazione:
 - identity non vuota + write consentito => soluzione pratica: usare installed-app container come trampoline per registrare Nuvio;
 - identity non vuota + 503 => AppConfig permission è per-app e l'app normale non ha write privilege; prossima pista = official App Store context / category-ui;
 - identity vuota => launcher non assegna identity utile a quel tipo di app; passare al contesto store ufficiale.
+
+
+---
+
+## IMPLEMENTAZIONE — Identifier Write-Gate Lab — 2026-09-26
+
+Motivazione: il confronto raw-IP vs `vidaahub.com` ha chiuso la variabile origin/DNS. Entrambi raggiungono `hiutils`; `fileRead` passa con identifier vuoto, mentre `fileWrite` riceve lo stesso AppConfig 503. Di conseguenza il vecchio Identity Override Lab su `fileRead` non è più discriminante.
+
+Nuovo test esplicito:
+- fresh build check;
+- read completo di `websdk/Appinfo.json`;
+- backup immutabile server-side prima di qualsiasi write;
+- baseline no-op `fileWrite` con identifier corrente;
+- readback identico obbligatorio;
+- raccolta esclusiva di candidate concrete da runtime/AppInfo/installed apps;
+- massimo 6 candidate;
+- per ogni candidate: override temporaneo di `vowOS.service.getIdentifier`, stesso identico raw `fileWrite`, readback, restore in `finally`;
+- stop immediato se cambia il gate o cambia il registry;
+- Nuvio non viene mai aggiunto.
+
+Conclusioni:
+- `IDENTIFIER_AFFECTS_WRITE_GATE`: una candidate cambia ret/code/msg/error del vero `fileWrite` gate;
+- `IDENTIFIER_STRING_NOT_SUFFICIENT`: tutte le candidate concrete testate ricevono lo stesso AppConfig rejection della baseline;
+- `NO_REAL_IDENTIFIER_AVAILABLE`;
+- `BASELINE_WRITE_ALLOWED`;
+- `REGISTRY_CHANGED_ABORTED`;
+- `INCONCLUSIVE`.
+
+Remote:
+- nuovo flag esclusivo `runIdentityWriteGateLabV1:true`;
+- obbligatorio `requiresBuildId` uguale al build server;
+- workflow remoto `baseline -> identity-write-gate-lab -> export`;
+- nessun add Nuvio, restore, install/uninstall, setter o JavaScript arbitrario.

@@ -47,7 +47,7 @@
         </div>
         <button id="remoteDiagnosticArmBtn" class="secondary">Enable remote diagnostics for this page</button>
       </div>
-      <p>When armed, this page may accept a fixed read-only diagnostic or the specifically bounded AppInfo no-op write test. The no-op path creates a local immutable backup first and writes back the exact registry it just read. Reloading or closing the page disarms it. Remote app addition, restore, install/uninstall, setters and arbitrary commands are not supported.</p>
+      <p>When armed, this page may accept one of three fixed workflows: read-only diagnostics, the single AppInfo no-op write test, or the bounded Identifier Write-Gate Lab. Write workflows create an immutable backup first and only write back the exact registry they just read. Remote app addition, restore, install/uninstall, setters and arbitrary commands are not supported.</p>
       <div id="remoteDiagnosticState" class="state">DISARMED</div>
     </section>
 
@@ -140,17 +140,17 @@
       <article class="card" id="identityOverrideLabCard">
         <div class="cardHead">
           <div>
-            <p class="kicker">NEXT · IDENTITY OVERRIDE LAB</p>
-            <h2>Identity Override Lab</h2>
+            <p class="kicker">NEXT · IDENTIFIER WRITE GATE</p>
+            <h2>Identifier Write-Gate Lab</h2>
           </div>
-          <button id="identityOverrideLabBtn" class="secondary">Run Identity Override Lab</button>
+          <button id="identityOverrideLabBtn" class="danger">Run Identifier Write-Gate Lab</button>
         </div>
-        <p>Resumed after the real-TV direct <code>fileWrite</code> test was rejected by the same AppConfig permission gate. This lab stays read-only: it tests concrete identifiers only against the harmless <code>fileRead</code> path and restores every override in <code>finally</code>.</p>
+        <p>Decisive bounded test: Sidee backs up the exact registry, establishes the normal no-op <code>fileWrite</code> response, then repeats that same exact raw write with at most 6 concrete identifiers already exposed by this TV. No app is added. Every identifier override is restored in <code>finally</code>, and testing stops immediately if the gate response or registry content changes.</p>
         <div class="identityGrid">
           <div><span>Original identifier</span><b id="identityLabOriginal" class="summaryValue">—</b></div>
           <div><span>Candidates</span><b id="identityLabCandidates" class="summaryValue">0</b></div>
-          <div><span>Read-only tests</span><b id="identityLabTests" class="summaryValue">0</b></div>
-          <div><span>Backend differences</span><b id="identityLabDifferences" class="summaryValue">0</b></div>
+          <div><span>Write-gate tests</span><b id="identityLabTests" class="summaryValue">0</b></div>
+          <div><span>Gate differences</span><b id="identityLabDifferences" class="summaryValue">0</b></div>
           <div><span>Conclusion</span><b id="identityLabConclusion" class="summaryValue">NOT_RUN</b></div>
         </div>
         <div id="identityOverrideLabState" class="state">Not run yet.</div>

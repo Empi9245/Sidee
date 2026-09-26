@@ -542,7 +542,8 @@ def remote_diagnostic_worker():
                 safe_readonly_v2 = raw.get("runSafeDiagnosticV2") is True
                 direct_noop = raw.get("runDirectAppInfoWriteNoop") is True
                 direct_noop_v2 = raw.get("runDirectAppInfoWriteNoopV2") is True
-                selected = int(bool(safe_readonly)) + int(bool(safe_readonly_v2)) + int(bool(direct_noop)) + int(bool(direct_noop_v2))
+                identity_write_gate = raw.get("runIdentityWriteGateLabV1") is True
+                selected = int(bool(safe_readonly)) + int(bool(safe_readonly_v2)) + int(bool(direct_noop)) + int(bool(direct_noop_v2)) + int(bool(identity_write_gate))
                 if selected > 1:
                     raise ValueError("Diagnostic request selects multiple workflows")
                 if safe_readonly_v2:
@@ -559,6 +560,11 @@ def remote_diagnostic_worker():
                         raise ValueError("Direct AppInfo no-op request is waiting for its required Sidee build")
                 elif direct_noop:
                     workflow = "direct-appinfo-noop"
+                elif identity_write_gate:
+                    workflow = "identity-write-gate"
+                    required_build = raw.get("requiresBuildId")
+                    if required_build != client_build_id():
+                        raise ValueError("Identifier write-gate request is waiting for its required Sidee build")
 
             if workflow is None:
                 with REMOTE_DIAGNOSTIC_LOCK:
@@ -586,6 +592,8 @@ def remote_diagnostic_worker():
                 message = (
                     "Backup-protected AppInfo no-op write requested; waiting for an armed TV page."
                     if workflow == "direct-appinfo-noop"
+                    else "Identifier write-gate lab requested; waiting for an armed TV page."
+                    if workflow == "identity-write-gate"
                     else "Read-only diagnostic requested; waiting for an armed TV page."
                 )
                 with REMOTE_DIAGNOSTIC_LOCK:

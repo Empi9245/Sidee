@@ -50,7 +50,7 @@
     try{ const a=new Uint8Array(2); crypto.getRandomValues(a); tail=Array.from(a).map(x=>x.toString(16).padStart(2,"0")).join(""); }catch(e){}
     const id="sidee-"+stamp+"-"+tail; try{sessionStorage.setItem("sidee.sessionId",id);}catch(e){} return id;
   }
-  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,accessContext:pageContext(),accessMode:accessMode(),serverAccess:null,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,identityOverrideLab:null,candidatePermissionTest:null,directAppInfoWriteLab:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",permissionGate:"UNKNOWN",appInfoWrite:"NOT_RUN"}}; }
+  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,accessContext:pageContext(),accessMode:accessMode(),serverAccess:null,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,identityOverrideLab:null,identityWriteGateLab:null,candidatePermissionTest:null,directAppInfoWriteLab:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",permissionGate:"UNKNOWN",appInfoWrite:"NOT_RUN"}}; }
   state.report=newReport();
 
   function meaningful(v){
@@ -1075,6 +1075,164 @@
       state.report.identityOverrideLab=report;renderIdentityLab(report);set("identityOverrideLabState","Lab failed: "+err(e));log("Identity Override Lab failed",err(e));await save("identity-override-lab-error");
     }finally{state.running=false;}
   }
+
+  function writeGateResult(write){
+    const r=write&&write.result||{};
+    return {ret:r.ret===undefined?null:r.ret,code:r.code===undefined?null:r.code,msg:r.msg===undefined?null:String(r.msg),error:write&&write.error||null};
+  }
+  function writeGateDiff(base,test){
+    const a=base||{},b=test||{};
+    return {
+      retChanged:JSON.stringify(a.ret)!==JSON.stringify(b.ret),
+      codeChanged:JSON.stringify(a.code)!==JSON.stringify(b.code),
+      msgChanged:String(a.msg||"")!==String(b.msg||""),
+      errorChanged:String(a.error||"")!==String(b.error||""),
+      backendChanged:JSON.stringify(a.ret)!==JSON.stringify(b.ret)||JSON.stringify(a.code)!==JSON.stringify(b.code)||String(a.msg||"")!==String(b.msg||"")||String(a.error||"")!==String(b.error||"")
+    };
+  }
+  function identityRegistryReadback(before,after){
+    const diff=before&&before.parsed&&after&&after.parsed?registryDiff(before.parsed,after.parsed):null;
+    const identical=!!(before&&after&&before.raw!==null&&after.raw!==null&&before.raw===after.raw&&before.length===after.length&&before.appInfoCount===after.appInfoCount&&diff&&diff.structurallyEqual);
+    return {ok:!!(after&&after.ok&&after.parseValid),identical:identical,rawHash:after&&after.hash||null,length:after&&after.length||null,appInfoCount:after&&after.appInfoCount||null,parseValid:!!(after&&after.parseValid),structuralDiff:diff,error:after&&after.error||null};
+  }
+  function renderIdentityWriteGateLab(r){
+    set("identityLabOriginal",r&&meaningful(r.originalIdentifier)?r.originalIdentifier:"EMPTY");
+    set("identityLabCandidates",r&&r.candidateIdentifiers?r.candidateIdentifiers.length:0);
+    set("identityLabTests",r&&r.tests?r.tests.length:0);
+    set("identityLabDifferences",r&&r.tests?r.tests.filter(x=>x.responseDiff&&x.responseDiff.backendChanged).length:0);
+    set("identityLabConclusion",r&&r.conclusionHint?r.conclusionHint:"NOT_RUN");
+    set("identityOverrideLabState",r?(r.conclusionHint+" · "+(r.tests?r.tests.length:0)+" write-gate candidate test(s)."):"Not run yet.");
+  }
+  async function identityWriteGateLab(options){
+    if(state.running)return null;
+    state.running=true;set("identityOverrideLabState","Preparing backup-protected identifier write-gate test…");
+    const report={
+      timestamp:new Date().toISOString(),
+      clientBuildId:CLIENT_BUILD_ID,
+      serverBuildId:state.report.serverBuildId,
+      buildMatch:state.report.buildMatch,
+      pageContext:pageContext(),
+      accessMode:accessMode(),
+      originalIdentifier:null,
+      backup:null,
+      baselineWrite:null,
+      candidateIdentifiers:[],
+      tests:[],
+      maxCandidateWrites:6,
+      stoppedEarly:false,
+      stopReason:null,
+      restored:true,
+      registryUnchanged:true,
+      conclusionHint:"INCONCLUSIVE",
+      conclusionNote:null,
+      remote:!!(options&&options.remote),
+      safety:"Every write uses the exact raw Appinfo string read before the lab. Nuvio is never added. Identifier overrides are restored in finally."
+    };
+    try{
+      report.serverBuildId=await refreshDirectBuildMatch();report.buildMatch=true;
+      let svc=null;try{svc=window.vowOS&&window.vowOS.service;}catch(e){}
+      const original=svc&&typeof svc.getIdentifier==="function"?call(svc,"getIdentifier"):{status:"UNAVAILABLE",value:null};
+      report.originalIdentifier=original&&original.value;
+
+      const before=await readAppInfoRegistry("identity-write-gate-read-before");
+      if(!before.ok||!before.parseValid)throw new Error(before.error||"Could not obtain valid Appinfo JSON");
+      report.registryBefore={rawHash:before.hash,length:before.length,appInfoCount:before.appInfoCount,parseValid:before.parseValid};
+      report.backup=await createAppInfoBackup(before.raw,before.hash);
+      if(before.hash&&before.hash.algorithm==="SHA-256"&&report.backup.sha256!==before.hash.value)throw new Error("Server backup does not match the exact Appinfo content");
+
+      const baselineWrite=await fileWriteAppInfo(before.raw,"identity-write-gate-baseline");
+      const baselineAfter=await readAppInfoRegistry("identity-write-gate-baseline-readback");
+      const baselineReadback=identityRegistryReadback(before,baselineAfter);
+      report.baselineWrite={identifier:report.originalIdentifier,result:writeGateResult(baselineWrite),request:{path:APPINFO_PATH,mode:APPINFO_MODE,writedata:"[exact registry raw; omitted from report summary]"},readback:baselineReadback};
+      if(!baselineReadback.identical){
+        report.registryUnchanged=false;report.stoppedEarly=true;report.stopReason="BASELINE_REGISTRY_CHANGED";report.conclusionHint="REGISTRY_CHANGED_ABORTED";report.conclusionNote="The baseline no-op write did not read back identically. Candidate writes were not attempted.";
+        throw new Error("Baseline no-op write changed or invalidated Appinfo; candidate writes aborted");
+      }
+
+      const baselineGate=report.baselineWrite.result;
+      if(baselineGate.ret===true){
+        report.stoppedEarly=true;report.stopReason="BASELINE_WRITE_ALREADY_ALLOWED";report.conclusionHint="BASELINE_WRITE_ALLOWED";report.conclusionNote="The original identifier already passed the no-op write gate, so spoofing candidates would add no useful evidence.";
+      }else{
+        const candidates=[],candidateMap={};
+        const add=(value,provenance,score,meta)=>addIdentityCandidate(candidates,candidateMap,value,provenance,score,meta);
+        const snap=current()||capture("identityWriteGateDiscovery");
+        [["serviceIdentifier",snap&&snap.serviceIdentifier],["appIdentifier",snap&&snap.appIdentifier],["appId",snap&&snap.appId],["navigatorAppIdentifier",snap&&snap.navigatorAppIdentifier]].forEach(pair=>{const x=pair[1];if(x&&x.status==="RETURNED")add(x.value,"runtime."+pair[0],120,{kind:"runtime-identity"});});
+        (before.parsed.AppInfo||[]).slice(0,120).forEach((entry,idx)=>{
+          const label=String(entry&&entry.AppName||entry&&entry.Title||"");
+          const bonus=/(vidaa|hisense|store|browser|launcher|system|stremio|smartone|duplecast)/i.test(label)?20:0;
+          [["Id",entry&&entry.Id],["appId",entry&&entry.appId],["unifiedAppName",entry&&entry.unifiedAppName]].forEach(pair=>{if(meaningful(pair[1]))add(pair[1],"websdk/Appinfo.json["+idx+"]."+pair[0],90+bonus,{kind:"appinfo-id",appName:label||null,field:pair[0]});});
+        });
+        try{
+          const installedSource=await installedMetadataSource();
+          addRecordCandidates(installedSource.records,"Hisense_getInstalledApps",add,70);
+        }catch(e){}
+        targetedRuntimeIdentifierCandidates(add);
+        candidates.sort((a,b)=>b.score-a.score||a.value.localeCompare(b.value));
+        report.candidateIdentifiers=candidates.slice(0,40).map(c=>({value:c.value,score:c.score,provenance:c.provenance,meta:c.meta}));
+
+        const selected=candidates.slice(0,report.maxCandidateWrites);
+        for(let i=0;i<selected.length;i++){
+          const candidate=selected[i];
+          await refreshDirectBuildMatch();
+          let wrapped=null,testRecord={candidate:{value:candidate.value,score:candidate.score,provenance:candidate.provenance,meta:candidate.meta},write:null,readback:null,override:null,responseDiff:null,contentChanged:false,error:null};
+          try{
+            wrapped=await withTemporaryServiceIdentifier(candidate.value,async()=>{
+              const write=await fileWriteAppInfo(before.raw,"identity-write-gate-candidate");
+              const after=await readAppInfoRegistry("identity-write-gate-candidate-readback");
+              return {write:write,after:after};
+            });
+            testRecord.override=wrapped.meta;
+            const gate=writeGateResult(wrapped.value.write),readback=identityRegistryReadback(before,wrapped.value.after);
+            testRecord.write={result:gate,request:{path:APPINFO_PATH,mode:APPINFO_MODE,writedata:"[exact registry raw; omitted from report summary]"}};
+            testRecord.readback=readback;
+            testRecord.contentChanged=!readback.identical;
+            testRecord.responseDiff=writeGateDiff(baselineGate,gate);
+            if(!wrapped.meta.restored)report.restored=false;
+            if(testRecord.contentChanged){
+              report.registryUnchanged=false;report.stoppedEarly=true;report.stopReason="CANDIDATE_REGISTRY_CHANGED";report.tests.push(testRecord);break;
+            }
+            report.tests.push(testRecord);
+            if(testRecord.responseDiff.backendChanged){
+              report.stoppedEarly=true;report.stopReason="WRITE_GATE_RESPONSE_CHANGED";break;
+            }
+          }catch(e){
+            testRecord.error=err(e);testRecord.override=wrapped&&wrapped.meta||testRecord.override;report.tests.push(testRecord);
+            if(testRecord.override&&testRecord.override.restored===false)report.restored=false;
+          }
+        }
+
+        const changed=report.tests.find(x=>x.responseDiff&&x.responseDiff.backendChanged);
+        if(!report.registryUnchanged){
+          report.conclusionHint="REGISTRY_CHANGED_ABORTED";
+          report.conclusionNote="A no-op candidate write did not read back identically. Testing stopped immediately; use the Sidee backup/restore controls before any further write experiment.";
+        }else if(changed){
+          report.conclusionHint="IDENTIFIER_AFFECTS_WRITE_GATE";
+          report.conclusionNote="A concrete identifier changed the response of the actual AppInfo fileWrite permission gate. This is direct evidence that the identifier participates in backend authorization.";
+          report.interestingCandidate=changed.candidate;
+        }else if(!report.candidateIdentifiers.length){
+          report.conclusionHint="NO_REAL_IDENTIFIER_AVAILABLE";
+          report.conclusionNote="No concrete non-empty identifier candidate was available from runtime/AppInfo/installed-app sources.";
+        }else if(report.tests.length&&report.tests.every(x=>x.write&&Number(x.write.result.code)===Number(baselineGate.code)&&String(x.write.result.msg||"")===String(baselineGate.msg||"")&&x.override&&x.override.restored!==false)){
+          report.conclusionHint="IDENTIFIER_STRING_NOT_SUFFICIENT";
+          report.conclusionNote="Every tested concrete identifier reached the same AppConfig write rejection as baseline. For these candidates, changing only the identifier string is not sufficient.";
+        }else if(!report.stoppedEarly){
+          report.conclusionHint="INCONCLUSIVE";
+          report.conclusionNote="Candidate tests completed without a decisive permission-gate difference.";
+        }
+      }
+    }catch(e){
+      report.error=err(e);
+      if(report.conclusionHint==="INCONCLUSIVE")report.conclusionNote=report.error;
+    }finally{
+      state.report.identityWriteGateLab=report;
+      renderIdentityWriteGateLab(report);
+      log("Identity Write-Gate Lab complete",{baseline:report.baselineWrite&&report.baselineWrite.result,candidates:report.candidateIdentifiers.length,tested:report.tests.length,conclusion:report.conclusionHint,restored:report.restored,registryUnchanged:report.registryUnchanged,error:report.error||null});
+      state.running=false;
+      await save("identity-write-gate-lab");
+    }
+    return report;
+  }
+
   async function candidatePermissionGateTest(){
     const input=$("identityPermissionIdentifier"),value=input?input.value.trim():"";
     if(!value)return set("candidatePermissionState","Enter a concrete identifier first. No install request was sent.");
@@ -1199,8 +1357,8 @@
     if(!request||lastRemoteDiagnosticId()===request.requestId)return;
     state.remoteDiagnosticRunning=true;
     rememberRemoteDiagnosticId(request.requestId);
-    const started=new Date().toISOString(),directNoop=request.workflow==="direct-appinfo-noop";
-    if(directNoop&&request.requiresBuildId&&request.requiresBuildId!==CLIENT_BUILD_ID){
+    const started=new Date().toISOString(),directNoop=request.workflow==="direct-appinfo-noop",identityWriteGate=request.workflow==="identity-write-gate";
+    if((directNoop||identityWriteGate)&&request.requiresBuildId&&request.requiresBuildId!==CLIENT_BUILD_ID){
       renderRemoteDiagnosticState("ARMED · stale client for AppInfo write request");
       return;
     }
@@ -1211,18 +1369,21 @@
       startedAt:started,
       completedAt:null,
       status:"RUNNING",
-      workflow:directNoop?["direct-appinfo-write-noop","export"]:["baseline","identity-override-lab","permission-source-trace","installed-metadata","verification","export"],
+      workflow:directNoop?["direct-appinfo-write-noop","export"]:identityWriteGate?["baseline","identity-write-gate-lab","export"]:["baseline","permission-source-trace","installed-metadata","verification","export"],
       error:null
     };
-    renderRemoteDiagnosticState(directNoop?"RUNNING · backup-protected AppInfo no-op write":"RUNNING · read-only diagnostic");
-    await remoteDiagnosticAck(request,"RUNNING",directNoop?"TV accepted the armed AppInfo no-op write diagnostic":"TV accepted the armed read-only diagnostic");
+    renderRemoteDiagnosticState(directNoop?"RUNNING · backup-protected AppInfo no-op write":identityWriteGate?"RUNNING · identifier write-gate lab":"RUNNING · read-only diagnostic");
+    await remoteDiagnosticAck(request,"RUNNING",directNoop?"TV accepted the armed AppInfo no-op write diagnostic":identityWriteGate?"TV accepted the armed identifier write-gate diagnostic":"TV accepted the armed read-only diagnostic");
     try{
       if(directNoop){
         const directResult=await directAppInfoWriteLab({remote:true});
         log("Remote AppInfo no-op result",{writeCapability:directResult&&directResult.writeCapability,backup:directResult&&directResult.backup&&directResult.backup.backupId});
+      }else if(identityWriteGate){
+        await baseline();
+        const gateResult=await identityWriteGateLab({remote:true});
+        log("Remote identifier write-gate result",{conclusion:gateResult&&gateResult.conclusionHint,tested:gateResult&&gateResult.tests&&gateResult.tests.length,interestingCandidate:gateResult&&gateResult.interestingCandidate||null});
       }else{
         await baseline();
-        await identityOverrideLab();
         await permissionSourceTrace();
         await inspectInstalledMetadata();
         const verification=await verify();
@@ -1232,7 +1393,7 @@
       state.report.remoteDiagnostic.status="COMPLETED";
       await save("remote-safe-diagnostic-complete");
       renderRemoteDiagnosticState("ARMED · last request completed");
-      await remoteDiagnosticAck(request,"COMPLETED",directNoop?"AppInfo no-op write diagnostic completed":"Read-only diagnostic completed");
+      await remoteDiagnosticAck(request,"COMPLETED",directNoop?"AppInfo no-op write diagnostic completed":identityWriteGate?"Identifier write-gate diagnostic completed":"Read-only diagnostic completed");
     }catch(e){
       state.report.remoteDiagnostic.completedAt=new Date().toISOString();
       state.report.remoteDiagnostic.status="FAILED";
@@ -1277,6 +1438,6 @@
   function nextControl(cur,key,list){const from=center(cur);let best=null,score=Infinity;list.forEach(el=>{if(el===cur)return;const to=center(el),dx=to.x-from.x,dy=to.y-from.y;let p=null,c=0;if(key==="ArrowUp"&&dy<-4){p=-dy;c=Math.abs(dx);}if(key==="ArrowDown"&&dy>4){p=dy;c=Math.abs(dx);}if(key==="ArrowLeft"&&dx<-4){p=-dx;c=Math.abs(dy);}if(key==="ArrowRight"&&dx>4){p=dx;c=Math.abs(dy);}if(p===null)return;const s=p*10+c;if(s<score){score=s;best=el;}});return best;}
   window.addEventListener("keydown",e=>{const key=e.key||({13:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[e.keyCode]),active=document.activeElement;if((key==="Enter"||key==="OK")&&active&&(active.tagName==="BUTTON"||active.tagName==="SUMMARY")){e.preventDefault();active.click();return;}if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(key)<0)return;if(active&&active.tagName==="INPUT"&&(key==="ArrowLeft"||key==="ArrowRight"))return;const list=controls();if(!list.length)return;const cur=list.indexOf(active)>=0?active:list[0],to=nextControl(cur,key,list);if(to){to.focus();e.preventDefault();}else if(list.indexOf(active)<0){cur.focus();e.preventDefault();}});
 
-  $("remoteDiagnosticArmBtn").addEventListener("click",toggleRemoteDiagnostics);   $("baselineBtn").addEventListener("click",baseline); $("runtimeContextInitBtn").addEventListener("click",initContext); $("clientInformationBtn").addEventListener("click",readClient); $("serviceTraceBtn").addEventListener("click",readTrace); $("directAppInfoWriteBtn").addEventListener("click",()=>directAppInfoWriteLab()); $("addNuvioDirectBtn").addEventListener("click",addNuvioDirect); $("restoreAppInfoBackupBtn").addEventListener("click",restoreAppInfoBackup); $("identityOverrideLabBtn").addEventListener("click",identityOverrideLab); $("candidatePermissionBtn").addEventListener("click",candidatePermissionGateTest); $("permissionSourceTraceBtn").addEventListener("click",permissionSourceTrace); $("installedMetadataBtn").addEventListener("click",inspectInstalledMetadata); $("installDiagnosticBtn").addEventListener("click",()=>installTest()); $("installLegacyBtn").addEventListener("click",()=>installTest("legacy")); $("installV2Btn").addEventListener("click",()=>installTest("v2")); $("temporaryIdentifierBtn").addEventListener("click",tempIdentifier); $("saveBtn").addEventListener("click",saveTarget); $("verifyBtn").addEventListener("click",async()=>{const r=await verify();log("Verification",r);await save("verification");}); $("reportBtn").addEventListener("click",()=>save("export"));
+  $("remoteDiagnosticArmBtn").addEventListener("click",toggleRemoteDiagnostics);   $("baselineBtn").addEventListener("click",baseline); $("runtimeContextInitBtn").addEventListener("click",initContext); $("clientInformationBtn").addEventListener("click",readClient); $("serviceTraceBtn").addEventListener("click",readTrace); $("directAppInfoWriteBtn").addEventListener("click",()=>directAppInfoWriteLab()); $("addNuvioDirectBtn").addEventListener("click",addNuvioDirect); $("restoreAppInfoBackupBtn").addEventListener("click",restoreAppInfoBackup); $("identityOverrideLabBtn").addEventListener("click",()=>identityWriteGateLab()); $("candidatePermissionBtn").addEventListener("click",candidatePermissionGateTest); $("permissionSourceTraceBtn").addEventListener("click",permissionSourceTrace); $("installedMetadataBtn").addEventListener("click",inspectInstalledMetadata); $("installDiagnosticBtn").addEventListener("click",()=>installTest()); $("installLegacyBtn").addEventListener("click",()=>installTest("legacy")); $("installV2Btn").addEventListener("click",()=>installTest("v2")); $("temporaryIdentifierBtn").addEventListener("click",tempIdentifier); $("saveBtn").addEventListener("click",saveTarget); $("verifyBtn").addEventListener("click",async()=>{const r=await verify();log("Verification",r);await save("verification");}); $("reportBtn").addEventListener("click",()=>save("export"));
   load().then(()=>{renderSummary();set("deviceBadge",typeof window.Hisense_GetFirmWareVersion==="function"?"VIDAA browser detected":"Waiting for VIDAA APIs");log("Sidee targeted identity diagnostic ready.");startRemoteDiagnosticPolling();}).catch(e=>log("Config load failed",err(e)));
 })();

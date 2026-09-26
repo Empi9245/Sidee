@@ -322,3 +322,13 @@ The report classifies the context as `SMARTONE_APP_CONTEXT` or `DUPLECAST_APP_CO
 10. If Smartone does not load Sidee, repeat with **Duplecast**.
 
 After the experiment, restore DNS to Automatic so the original apps resolve normally again.
+
+## Identifier Write-Gate Lab
+
+After raw-IP and `vidaahub.com` produced the same AppConfig 503 on direct `fileWrite`, the decisive identity test now targets the protected operation itself rather than comparing `fileRead` responses.
+
+The lab creates one immutable AppInfo backup, performs a baseline no-op `fileWrite` with the native/current identifier, then tests at most 6 concrete identifiers gathered only from runtime identity fields, current AppInfo entries and installed-app metadata. Every candidate writes the exact same raw registry bytes, immediately reads them back, and restores `vowOS.service.getIdentifier` in `finally`.
+
+The lab stops immediately if a candidate changes the permission response or if the registry readback is not identical. It never adds Nuvio. Possible conclusions include `IDENTIFIER_AFFECTS_WRITE_GATE`, `IDENTIFIER_STRING_NOT_SUFFICIENT`, `NO_REAL_IDENTIFIER_AVAILABLE`, `BASELINE_WRITE_ALLOWED`, `REGISTRY_CHANGED_ABORTED`, and `INCONCLUSIVE`.
+
+The remote version is a separate explicit build-bound workflow (`runIdentityWriteGateLabV1`) and is not classified as read-only.
