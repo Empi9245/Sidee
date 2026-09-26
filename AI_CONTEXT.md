@@ -4324,3 +4324,57 @@ Conclusione:
 - continuare da DNS passivo + ricerca statica/pubblica;
 - `category-ui-eu.vidaahub.com` è ora il candidato principale per mappare la famiglia category sulla Q0707;
 - `layout-ui-eu`, `detail-ui-eu` e `search-ui-eu` mostrano che la Store UI è separata per funzione e regione.
+
+
+## RISULTATO — passive Store repeat confirmation — 2026-09-26
+
+Nuovo report passivo dopo pull/restart:
+- sessionId `sidee-20260926-210157-6704`;
+- build `app-8aaa5c0cb359`;
+- buildMatch `true`;
+- `storeDomainDiscovery.status = QUERIES_CAPTURED`;
+- `totalQueries = 30`;
+- `hostCount = 20`.
+
+Host Store/UI ricomparsi:
+- `layout-ui-eu.vidaahub.com`;
+- `appstore-vidaa.vidaahub.com`;
+- `tvmodules-vidaa.vidaahub.com`;
+- `home-ui-eu.vidaahub.com`;
+- `detail-ui-eu.vidaahub.com`;
+- `recommend-ui-eu.vidaahub.com`;
+- `partner.vidaahub.com`;
+- `vidaa-base-auth-eu.vidaahub.com`.
+
+`category-ui-eu.vidaahub.com` non è ricomparso in questa sessione. Questo non invalida il test precedente: una risoluzione DNS può non ripetersi se il client/OS conserva la cache.
+
+### Priorità aggiornata
+
+Core Store/UI da mappare:
+1. `category-ui-eu.vidaahub.com`;
+2. `detail-ui-eu.vidaahub.com`;
+3. `layout-ui-eu.vidaahub.com`;
+4. `appstore-vidaa.vidaahub.com`.
+
+Supporto/UI:
+- `home-ui-eu`;
+- `recommend-ui-eu`;
+- `search-ui-eu`;
+- `partner.vidaahub.com`.
+
+`vidaa-base-auth-eu.vidaahub.com` NON va più trattato come prova di backend Store: riferimenti pubblici recenti lo associano anche al percorso base/OTA/update VIDAA. Va mantenuto nel discovery, ma con priorità inferiore per catalog/detail/install.
+
+### Endpoint pubblicamente osservati su backend VIDAA moderni
+
+Da `kineticman/FastChannels`:
+- `/api/v1.0.0/layoutApi/activityResources`;
+- `/api/v1.0.0/layoutApi/columnData`;
+- `/api/v1.0.0/detailApi/mediasInfo`.
+
+Questi endpoint sono verificati da quel progetto su host VIDAA partner dedicati. Non è ancora provato che la Q0707 Store usi gli stessi path su `layout-ui-eu` / `detail-ui-eu`, ma la famiglia dei nomi combacia.
+
+Direzione:
+- niente più MITM TLS;
+- ricostruzione read-only da fonti pubbliche/statiche;
+- non usare né copiare credenziali/segreti pubblicati in repository terzi;
+- usare solo struttura host/path e metadata non sensibili.
