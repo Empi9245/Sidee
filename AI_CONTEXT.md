@@ -1737,3 +1737,42 @@ La vista compatta/normalizzata precedente (`apps`, `fieldDistribution`, `discove
 Nessuna modifica è stata fatta a install/uninstall, fileWrite, permission test, Role/Customer setter o path discovery.
 
 Prossimo test TV: eseguire soltanto **Inspect Installed Apps** e poi **Export Report**. Nel nuovo JSON controllare in particolare `installedAppMetadata.appInfoDeepDump.records` per package/bundle/identifier/manifest/config/permission/security/signature/auth metadata che la vista normalizzata potrebbe non evidenziare.
+
+
+---
+
+## IMPLEMENTAZIONE — Permission Source Trace + verification counts — 2026-09-26
+
+Il Deep Dump reale di `websdk/Appinfo.json` ha chiuso la pista AppInfo come fonte primaria del permission gate: i 3 record completi espongono metadata di catalogo/launcher/store (`openMode`, `venderId`, `unifiedAppName`, `configUrl`, `appBundle`, `packaged`) ma nessun campo permission/privilege/security/appconfig/identifier/client/role/customer/auth/certificate/signature. `configUrl` e `appBundle` risultano vuoti nei record osservati.
+
+È stato quindi aggiunto un nuovo step UI/read-only: **Install Permission Source Trace**.
+
+Il trace ispeziona senza invocare install/uninstall:
+- `Hisense_installApp`
+- `Hisense_installApp_V2`
+- `HiUtils_createRequest`
+- `Hisense_SupportAppConfig`
+- `vowOS.service.syncExecute`
+- `vowOS.service.getIdentifier`
+
+Per ogni funzione salva:
+- availability/type
+- descriptor
+- name/arity
+- `Function.prototype.toString()`
+- riferimenti concreti trovati nel source relativi a permission/appconfig/identifier/client/role/customer/origin/package/bundle/auth/security/sign/certificate/access/capability/privilege/config/installApplication/HiUtils.
+
+`Hisense_SupportAppConfig()` senza parametri resta l'unica funzione diagnostica invocata da questo nuovo step, coerentemente con il probe read-only già approvato. Non vengono chiamate API HiUtils inventate, path dedotti, install/uninstall, fileWrite o setter.
+
+Il report salva il risultato in:
+`permissionSourceTrace`
+
+È stato corretto anche il conteggio della verification. Il vecchio collector generico contava oggetti annidati e nel report reale poteva mostrare valori come 52 InstalledApps / 5 AppInfo mentre l'Inspector corretto trovava 61 / 3. Ora verification usa lo stesso parsing app-record-aware dell'Installed App Metadata Inspector, quindi `count` rappresenta record applicazione deduplicati e il match target viene eseguito sugli stessi record reali.
+
+Prossimo test TV consigliato:
+1. Capture Baseline (se nuova sessione)
+2. **Trace Permission Sources**
+3. Run Verification
+4. Export Report
+
+Non serve ripetere un install test per ottenere il Source Trace.
