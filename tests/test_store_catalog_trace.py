@@ -227,6 +227,42 @@ class StoreCatalogTraceTests(unittest.TestCase):
         finally:
             sidee.STORE_DISCOVERY_REPORT = previous
 
+    def test_store_trace_and_domain_discovery_cross_correlate(self):
+        previous_trace = sidee.STORE_TRACE_REPORT
+        previous_discovery = sidee.STORE_DISCOVERY_REPORT
+        sidee.STORE_TRACE_REPORT = None
+        sidee.STORE_DISCOVERY_REPORT = None
+        try:
+            with mock.patch.object(sidee, "write_session_report"), \
+                 mock.patch.object(sidee, "queue_report_sync"):
+                sidee._record_store_domain_query("appstore-vidaa.vidaahub.com", 1)
+                trace_snapshot = sidee._record_store_trace(
+                    "DNS_A", {"host": sidee.STORE_CATALOG_HOST}
+                )
+                discovery_snapshot = sidee._record_store_domain_query(
+                    "appstore-vidaa.vidaahub.com", 28
+                )
+
+            self.assertEqual(
+                trace_snapshot["storeDomainDiscovery"]["status"],
+                "QUERIES_CAPTURED",
+            )
+            self.assertEqual(
+                discovery_snapshot["storeCatalogTrace"]["status"],
+                "DNS_ONLY",
+            )
+            self.assertEqual(
+                discovery_snapshot["summary"]["storeCatalogTrace"],
+                "DNS_ONLY",
+            )
+            self.assertEqual(
+                trace_snapshot["summary"]["storeDomainDiscovery"],
+                "QUERIES_CAPTURED",
+            )
+        finally:
+            sidee.STORE_TRACE_REPORT = previous_trace
+            sidee.STORE_DISCOVERY_REPORT = previous_discovery
+
     def test_config_spoofs_store_host(self):
         cfg = sidee.load_config()
         self.assertIn(sidee.STORE_CATALOG_HOST, cfg["spoof_domains"])
