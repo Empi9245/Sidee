@@ -1854,3 +1854,48 @@ Il report salva i risultati in:
 Per ogni script vengono salvati URL/indice/tipo, stato della lettura, same-origin, lunghezza sorgente, termini trovati ed estratti contestuali limitati attorno ai match. Non viene salvato l'intero bundle per evitare report enormi.
 
 Obiettivo del prossimo test TV: eseguire soltanto **Trace Permission Sources** e poi **Export Report**. Cercare in particolare `loadedScripts.entries` per definizioni di `mapAppInfoFields`, inizializzazione di `navigator.appIdentifier` / `vowOSContext`, riferimenti ad AppConfig/permission/client identity e codice che precede `getIdentifier`.
+
+
+---
+
+## IMPLEMENTAZIONE — Runtime Identity Surface Trace — 2026-09-26
+
+La scansione `document.scripts` reale ha mostrato un solo script: `https://vidaahub.com/app.js` (Sidee stesso). Non risultano normali bundle VIDAA nel DOM; le API `Hisense_*`, `vowOS` e `vowOSContext` sono quindi trattate come superfici runtime/native-injected e non come codice recuperabile da normali tag script.
+
+Per seguire direttamente la sorgente dell'identità client senza eseguire nuove API, il Permission Source Trace ora salva anche:
+
+`permissionSourceTrace.runtimeIdentitySurface`
+
+Il probe è completamente read-only e raccoglie descriptor + source senza invocare getter/setter/init/metodi scoperti.
+
+Target esatti:
+- `navigator.appIdentifier`
+- `vowOSContext.getAppIdentifier`
+- `vowOSContext.getAppId`
+- `vowOSContext.init`
+- `vowOS.service.getIdentifier`
+
+Per ogni proprietà viene cercato il descriptor lungo la prototype chain fino a 7 livelli e vengono salvati:
+- ownerDepth
+- enumerable/configurable/writable
+- presenza getter/setter
+- tipo del data descriptor
+- valore solo se scalare
+- source della funzione se il descriptor contiene una function
+- source di getter/setter se presenti
+
+In più vengono enumerate in modo filtrato le proprietà proprie + prototype di:
+- `window.vowOSContext`
+- `window.vowOS.service`
+
+Filtro nomi:
+`app | identifier | client | config | permission | context | role | customer | auth | security | service | origin`
+
+Per le proprietà filtrate vengono salvati soltanto descriptor e source associati. Nessun getter viene letto tramite accesso proprietà; nessun setter viene usato; `vowOSContext.init` non viene richiamato da questo probe; nessun eventuale `setIdentifier` o setter scoperto viene invocato.
+
+Obiettivo del prossimo test TV: eseguire solo **Trace Permission Sources** e **Export Report**. Analizzare:
+- `permissionSourceTrace.runtimeIdentitySurface.exact`
+- `permissionSourceTrace.runtimeIdentitySurface.surfaces.vowOSContext`
+- `permissionSourceTrace.runtimeIdentitySurface.surfaces.vowOSService`
+
+Cercare in particolare source/descriptor che mostrino inizializzazione dell'app identity, eventuali setter/config methods, accesso ad AppConfig/client context o condizioni che spiegano perché `getAppIdentifier()` resta vuoto.
