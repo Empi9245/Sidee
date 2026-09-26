@@ -2082,11 +2082,65 @@
     state.remoteDiagnosticTimer=setInterval(pollRemoteDiagnostic,1500);
   }
 
+  function renderStoreInstallProbe(probe,sessionId){
+    probe=probe||{};
+    const target=probe.target||{name:"Duplecast",appId:"1876"};
+    const contacted=Array.isArray(probe.contactedAfterInstallArm)?probe.contactedAfterInstallArm:[];
+    const newHosts=Array.isArray(probe.newHostsAfterInstallArm)?probe.newHostsAfterInstallArm:[];
+    const baseline=Array.isArray(probe.hostSnapshotAtInstallArm)?probe.hostSnapshotAtInstallArm:[];
+    set("storeInstallProbeStatus",probe.status||"IDLE");
+    set("storeInstallProbeTarget",(target.name||"Duplecast")+" · "+(target.appId||"1876"));
+    set("storeInstallProbeBaselineCount",baseline.length);
+    set("storeInstallProbeContactedCount",contacted.length);
+    set("storeInstallProbeNewHosts",newHosts.length?newHosts.slice(0,8).join(" · "):"—");
+    const markerCount=Array.isArray(probe.markers)?probe.markers.length:0;
+    const eventCount=Array.isArray(probe.dnsEvents)?probe.dnsEvents.length:0;
+    set("storeInstallProbeState",(probe.status||"IDLE")+" · "+eventCount+" DNS events · "+markerCount+" markers"+(sessionId?" · "+sessionId:""));
+  }
+  async function storeInstallProbeAction(action){
+    const stateEl=$("storeInstallProbeState");
+    if(stateEl)stateEl.textContent="Saving "+action+" marker…";
+    try{
+      const response=await fetch("/api/store-install-probe",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          action:action,
+          target:{name:"Duplecast",appId:"1876"}
+        })
+      });
+      const data=await response.json();
+      if(!response.ok||!data.ok)throw new Error(data.error||"Store install probe failed");
+      renderStoreInstallProbe(data.storeInstallProbe,data.sessionId);
+      log("Store install DNS probe "+action,{
+        status:data.storeInstallProbe&&data.storeInstallProbe.status,
+        contactedAfterInstallArm:data.storeInstallProbe&&data.storeInstallProbe.contactedAfterInstallArm,
+        newHostsAfterInstallArm:data.storeInstallProbe&&data.storeInstallProbe.newHostsAfterInstallArm
+      });
+      return data;
+    }catch(e){
+      set("storeInstallProbeState","Probe error · "+err(e));
+      log("Store install DNS probe failed",err(e));
+      return null;
+    }
+  }
+  async function refreshStoreInstallProbe(){
+    try{
+      const response=await fetch("/api/store-install-probe?cb="+Date.now(),{cache:"no-store"});
+      const data=await response.json();
+      if(response.ok&&data.ok)renderStoreInstallProbe(data.storeInstallProbe,null);
+    }catch(e){}
+  }
+
   function controls(){return Array.prototype.slice.call(document.querySelectorAll("button,input,summary")).filter(el=>{if(!el||el.disabled||el.hidden)return false;const s=getComputedStyle(el);return s.display!=="none"&&s.visibility!=="hidden"&&el.getClientRects().length>0;});}
   function center(el){const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};}
   function nextControl(cur,key,list){const from=center(cur);let best=null,score=Infinity;list.forEach(el=>{if(el===cur)return;const to=center(el),dx=to.x-from.x,dy=to.y-from.y;let p=null,c=0;if(key==="ArrowUp"&&dy<-4){p=-dy;c=Math.abs(dx);}if(key==="ArrowDown"&&dy>4){p=dy;c=Math.abs(dx);}if(key==="ArrowLeft"&&dx<-4){p=-dx;c=Math.abs(dy);}if(key==="ArrowRight"&&dx>4){p=dx;c=Math.abs(dy);}if(p===null)return;const s=p*10+c;if(s<score){score=s;best=el;}});return best;}
   window.addEventListener("keydown",e=>{const key=e.key||({13:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[e.keyCode]),active=document.activeElement;if((key==="Enter"||key==="OK")&&active&&(active.tagName==="BUTTON"||active.tagName==="SUMMARY")){e.preventDefault();active.click();return;}if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(key)<0)return;if(active&&active.tagName==="INPUT"&&(key==="ArrowLeft"||key==="ArrowRight"))return;const list=controls();if(!list.length)return;const cur=list.indexOf(active)>=0?active:list[0],to=nextControl(cur,key,list);if(to){to.focus();e.preventDefault();}else if(list.indexOf(active)<0){cur.focus();e.preventDefault();}});
 
+  $("storeInstallProbeStartBtn").addEventListener("click",()=>storeInstallProbeAction("START"));
+  $("storeInstallProbeDetailBtn").addEventListener("click",()=>storeInstallProbeAction("DETAIL_OPEN"));
+  $("storeInstallProbeArmBtn").addEventListener("click",()=>storeInstallProbeAction("ARM_INSTALL"));
+  $("storeInstallProbeFinishBtn").addEventListener("click",()=>storeInstallProbeAction("FINISH"));
   $("remoteDiagnosticArmBtn").addEventListener("click",toggleRemoteDiagnostics);   $("baselineBtn").addEventListener("click",baseline); $("contextIdentityFingerprintBtn").addEventListener("click",()=>contextIdentityFingerprint()); $("runtimeContextInitBtn").addEventListener("click",initContext); $("clientInformationBtn").addEventListener("click",readClient); $("serviceTraceBtn").addEventListener("click",readTrace); $("directAppInfoWriteBtn").addEventListener("click",()=>directAppInfoWriteLab()); $("legacyHspdkWriteBtn").addEventListener("click",()=>legacyHspdkWriteLab()); $("addNuvioHspdkBtn").addEventListener("click",addNuvioHspdk); $("restoreHspdkBackupBtn").addEventListener("click",restoreHspdkBackup); $("addNuvioDirectBtn").addEventListener("click",addNuvioDirect); $("restoreAppInfoBackupBtn").addEventListener("click",restoreAppInfoBackup); $("identityOverrideLabBtn").addEventListener("click",()=>identityWriteGateLab()); $("candidatePermissionBtn").addEventListener("click",candidatePermissionGateTest); $("permissionSourceTraceBtn").addEventListener("click",permissionSourceTrace); $("installedMetadataBtn").addEventListener("click",inspectInstalledMetadata); $("installDiagnosticBtn").addEventListener("click",()=>installTest()); $("installLegacyBtn").addEventListener("click",()=>installTest("legacy")); $("installV2Btn").addEventListener("click",()=>installTest("v2")); $("temporaryIdentifierBtn").addEventListener("click",tempIdentifier); $("saveBtn").addEventListener("click",saveTarget); $("verifyBtn").addEventListener("click",async()=>{const r=await verify();log("Verification",r);await save("verification");}); $("reportBtn").addEventListener("click",()=>save("export"));
   async function autoRunPkgmgrPackageProbeOnce(){
     try{
@@ -2108,6 +2162,7 @@
     log("Sidee targeted identity diagnostic ready.");
     if(expectedInstalledAppContext())await contextIdentityFingerprint({automatic:true});
     log("pkgmgr/tvbrowser and pkgmgr↔AppInfo auto-probes are disabled for this phase; use their explicit buttons only if the runtime context changes.");
+    await refreshStoreInstallProbe();
     startRemoteDiagnosticPolling();
   }).catch(e=>log("Config load failed",err(e)));
 })();
