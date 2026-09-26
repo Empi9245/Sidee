@@ -42,6 +42,32 @@
     }
     return levels;
   }
+  function functionSource(record) {
+    var fn = value(record);
+    if (typeof fn !== "function") return null;
+    try {
+      var source = Function.prototype.toString.call(fn);
+      return { sourceLength: source.length, truncated: source.length > 4000, excerpt: source.slice(0, 4000) };
+    } catch (e) { return { error: String(e) }; }
+  }
+  function appManagerBridge() {
+    var modeljsRecord = lookup(window, "modeljs"), modeljsValue = value(modeljsRecord);
+    var sendamRecord = lookup(modeljsValue, "sendam");
+    var globals = {};
+    ["sendAM", "asyncStartApp", "startHiBrowser", "startLauBrowser", "startTVStore"].forEach(function (name) {
+      var record = lookup(window, name);
+      globals[name] = { descriptor: meta(record), source: functionSource(record) };
+    });
+    return {
+      evidence: "HISTORICAL_LAUNCHER_SENDAM_DELEGATES_TO_MODELJS_SENDAM",
+      modeljs: meta(modeljsRecord),
+      sendam: meta(sendamRecord),
+      sendamSource: functionSource(sendamRecord),
+      globals: globals,
+      callableObserved: meta(sendamRecord).type === "function",
+      invoked: false
+    };
+  }
   function surface(path, record) {
     var root = value(record), file = lookup(root, "File"), fileValue = value(file);
     var read = meta(lookup(fileValue, "read")), write = meta(lookup(fileValue, "write"));
@@ -50,11 +76,12 @@
       callablePairObserved: read.type === "function" && write.type === "function" };
   }
   function capture() {
-    var out = { version: 2, timestamp: new Date().toISOString(), readOnly: true,
+    var out = { version: 3, timestamp: new Date().toISOString(), readOnly: true,
       page: { href: location.href, origin: location.origin, userAgent: navigator.userAgent },
-      exact: [], discoveredSurfaces: [], sourceMatches: [], legacyLaunchContextMatches: [], scripts: [],
+      exact: [], discoveredSurfaces: [], sourceMatches: [], legacyLaunchContextMatches: [], legacyAppManagerMatches: [],
+      legacyAppManagerBridge: appManagerBridge(), scripts: [],
       scannedGlobals: 0, scannedFunctions: 0, truncated: false,
-      note: "Presence is not write permission. No getter, loader, file read/write or discovered function is invoked." };
+      note: "Presence is not permission. No getter, App Manager method, loader, file read/write or discovered function is invoked." };
     ["Hisense", "HiBrowser"].forEach(function (name) { out.exact.push(surface("window." + name, lookup(window, name))); });
     var seenFunctions = [], seenObjects = [], propertyBudget = 4000;
     function inspectFunction(fn, path) {
@@ -73,6 +100,13 @@
           path: path, term: launchMatch[0], sourceLength: source.length, truncated: source.length > 24000,
           excerpt: bounded.slice(Math.max(0, launchMatch.index - 300), launchMatch.index + 900),
           evidence: "HISTORICAL_LAUNCH_MARKER_ONLY"
+        });
+        legacyAppManagerTerms.lastIndex = 0;
+        var amMatch = legacyAppManagerTerms.exec(bounded);
+        if (amMatch && out.legacyAppManagerMatches.length < 40) out.legacyAppManagerMatches.push({
+          path: path, term: amMatch[0], sourceLength: source.length, truncated: source.length > 24000,
+          excerpt: bounded.slice(Math.max(0, amMatch.index - 300), amMatch.index + 900),
+          evidence: "HISTORICAL_APP_MANAGER_MARKER_ONLY"
         });
       } catch (e) { /* Some native functions do not expose source. */ }
     }
