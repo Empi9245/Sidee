@@ -2,12 +2,8 @@
   "spoof_domains": [
     "vidaahub.com",
     "www.vidaahub.com",
-    "category-ui.vidaahub.com",
     "vidaa.smartone-iptv.com",
-    "vidaa.duplecast.com",
-    "detail-ui-eu.vidaahub.com",
-    "appstore-vidaa.vidaahub.com",
-    "tvmodules-vidaa.vidaahub.com"
+    "vidaa.duplecast.com"
   ],
   "dns_port": 53,
   "https_port": 443,
