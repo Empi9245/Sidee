@@ -1,6 +1,12 @@
 {
+  "requestId": "sidee-request-20260926-121943-fb19",
+  "createdAt": "2026-09-26T12:19:43.549Z",
+  "expiresAt": "2026-09-26T16:19:43.549Z",
+  "requestedBy": "ChatGPT",
+  "note": "Run the build-bound safe read-only workflow: baseline -> Identity Override Lab -> Permission Source Trace -> Installed App Metadata -> verification -> export. No install, no fileWrite, no setters.",
   "runSafeDiagnostic": false,
+  "runSafeDiagnosticV2": true,
   "runDirectAppInfoWriteNoop": false,
   "runDirectAppInfoWriteNoopV2": false,
-  "note": "Idle. Direct AppInfo fileWrite was already tested on the real TV and rejected with AppConfig permission code 503; no repeat write is requested."
+  "requiresBuildId": "app-fb192bc1a7f4"
 }
