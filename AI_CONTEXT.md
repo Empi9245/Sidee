@@ -4144,3 +4144,93 @@ Prossimo passo raccomandato:
 - mantenere redaction e response invariata;
 - non premere Install;
 - non introdurre ancora injection o response rewriting.
+
+
+## IMPLEMENTAZIONE — multihost Store transport trace — 2026-09-26
+
+Dopo il passive DNS discovery reale della Q0707, il trace Store è stato esteso ai tre host osservati più interessanti:
+
+- `detail-ui-eu.vidaahub.com`;
+- `appstore-vidaa.vidaahub.com`;
+- `tvmodules-vidaa.vidaahub.com`.
+
+`category-ui.vidaahub.com` resta incluso per compatibilità e confronto, ma non è comparso nel test reale precedente.
+
+### Struttura
+
+`STORE_TRACE_HOSTS` contiene ora i quattro host.
+
+`config.json -> spoof_domains` include i tre host nuovi, così DNS A viene diretto a Sidee e AAAA viene neutralizzato come per il trace precedente.
+
+Il certificato è stato versionato a:
+
+`sidee-vidaa-multihost-store-v2.crt/key`
+
+e include tutti gli host tracciati nei SAN, evitando il riuso del vecchio certificato v1.
+
+DNS, TLS SNI e HTTP dispatch usano ora `STORE_TRACE_HOST_SET` invece del solo `STORE_CATALOG_HOST`.
+
+Il proxy usa l'Host effettivo richiesto dalla TV come:
+- upstream HTTPS target;
+- header Host;
+- host registrato negli eventi/report.
+
+Le risposte restano pass-through; il body upstream viene restituito invariato.
+
+### Report per-host
+
+`storeCatalogTrace` conserva ancora eventi/richieste/errori globali bounded, ma aggiunge:
+
+`hosts`
+
+e:
+
+`hostStats`
+
+con uno stato separato per ogni host:
+- `IDLE`;
+- `DNS_ONLY`;
+- `TLS_SNI_ONLY`;
+- `HTTP_PROXY_ACTIVE`;
+- `REQUESTS_CAPTURED`;
+- `PROXY_ERROR`.
+
+Ogni request/error aggregato registra anche il proprio `host`.
+
+`summary.storeTraceHosts` contiene la vista compatta host -> status.
+
+### Discovery
+
+Gli host promossi al trace dedicato sono esclusi dal `storeDomainDiscovery` generico per evitare duplicazioni.
+
+`home-ui-eu.vidaahub.com` e `recommend-ui-eu.vidaahub.com` restano invece discovery-only per il momento.
+
+### Test
+
+`tests/test_store_catalog_trace.py` copre:
+- routing dei tre host reali verso lo stesso hostname upstream;
+- Host header corretto;
+- host presente negli eventi HTTP;
+- status/requestCount per host;
+- tutti gli host tracciati presenti in `spoof_domains`;
+- default snapshot con `hostStats`;
+- fixture del discovery spostate su `home-ui-eu.vidaahub.com`.
+
+Non risultano workflow GitHub Actions associati all'ultimo commit, quindi non esiste un risultato CI remoto da riportare.
+
+### Prossimo test TV
+
+Dopo pull/restart:
+1. lasciare il DNS TV sul PC Sidee;
+2. aprire il VIDAA Store ufficiale;
+3. navigare home/categoria;
+4. aprire una o più detail page reali;
+5. attendere il report.
+
+Leggere prima:
+- `storeCatalogTrace.hostStats`;
+- `summary.storeTraceHosts`;
+- `storeCatalogTrace.events`;
+- `storeCatalogTrace.requests`.
+
+Obiettivo: determinare quale dei tre host reali arriva a TLS/HTTP e quali path effettivi usa la Q0707.
