@@ -2647,3 +2647,48 @@ Remote:
 - obbligatorio `requiresBuildId` uguale al build server;
 - workflow remoto `baseline -> identity-write-gate-lab -> export`;
 - nessun add Nuvio, restore, install/uninstall, setter o JavaScript arbitrario.
+
+
+---
+
+## TEST REALE — Identifier Write-Gate Lab — 2026-09-26
+
+Sessione valida:
+- sessionId `sidee-20260926-150815-b6a2`;
+- accessMode `RAW_IP_BROWSER_CONTEXT`;
+- origin `http://192.168.1.5:8080`;
+- clientBuildId/serverBuildId `app-7c6c95bcb6e0`;
+- `buildMatch:true`.
+
+Baseline:
+- originalIdentifier `""`;
+- `fileWrite websdk/Appinfo.json` no-op -> `ret:false`, `code:503`, `client request permission check error, please check appconfig`;
+- readback valido e identico;
+- 3 AppInfo entry;
+- backup pre-test `appinfo-backup-20260926-130830-ec656ca0`;
+- backup SHA-256 `d4869d266a085485c4bcf52b66202cf67bad90ebdbb8a6c36be9090c81405878`.
+
+Candidate concrete testate contro il vero write gate:
+- `1470` — Smartone IPTV;
+- `1876` — Duplecast;
+- `2568` — Stremio Lite.
+
+Per tutte e tre:
+- override `vowOS.service.getIdentifier` applicato via assignment;
+- write response identica alla baseline: `ret:false`, `code:503`, stesso msg AppConfig;
+- `backendChanged:false`;
+- readback identico;
+- registry invariato;
+- override ripristinato correttamente a identifier vuoto.
+
+Conclusione:
+
+`IDENTIFIER_STRING_NOT_SUFFICIENT`
+
+Interpretazione precisa: per le tre candidate concrete derivate dagli AppInfo ID installati, cambiare soltanto la stringa dell'header `identifier` non è sufficiente a superare il permission/AppConfig gate. Questo non prova che l'identifier non conti mai; prova che gli AppInfo ID `1470/1876/2568` non sono da soli una identity autorizzata equivalente a un vero launch context.
+
+Conseguenza:
+- chiudere la pista 'spoof stringa con app ID';
+- non ripetere questi tre identifier sullo stesso firmware;
+- prossima pista prioritaria: installed-app context trampoline, cioè ottenere una vera identity nativa lanciando Sidee dentro Smartone/Duplecast dal launcher;
+- se il launch context restituisce identity non vuota ma write resta 503, passare al contesto App Store ufficiale/category-ui.
