@@ -101,7 +101,7 @@
           </div>
           <button id="permissionSourceTraceBtn" class="secondary">Trace Permission Sources</button>
         </div>
-        <p>Read-only inspection of the install pipeline plus source scanning of scripts already loaded by the page. Same-origin/inline sources are searched for client identity, AppConfig, permission and hidden helper definitions; cross-origin scripts are skipped.</p>
+        <p>Read-only inspection of the install pipeline, loaded scripts and runtime identity surfaces. It captures descriptors/source for appIdentifier, vowOSContext and vowOS.service identity/config methods without invoking getters, setters, init methods or discovered functions.</p>
         <div id="permissionSourceTraceState" class="state">Not traced yet.</div>
       </article>
 
