@@ -39,27 +39,26 @@ The real Q0707 passive DNS test showed that the official VIDAA Store uses severa
 `*.vidaahub.com` hosts and did **not** show a request for the older
 `category-ui.vidaahub.com` endpoint during the observed flow.
 
-The current pass-through trace therefore covers these hosts separately:
+The code can trace these hosts separately when explicitly enabled:
 
 - `category-ui.vidaahub.com` — retained for compatibility/reference;
 - `detail-ui-eu.vidaahub.com` — observed on the real TV;
 - `appstore-vidaa.vidaahub.com` — observed on the real TV;
 - `tvmodules-vidaa.vidaahub.com` — observed on the real TV.
 
-For each host, `storeCatalogTrace.hostStats` reports an independent state:
-`IDLE`, `DNS_ONLY`, `TLS_SNI_ONLY`, `HTTP_PROXY_ACTIVE`,
-`REQUESTS_CAPTURED`, or `PROXY_ERROR`.
+However, the real Q0707 test reached TLS SNI on all three observed hosts and
+never reached HTTP. The Store UI then displayed a content-load failure. This is
+consistent with the TV rejecting Sidee's local certificate before any HTTP
+request was sent.
 
-The trace remains pass-through only. Sidee forwards the request to the same real
-HTTPS hostname and returns the upstream response body unchanged. Persisted
-diagnostics are bounded to host, timestamp, HTTP method/path, query parameter
-names, response status/content type/length, and reduced non-sensitive JSON
-metadata. Request headers/bodies, query values, cookies, authorization values,
-tokens, sessions, signature material, and certificate-like values are not
-persisted.
+Therefore **Store TLS interception is disabled by default** in `config.json`.
+The Store hostnames are no longer included in `spoof_domains`; they remain
+visible to the passive DNS discovery instead. This restores normal Store
+connectivity while preserving host-level observations.
 
-The generated certificate uses the versioned `store-v2` filename and includes
-all traced Store hostnames in its SAN so the previous certificate is not reused.
+The multihost trace code and versioned `store-v2` certificate remain in the
+repository for controlled experiments, but should not be enabled again unless
+there is a trusted-certificate path.
 
 ### Passive Store domain discovery
 
