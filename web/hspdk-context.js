@@ -70,6 +70,28 @@
       invoked: false
     };
   }
+  function namespaceInventory(root, names) {
+    var out = {};
+    names.forEach(function (name) {
+      var record = lookup(root, name), ns = value(record), item = {
+        descriptor: meta(record),
+        properties: [],
+        invoked: false
+      };
+      if (object(ns)) {
+        try {
+          var props = Object.getOwnPropertyNames(ns).filter(function (key) { return !sensitive.test(key); });
+          item.truncated = props.length > 160;
+          item.properties = props.slice(0, 160).map(function (key) {
+            var child = lookup(ns, key);
+            return { name: key, descriptor: meta(child), source: functionSource(child) };
+          });
+        } catch (e) { item.error = String(e); }
+      }
+      out[name] = item;
+    });
+    return out;
+  }
   function modernBridgeInventory() {
     var prefixes = /^(?:Hisense_|HiUtils_|VIDAA|TvInfo|vowOS|omi_|opera_omi)/i;
     var exactObjects = ["vowOS", "omi_platform", "opera_omi", "TvInfo_Json"];
@@ -104,10 +126,11 @@
       callablePairObserved: read.type === "function" && write.type === "function" };
   }
   function capture() {
-    var out = { version: 4, timestamp: new Date().toISOString(), readOnly: true,
+    var out = { version: 5, timestamp: new Date().toISOString(), readOnly: true,
       page: { href: location.href, origin: location.origin, userAgent: navigator.userAgent },
       exact: [], discoveredSurfaces: [], sourceMatches: [], legacyLaunchContextMatches: [], legacyAppManagerMatches: [],
-      legacyAppManagerBridge: appManagerBridge(), modernBridgeInventory: modernBridgeInventory(), scripts: [],
+      legacyAppManagerBridge: appManagerBridge(), modernBridgeInventory: modernBridgeInventory(),
+      vowOSNamespaces: namespaceInventory(value(lookup(window, "vowOS")), ["store", "service", "tvinfo"]), scripts: [],
       scannedGlobals: 0, scannedFunctions: 0, truncated: false,
       note: "Presence is not permission. Modern bridge inventory is descriptor/source-only. No getter, App Manager method, loader, file read/write or discovered function is invoked." };
     ["Hisense", "HiBrowser"].forEach(function (name) { out.exact.push(surface("window." + name, lookup(window, name))); });
