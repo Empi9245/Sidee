@@ -122,6 +122,12 @@ Only after `WRITE_ALLOWED_AND_IDENTICAL` does **Add Nuvio to AppInfo** become en
 
 The session-armed remote channel supports the no-op capability test as a fixed workflow, but it never remotely adds Nuvio or performs restore.
 
+### Real TV result — 2026-09-26
+
+On the tested Hisense `50E70LEVS_0003`, firmware `V0000.09.60A.Q0707`, the backup-protected no-op direct write was executed with `buildMatch:true`. The exact registry was backed up first, `fileWrite` returned `ret:false`, `code:503`, `client request permission check error, please check appconfig`, and the immediate readback remained byte/hash/structure identical with 3 AppInfo entries.
+
+Therefore this firmware does **not** allow the direct Jellyfin-style AppInfo write from the current Sidee client context. Nuvio was not added. The active next research path is the Identity Override Lab.
+
 ## Identity Override Lab
 
 The **Identity Override Lab** is a controlled, reversible experiment for the VIDAA 9 AppConfig investigation.

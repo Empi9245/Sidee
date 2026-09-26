@@ -2418,3 +2418,49 @@ Prima del test reale sono stati aggiunti due gate:
 - per le richieste create dalla chat si usa `runDirectAppInfoWriteNoopV2:true` + `requiresBuildId`;
 - il vecchio server non riconosce il flag V2, quindi non può consumare accidentalmente la nuova richiesta;
 - il server nuovo consegna una request V2 AppInfo soltanto a una pagina che dichiara lo stesso `clientBuildId`.
+
+
+---
+
+## TEST REALE — Direct AppInfo fileWrite RESPINTO — 2026-09-26
+
+Report valido:
+- sessionId `sidee-20260926-104537-d029`;
+- clientBuildId `app-e29e348ed744`;
+- serverBuildId `app-e29e348ed744`;
+- `buildMatch: true`;
+- remote request `sidee-request-20260926-120654-a36d`;
+- workflow `direct-appinfo-noop` completato.
+
+Backup pre-write creato correttamente:
+- backupId `appinfo-backup-20260926-121218-af9c001f`;
+- SHA-256 `d4869d266a085485c4bcf52b66202cf67bad90ebdbb8a6c36be9090c81405878`;
+- 7173 bytes;
+- 3 entry AppInfo.
+
+Risposta reale di `HiUtils_createRequest('fileWrite', ...)`:
+- `ret:false`;
+- `code:503`;
+- `msg:'client request permission check error, please check appconfig'`;
+- sdkVersion `1.5.0`.
+
+Readback immediato:
+- JSON valido;
+- 3 entry AppInfo;
+- SHA-256 identico al backup/originale;
+- `identicalBeforeAfter:true`.
+
+Classificazione finale:
+
+`WRITE_DENIED`
+
+Conclusione: sulla Hisense `50E70LEVS_0003`, firmware `V0000.09.60A.Q0707`, il metodo Jellyfin/Pikabu NON bypassa il permission/AppConfig gate nel contesto Sidee corrente. Il gate non è specifico di `installApplication`: anche la `fileWrite` diretta di `websdk/Appinfo.json` viene respinta con lo stesso code 503.
+
+Azioni deliberate dopo il risultato:
+- Nuvio NON è stato aggiunto;
+- nessun restore necessario perché il readback è identico;
+- nessuna ulteriore scrittura automatica;
+- la request V2 ridondante è stata annullata su `sidee-control`;
+- Identity Override Lab torna a essere la pista prioritaria e viene riattivato nel workflow remoto read-only.
+
+Non ripetere il Direct AppInfo no-op write su questo firmware salvo cambiamento firmware/runtime o nuova evidenza concreta.

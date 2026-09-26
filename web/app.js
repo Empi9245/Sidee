@@ -1202,7 +1202,7 @@
       startedAt:started,
       completedAt:null,
       status:"RUNNING",
-      workflow:directNoop?["direct-appinfo-write-noop","export"]:["baseline","permission-source-trace","installed-metadata","verification","export"],
+      workflow:directNoop?["direct-appinfo-write-noop","export"]:["baseline","identity-override-lab","permission-source-trace","installed-metadata","verification","export"],
       error:null
     };
     renderRemoteDiagnosticState(directNoop?"RUNNING · backup-protected AppInfo no-op write":"RUNNING · read-only diagnostic");
@@ -1213,6 +1213,7 @@
         log("Remote AppInfo no-op result",{writeCapability:directResult&&directResult.writeCapability,backup:directResult&&directResult.backup&&directResult.backup.backupId});
       }else{
         await baseline();
+        await identityOverrideLab();
         await permissionSourceTrace();
         await inspectInstalledMetadata();
         const verification=await verify();

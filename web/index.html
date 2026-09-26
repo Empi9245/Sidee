@@ -135,15 +135,15 @@
         <div id="directRestoreState" class="microState">Restore uses only the immutable backup created by Sidee for this session.</div>
       </article>
 
-      <article class="card" id="identityOverrideLabCard" hidden>
+      <article class="card" id="identityOverrideLabCard">
         <div class="cardHead">
           <div>
-            <p class="kicker">PAUSED · IDENTITY OVERRIDE LAB</p>
+            <p class="kicker">NEXT · IDENTITY OVERRIDE LAB</p>
             <h2>Identity Override Lab</h2>
           </div>
           <button id="identityOverrideLabBtn" class="secondary">Run Identity Override Lab</button>
         </div>
-        <p>Finds concrete identifiers already exposed by this TV/runtime, captures a read-only baseline, then temporarily substitutes at most 8 candidates for the same harmless <code>fileRead</code>. Every override is restored in <code>finally</code>.</p>
+        <p>Resumed after the real-TV direct <code>fileWrite</code> test was rejected by the same AppConfig permission gate. This lab stays read-only: it tests concrete identifiers only against the harmless <code>fileRead</code> path and restores every override in <code>finally</code>.</p>
         <div class="identityGrid">
           <div><span>Original identifier</span><b id="identityLabOriginal" class="summaryValue">—</b></div>
           <div><span>Candidates</span><b id="identityLabCandidates" class="summaryValue">0</b></div>
