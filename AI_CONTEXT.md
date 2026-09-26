@@ -3163,3 +3163,64 @@ Il report usa:
 - `legacyAppManagerMatches`.
 
 Regola: anche se `modeljs.sendam` compare callable, questa fase NON lo chiama. Prima si registra presenza, descriptor e source. Solo dopo un risultato reale si decide un test successivo separato e minimo.
+
+
+---
+
+## RISULTATO TV — App Manager legacy assente; passaggio a inventory bridge moderni — 2026-09-26
+
+Capture reale schema v3 ricevuto dal browser Q0707:
+- build match: true;
+- `legacyAppManagerBridge.modeljs.status = ABSENT`;
+- `legacyAppManagerBridge.sendam.status = ABSENT`;
+- `sendAM = ABSENT`;
+- `asyncStartApp = ABSENT`;
+- `startHiBrowser = ABSENT`;
+- `startLauBrowser = ABSENT`;
+- `startTVStore = ABSENT`;
+- `legacyAppManagerMatches=[]`;
+- `legacyLaunchContextMatches=[]`;
+- `discoveredSurfaces=[]`;
+- stato HSPDK invariato: `NO_FILE_PAIR_OBSERVED`.
+
+Conclusione: il vecchio App Manager JS `modeljs.sendam`, pur essendo verificato nel launcher Hisense storico, non è esposto nel normale browser VIDAA 9.60 Q0707 testato. Non usare `sendAM`/target legacy come prossima azione.
+
+### Ricerca pubblica mirata successiva
+
+Le ricerche GitHub per equivalenti moderni `Hisense_* startApp/launchApp/openApp`, `HiUtils_createRequest appStart/startApplication` e `syncExecute('hiutils', ... app ...)` non hanno prodotto una API browser moderna equivalente verificabile.
+
+È emersa una API `launchapp` in progetti di controllo remoto Hisense via MQTT `ui_service`, ma appartiene al piano remote-control e non dimostra un bridge browser con permessi AppConfig/HSPDK superiori. Non usarla come bypass senza un motivo separato.
+
+Nel progetto pubblico `weinzii/vidaa-edge`, lo scanner considera concretamente le famiglie:
+- `Hisense_*`;
+- `HiUtils_*`;
+- `VIDAA*`;
+- `TvInfo*`;
+- `vowOS`;
+- `omi_platform`.
+
+Questi nomi coincidono in parte con superfici già osservate sulla TV, quindi sono una base concreta per un inventario read-only del runtime attuale.
+
+### Implementazione Sidee — modern bridge inventory schema v4
+
+`web/hspdk-context.js` è ora schema v4 e aggiunge `modernBridgeInventory`.
+
+Il collector registra senza invocare:
+- globali il cui nome inizia con `Hisense_`, `HiUtils_`, `VIDAA`, `TvInfo`, `vowOS`, `omi_`, `opera_omi`;
+- descriptor e source serializzabile delle funzioni;
+- shape descriptor-only dei namespace esatti:
+  - `vowOS`;
+  - `omi_platform`;
+  - `opera_omi`;
+  - `TvInfo_Json`.
+
+Limite massimo inventario globali: 250. I nomi sensibili già filtrati dal collector restano esclusi. Nessun getter o metodo viene invocato.
+
+Validazione locale:
+- `node --check` passato;
+- smoke VM passato;
+- funzioni mock native proibite non invocate;
+- inventory rileva correttamente `Hisense_*`, `HiUtils_*`, `vowOS`, `omi_platform`, `opera_omi`, `TvInfo_Json`;
+- source marker legacy continua a funzionare.
+
+Prossimo dato utile: pull/restart Sidee e un solo `Inspect HSPDK Context (read-only)`. Analizzare `legacyHspdkContext.modernBridgeInventory` e seguire esclusivamente i nomi/metodi realmente presenti sulla Q0707.
