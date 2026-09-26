@@ -93,6 +93,11 @@ STORE_PROXY_HOP_HEADERS = {
 STORE_DISCOVERY_LOCK = threading.Lock()
 STORE_DISCOVERY_REPORT = None
 STORE_DISCOVERY_MAX_HOSTS = 40
+STORE_INSTALL_PROBE_MAX_EVENTS = 180
+STORE_INSTALL_PROBE_TARGET = {
+    "name": "Duplecast",
+    "appId": "1876",
+}
 
 
 def client_build_id():
@@ -334,6 +339,167 @@ def _new_store_domain_discovery_report():
     }
 
 
+def _store_install_probe_phase(probe):
+    status = str((probe or {}).get("status") or "")
+    return {
+        "CAPTURING_NAVIGATION": "NAVIGATION",
+        "DETAIL_OPEN": "DETAIL_IDLE",
+        "INSTALL_ARMED": "INSTALL_WINDOW",
+        "COMPLETED": "COMPLETE",
+    }.get(status, "UNSCOPED")
+
+
+def _store_discovery_host_names(discovery):
+    return sorted({
+        str(item.get("host") or "")
+        for item in (discovery or {}).get("hosts", [])
+        if item.get("host")
+    })
+
+
+def _store_install_probe_refresh(probe, discovery):
+    if not isinstance(probe, dict):
+        return
+    events = probe.get("dnsEvents") or []
+    phase_hosts = {}
+    phase_counts = {}
+    for item in events:
+        phase = str(item.get("phase") or "UNSCOPED")
+        host = str(item.get("host") or "")
+        if not host:
+            continue
+        phase_hosts.setdefault(phase, set()).add(host)
+        key = (phase, host)
+        phase_counts[key] = int(phase_counts.get(key, 0)) + 1
+
+    probe["phaseHosts"] = {
+        phase: sorted(hosts)
+        for phase, hosts in phase_hosts.items()
+    }
+
+    armed_hosts = set(probe.get("hostSnapshotAtInstallArm") or [])
+    install_hosts = set(phase_hosts.get("INSTALL_WINDOW", set()))
+    probe["contactedAfterInstallArm"] = sorted(install_hosts)
+    probe["newHostsAfterInstallArm"] = sorted(install_hosts - armed_hosts)
+    probe["queryDeltaAfterInstallArm"] = [
+        {
+            "host": host,
+            "queries": phase_counts.get(("INSTALL_WINDOW", host), 0),
+        }
+        for host in sorted(install_hosts)
+    ]
+    probe["currentHosts"] = _store_discovery_host_names(discovery)
+
+
+def _store_install_probe_mark(action, target=None):
+    global STORE_DISCOVERY_REPORT
+    action = str(action or "").strip().upper()
+    now = _utc_timestamp()
+    with STORE_DISCOVERY_LOCK:
+        if action == "START":
+            STORE_DISCOVERY_REPORT = _new_store_domain_discovery_report()
+            report = STORE_DISCOVERY_REPORT
+            report["accessMode"] = "VIDAA_STORE_INSTALL_DNS_PROBE"
+            report["storeInstallProbe"] = {
+                "passiveDnsOnly": True,
+                "tlsIntercepted": False,
+                "target": dict(target or STORE_INSTALL_PROBE_TARGET),
+                "status": "CAPTURING_NAVIGATION",
+                "startedAt": now,
+                "detailOpenedAt": None,
+                "installArmedAt": None,
+                "finishedAt": None,
+                "markers": [{"type": "START", "timestamp": now}],
+                "dnsEvents": [],
+                "hostSnapshotAtDetail": [],
+                "hostSnapshotAtInstallArm": [],
+                "hostSnapshotAtFinish": [],
+                "phaseHosts": {},
+                "contactedAfterInstallArm": [],
+                "newHostsAfterInstallArm": [],
+                "queryDeltaAfterInstallArm": [],
+                "currentHosts": [],
+                "note": (
+                    "Passive DNS differential only. Arm immediately before pressing "
+                    "Install/Download on the TV. HTTPS content is not intercepted."
+                ),
+            }
+            report.setdefault("summary", {})["storeInstallProbe"] = "CAPTURING_NAVIGATION"
+        else:
+            if STORE_DISCOVERY_REPORT is None or not isinstance(
+                STORE_DISCOVERY_REPORT.get("storeInstallProbe"), dict
+            ):
+                raise ValueError("Start the Store install probe first")
+            report = STORE_DISCOVERY_REPORT
+            discovery = report["storeDomainDiscovery"]
+            probe = report["storeInstallProbe"]
+            hosts_now = _store_discovery_host_names(discovery)
+
+            if action == "DETAIL_OPEN":
+                if probe.get("status") != "CAPTURING_NAVIGATION":
+                    raise ValueError("DETAIL_OPEN is only valid after START")
+                probe["status"] = "DETAIL_OPEN"
+                probe["detailOpenedAt"] = now
+                probe["hostSnapshotAtDetail"] = hosts_now
+            elif action == "ARM_INSTALL":
+                if probe.get("status") not in ("CAPTURING_NAVIGATION", "DETAIL_OPEN"):
+                    raise ValueError("ARM_INSTALL requires an active pre-install capture")
+                probe["status"] = "INSTALL_ARMED"
+                probe["installArmedAt"] = now
+                probe["hostSnapshotAtInstallArm"] = hosts_now
+            elif action == "FINISH":
+                if probe.get("status") != "INSTALL_ARMED":
+                    raise ValueError("FINISH requires ARM_INSTALL first")
+                probe["status"] = "COMPLETED"
+                probe["finishedAt"] = now
+                probe["hostSnapshotAtFinish"] = hosts_now
+            else:
+                raise ValueError("Unknown Store install probe action")
+
+            probe.setdefault("markers", []).append({
+                "type": action,
+                "timestamp": now,
+            })
+            _store_install_probe_refresh(probe, discovery)
+            report["updatedAt"] = now
+            report.setdefault("summary", {})["storeInstallProbe"] = probe["status"]
+
+        discovery = report["storeDomainDiscovery"]
+        probe = report["storeInstallProbe"]
+        _store_install_probe_refresh(probe, discovery)
+        snapshot = json.loads(json.dumps(report))
+
+    try:
+        write_session_report(snapshot["sessionId"], snapshot)
+    except Exception as exc:
+        print(f"[STORE-INSTALL] local report error: {exc}")
+    try:
+        queue_report_sync(
+            snapshot["sessionId"],
+            snapshot,
+            "store-install-probe-" + action.lower(),
+        )
+    except Exception as exc:
+        print(f"[STORE-INSTALL] sync error: {exc}")
+    print(f"[STORE-INSTALL] {action} · {probe.get('status')}")
+    return snapshot
+
+
+def _store_install_probe_snapshot():
+    with STORE_DISCOVERY_LOCK:
+        if STORE_DISCOVERY_REPORT is None:
+            return {"status": "IDLE", "target": dict(STORE_INSTALL_PROBE_TARGET)}
+        probe = STORE_DISCOVERY_REPORT.get("storeInstallProbe")
+        if not isinstance(probe, dict):
+            return {"status": "IDLE", "target": dict(STORE_INSTALL_PROBE_TARGET)}
+        snapshot = json.loads(json.dumps(probe))
+        _store_install_probe_refresh(
+            snapshot,
+            STORE_DISCOVERY_REPORT.get("storeDomainDiscovery", {}),
+        )
+        return snapshot
+
+
 def _record_store_domain_query(host, qtype):
     global STORE_DISCOVERY_REPORT
     host = _normalized_host(host)
@@ -377,8 +543,27 @@ def _record_store_domain_query(host, qtype):
         discovery["hostCount"] = len(discovery["hosts"])
         discovery["status"] = "QUERIES_CAPTURED" if discovery["hosts"] else "IDLE"
         report["summary"]["storeDomainDiscovery"] = discovery["status"]
+
+        probe = report.get("storeInstallProbe")
+        if isinstance(probe, dict) and probe.get("status") != "COMPLETED":
+            phase = _store_install_probe_phase(probe)
+            probe.setdefault("dnsEvents", []).append({
+                "timestamp": now,
+                "phase": phase,
+                "host": host,
+                "qtype": qtype_name,
+            })
+            if len(probe["dnsEvents"]) > STORE_INSTALL_PROBE_MAX_EVENTS:
+                probe["dnsEvents"] = probe["dnsEvents"][-STORE_INSTALL_PROBE_MAX_EVENTS:]
+            _store_install_probe_refresh(probe, discovery)
+            report["summary"]["storeInstallProbe"] = probe.get("status", "IDLE")
+
         snapshot = json.loads(json.dumps(report))
-        should_sync = new_host or new_qtype or discovery["totalQueries"] % 20 == 0
+        should_sync = (
+            new_host
+            or new_qtype
+            or discovery["totalQueries"] % 20 == 0
+        )
 
     trace_snapshot = _store_trace_snapshot()
     if trace_snapshot.get("status") != "IDLE":
@@ -2067,6 +2252,12 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
         if path == "/api/store-catalog-trace":
             return self._send_json({"ok": True, "storeCatalogTrace": _store_trace_snapshot()})
 
+        if path == "/api/store-install-probe":
+            return self._send_json({
+                "ok": True,
+                "storeInstallProbe": _store_install_probe_snapshot(),
+            })
+
         if path == "/api/remote-diagnostic/request":
             snapshot = _remote_diagnostic_snapshot(include_request=True)
             request = snapshot.get("request")
@@ -2140,6 +2331,24 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
             data = self._read_json()
         except Exception as exc:
             return self._send_json({"ok": False, "error": str(exc)}, 400)
+
+        if path == "/api/store-install-probe":
+            if not isinstance(data, dict):
+                return self._send_json({"ok": False, "error": "Expected JSON object"}, 400)
+            try:
+                report = _store_install_probe_mark(
+                    data.get("action"),
+                    data.get("target") if isinstance(data.get("target"), dict) else None,
+                )
+            except ValueError as exc:
+                return self._send_json({"ok": False, "error": str(exc)}, 400)
+            probe = report.get("storeInstallProbe", {})
+            return self._send_json({
+                "ok": True,
+                "sessionId": report.get("sessionId"),
+                "storeInstallProbe": probe,
+                "storeDomainDiscovery": report.get("storeDomainDiscovery", {}),
+            })
 
         if path == "/api/app-context-bootstrap":
             try:
