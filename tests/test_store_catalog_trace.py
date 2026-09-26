@@ -42,6 +42,7 @@ class _Connection:
     last = None
 
     def __init__(self, *args, **kwargs):
+        self.init_args = (args, kwargs)
         self.request_args = None
         self.response = _UpstreamResponse(json.dumps({
             "data": [{
@@ -168,6 +169,7 @@ class StoreCatalogTraceTests(unittest.TestCase):
                  mock.patch.object(sidee, "_record_store_trace", record):
                 sidee._proxy_store_catalog_request(handler)
 
+            self.assertEqual(_Connection.last.init_args[0][0], host)
             self.assertEqual(_Connection.last.request_args[3]["Host"], host)
             begin = [detail for event, detail in events if event == "HTTP_BEGIN"][0]
             response = [detail for event, detail in events if event == "HTTP_RESPONSE"][0]
