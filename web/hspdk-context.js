@@ -3,7 +3,7 @@
   // Descriptor-only discovery. Never execute a discovered native method or getter.
   var terms = /libhspdk-jsx\.so|(?:Hisense|HiBrowser)\.File|File\.(?:read|write)|launcher\/Appinfo\.json|websdk\/Appinfo\.json|loadLibrary/g;
   // Exact launch-context markers found in historical Hisense launcher source. Source-only detection; never launch them.
-  var legacyLaunchTerms = /:am,am,(?:(?:hi_browser|lau_browser|tv_store):start|:start=\[(?:hi_browser|lau_browser|tv_store))|app_(?:hi_browser|lau_browser|tv_store)|amName\s*:\s*["']hi_browser["']/g;
+  var legacyLaunchTerms = /:am,am,(?:(?:hi_browser|lau_browser|tv_store):start|:start=\[(?:hi_browser|lau_browser|tv_store))|app_(?:hi_browser|lau_browser|tv_store)|amName\s*:\s*["']hi_browser["']|\/3rd\/internet_browser\/browser|\/3rd\/internet_browser\/apps\/|\/3rd_rw\/internet_browser\//g;
   var sensitive = /token|secret|password|cookie|credential|authorization|signature|certificate|nonce|session/i;
   function lookup(root, name) {
     for (var depth = 0; root && depth < 5; depth++) {
