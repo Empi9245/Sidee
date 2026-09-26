@@ -14,6 +14,7 @@ Sidee is deliberately conservative on VIDAA 9. Direct `websdk/Appinfo.json` writ
 - local DNS server: redirects only `vidaahub.com` / `www.vidaahub.com` to your PC and forwards other DNS requests upstream
 - local HTTPS server on port 443
 - local dashboard/fallback on port 8080
+- raw-IP HTTP A/B test endpoint on port 8181, used only to compare VIDAA API/permission behavior without the `vidaahub.com` DNS/origin path
 - TV-friendly interface
 - read-only scanner for Hisense / VIDAA / HiUtils / OMI APIs
 - device/model/firmware diagnostics
@@ -65,6 +66,7 @@ sudo ./start-mac-linux.sh
 1. Start Sidee on a computer connected to the same LAN as the TV.
 2. Set the TV DNS manually to the PC IP printed by Sidee.
 3. Open the TV browser and visit `https://vidaahub.com`.
+   - For the explicit origin A/B comparison only, Sidee also prints `http://<PC-IP>:8181`. Open that URL without changing DNS, capture baseline, and run only the backup-protected **Test AppInfo Direct Write** no-op test.
 4. Run **Device / Environment Scan**.
 5. Run **Permission & AppConfig Probe**.
 6. Run **Runtime Identity Probe**.
@@ -277,3 +279,17 @@ The request channel defaults to branch `sidee-control`, file `control/request.js
 The remote path cannot select arbitrary functions and cannot add or restore AppInfo entries, perform install/uninstall, Role/Customer setters, resets, arbitrary JavaScript or guessed HiUtils calls.
 
 Each real request must carry a fresh `sidee-request-YYYYMMDD-HHMMSS-xxxx` ID and a future `expiresAt`. The page records the request ID and completion state in the normal diagnostic report. Therefore a ChatGPT turn can verify that its exact request completed by reading `remoteDiagnostic.lastRequestId` in `sidee-reports/reports/latest.json`.
+
+
+## Raw-IP HTTP origin A/B test
+
+Sidee exposes a second TV UI on `http://<PC-IP>:8181` specifically to compare the trusted-host path with the direct-IP pattern reported by some VIDAA 9 users.
+
+The comparison is:
+
+- A: `https://vidaahub.com` on port 443;
+- B: `http://<PC-IP>:8181` with no DNS hostname involved.
+
+Both serve the same build and use the same backup-protected no-op `fileWrite` test. Reports record `accessContext` (href/origin/protocol/hostname/port/secureContext), server-side request scheme/port, build IDs, API availability, and the exact `fileWrite` result. A different origin is never interpreted as success by itself.
+
+The raw-IP test exists only to determine whether the 503 AppConfig rejection depends on the DNS/origin path. Do not add Nuvio from the raw-IP session unless a separate no-op write first proves `WRITE_ALLOWED_AND_IDENTICAL`.
