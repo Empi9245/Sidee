@@ -4283,3 +4283,44 @@ Prossima direzione:
 - usare DNS passivo + ricerca pubblica/statica;
 - se serve osservare più host Hisense Store, includere esattamente host pertinenti nel discovery senza intercettazione;
 - cercare endpoint in asset/script pubblici o in sorgenti/repository, non nel traffico HTTPS decriptato della TV.
+
+
+## RISULTATO — passive Store after TLS fallback — 2026-09-26
+
+Dopo la rimozione degli host Store da `spoof_domains`, il test reale Q0707 è tornato in modalità DNS passiva.
+
+Report:
+- sessionId `sidee-20260926-204550-b8a4`;
+- build `app-4ce89e866abf`;
+- buildMatch `true`;
+- `storeDomainDiscovery.status = QUERIES_CAPTURED`;
+- `totalQueries = 42`;
+- `hostCount = 23`.
+
+Nuovi host particolarmente rilevanti osservati:
+- `category-ui-eu.vidaahub.com`;
+- `vidaa-base-auth-eu.vidaahub.com`;
+- `layout-ui-eu.vidaahub.com`;
+- `search-ui-eu.vidaahub.com`;
+- `partner.vidaahub.com`.
+
+Sono comparsi di nuovo anche:
+- `appstore-vidaa.vidaahub.com`;
+- `tvmodules-vidaa.vidaahub.com`;
+- `home-ui-eu.vidaahub.com`;
+- `detail-ui-eu.vidaahub.com`;
+- `recommend-ui-eu.vidaahub.com`.
+
+La scoperta più importante è `category-ui-eu.vidaahub.com`: il vecchio PoC pubblico FuVIDAA usava `category-ui.vidaahub.com`, mentre la Q0707 europea osservata usa una variante regionalizzata `category-ui-eu`. Questo rende più plausibile che la stessa famiglia di API catalogo esista anche sul firmware corrente, ma NON dimostra ancora che il path storico `/api/v1.0.0/categoryApi/categoryFirstResult` sia identico.
+
+Ricerca pubblica aggiuntiva:
+- un progetto recente (`kineticman/FastChannels`) usa backend VIDAA moderni con famiglie `layoutApi` e `detailApi`;
+- nello stesso codice è presente un endpoint `/api/v1.0.0/detailApi/mediasInfo` su un host VIDAA detail dedicato;
+- il progetto usa anche `partner.vidaahub.com` per OAuth e host `partner-layout-ui` / `partner-detail-ui`;
+- non usare né copiare eventuali secret/credential presenti in sorgenti pubbliche: ci interessa solo la struttura host/path.
+
+Conclusione:
+- il MITM TLS resta disabilitato;
+- continuare da DNS passivo + ricerca statica/pubblica;
+- `category-ui-eu.vidaahub.com` è ora il candidato principale per mappare la famiglia category sulla Q0707;
+- `layout-ui-eu`, `detail-ui-eu` e `search-ui-eu` mostrano che la Store UI è separata per funzione e regione.
