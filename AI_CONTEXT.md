@@ -3628,3 +3628,41 @@ Il probe parte automaticamente una volta per build dopo il tvbrowser package pro
 `Correlate pkgmgr ↔ AppInfo (read-only)`.
 
 Obiettivo: verificare se una app package-backed già installata conserva nel launcher riferimenti a download/config/store che possano rivelare la sorgente reale usata prima di `pkgmgr install`.
+
+
+---
+
+## DIAGNOSI OPERATIVA — vecchia istanza Sidee ancora attiva — 2026-09-26
+
+Dopo l'aggiunta della correlazione `pkgmgr ↔ AppInfo`, l'utente ha eseguito pull/restart ma `sidee-reports` è rimasto fermo a:
+- commit report: `bb540013e1a661c0811a072a7c3d46c1d7641a07`;
+- timestamp commit: `2026-09-26T17:22:37Z`;
+- report build: `app-037c19e82796`;
+- ultimo reason: `pkgmgr-tvbrowse-package-probe`;
+- `pkgmgrPackageCorrelation` assente.
+
+Questo prova che il nuovo report non è stato sincronizzato e che il processo attivo che serve la TV è ancora la build precedente oppure che una vecchia istanza sta occupando le porte.
+
+Il server statico Sidee già invia:
+`Cache-Control: no-cache, no-store, must-revalidate, max-age=0`,
+quindi non attribuire il problema alla cache del browser.
+
+### Fix Windows
+
+`start-windows.bat` ora, dopo l'elevazione:
+- chiude solo processi Windows la cui command line contiene `sidee.py`;
+- aspetta un secondo;
+- stampa il Git HEAD corrente;
+- quindi avvia `sidee.py`.
+
+`sidee.py` ora stampa all'avvio:
+- `Build ID: <client_build_id>`;
+- `Git HEAD: <sha>`.
+
+`run_https()` ora gestisce esplicitamente il bind failure su TCP/443:
+- stampa errore chiaro;
+- su Windows segnala che una precedente istanza Sidee è probabilmente ancora attiva;
+- indica il comando `netstat`;
+- imposta `stop_event` e termina invece di lasciare una falsa impressione di avvio riuscito.
+
+Questa modifica serve a garantire che il prossimo test `pkgmgrPackageCorrelation` venga eseguito dalla build realmente aggiornata.
