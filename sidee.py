@@ -392,7 +392,7 @@ def main():
     print(f"  1. Set the TV DNS manually to {local_ip}")
     print("  2. Open https://vidaahub.com in the TV browser")
     print("  3. Accept the local certificate warning if shown")
-    print("  4. Run Read-only Scan before any installation test")
+    print("  4. Capture Baseline, initialize runtime context, then run the explicit permission test")
     print("=" * 52)
 
     threads = []

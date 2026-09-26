@@ -188,3 +188,13 @@ footer{margin:26px 4px 0;color:#647084;font-size:.78rem}
   .identityGrid>div:last-child{grid-column:auto}
   .summaryGrid{grid-template-columns:1fr}
 }
+
+.formGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}
+.inlineAction{margin-top:14px}
+.resultLine{font-weight:800}
+.advancedBlock{margin-top:18px;padding:18px;border-radius:16px;background:#090d14;border:1px solid #192334}
+.compactSummary{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:850px){
+  .formGrid{grid-template-columns:1fr}
+  .compactSummary{grid-template-columns:1fr}
+}

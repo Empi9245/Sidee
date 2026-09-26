@@ -48,25 +48,26 @@
       sessionId:getSessionId(),
       startedAt:now,
       updatedAt:now,
-      summary:{
-        origin:location.origin,
-        installApi:"UNKNOWN",
-        appConfigProbe:"UNKNOWN",
-        installRequest:"UNKNOWN",
-        internalReason:"UNKNOWN",
-        permissionCode:"UNKNOWN",
-        verification:"UNKNOWN",
-        conclusion:"UNKNOWN"
+      device:{},
+      baseline:null,
+      contextInit:{
+        status:"NOT_RUN",
+        available:false,
+        before:null,
+        after:null,
+        diff:null
       },
-      environment:{},
-      permissionProbe:{},
-      runtimeIdentityProbe:{},
-      runtimeContextInitialization:{called:false,eligible:false,reason:"Runtime init has not been inspected yet."},
+      clientInformation:null,
+      serviceTrace:[],
+      installTest:null,
+      verification:null,
       target:{},
-      installDiagnostic:{status:"UNKNOWN",attempts:[]},
-      verification:{},
-      hiUtilsTrace:[],
-      raw:{snapshots:{}}
+      temporaryIdentifierTest:null,
+      summary:{
+        runtimeIdentity:"MISSING",
+        contextInit:"NOT_RUN",
+        permissionGate:"UNKNOWN"
+      }
     };
   }
 
@@ -2667,105 +2668,735 @@
     return reportSaveChain;
   }
 
-  $("scanBtn").addEventListener("click", scan);
-  $("permissionProbeBtn").addEventListener("click", permissionProbe);
-  $("clientIdentityProbeBtn").addEventListener("click", runtimeIdentityProbe);
-  $("runtimeContextInitBtn").addEventListener("click", initializeRuntimeContext);
-  $("clientInformationBtn").addEventListener("click", readClientInformation);
-  $("saveBtn").addEventListener("click", saveTarget);
-  $("verifyBtn").addEventListener("click", () => verify(true));
-  $("installDiagnosticBtn").addEventListener("click", runInstallDiagnostic);
-  $("installLegacyBtn").addEventListener("click", install);
-  $("installV2Btn").addEventListener("click", installV2);
-  $("uninstallBtn").addEventListener("click", uninstall);
-  $("reportBtn").addEventListener("click", () => saveReport("export"));
 
-  function isVisibleFocusable(element) {
-    if (!element || element.disabled) return false;
-    const style = window.getComputedStyle(element);
-    return style.display !== "none" && style.visibility !== "hidden" && element.getClientRects().length > 0;
-  }
-
-  function focusableControls() {
-    return Array.from(document.querySelectorAll("button,input,summary"))
-      .filter(isVisibleFocusable);
-  }
-
-  function elementCenter(element) {
-    const rect = element.getBoundingClientRect();
-    return {x:rect.left + rect.width / 2, y:rect.top + rect.height / 2};
-  }
-
-  function spatialTarget(current, key, candidates) {
-    const from = elementCenter(current);
-    let best = null;
-    let bestScore = Infinity;
-
-    for (const candidate of candidates) {
-      if (candidate === current) continue;
-      const to = elementCenter(candidate);
-      const dx = to.x - from.x;
-      const dy = to.y - from.y;
-      let primary = 0;
-      let cross = 0;
-
-      if (key === "ArrowUp") {
-        if (dy >= -4) continue;
-        primary = -dy;
-        cross = Math.abs(dx);
-      } else if (key === "ArrowDown") {
-        if (dy <= 4) continue;
-        primary = dy;
-        cross = Math.abs(dx);
-      } else if (key === "ArrowLeft") {
-        if (dx >= -4) continue;
-        primary = -dx;
-        cross = Math.abs(dy);
-      } else if (key === "ArrowRight") {
-        if (dx <= 4) continue;
-        primary = dx;
-        cross = Math.abs(dy);
-      }
-
-      const score = primary * 10 + cross;
-      if (score < bestScore) {
-        best = candidate;
-        bestScore = score;
-      }
+  function targetedMeaningful(value) {
+    if (value === null || value === undefined) return false;
+    if (typeof value === "string") {
+      const text = value.trim().toLowerCase();
+      return Boolean(text && text !== "undefined" && text !== "null");
     }
-    return best;
+    return true;
   }
 
-  window.addEventListener("keydown", (e) => {
-    const key = e.key || ({13:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[e.keyCode]);
-    const active = document.activeElement;
+  function targetedReadProperty(root, name) {
+    if (!root) return {status:"UNAVAILABLE",type:"missing",value:null,error:null};
+    try {
+      const value = root[name];
+      return {status:"RETURNED",type:value === null ? "null" : typeof value,value:safeValue(value),error:null};
+    } catch (error) {
+      return {status:"ERROR",type:"error",value:null,error:errorText(error)};
+    }
+  }
 
-    if ((key === "Enter" || key === "OK") && active && (active.tagName === "BUTTON" || active.tagName === "SUMMARY")) {
-      e.preventDefault();
-      active.click();
+  function targetedCall(root, name) {
+    if (!root) return {status:"UNAVAILABLE",value:null,error:null};
+    let fn;
+    try { fn = root[name]; } catch (error) {
+      return {status:"ERROR",value:null,error:errorText(error)};
+    }
+    if (typeof fn !== "function") return {status:"UNAVAILABLE",value:null,error:null};
+    try {
+      return {status:"RETURNED",value:safeValue(fn.call(root)),error:null};
+    } catch (error) {
+      return {status:"ERROR",value:null,error:errorText(error)};
+    }
+  }
+
+  function targetedDescriptor(root, name) {
+    const found = findPropertyDescriptor(root, name, 5);
+    if (!found || found.error) return found && found.error ? {found:false,error:found.error} : {found:false};
+    const descriptor = found.descriptor;
+    return {
+      found:true,
+      ownerDepth:found.ownerDepth,
+      enumerable:Boolean(descriptor.enumerable),
+      configurable:Boolean(descriptor.configurable),
+      writable:Object.prototype.hasOwnProperty.call(descriptor,"writable") ? Boolean(descriptor.writable) : null,
+      hasGetter:typeof descriptor.get === "function",
+      hasSetter:typeof descriptor.set === "function"
+    };
+  }
+
+  function targetedClientInformation() {
+    const record = {
+      timestamp:new Date().toISOString(),
+      descriptor:targetedDescriptor(window,"clientInformation"),
+      status:"UNAVAILABLE",
+      type:"missing",
+      sameAsNavigator:null,
+      value:null,
+      error:null,
+      setterUsed:false
+    };
+    try {
+      const value = window.clientInformation;
+      record.status = "RETURNED";
+      record.type = value === null ? "null" : typeof value;
+      record.sameAsNavigator = value === navigator;
+      if (value !== null && (typeof value === "object" || typeof value === "function")) {
+        const compact = {};
+        let names = [];
+        try { names = Object.getOwnPropertyNames(value); } catch (_) {}
+        names.filter((name) => /(app|identifier|appid|role|customer|origin|url|permission|appconfig|store|package|security)/i.test(name))
+          .slice(0,30)
+          .forEach((name) => {
+            try { compact[name] = safeValue(value[name]); }
+            catch (error) { compact[name] = "[read error: " + errorText(error) + "]"; }
+          });
+        record.value = compact;
+      } else {
+        record.value = safeValue(value);
+      }
+    } catch (error) {
+      record.status = "ERROR";
+      record.type = "error";
+      record.error = errorText(error);
+    }
+    return record;
+  }
+
+  function captureRuntimeIdentity(label) {
+    let vowOS = null;
+    let service = null;
+    let context = null;
+    try { vowOS = window.vowOS; } catch (_) {}
+    try { service = vowOS && vowOS.service; } catch (_) {}
+    try { context = window.vowOSContext; } catch (_) {}
+    return {
+      label:label || null,
+      timestamp:new Date().toISOString(),
+      navigatorAppIdentifier:targetedReadProperty(navigator,"appIdentifier"),
+      serviceIdentifier:targetedCall(service,"getIdentifier"),
+      appIdentifier:targetedCall(context,"getAppIdentifier"),
+      appId:targetedCall(context,"getAppId"),
+      roleId:targetedCall(window,"Hisense_GetRoleID"),
+      customerId:targetedCall(window,"Hisense_GetCustomerID"),
+      roleSetterAvailable:typeof window.Hisense_SetRoleID === "function",
+      customerSetterAvailable:typeof window.Hisense_SetCustomerID === "function",
+      clientInformation:targetedClientInformation()
+    };
+  }
+
+  function targetedIdentityStatus(snapshot) {
+    if (!snapshot) return "MISSING";
+    const core = [snapshot.navigatorAppIdentifier,snapshot.serviceIdentifier,snapshot.appIdentifier,snapshot.appId];
+    if (core.some((entry) => entry && entry.status === "RETURNED" && targetedMeaningful(entry.value))) return "PRESENT";
+    if (
+      (snapshot.roleId && snapshot.roleId.status === "RETURNED" && targetedMeaningful(snapshot.roleId.value)) ||
+      (snapshot.customerId && snapshot.customerId.status === "RETURNED" && targetedMeaningful(snapshot.customerId.value))
+    ) return "PARTIAL";
+    return "MISSING";
+  }
+
+  function targetedDisplay(entry) {
+    if (!entry || entry.status === "UNAVAILABLE") return "UNAVAILABLE";
+    if (entry.status === "ERROR") return "ERROR";
+    if (!targetedMeaningful(entry.value)) return "EMPTY";
+    if (typeof entry.value === "string") return truncateText(entry.value,80);
+    try { return truncateText(JSON.stringify(entry.value),80); } catch (_) { return String(entry.value); }
+  }
+
+  function targetedDiff(before,after) {
+    function changed(key) {
+      const a = before && before[key] ? before[key].value : null;
+      const b = after && after[key] ? after[key].value : null;
+      return JSON.stringify(a) !== JSON.stringify(b);
+    }
+    return {
+      appIdentifierChanged:changed("navigatorAppIdentifier") || changed("appIdentifier"),
+      appIdChanged:changed("appId"),
+      serviceIdentifierChanged:changed("serviceIdentifier"),
+      roleChanged:changed("roleId"),
+      customerChanged:changed("customerId"),
+      clientInformationChanged:JSON.stringify(before && before.clientInformation && before.clientInformation.value) !==
+        JSON.stringify(after && after.clientInformation && after.clientInformation.value)
+    };
+  }
+
+  function targetedSetText(id,value) {
+    const el = $(id);
+    if (el) el.textContent = value === null || value === undefined ? "—" : String(value);
+  }
+
+  function targetedCurrentSnapshot() {
+    if (state.report.contextInit && state.report.contextInit.after) return state.report.contextInit.after;
+    return state.report.baseline;
+  }
+
+  function targetedRenderIdentity(snapshot) {
+    snapshot = snapshot || {};
+    targetedSetText("navigatorAppIdentifierValue",targetedDisplay(snapshot.navigatorAppIdentifier));
+    targetedSetText("serviceIdentifierValue",targetedDisplay(snapshot.serviceIdentifier));
+    targetedSetText("appIdentifierValue",targetedDisplay(snapshot.appIdentifier));
+    targetedSetText("appIdValue",targetedDisplay(snapshot.appId));
+    targetedSetText("roleIdValue",targetedDisplay(snapshot.roleId));
+    targetedSetText("customerIdValue",targetedDisplay(snapshot.customerId));
+    targetedSetText("roleSetterValue",snapshot.roleSetterAvailable ? "YES" : "NO");
+    targetedSetText("customerSetterValue",snapshot.customerSetterAvailable ? "YES" : "NO");
+  }
+
+  function targetedRenderSummary() {
+    const summary = state.report.summary || {};
+    targetedSetText("summaryRuntimeIdentity",summary.runtimeIdentity || "MISSING");
+    targetedSetText("summaryContextInit",summary.contextInit || "NOT_RUN");
+    targetedSetText("summaryPermissionGate",summary.permissionGate || "UNKNOWN");
+    const snapshot = targetedCurrentSnapshot();
+    targetedSetText("summaryIdentifier",snapshot ? targetedDisplay(snapshot.serviceIdentifier) : "UNKNOWN");
+    targetedSetText("reportFileName",currentReportFileName());
+  }
+
+  function targetedRenderDiff(diff) {
+    const el = $("contextDiff");
+    if (!el) return;
+    if (!diff) {
+      el.textContent = "No comparison yet.";
       return;
     }
+    el.textContent = [
+      "App identifier: " + (diff.appIdentifierChanged ? "CHANGED" : "NO CHANGE"),
+      "App ID: " + (diff.appIdChanged ? "CHANGED" : "NO CHANGE"),
+      "Service identifier: " + (diff.serviceIdentifierChanged ? "CHANGED" : "NO CHANGE"),
+      "Role: " + (diff.roleChanged ? "CHANGED" : "NO CHANGE"),
+      "Customer: " + (diff.customerChanged ? "CHANGED" : "NO CHANGE"),
+      "Client information: " + (diff.clientInformationChanged ? "CHANGED" : "NO CHANGE")
+    ].join(" · ");
+  }
 
-    if (!["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(key)) return;
-    if (active && active.tagName === "INPUT" && (key === "ArrowLeft" || key === "ArrowRight")) return;
+  function targetedGetter(name) {
+    const result = callGetter(name);
+    return result && result.ok ? result.value : null;
+  }
 
-    const controls = focusableControls();
-    if (!controls.length) return;
-    const current = controls.includes(active) ? active : controls[0];
-    const target = spatialTarget(current, key, controls);
-    if (target) {
-      target.focus();
-      e.preventDefault();
-    } else if (!controls.includes(active)) {
-      current.focus();
-      e.preventDefault();
+  function targetedCaptureDevice() {
+    return {
+      firmware:targetedGetter("Hisense_GetFirmWareVersion"),
+      os:targetedGetter("Hisense_GetOSVersion"),
+      api:targetedGetter("Hisense_GetApiVersion"),
+      browser:targetedGetter("Hisense_GetCurrentBrowser") || navigator.userAgent,
+      chipset:targetedGetter("Hisense_GetChipSetName"),
+      model:targetedGetter("Hisense_GetModelName"),
+      origin:location.origin
+    };
+  }
+
+  async function targetedBaseline() {
+    state.report.device = targetedCaptureDevice();
+    state.report.baseline = captureRuntimeIdentity("baseline");
+    state.report.clientInformation = state.report.baseline.clientInformation;
+    state.report.summary.runtimeIdentity = targetedIdentityStatus(state.report.baseline);
+    targetedRenderIdentity(state.report.baseline);
+    targetedRenderSummary();
+    targetedSetText("baselineState","Baseline captured.");
+    targetedSetText("deviceBadge",state.report.device.firmware ? "VIDAA runtime detected" : "VIDAA APIs not detected");
+    log("Targeted baseline captured.",{
+      runtimeIdentity:state.report.summary.runtimeIdentity,
+      serviceIdentifier:targetedDisplay(state.report.baseline.serviceIdentifier),
+      appIdentifier:targetedDisplay(state.report.baseline.appIdentifier),
+      appId:targetedDisplay(state.report.baseline.appId)
+    });
+    await saveReport("targeted-baseline");
+  }
+
+  function targetedWithTimeout(promise,ms,label) {
+    return new Promise((resolve,reject) => {
+      let settled = false;
+      const timer = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        reject(new Error((label || "Operation") + " timed out after " + ms + " ms"));
+      },ms);
+      Promise.resolve(promise).then((value) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(value);
+      },(error) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        reject(error);
+      });
+    });
+  }
+
+  async function targetedInvokeInit(fn,context) {
+    let source = "";
+    try { source = Function.prototype.toString.call(fn); } catch (_) {}
+    const callbackSuggested = fn.length === 1 || /\b(callback|cb|done|complete)\b/i.test(source);
+    let callbackCalled = false;
+    let callbackValue = null;
+    let callbackResolve;
+    const callbackPromise = new Promise((resolve) => { callbackResolve = resolve; });
+    const callback = function () {
+      callbackCalled = true;
+      callbackValue = safeValue(Array.prototype.slice.call(arguments));
+      callbackResolve(callbackValue);
+    };
+    let returned = callbackSuggested ? fn.call(context,callback) : fn.call(context);
+    const returnType = returned === null ? "null" : typeof returned;
+    let returnValue = null;
+    if (returned && typeof returned.then === "function") {
+      returnValue = safeValue(await targetedWithTimeout(Promise.resolve(returned),2500,"vowOSContext.init promise"));
+    } else if (callbackSuggested && returned === undefined) {
+      try { await targetedWithTimeout(callbackPromise,1800,"vowOSContext.init callback"); } catch (_) {}
+      returnValue = safeValue(returned);
+    } else {
+      returnValue = safeValue(returned);
     }
+    return {callbackSuggested,callbackCalled,callbackValue,returnType,returnValue};
+  }
+
+  async function targetedInitializeContext() {
+    if (diagnosticRunning) return;
+    diagnosticRunning = true;
+    targetedSetText("contextState","Initializing runtime context…");
+    const before = captureRuntimeIdentity("beforeInit");
+    let context = null;
+    let fn = null;
+    let callResult = null;
+    let error = null;
+    try {
+      context = window.vowOSContext;
+      fn = context && context.init;
+    } catch (e) {
+      error = errorText(e);
+    }
+    if (!error && typeof fn !== "function") error = "vowOSContext.init is unavailable";
+    if (!error) {
+      try {
+        callResult = await targetedWithTimeout(targetedInvokeInit(fn,context),3000,"vowOSContext.init");
+      } catch (e) {
+        error = errorText(e);
+      }
+    }
+    const after = captureRuntimeIdentity("afterInit");
+    const diff = targetedDiff(before,after);
+    const changed = Object.keys(diff).some((key) => diff[key]);
+    const status = error ? "ERROR" : changed ? "IDENTITY_CHANGED" : "NO_CHANGE";
+    state.report.contextInit = {
+      status,
+      available:typeof fn === "function",
+      timestamp:new Date().toISOString(),
+      call:callResult,
+      error,
+      before,
+      after,
+      diff
+    };
+    state.report.clientInformation = after.clientInformation;
+    state.report.summary.contextInit = status;
+    state.report.summary.runtimeIdentity = targetedIdentityStatus(after);
+    targetedRenderIdentity(after);
+    targetedRenderDiff(diff);
+    targetedRenderSummary();
+    targetedSetText("contextState",error ? "Init completed with error: " + error : "Runtime context: " + status);
+    log("vowOSContext.init completed.",{status,error,diff});
+    diagnosticRunning = false;
+    await saveReport("targeted-context-init");
+  }
+
+  async function targetedReadClientInformation() {
+    const result = targetedClientInformation();
+    state.report.clientInformation = result;
+    const snapshot = targetedCurrentSnapshot();
+    if (snapshot) snapshot.clientInformation = result;
+    const keys = result.value && typeof result.value === "object" ? Object.keys(result.value) : [];
+    targetedSetText(
+      "clientInformationState",
+      result.status + " · type " + result.type +
+      (typeof result.sameAsNavigator === "boolean" ? " · sameAsNavigator " + (result.sameAsNavigator ? "YES" : "NO") : "") +
+      (keys.length ? " · keys: " + keys.join(", ") : "")
+    );
+    log("clientInformation getter read.",{
+      status:result.status,
+      type:result.type,
+      sameAsNavigator:result.sameAsNavigator,
+      descriptor:result.descriptor
+    });
+    await saveReport("targeted-client-information");
+  }
+
+  function targetedTraceResult(value) {
+    const result = {ret:null,code:null,msg:null};
+    const queue = [value];
+    const seen = [];
+    let visits = 0;
+    while (queue.length && visits < 80) {
+      const current = queue.shift();
+      visits += 1;
+      if (!current || typeof current !== "object" || seen.indexOf(current) >= 0) continue;
+      seen.push(current);
+      let keys = [];
+      try { keys = Object.keys(current).slice(0,25); } catch (_) {}
+      keys.forEach((key) => {
+        let child;
+        try { child = current[key]; } catch (_) { return; }
+        const lower = key.toLowerCase();
+        if (result.ret === null && lower === "ret") result.ret = safeValue(child);
+        if (result.code === null && (lower === "code" || lower === "errorcode")) result.code = safeValue(child);
+        if (result.msg === null && (lower === "msg" || lower === "message" || lower === "error")) {
+          result.msg = truncateText(String(child),300);
+        }
+        if (child && typeof child === "object") queue.push(child);
+      });
+    }
+    return result;
+  }
+
+  function targetedPayload(api,payload) {
+    if (String(api).toLowerCase() !== "installapplication" || !payload || typeof payload !== "object") return safeValue(payload);
+    const result = {};
+    ["id","Id","appId","AppName","name","Title","URL","url","StartCommand","StoreType","storeType"].forEach((key) => {
+      if (Object.prototype.hasOwnProperty.call(payload,key)) result[key] = safeValue(payload[key]);
+    });
+    return result;
+  }
+
+  async function targetedWithTrace(source,operation) {
+    const trace = {
+      timestamp:new Date().toISOString(),
+      source,
+      service:null,
+      api:null,
+      identifier:null,
+      endpoint:null,
+      payload:null,
+      result:null,
+      errors:[]
+    };
+    let service = null;
+    let originalIdentifier = null;
+    let originalSync = null;
+    let originalHiUtils = null;
+    let originalOpen = null;
+    function restore() {
+      if (service && originalIdentifier) {
+        try { service.getIdentifier = originalIdentifier; } catch (_) {}
+      }
+      if (service && originalSync) {
+        try { service.syncExecute = originalSync; } catch (_) {}
+      }
+      if (originalHiUtils) {
+        try { window.HiUtils_createRequest = originalHiUtils; } catch (_) {}
+      }
+      if (originalOpen && window.XMLHttpRequest && window.XMLHttpRequest.prototype) {
+        try { window.XMLHttpRequest.prototype.open = originalOpen; } catch (_) {}
+      }
+    }
+    try {
+      try { service = window.vowOS && window.vowOS.service; } catch (_) {}
+      if (service && typeof service.getIdentifier === "function") {
+        originalIdentifier = service.getIdentifier;
+        try {
+          service.getIdentifier = function () {
+            const value = originalIdentifier.apply(this,arguments);
+            trace.identifier = safeValue(value);
+            return value;
+          };
+        } catch (error) { trace.errors.push("getIdentifier wrap: " + errorText(error)); }
+      }
+      if (service && typeof service.syncExecute === "function") {
+        originalSync = service.syncExecute;
+        try {
+          service.syncExecute = function () {
+            const args = Array.prototype.slice.call(arguments);
+            if (trace.service === null && args.length) trace.service = safeValue(args[0]);
+            const value = originalSync.apply(this,arguments);
+            if (!trace.result) trace.result = targetedTraceResult(value);
+            return value;
+          };
+        } catch (error) { trace.errors.push("syncExecute wrap: " + errorText(error)); }
+      }
+      if (typeof window.HiUtils_createRequest === "function") {
+        originalHiUtils = window.HiUtils_createRequest;
+        try {
+          window.HiUtils_createRequest = function (type,msg) {
+            trace.service = "hiutils";
+            trace.api = String(type);
+            trace.payload = targetedPayload(type,msg);
+            if (trace.identifier === null && service && typeof service.getIdentifier === "function") {
+              try { trace.identifier = safeValue(service.getIdentifier()); } catch (_) {}
+            }
+            const value = originalHiUtils.apply(this,arguments);
+            trace.result = targetedTraceResult(value);
+            return value;
+          };
+        } catch (error) { trace.errors.push("HiUtils wrap: " + errorText(error)); }
+      }
+      if (window.XMLHttpRequest && window.XMLHttpRequest.prototype && typeof window.XMLHttpRequest.prototype.open === "function") {
+        originalOpen = window.XMLHttpRequest.prototype.open;
+        try {
+          window.XMLHttpRequest.prototype.open = function (method,url) {
+            if (typeof url === "string" && /localhost:(9888|9009)\/service\//i.test(url)) trace.endpoint = url;
+            return originalOpen.apply(this,arguments);
+          };
+        } catch (error) { trace.errors.push("XHR wrap: " + errorText(error)); }
+      }
+      const value = await operation(trace);
+      if (!trace.result) trace.result = targetedTraceResult(value);
+      return {value,trace};
+    } catch (error) {
+      trace.errors.push("operation: " + errorText(error));
+      return {value:null,error:errorText(error),trace};
+    } finally {
+      restore();
+      if (!Array.isArray(state.report.serviceTrace)) state.report.serviceTrace = [];
+      state.report.serviceTrace.push(trace);
+      if (state.report.serviceTrace.length > 20) {
+        state.report.serviceTrace.splice(0,state.report.serviceTrace.length - 20);
+      }
+    }
+  }
+
+  async function targetedReadOnlyTrace() {
+    if (typeof window.HiUtils_createRequest !== "function") {
+      targetedSetText("serviceTraceState","HiUtils_createRequest unavailable.");
+      return;
+    }
+    const traced = await targetedWithTrace("readonly-appinfo",() => {
+      return window.HiUtils_createRequest("fileRead",{path:"websdk/Appinfo.json",mode:6});
+    });
+    targetedSetText(
+      "serviceTraceState",
+      "api " + (traced.trace.api || "unknown") +
+      " · identifier " + (targetedMeaningful(traced.trace.identifier) ? String(traced.trace.identifier) : "EMPTY") +
+      " · code " + (traced.trace.result && traced.trace.result.code !== null ? traced.trace.result.code : "—")
+    );
+    log("Read-only service trace captured.",traced.trace);
+    await saveReport("targeted-readonly-trace");
+  }
+
+  async function targetedVerify() {
+    const target = currentTarget();
+    const installedRaw = await callInstalledApps();
+    const installedRecords = collectAppRecords(installedRaw,target);
+    let appInfoRecords = [];
+    if (typeof window.HiUtils_createRequest === "function") {
+      try {
+        const appInfoResult = window.HiUtils_createRequest("fileRead",{path:"websdk/Appinfo.json",mode:6});
+        appInfoRecords = collectAppRecords(appInfoResult,target);
+      } catch (_) {}
+    }
+    const installedMatch = installedRecords.some((record) => record && record.matchedTarget);
+    const appInfoMatch = appInfoRecords.some((record) => record && record.matchedTarget);
+    const result = {
+      timestamp:new Date().toISOString(),
+      installedApps:{available:Boolean(installedRaw && installedRaw.available),count:installedRecords.length,matched:installedMatch},
+      appInfo:{available:typeof window.HiUtils_createRequest === "function",count:appInfoRecords.length,matched:appInfoMatch},
+      verified:Boolean(installedMatch || appInfoMatch)
+    };
+    state.report.verification = result;
+    targetedSetText("verifyOutput",result.verified ? "VERIFIED INSTALLED" : "NOT INSTALLED");
+    return result;
+  }
+
+  function targetedInstallGate(test,verification,previous) {
+    const internal = test && test.trace && test.trace.result || {ret:null,code:null,msg:null};
+    if (verification && verification.verified) return "PASSED";
+    if (Number(internal.code) === 503 && /permission|appconfig/i.test(String(internal.msg || ""))) return "REJECTED";
+    if (internal.ret === true) return "PASSED";
+    if (test && test.returnValue === false) return "REJECTED";
+    if (previous && previous.internal && (
+      previous.internal.code !== internal.code ||
+      previous.internal.ret !== internal.ret ||
+      previous.internal.msg !== internal.msg
+    )) return "CHANGED";
+    return "UNKNOWN";
+  }
+
+  async function targetedInstallPermission(method) {
+    if (diagnosticRunning) return;
+    const target = currentTarget();
+    if (!target.app_id || !target.app_name || !target.app_url) {
+      targetedSetText("installState","App ID, name and URL are required.");
+      return;
+    }
+    diagnosticRunning = true;
+    targetedSetText("installState","Running explicit install permission test…");
+    const selected = method || (typeof window.Hisense_installApp_V2 === "function" ? "v2" : "legacy");
+    const api = selected === "v2" ? window.Hisense_installApp_V2 : window.Hisense_installApp;
+    const previous = state.report.installTest;
+    const snapshot = captureRuntimeIdentity("installTest");
+    const test = {
+      timestamp:new Date().toISOString(),
+      method:selected,
+      returnValue:null,
+      externalCallback:null,
+      payload:null,
+      trace:null,
+      error:null
+    };
+    if (typeof api !== "function") {
+      test.error = "Install API unavailable";
+    } else {
+      let callbackResolve;
+      let callbackTimer = null;
+      const callbackPromise = new Promise((resolve) => { callbackResolve = resolve; });
+      const callback = function (status) {
+        test.externalCallback = safeValue(status);
+        callbackResolve(status);
+      };
+      const traced = await targetedWithTrace("install-" + selected,async () => {
+        try {
+          if (selected === "v2") {
+            const payload = buildV2AppInfo(target,resolveIconUrl(target));
+            test.payload = targetedPayload("installApplication",payload);
+            test.returnValue = safeValue(api(payload,callback));
+          } else {
+            const icon = resolveIconUrl(target);
+            test.payload = {
+              appId:target.app_id,
+              appName:target.app_name,
+              icon,
+              url:target.app_url,
+              storeType:target.store_type || "store"
+            };
+            test.returnValue = safeValue(api(
+              target.app_id,target.app_name,
+              icon,icon,icon,
+              target.app_url,target.store_type || "store",
+              callback
+            ));
+          }
+          try {
+            await new Promise((resolve) => {
+              let done = false;
+              callbackTimer = setTimeout(() => { if (!done) { done = true; resolve(); } },4000);
+              callbackPromise.then(() => {
+                if (done) return;
+                done = true;
+                clearTimeout(callbackTimer);
+                callbackTimer = null;
+                resolve();
+              });
+            });
+          } finally {
+            if (callbackTimer !== null) clearTimeout(callbackTimer);
+          }
+          return test.returnValue;
+        } catch (error) {
+          test.error = errorText(error);
+          throw error;
+        }
+      });
+      test.trace = traced.trace;
+      if (traced.error && !test.error) test.error = traced.error;
+    }
+    const verification = await targetedVerify();
+    const internal = test.trace && test.trace.result || {ret:null,code:null,msg:null};
+    const gate = targetedInstallGate(test,verification,previous);
+    state.report.installTest = {
+      timestamp:test.timestamp,
+      method:selected,
+      identifierUsed:test.trace ? test.trace.identifier : null,
+      appIdentifier:snapshot.appIdentifier,
+      appId:snapshot.appId,
+      roleId:snapshot.roleId,
+      customerId:snapshot.customerId,
+      payload:test.payload,
+      returnValue:test.returnValue,
+      internal,
+      externalCallback:test.externalCallback,
+      error:test.error,
+      verification
+    };
+    state.report.summary.permissionGate = gate;
+    targetedRenderSummary();
+    targetedSetText(
+      "installState",
+      gate +
+      " · internal ret " + String(internal.ret) +
+      " · code " + String(internal.code) +
+      " · callback " + String(test.externalCallback) +
+      " · " + (verification.verified ? "verified installed" : "not installed")
+    );
+    log("Install permission test completed.",state.report.installTest);
+    diagnosticRunning = false;
+    await saveReport("targeted-install-permission");
+  }
+
+  async function targetedTemporaryIdentifierTest() {
+    const input = $("temporaryIdentifier");
+    const identifier = input ? input.value.trim() : "";
+    if (!identifier) {
+      targetedSetText("temporaryIdentifierState","Enter an identifier first. No test was run.");
+      return;
+    }
+    let service = null;
+    try { service = window.vowOS && window.vowOS.service; } catch (_) {}
+    if (!service || typeof service.getIdentifier !== "function") {
+      targetedSetText("temporaryIdentifierState","vowOS.service.getIdentifier is unavailable.");
+      return;
+    }
+    const original = service.getIdentifier;
+    let traced = null;
+    try {
+      service.getIdentifier = function () { return identifier; };
+      traced = await targetedWithTrace("temporary-identifier-readonly",() => {
+        if (typeof window.HiUtils_createRequest !== "function") throw new Error("HiUtils_createRequest unavailable");
+        return window.HiUtils_createRequest("fileRead",{path:"websdk/Appinfo.json",mode:6});
+      });
+      state.report.temporaryIdentifierTest = {
+        timestamp:new Date().toISOString(),
+        identifier,
+        request:"fileRead websdk/Appinfo.json",
+        result:traced.trace.result,
+        restored:true
+      };
+      targetedSetText(
+        "temporaryIdentifierState",
+        "Test complete · identifier " + identifier +
+        " · code " + String(traced.trace.result && traced.trace.result.code)
+      );
+      log("Temporary Identifier Test completed.",traced.trace);
+    } catch (error) {
+      targetedSetText("temporaryIdentifierState","Test error: " + errorText(error));
+    } finally {
+      try { service.getIdentifier = original; } catch (_) {}
+    }
+    await saveReport("targeted-temporary-identifier");
+  }
+
+  async function targetedSaveTarget() {
+    const target = currentTarget();
+    try {
+      const response = await fetch("/api/config",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({nuvio:target})
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok) throw new Error(data.error || "Could not save target");
+      state.config.nuvio = data.nuvio;
+      syncTargetToReport();
+      targetedSetText("targetState","Target saved.");
+      await saveReport("target");
+    } catch (error) {
+      targetedSetText("targetState","Save failed: " + errorText(error));
+    }
+  }
+
+  $("baselineBtn").addEventListener("click",targetedBaseline);
+  $("runtimeContextInitBtn").addEventListener("click",targetedInitializeContext);
+  $("clientInformationBtn").addEventListener("click",targetedReadClientInformation);
+  $("serviceTraceBtn").addEventListener("click",targetedReadOnlyTrace);
+  $("installDiagnosticBtn").addEventListener("click",() => targetedInstallPermission());
+  $("installLegacyBtn").addEventListener("click",() => targetedInstallPermission("legacy"));
+  $("installV2Btn").addEventListener("click",() => targetedInstallPermission("v2"));
+  $("temporaryIdentifierBtn").addEventListener("click",targetedTemporaryIdentifierTest);
+  $("saveBtn").addEventListener("click",targetedSaveTarget);
+  $("verifyBtn").addEventListener("click",async () => {
+    const result = await targetedVerify();
+    log("Verification completed.",result);
+    await saveReport("verification");
   });
+  $("reportBtn").addEventListener("click",() => saveReport("export"));
 
   getConfig().then(() => {
     syncTargetToReport();
-    renderSummary();
-    log("Sidee UI ready — " + currentReportFileName());
-    $("deviceBadge").textContent = typeof window.Hisense_GetFirmWareVersion === "function" ? "VIDAA browser detected" : "Waiting for VIDAA APIs";
-  }).catch((e)=>log("Config load failed.",String(e)));
+    targetedRenderSummary();
+    targetedSetText("deviceBadge",typeof window.Hisense_GetFirmWareVersion === "function" ? "VIDAA browser detected" : "Waiting for VIDAA APIs");
+    log("Sidee targeted VIDAA identity diagnostic ready — " + currentReportFileName());
+  }).catch((error) => log("Config load failed.",errorText(error)));
+
 })();

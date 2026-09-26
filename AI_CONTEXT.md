@@ -1642,3 +1642,41 @@ La versione finale è stata verificata con:
 - nessuna nuova chiamata a Role/Customer setter, firma/security, fileWrite o install automatico.
 
 Il prossimo passo utile resta il test sulla Hisense reale e l'analisi del singolo report di sessione.
+
+
+---
+
+## TARGETED VIDAA IDENTITY / APPCONFIG DIAGNOSTIC — 2026-09-26
+
+Il report reale `sidee-session-20260926-104537-d029` ha dimostrato che il summary precedente produceva un falso positivo: `runtimeIdentity: IDENTITY PRESENT` e `identityGate: UNLOCKED` non erano supportati dai valori runtime.
+
+Valori reali osservati:
+
+- `navigator.appIdentifier = "undefined"`;
+- `vowOS.service.getIdentifier() = ""`;
+- `vowOSContext.getAppIdentifier() = ""`;
+- `vowOSContext.getAppId() = ""`;
+- `Hisense_GetRoleID() = null`;
+- `Hisense_GetCustomerID() = null`.
+
+La classificazione corrente usa quindi `MISSING / PARTIAL / PRESENT`: `PRESENT` richiede almeno un identifier/app ID realmente non vuoto. Il permission gate usa `UNKNOWN / REJECTED / CHANGED / PASSED` e non viene più considerato sbloccato per la sola presenza delle API.
+
+La pista principale resta il servizio locale VIDAA: `HiUtils_createRequest(...)` passa attraverso `vowOS.service.syncExecute(...)`; il servizio usa endpoint localhost (osservati nelle analisi precedenti, ad esempio porte 9888/9009) e l'header `identifier` deriva da `vowOS.service.getIdentifier()`. Nel report reale l'identifier è ancora vuoto e `installApplication` viene respinto dal permission check AppConfig con code 503.
+
+Il nuovo workflow non esegue più scansioni globali o dump estesi. Salva soltanto device compatto, baseline identity, risultato reale di `vowOSContext.init()`, diff prima/dopo, `clientInformation` filtrato, service trace compatto, install permission test e summary.
+
+`vowOSContext.init()` viene ora chiamato realmente anche se nativo, con gestione sync/Promise/callback e timeout. Prima e dopo vengono confrontati appIdentifier, appId, service identifier, Role, Customer e clientInformation.
+
+`window.clientInformation` viene letto tramite getter e salvato in forma compatta; il descriptor registra getter/setter ma il setter non viene mai chiamato automaticamente. `Hisense_SetRoleID` e `Hisense_SetCustomerID` vengono soltanto segnalati come disponibili/non disponibili e non sono esposti nel workflow standard.
+
+La service instrumentation è temporanea e reversibile: prova a tracciare `getIdentifier`, `syncExecute`, `HiUtils_createRequest` e l'eventuale URL localhost osservato via XHR; ogni wrapper viene ripristinato in `finally`.
+
+È disponibile anche `Temporary Identifier Test`, separato e manuale: richiede un valore esplicito, sostituisce temporaneamente `vowOS.service.getIdentifier()`, esegue una sola richiesta read-only a `websdk/Appinfo.json` e ripristina sempre la funzione originale. Nessun brute force.
+
+Il test install resta esplicito. Il callback esterno `0` non viene interpretato come successo: contano il risultato interno `installApplication` e la verifica dell'app installata.
+
+### Prossimo test TV
+
+Eseguire nell'ordine: Baseline → Initialize Context → controllare il diff → Read Client Information → Trace Read-only Service Request → Test Install Permission → Export/Sync Report.
+
+Nel prossimo report sono particolarmente importanti: se `vowOSContext.init()` cambia uno degli identifier, il contenuto filtrato di `clientInformation`, l'identifier realmente visto dal service trace, l'endpoint localhost se osservabile e l'eventuale variazione di ret/code/msg del permission check.
