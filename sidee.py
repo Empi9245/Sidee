@@ -537,12 +537,18 @@ def remote_diagnostic_worker():
             required_build = None
             if isinstance(raw, dict):
                 safe_readonly = raw.get("runSafeDiagnostic") is True
+                safe_readonly_v2 = raw.get("runSafeDiagnosticV2") is True
                 direct_noop = raw.get("runDirectAppInfoWriteNoop") is True
                 direct_noop_v2 = raw.get("runDirectAppInfoWriteNoopV2") is True
-                selected = int(bool(safe_readonly)) + int(bool(direct_noop)) + int(bool(direct_noop_v2))
+                selected = int(bool(safe_readonly)) + int(bool(safe_readonly_v2)) + int(bool(direct_noop)) + int(bool(direct_noop_v2))
                 if selected > 1:
                     raise ValueError("Diagnostic request selects multiple workflows")
-                if safe_readonly:
+                if safe_readonly_v2:
+                    workflow = "safe-readonly"
+                    required_build = raw.get("requiresBuildId")
+                    if required_build != client_build_id():
+                        raise ValueError("Read-only diagnostic request is waiting for its required Sidee build")
+                elif safe_readonly:
                     workflow = "safe-readonly"
                 elif direct_noop_v2:
                     workflow = "direct-appinfo-noop"
@@ -813,12 +819,12 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
         if path == "/api/remote-diagnostic/request":
             snapshot = _remote_diagnostic_snapshot(include_request=True)
             request = snapshot.get("request")
-            if request and request.get("workflow") == "direct-appinfo-noop" and request.get("requiresBuildId"):
+            if request and request.get("requiresBuildId"):
                 params = urllib.parse.parse_qs(parsed.query)
                 supplied_build = (params.get("clientBuildId") or [""])[0]
                 if supplied_build != request.get("requiresBuildId") or supplied_build != client_build_id():
                     snapshot["state"] = "STALE_CLIENT"
-                    snapshot["message"] = "Reload Sidee before the build-bound AppInfo write test."
+                    snapshot["message"] = "Reload Sidee before the build-bound diagnostic."
                     snapshot["request"] = None
             return self._send_json(snapshot)
 

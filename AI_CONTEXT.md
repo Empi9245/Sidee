@@ -2464,3 +2464,10 @@ Azioni deliberate dopo il risultato:
 - Identity Override Lab torna a essere la pista prioritaria e viene riattivato nel workflow remoto read-only.
 
 Non ripetere il Direct AppInfo no-op write su questo firmware salvo cambiamento firmware/runtime o nuova evidenza concreta.
+
+
+### HARDENING — build-bound read-only remote workflow
+
+Per evitare che il server attualmente vecchio consumi la prossima request prima del pull/restart, è supportato anche `runSafeDiagnosticV2:true` con `requiresBuildId`.
+Il vecchio server non riconosce il flag V2. Il server nuovo accetta e consegna la request soltanto quando server e pagina TV espongono esattamente il build richiesto.
+Questo permette di mettere in coda in anticipo il prossimo workflow read-only con Identity Override Lab senza falso completamento da cache/build precedenti.
