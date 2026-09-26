@@ -2471,3 +2471,62 @@ Non ripetere il Direct AppInfo no-op write su questo firmware salvo cambiamento 
 Per evitare che il server attualmente vecchio consumi la prossima request prima del pull/restart, è supportato anche `runSafeDiagnosticV2:true` con `requiresBuildId`.
 Il vecchio server non riconosce il flag V2. Il server nuovo accetta e consegna la request soltanto quando server e pagina TV espongono esattamente il build richiesto.
 Questo permette di mettere in coda in anticipo il prossimo workflow read-only con Identity Override Lab senza falso completamento da cache/build precedenti.
+
+
+---
+
+## IMPLEMENTAZIONE — RAW-IP HTTP ORIGIN A/B TEST — 2026-09-26
+
+Motivazione:
+- il no-op `fileWrite` su `https://vidaahub.com` è stato respinto su questa TV con lo stesso errore noto:
+  - `ret:false`
+  - `code:503`
+  - `client request permission check error, please check appconfig`;
+- una guida Pikabu su VIDAA 9 riferisce invece un flusso aperto direttamente da un URL LAN HTTP tipo `http://192.168.x.x:8181`, quindi senza dipendere dal dominio spoofato;
+- `weinzii/vidaa-edge` usa normalmente `https://vidaahub.com` su 443, ma issue #30 documenta lo stesso errore AppConfig su firmware 09.60 anche con configurazioni alternative.
+
+Confronto setup effettuato:
+- Sidee e vidaa-edge coincidono sui punti principali del trusted-host setup:
+  - hostname `vidaahub.com`;
+  - HTTPS;
+  - porta 443;
+  - bind `0.0.0.0`;
+  - certificato self-signed per vidaahub.com;
+- il certificato incluso in vidaa-edge non costituisce una differenza favorevole: è un self-signed statico e non dimostra alcun legame con l'autorizzazione AppConfig;
+- quindi resta utile solo un confronto A/B diretto dell'origin.
+
+Implementazione:
+- nuovo config `raw_http_test_port: 8181`;
+- Sidee avvia una seconda UI HTTP su `http://<PC-IP>:8181`, oltre al dashboard 8080 e a HTTPS 443;
+- `/api/status` espone anche:
+  - `requestScheme`;
+  - `requestPort`;
+- ogni report registra:
+  - `accessContext.href`;
+  - `accessContext.origin`;
+  - `accessContext.protocol`;
+  - `accessContext.hostname`;
+  - `accessContext.port`;
+  - `accessContext.host`;
+  - `accessContext.secureContext`;
+  - `serverAccess` con scheme/port/Host realmente visti dal server;
+- il Direct AppInfo Write Lab incorpora lo stesso page/server context nel risultato;
+- la UI mostra sempre `Access origin`.
+
+Protocollo test:
+A. baseline già nota:
+`https://vidaahub.com` -> no-op fileWrite -> 503 AppConfig.
+
+B. dopo pull + restart:
+1. aprire sulla TV `http://<PC-IP>:8181`;
+2. non cambiare il DNS;
+3. verificare se le API VIDAA sono presenti;
+4. catturare baseline;
+5. eseguire solo `Test AppInfo Direct Write`;
+6. non aggiungere Nuvio;
+7. confrontare report e risposta con il caso A.
+
+Interpretazione:
+- se le API non vengono iniettate su raw IP, il trusted hostname resta necessario solo per l'esposizione API;
+- se fileRead funziona ma fileWrite restituisce ancora 503, DNS/origin è sostanzialmente escluso come causa del gate;
+- se il no-op write diventa `WRITE_ALLOWED_AND_IDENTICAL`, allora l'origin/launch path è materialmente rilevante e va investigato prima dell'identity spoofing.
