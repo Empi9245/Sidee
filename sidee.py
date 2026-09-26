@@ -687,6 +687,7 @@ def _record_store_trace(event, detail=None):
             host_stats["requestCount"] = int(host_stats.get("requestCount", 0)) + 1
             item = {
                 "timestamp": now,
+                "host": event_host,
                 "method": str(detail.get("method", ""))[:16],
                 "path": str(detail.get("path", ""))[:700],
                 "queryParameterNames": sorted(set(str(x)[:120] for x in detail.get("queryParameterNames", [])))[:80],
@@ -705,6 +706,7 @@ def _record_store_trace(event, detail=None):
             host_stats["errorCount"] = int(host_stats.get("errorCount", 0)) + 1
             item = {
                 "timestamp": now,
+                "host": event_host,
                 "stage": str(detail.get("stage", "proxy"))[:80],
                 "method": str(detail.get("method", ""))[:16],
                 "path": str(detail.get("path", ""))[:700],
@@ -1808,10 +1810,10 @@ def get_local_ip():
 
 def generate_cert():
     CERT_DIR.mkdir(parents=True, exist_ok=True)
-    # Versioned filename intentionally prevents reuse of the older certificate
-    # that did not include the Store catalog hostname.
-    cert = CERT_DIR / "sidee-vidaa-multihost-store-v1.crt"
-    key = CERT_DIR / "sidee-vidaa-multihost-store-v1.key"
+    # Versioned filename intentionally prevents reuse of an older certificate
+    # that did not include all currently traced Store hostnames.
+    cert = CERT_DIR / "sidee-vidaa-multihost-store-v2.crt"
+    key = CERT_DIR / "sidee-vidaa-multihost-store-v2.key"
     if cert.exists() and key.exists():
         return cert, key
 
@@ -1833,7 +1835,7 @@ def generate_cert():
         "www.vidaahub.com",
         "vidaa.smartone-iptv.com",
         "vidaa.duplecast.com",
-        STORE_CATALOG_HOST,
+        *STORE_TRACE_HOSTS,
     ]
     san = ",".join("DNS:" + host for host in cert_hosts)
     cmd = [
@@ -1845,7 +1847,7 @@ def generate_cert():
     try:
         subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except subprocess.CalledProcessError:
-        config = CERT_DIR / "sidee-openssl-store-v1.cnf"
+        config = CERT_DIR / "sidee-openssl-store-v2.cnf"
         alt_names = "\n".join(
             f"DNS.{index} = {host}" for index, host in enumerate(cert_hosts, start=1)
         )
@@ -1946,7 +1948,7 @@ def run_dns(config, local_ip):
             break
         try:
             host, qtype, _ = parse_dns_question(data)
-            if _is_store_discovery_host(host) and host != STORE_CATALOG_HOST:
+            if _is_store_discovery_host(host) and host not in STORE_TRACE_HOST_SET:
                 try:
                     _record_store_domain_query(host, qtype)
                 except Exception as exc:
@@ -1959,14 +1961,14 @@ def run_dns(config, local_ip):
                         _sync_app_transport_observation("DNS_A", host, "")
                     except Exception as exc:
                         print(f"[DNS] app-context report error: {exc}")
-                elif host == STORE_CATALOG_HOST:
+                elif host in STORE_TRACE_HOST_SET:
                     try:
                         _record_store_trace("DNS_A", {"host": host})
                     except Exception as exc:
                         print(f"[DNS] store-trace report error: {exc}")
             elif host in domains and qtype == 28:
                 response = empty_dns_answer(data)
-                if host == STORE_CATALOG_HOST:
+                if host in STORE_TRACE_HOST_SET:
                     try:
                         _record_store_trace("DNS_AAAA", {"host": host})
                     except Exception as exc:
@@ -1985,16 +1987,17 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
 
     def log_message(self, fmt, *args):
         host = _normalized_host(self.headers.get("Host", "")) if hasattr(self, "headers") else ""
-        if host == STORE_CATALOG_HOST:
+        if host in STORE_TRACE_HOST_SET:
             path = urllib.parse.urlsplit(getattr(self, "path", "")).path or "/"
-            print(f"[WEB] {self.client_address[0]} STORE {getattr(self, 'command', '')} {path}")
+            print(f"[WEB] {self.client_address[0]} STORE {host} {getattr(self, 'command', '')} {path}")
             return
         print(f"[WEB] {self.client_address[0]} {fmt % args}")
 
     def _maybe_proxy_store_catalog(self):
-        if _normalized_host(self.headers.get("Host", "")) != STORE_CATALOG_HOST:
+        host = _normalized_host(self.headers.get("Host", ""))
+        if host not in STORE_TRACE_HOST_SET:
             return False
-        _proxy_store_catalog_request(self)
+        _proxy_store_catalog_request(self, host)
         return True
 
     def _send_json(self, data, status=200):
@@ -2337,8 +2340,8 @@ def run_https(port, cert, key):
                 _sync_app_transport_observation("TLS_SNI", host, "")
             except Exception as exc:
                 print(f"[TLS-SNI] report error: {exc}")
-        elif host == STORE_CATALOG_HOST:
-            print(f"[TLS-SNI] {host} (store catalog trace)")
+        elif host in STORE_TRACE_HOST_SET:
+            print(f"[TLS-SNI] {host} (store transport trace)")
             try:
                 _record_store_trace("TLS_SNI", {"host": host})
             except Exception as exc:
@@ -2378,7 +2381,9 @@ def main():
     print(f"PC dashboard: http://{local_ip}:{cfg.get('http_port', 8080)}")
     print(f"Installed-app context probe HTTP: http://{local_ip}:{cfg.get('app_context_http_port', 80)}")
     print(f"Raw-IP A/B test: http://{local_ip}:{cfg.get('http_port', 8080)}")
-    print(f"VIDAA Store catalog trace: https://{STORE_CATALOG_HOST} (pass-through only)")
+    print("VIDAA Store transport trace hosts (pass-through only):")
+    for store_host in STORE_TRACE_HOSTS:
+        print(f"  https://{store_host}")
     if REPORT_SYNC_CONFIG.get("enabled"):
         print(
             "Report sync: Git remote "
