@@ -154,6 +154,7 @@ class StoreCatalogTraceTests(unittest.TestCase):
 
     def test_proxy_routes_each_observed_store_host_to_matching_upstream(self):
         for host in (
+            "category-ui-eu.vidaahub.com",
             "detail-ui-eu.vidaahub.com",
             "appstore-vidaa.vidaahub.com",
             "tvmodules-vidaa.vidaahub.com",
