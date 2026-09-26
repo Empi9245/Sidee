@@ -6,6 +6,13 @@
   var legacyLaunchTerms = /:am,am,(?:(?:hi_browser|lau_browser|tv_store):start|:start=\[(?:hi_browser|lau_browser|tv_store))|app_(?:hi_browser|lau_browser|tv_store)|amName\s*:\s*["']hi_browser["']|\/3rd\/internet_browser\/browser|\/3rd\/internet_browser\/apps\/|\/3rd_rw\/internet_browser\//g;
   // Historical launcher sendAM(command) delegates to modeljs.sendam(command). Source-only detection; never invoke it.
   var legacyAppManagerTerms = /modeljs\.sendam|\basyncStartApp\b|\bstart(?:HiBrowser|LauBrowser|TVStore)\b/g;
+  // Real Store/AppInfo fields observed on this Q0707 TV. Source-only; values are never fabricated.
+  var storeMetadataTerms = /openMode|unifiedAppName|venderId|mediaId|configUrlDownload|appBundle|packaged|hasDetailPage|StoreType|initialFrom/g;
+  // Store/install workflow markers that already exist in VIDAA wrappers or installed metadata.
+  var storeWorkflowTerms = /Hisense_installApp(?:_V2)?|installApplication|installApp|getAppDetail|appDetail|appControl|updateAppState|AllAppsUpdate|sendPkgmgrRequest|pkgmgr|catalog|launcher/g;
+  // Platform-message vocabulary must be observed in source before any message is considered for a later test.
+  var omiMessageTerms = /sendPlatformMessage|requestMsg|MsgType|APPMessage|appControl|updateAppState|AllAppsUpdate|closeOTTPage|getUpdatesVerInfo|loginWithVidaa/g;
+  var storeObjectName = /store|catalog|launcher|appmanager|applicationmanager|appdetail|media|download/i;
   var sensitive = /token|secret|password|cookie|credential|authorization|signature|certificate|nonce|session/i;
   function lookup(root, name) {
     for (var depth = 0; root && depth < 5; depth++) {
@@ -118,6 +125,44 @@
     });
     return result;
   }
+  function storeRuntimeInventory() {
+    var result = { globals: [], objects: {}, truncated: false, invoked: false };
+    function inspectObject(path, record) {
+      var root = value(record), item = { descriptor: meta(record), properties: [], invoked: false };
+      if (!object(root)) return item;
+      try {
+        var names = Object.getOwnPropertyNames(root).filter(function (name) { return !sensitive.test(name); });
+        item.truncated = names.length > 120;
+        item.properties = names.slice(0, 120).map(function (name) {
+          var child = lookup(root, name);
+          return { name: name, descriptor: meta(child), source: functionSource(child) };
+        });
+      } catch (e) { item.error = String(e); }
+      return item;
+    }
+    try {
+      var names = Object.getOwnPropertyNames(window);
+      names.forEach(function (name) {
+        if (!storeObjectName.test(name) || sensitive.test(name)) return;
+        if (result.globals.length >= 100) { result.truncated = true; return; }
+        var record = lookup(window, name);
+        result.globals.push({
+          name: name,
+          descriptor: meta(record),
+          source: functionSource(record)
+        });
+        var root = value(record);
+        if (object(root) && typeof root !== "function" && Object.keys(result.objects).length < 30) {
+          result.objects["window." + name] = inspectObject("window." + name, record);
+        }
+      });
+    } catch (e) { result.error = String(e); }
+    var vow = value(lookup(window, "vowOS"));
+    result.objects["vowOS.store"] = inspectObject("vowOS.store", lookup(vow, "store"));
+    result.objects["window.omi_platform"] = inspectObject("window.omi_platform", lookup(window, "omi_platform"));
+    result.objects["window.opera_omi"] = inspectObject("window.opera_omi", lookup(window, "opera_omi"));
+    return result;
+  }
   function surface(path, record) {
     var root = value(record), file = lookup(root, "File"), fileValue = value(file);
     var read = meta(lookup(fileValue, "read")), write = meta(lookup(fileValue, "write"));
@@ -126,13 +171,15 @@
       callablePairObserved: read.type === "function" && write.type === "function" };
   }
   function capture() {
-    var out = { version: 5, timestamp: new Date().toISOString(), readOnly: true,
+    var out = { version: 6, timestamp: new Date().toISOString(), readOnly: true,
       page: { href: location.href, origin: location.origin, userAgent: navigator.userAgent },
       exact: [], discoveredSurfaces: [], sourceMatches: [], legacyLaunchContextMatches: [], legacyAppManagerMatches: [],
+      storeMetadataSourceMatches: [], storeWorkflowSourceMatches: [], omiMessageSourceMatches: [],
       legacyAppManagerBridge: appManagerBridge(), modernBridgeInventory: modernBridgeInventory(),
+      storeRuntimeInventory: storeRuntimeInventory(),
       vowOSNamespaces: namespaceInventory(value(lookup(window, "vowOS")), ["store", "service", "tvinfo"]), scripts: [],
       scannedGlobals: 0, scannedFunctions: 0, truncated: false,
-      note: "Presence is not permission. Modern bridge inventory is descriptor/source-only. No getter, App Manager method, loader, file read/write or discovered function is invoked." };
+      note: "Presence is not permission. Store/AppInfo/OMI discovery is descriptor/source-only. No getter, App Manager method, Store method, platform message, loader, file read/write or discovered function is invoked." };
     ["Hisense", "HiBrowser"].forEach(function (name) { out.exact.push(surface("window." + name, lookup(window, name))); });
     var seenFunctions = [], seenObjects = [], propertyBudget = 4000;
     function inspectFunction(fn, path) {
@@ -158,6 +205,27 @@
           path: path, term: amMatch[0], sourceLength: source.length, truncated: source.length > 24000,
           excerpt: bounded.slice(Math.max(0, amMatch.index - 300), amMatch.index + 900),
           evidence: "HISTORICAL_APP_MANAGER_MARKER_ONLY"
+        });
+        storeMetadataTerms.lastIndex = 0;
+        var metadataMatch = storeMetadataTerms.exec(bounded);
+        if (metadataMatch && out.storeMetadataSourceMatches.length < 80) out.storeMetadataSourceMatches.push({
+          path: path, term: metadataMatch[0], sourceLength: source.length, truncated: source.length > 24000,
+          excerpt: bounded.slice(Math.max(0, metadataMatch.index - 500), metadataMatch.index + 1800),
+          evidence: "Q0707_APPINFO_FIELD_SOURCE"
+        });
+        storeWorkflowTerms.lastIndex = 0;
+        var workflowMatch = storeWorkflowTerms.exec(bounded);
+        if (workflowMatch && out.storeWorkflowSourceMatches.length < 80) out.storeWorkflowSourceMatches.push({
+          path: path, term: workflowMatch[0], sourceLength: source.length, truncated: source.length > 24000,
+          excerpt: bounded.slice(Math.max(0, workflowMatch.index - 500), workflowMatch.index + 1800),
+          evidence: "RUNTIME_STORE_WORKFLOW_SOURCE"
+        });
+        omiMessageTerms.lastIndex = 0;
+        var omiMatch = omiMessageTerms.exec(bounded);
+        if (omiMatch && out.omiMessageSourceMatches.length < 80) out.omiMessageSourceMatches.push({
+          path: path, term: omiMatch[0], sourceLength: source.length, truncated: source.length > 24000,
+          excerpt: bounded.slice(Math.max(0, omiMatch.index - 500), omiMatch.index + 1800),
+          evidence: "RUNTIME_OMI_MESSAGE_SOURCE"
         });
       } catch (e) { /* Some native functions do not expose source. */ }
     }

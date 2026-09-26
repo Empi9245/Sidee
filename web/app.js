@@ -52,7 +52,7 @@
     try{ const a=new Uint8Array(2); crypto.getRandomValues(a); tail=Array.from(a).map(x=>x.toString(16).padStart(2,"0")).join(""); }catch(e){}
     const id="sidee-"+stamp+"-"+tail; try{sessionStorage.setItem("sidee.sessionId",id);}catch(e){} return id;
   }
-  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,accessContext:pageContext(),accessMode:accessMode(),serverAccess:null,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},contextIdentityFingerprint:null,clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,identityOverrideLab:null,identityWriteGateLab:null,candidatePermissionTest:null,directAppInfoWriteLab:null,legacyHspdkWriteLab:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",contextFingerprint:"NOT_RUN",permissionGate:"UNKNOWN",appInfoWrite:"NOT_RUN"}}; }
+  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,accessContext:pageContext(),accessMode:accessMode(),serverAccess:null,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},contextIdentityFingerprint:null,clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,identityOverrideLab:null,identityWriteGateLab:null,candidatePermissionTest:null,directAppInfoWriteLab:null,legacyHspdkWriteLab:null,storeWorkflowProbe:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",contextFingerprint:"NOT_RUN",permissionGate:"UNKNOWN",appInfoWrite:"NOT_RUN"}}; }
   state.report=newReport();
 
   function meaningful(v){
@@ -964,6 +964,43 @@
     finally{state.running=false;}
   }
   $("hspdkContextBtn").addEventListener("click",inspectHspdkContext);
+
+  async function inspectStoreWorkflowContext(){
+    if(state.running)return;
+    state.running=true;
+    set("storeWorkflowProbeState","Inspecting loaded Store/AppInfo/OMI source…");
+    try{
+      if(typeof window.SideeHspdkContext!=="function")throw new Error("SideeHspdkContext is unavailable");
+      const capture=window.SideeHspdkContext();
+      const metadata=capture.storeMetadataSourceMatches||[];
+      const workflow=capture.storeWorkflowSourceMatches||[];
+      const omi=capture.omiMessageSourceMatches||[];
+      const inventory=capture.storeRuntimeInventory||{globals:[],objects:{}};
+      const evidenceCount=metadata.length+workflow.length+omi.length;
+      const report={
+        timestamp:new Date().toISOString(),
+        readOnly:true,
+        invoked:false,
+        collectorVersion:capture.version,
+        page:capture.page,
+        status:evidenceCount?"SOURCE_EVIDENCE_FOUND":"NO_STORE_SOURCE_EVIDENCE",
+        metadataSourceMatches:metadata,
+        workflowSourceMatches:workflow,
+        omiMessageSourceMatches:omi,
+        runtimeInventory:inventory,
+        scripts:capture.scripts||[],
+        note:"Descriptor/source-only. No Store method, platform message, getter, install, download or write is invoked."
+      };
+      state.report.storeWorkflowProbe=report;
+      set("storeWorkflowProbeState",report.status+" · metadata "+metadata.length+" · workflow "+workflow.length+" · OMI "+omi.length+" · no native calls");
+      log("Store workflow source probe",{status:report.status,metadata:metadata.length,workflow:workflow.length,omi:omi.length,globals:(inventory.globals||[]).length});
+      await save("store-workflow-source-probe");
+    }catch(e){
+      set("storeWorkflowProbeState","Store workflow source probe failed: "+err(e));
+      log("Store workflow source probe failed",err(e));
+    }finally{state.running=false;}
+  }
+  $("storeWorkflowProbeBtn").addEventListener("click",inspectStoreWorkflowContext);
 
   function parsePkgmgrPayload(raw){
     const out={raw:labSafe(raw),parsed:null,count:null,error:null};
@@ -2070,15 +2107,7 @@
     set("deviceBadge",typeof window.Hisense_GetFirmWareVersion==="function"?"VIDAA browser detected":"Waiting for VIDAA APIs");
     log("Sidee targeted identity diagnostic ready.");
     if(expectedInstalledAppContext())await contextIdentityFingerprint({automatic:true});
-    await autoRunPkgmgrPackageProbeOnce();
-    try{
-      const corrKey="sidee.pkgmgrPackageCorrelation."+CLIENT_BUILD_ID;
-      if(sessionStorage.getItem(corrKey)!=="done"&&typeof window.HiUtils_createRequest==="function"){
-        sessionStorage.setItem(corrKey,"started");
-        await inspectPackageRegistryCorrelation();
-        sessionStorage.setItem(corrKey,"done");
-      }
-    }catch(e){log("Automatic pkgmgr/AppInfo correlation failed",err(e));}
+    log("pkgmgr/tvbrowser and pkgmgr↔AppInfo auto-probes are disabled for this phase; use their explicit buttons only if the runtime context changes.");
     startRemoteDiagnosticPolling();
   }).catch(e=>log("Config load failed",err(e)));
 })();

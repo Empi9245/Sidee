@@ -28,12 +28,26 @@ window.legacyLaunchWrapper = function (url) { return sendAM(':am,am,hi_browser:s
 window.legacyBrowserPathWrapper = function () { return '/3rd/internet_browser/browser'; };
 window.sendAM = function (command) { return window.modeljs.sendam(command); };
 window.asyncStartApp = function (pageId, command) { return sendAM(command); };
+window.storeMetadataWrapper = function (appInfo) {
+  return [appInfo.openMode, appInfo.unifiedAppName, appInfo.venderId, appInfo.mediaId,
+    appInfo.configUrlDownload, appInfo.appBundle, appInfo.packaged, appInfo.hasDetailPage,
+    appInfo.StoreType, appInfo.initialFrom].join('|');
+};
+window.StoreCatalogBridge = {
+  getAppDetail: function (mediaId) { return { mediaId: mediaId, unifiedAppName: String(mediaId) }; },
+  installKnown: function (appinfo) { return window.vowOS.store.installApp(appinfo, function () {}); }
+};
+window.storeMessageWrapper = function (appInfo) {
+  var requestMsg = { type: 'APPMessage', MsgType: 'appControl', action: 'updateAppState',
+    param: { event: 'AllAppsUpdate', appInfo: appInfo } };
+  return window.omi_platform.sendPlatformMessage(JSON.stringify(requestMsg));
+};
 const context = vm.createContext({ window, location: { href: 'https://vidaahub.com/', origin: 'https://vidaahub.com' },
   navigator: { userAgent: 'test' }, document: { scripts: [] } });
 vm.runInContext(source, context);
 const result = window.SideeHspdkContext();
 assert.equal(calls, 0);
-assert.equal(result.version, 5);
+assert.equal(result.version, 6);
 assert.equal(result.vowOSNamespaces.store.descriptor.status, 'DATA');
 assert(result.vowOSNamespaces.store.properties.some(p => p.name === 'install' && p.descriptor.type === 'function'));
 assert(result.vowOSNamespaces.service.properties.some(p => p.name === 'syncExecute' && p.descriptor.type === 'function'));
@@ -59,6 +73,12 @@ assert(result.discoveredSurfaces.some(s => s.path === 'window.OtherObservedHost'
 assert(result.sourceMatches.some(s => s.path === 'window.observedWrapper'));
 assert(result.legacyLaunchContextMatches.some(s => s.path === 'window.legacyLaunchWrapper' && s.term.includes('hi_browser')));
 assert(result.legacyLaunchContextMatches.some(s => s.path === 'window.legacyBrowserPathWrapper' && s.term === '/3rd/internet_browser/browser'));
+assert(result.storeMetadataSourceMatches.some(s => s.path === 'window.storeMetadataWrapper' && s.term === 'openMode'));
+assert(result.storeWorkflowSourceMatches.some(s => s.path === 'window.StoreCatalogBridge.getAppDetail' && s.term === 'getAppDetail'));
+assert(result.omiMessageSourceMatches.some(s => s.path === 'window.storeMessageWrapper' && s.term === 'sendPlatformMessage'));
+assert(result.storeRuntimeInventory.globals.some(g => g.name === 'StoreCatalogBridge'));
+assert(result.storeRuntimeInventory.objects['window.StoreCatalogBridge'].properties.some(p => p.name === 'getAppDetail' && p.descriptor.type === 'function'));
+assert.equal(result.storeRuntimeInventory.invoked, false);
 assert(!result.sourceMatches.some(s => s.path === 'window.SideeHspdkContext'));
 assert(!result.legacyLaunchContextMatches.some(s => s.path === 'window.SideeHspdkContext'));
 delete window.HiBrowser;
@@ -66,6 +86,9 @@ delete window.OtherObservedHost;
 delete window.modeljs;
 delete window.sendAM;
 delete window.asyncStartApp;
+delete window.storeMetadataWrapper;
+delete window.StoreCatalogBridge;
+delete window.storeMessageWrapper;
 delete window.Hisense_TestRead;
 delete window.HiUtils_probe;
 delete window.vowOS;

@@ -3736,3 +3736,96 @@ Dai tre record AppInfo reali bisogna ora ricostruire:
 4. se esistono message/action concreti nel runtime Store per aggiungere una web app che bypassano il browser-side `installApplication` 503.
 
 Partire solo da nomi/endpoint realmente osservati nel runtime o nei metadata; niente brute force di API o action.
+
+
+## RICERCA + IMPLEMENTAZIONE — VIDAA Store / web-app metadata source probe — 2026-09-26
+
+### Evidenza nuova dal report reale già sincronizzato
+
+Il report `reports/latest.json` su `sidee-reports` (sessione `sidee-20260926-182425-cbe7`, build `app-a009a09c47aa`) contiene già source runtime decisivo che non era stato ancora elevato a conclusione principale.
+
+Sul Q0707, `window.Hisense_installApp` costruisce una entry AppInfo semplice con:
+- `Id`, URL/icon/title;
+- `configUrl`;
+- `configUrlDownload`;
+- `mediaId`;
+- `StoreType`;
+- `PreInstall:false`.
+
+Poi delega a `writeInstallAppObjToJson()`, che serializza l'intero registry e chiama concretamente:
+
+`HiUtils_createRequest('installApplication', writedata)`.
+
+Quindi il vecchio percorso browser e il gate 503 restano lo stesso percorso di registrazione launcher già osservato.
+
+### `vowOS.store.installApp` non è un bypass per le web app
+
+Il source reale di `vowOS.store.installApp(appinfo, callback)` distingue due casi.
+
+Se `appinfo.packageName` è assente, chiama direttamente:
+
+`Hisense_installApp(appinfo.appId, appinfo.appName, ..., appinfo.configUrl, appinfo.configUrlDownload, appinfo.mediaId)`.
+
+Se `packageName` è presente, usa `sendPkgmgrRequest('install', ...)`; solo dopo un pkgmgr install riuscito costruisce `file:///APPS/pkgs/<pkgName>/index.html` e chiama comunque `Hisense_installApp(..., 'hisense', ...)` per registrare l'app nel launcher.
+
+Conclusione: nel runtime browser attuale `vowOS.store` è un wrapper/compositore dei due livelli già noti. Per una normale web app senza package non introduce un servizio di installazione privilegiato alternativo al percorso `Hisense_installApp -> installApplication`.
+
+Questo NON prova cosa faccia il processo VIDAA Store nativo con il proprio contesto/permessi; prova soltanto che la superficie `vowOS.store` esposta alla pagina corrente non è di per sé il bypass cercato.
+
+### Ricerca pubblica mirata sui metadata reali
+
+Sono state cercate combinazioni distintive:
+- `openMode + unifiedAppName`;
+- `configUrlDownload`;
+- `venderId + unifiedAppName`;
+- `StoreType + configUrlDownload`;
+- `appBundle + unifiedAppName`;
+- `hasDetailPage + initialFrom`;
+- `mediaId + Hisense_installApp`.
+
+La code search GitHub non ha trovato sorgenti VIDAA pubbliche che usino insieme questi campi. `configUrlDownload` isolato ha prodotto un unico risultato non pertinente.
+
+Ricontrollati inoltre:
+- `weinzii/vidaa-edge`: nessun uso pubblico di `openMode`, `unifiedAppName` o `configUrlDownload`; il progetto continua a esporre il vecchio `Hisense_installApp` e il direct AppInfo write già documentati;
+- `Stremio/stremio-hisense-install`: usa ancora `Hisense_installApp` e, a successo presunto, invia il messaggio OMI già noto `APPMessage / appControl / updateAppState / AllAppsUpdate`. Non contiene un endpoint catalogo o un metadata pipeline privilegiato;
+- ricerche web per gli ID reali 1470 / 1876 / 2568 non hanno restituito un endpoint catalogo VIDAA pubblico riproducibile.
+
+### Nuovo probe read-only Store workflow source
+
+`web/hspdk-context.js` passa a schema v6 e aggiunge, sempre senza invocare getter o funzioni native:
+- `storeMetadataSourceMatches` per i campi reali `openMode`, `unifiedAppName`, `venderId`, `mediaId`, `configUrlDownload`, `appBundle`, `packaged`, `hasDetailPage`, `StoreType`, `initialFrom`;
+- `storeWorkflowSourceMatches` per wrapper concreti come `Hisense_installApp`, `installApplication`, `installApp`, `getAppDetail`, `appControl`, `updateAppState`, `AllAppsUpdate`, `sendPkgmgrRequest`, catalog/launcher;
+- `omiMessageSourceMatches` per vocaboli OMI realmente presenti nel source, inclusi `sendPlatformMessage`, `requestMsg`, `MsgType`, `APPMessage`, `appControl`, `updateAppState`, `AllAppsUpdate`, `closeOTTPage`, `getUpdatesVerInfo`, `loginWithVidaa`;
+- `storeRuntimeInventory`, descriptor/source-only, su globals Store/catalog/launcher/app-manager/media/download e sugli oggetti esatti `vowOS.store`, `omi_platform`, `opera_omi`.
+
+Nessun metodo Store, messaggio OMI, getter, install, download o write viene invocato.
+
+La UI aggiunge:
+
+`Inspect Store workflow source (read-only)`
+
+che salva il risultato in `storeWorkflowProbe` nel report di sessione.
+
+### Stop ai probe pkgmgr già conclusi
+
+Con questa build Sidee non esegue più automaticamente al reload:
+- le tre letture path di `tv.vidaa.app.tvbrowser/index.html`;
+- la correlazione `pkgmgr ↔ AppInfo`.
+
+I pulsanti manuali restano disponibili solo se il contesto runtime cambia. Questo evita di ripetere test già conclusi soltanto perché cambia il build ID.
+
+### Prossimo test TV
+
+Dopo pull + riavvio Sidee:
+1. aprire `https://vidaahub.com`;
+2. premere solo `Inspect Store workflow source (read-only)`;
+3. attendere il salvataggio/sync del report;
+4. non premere install, pkgmgr, HSPDK write o AppInfo write.
+
+Il dato utile successivo è verificare se compaiono:
+- una funzione catalog/detail che prende `mediaId` / `unifiedAppName`;
+- un oggetto Store più ricco di `vowOS.store`;
+- un message schema OMI Store/app-management non già noto;
+- source che materializza l'oggetto `appInfo` ricco osservato nel registry.
+
+Se non appare nulla oltre ai wrapper già noti, la conclusione si restringe ulteriormente: i metadata ricchi e/o il privilegio Store non sono esposti al normale browser `vidaahub.com`, e per procedere servirà identificare il contesto/processo VIDAA Store reale invece di inventare API.

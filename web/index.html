@@ -178,12 +178,14 @@
         <div id="legacyHspdkState" class="state">Not run yet.</div>
         <div class="row runtimeActions">
           <button id="hspdkContextBtn" class="secondary">Inspect HSPDK Context (read-only)</button>
+          <button id="storeWorkflowProbeBtn" class="secondary">Inspect Store workflow source (read-only)</button>
           <button id="pkgmgrInstalledBtn" class="secondary">Inspect pkgmgr installed packages (read-only)</button>
           <button id="pkgmgrPackageProbeBtn" class="secondary">Inspect tvbrowser package (read-only)</button>
           <button id="pkgmgrPackageCorrelationBtn" class="secondary">Correlate pkgmgr ↔ AppInfo (read-only)</button>
           <button id="addNuvioHspdkBtn" class="danger" disabled>Add Nuvio via HSPDK</button>
           <button id="restoreHspdkBackupBtn" class="secondary" disabled>Restore HSPDK Backup</button>
         </div>
+        <div id="storeWorkflowProbeState" class="microState">Descriptor/source-only scan for real Store metadata fields, install workflow wrappers and OMI message schemas. It sends no platform message and invokes no Store method.</div>
         <div id="pkgmgrInstalledState" class="microState">Reads only <code>vowOS.store.getInstalledPkgs()</code>; it does not install, remove or modify packages.</div>
         <div id="pkgmgrPackageProbeState" class="microState">Reads only the installed <code>tv.vidaa.app.tvbrowser/index.html</code> package entry and inspects already-loaded JavaScript source for pkgmgr references.</div>
         <div id="pkgmgrPackageCorrelationState" class="microState">Read-only correlation between installed pkgmgr packages and existing <code>websdk/Appinfo.json</code> metadata.</div>
