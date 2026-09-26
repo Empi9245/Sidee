@@ -4,7 +4,7 @@
   "serverBuildId": "app-0a160ec03833",
   "buildMatch": true,
   "startedAt": "2026-09-26T12:40:08.579Z",
-  "updatedAt": "2026-09-26T12:40:40.699Z",
+  "updatedAt": "2026-09-26T12:40:49.463Z",
   "accessContext": {
     "href": "http://192.168.1.5:8080/",
     "origin": "http://192.168.1.5:8080",
@@ -1901,8 +1901,66 @@
       "Hisense_SupportAppConfig is the only diagnostic function invoked; no install/uninstall, fileWrite, setters or guessed HiUtils APIs are called."
     ]
   },
-  "installTest": null,
-  "verification": null,
+  "installTest": {
+    "timestamp": "2026-09-26T12:40:49.391Z",
+    "method": "legacy",
+    "identifierUsed": null,
+    "appIdentifier": {
+      "status": "RETURNED",
+      "value": ""
+    },
+    "appId": {
+      "status": "RETURNED",
+      "value": ""
+    },
+    "roleId": {
+      "status": "UNAVAILABLE",
+      "value": null
+    },
+    "customerId": {
+      "status": "UNAVAILABLE",
+      "value": null
+    },
+    "payload": null,
+    "returnValue": null,
+    "internal": {
+      "ret": null,
+      "code": null,
+      "msg": null
+    },
+    "externalCallback": null,
+    "error": "Install API unavailable",
+    "verification": {
+      "timestamp": "2026-09-26T12:40:49.461Z",
+      "installedApps": {
+        "available": false,
+        "match": false,
+        "count": 0
+      },
+      "appInfo": {
+        "available": true,
+        "ok": true,
+        "match": false,
+        "count": 3
+      },
+      "verified": false
+    }
+  },
+  "verification": {
+    "timestamp": "2026-09-26T12:40:49.461Z",
+    "installedApps": {
+      "available": false,
+      "match": false,
+      "count": 0
+    },
+    "appInfo": {
+      "available": true,
+      "ok": true,
+      "match": false,
+      "count": 3
+    },
+    "verified": false
+  },
   "installedAppMetadata": null,
   "target": {
     "app_id": "nuviodebug",
