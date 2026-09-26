@@ -6,7 +6,7 @@ Runs:
 - DNS responder on UDP/53 (vidaahub.com -> this PC)
 - HTTPS UI on TCP/443
 - HTTP dashboard/fallback on TCP/8080
-- raw-IP HTTP A/B test UI on TCP/8181 (configurable)
+- raw-IP HTTP A/B test UI on the existing TCP/8080 dashboard
 - JSON report/config API
 
 No third-party Python packages are required.
@@ -1024,7 +1024,7 @@ def main():
     print("=" * 52)
     print(f"PC IP: {local_ip}")
     print(f"PC dashboard: http://{local_ip}:{cfg.get('http_port', 8080)}")
-    print(f"Raw-IP A/B test: http://{local_ip}:{cfg.get('raw_http_test_port', 8181)}")
+    print(f"Raw-IP A/B test: http://{local_ip}:{cfg.get('http_port', 8080)}")
     if REPORT_SYNC_CONFIG.get("enabled"):
         print(
             "Report sync: Git remote "
@@ -1037,7 +1037,7 @@ def main():
     print("  2. Open https://vidaahub.com in the TV browser")
     print("  3. Accept the local certificate warning if shown")
     print("  4. Capture Baseline, initialize runtime context, then run the explicit permission test")
-    print(f"  A/B raw-IP check: open http://{local_ip}:{cfg.get('raw_http_test_port', 8181)} without changing DNS")
+    print(f"  A/B raw-IP check: open http://{local_ip}:{cfg.get('http_port', 8080)} without changing DNS")
     print("=" * 52)
 
     threads = []
@@ -1056,11 +1056,6 @@ def main():
     http_thread.start()
     threads.append(http_thread)
 
-    raw_http_test_port = int(cfg.get("raw_http_test_port", 8181))
-    if raw_http_test_port != int(cfg.get("http_port", 8080)):
-        raw_http_thread = threading.Thread(target=run_http, args=(raw_http_test_port,), daemon=True)
-        raw_http_thread.start()
-        threads.append(raw_http_thread)
 
     if not args.no_dns:
         dns_thread = threading.Thread(target=run_dns, args=(cfg, local_ip), daemon=True)
