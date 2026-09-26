@@ -1949,5 +1949,26 @@
   window.addEventListener("keydown",e=>{const key=e.key||({13:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[e.keyCode]),active=document.activeElement;if((key==="Enter"||key==="OK")&&active&&(active.tagName==="BUTTON"||active.tagName==="SUMMARY")){e.preventDefault();active.click();return;}if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(key)<0)return;if(active&&active.tagName==="INPUT"&&(key==="ArrowLeft"||key==="ArrowRight"))return;const list=controls();if(!list.length)return;const cur=list.indexOf(active)>=0?active:list[0],to=nextControl(cur,key,list);if(to){to.focus();e.preventDefault();}else if(list.indexOf(active)<0){cur.focus();e.preventDefault();}});
 
   $("remoteDiagnosticArmBtn").addEventListener("click",toggleRemoteDiagnostics);   $("baselineBtn").addEventListener("click",baseline); $("contextIdentityFingerprintBtn").addEventListener("click",()=>contextIdentityFingerprint()); $("runtimeContextInitBtn").addEventListener("click",initContext); $("clientInformationBtn").addEventListener("click",readClient); $("serviceTraceBtn").addEventListener("click",readTrace); $("directAppInfoWriteBtn").addEventListener("click",()=>directAppInfoWriteLab()); $("legacyHspdkWriteBtn").addEventListener("click",()=>legacyHspdkWriteLab()); $("addNuvioHspdkBtn").addEventListener("click",addNuvioHspdk); $("restoreHspdkBackupBtn").addEventListener("click",restoreHspdkBackup); $("addNuvioDirectBtn").addEventListener("click",addNuvioDirect); $("restoreAppInfoBackupBtn").addEventListener("click",restoreAppInfoBackup); $("identityOverrideLabBtn").addEventListener("click",()=>identityWriteGateLab()); $("candidatePermissionBtn").addEventListener("click",candidatePermissionGateTest); $("permissionSourceTraceBtn").addEventListener("click",permissionSourceTrace); $("installedMetadataBtn").addEventListener("click",inspectInstalledMetadata); $("installDiagnosticBtn").addEventListener("click",()=>installTest()); $("installLegacyBtn").addEventListener("click",()=>installTest("legacy")); $("installV2Btn").addEventListener("click",()=>installTest("v2")); $("temporaryIdentifierBtn").addEventListener("click",tempIdentifier); $("saveBtn").addEventListener("click",saveTarget); $("verifyBtn").addEventListener("click",async()=>{const r=await verify();log("Verification",r);await save("verification");}); $("reportBtn").addEventListener("click",()=>save("export"));
-  load().then(async()=>{renderSummary();set("deviceBadge",typeof window.Hisense_GetFirmWareVersion==="function"?"VIDAA browser detected":"Waiting for VIDAA APIs");log("Sidee targeted identity diagnostic ready.");if(expectedInstalledAppContext())await contextIdentityFingerprint({automatic:true});startRemoteDiagnosticPolling();}).catch(e=>log("Config load failed",err(e)));
+  async function autoRunPkgmgrPackageProbeOnce(){
+    try{
+      const key="sidee.pkgmgrPackageProbe."+CLIENT_BUILD_ID;
+      if(sessionStorage.getItem(key)==="done")return;
+      if(typeof window.Hisense_FileRead!=="function"||!window.vowOS||!window.vowOS.store)return;
+      sessionStorage.setItem(key,"started");
+      await inspectTvBrowserPackage();
+      sessionStorage.setItem(key,"done");
+    }catch(e){
+      try{sessionStorage.removeItem("sidee.pkgmgrPackageProbe."+CLIENT_BUILD_ID);}catch(_){}
+      log("Automatic tvbrowser package probe failed",err(e));
+    }
+  }
+
+  load().then(async()=>{
+    renderSummary();
+    set("deviceBadge",typeof window.Hisense_GetFirmWareVersion==="function"?"VIDAA browser detected":"Waiting for VIDAA APIs");
+    log("Sidee targeted identity diagnostic ready.");
+    if(expectedInstalledAppContext())await contextIdentityFingerprint({automatic:true});
+    await autoRunPkgmgrPackageProbeOnce();
+    startRemoteDiagnosticPolling();
+  }).catch(e=>log("Config load failed",err(e)));
 })();
