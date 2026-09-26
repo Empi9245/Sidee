@@ -3224,3 +3224,59 @@ Validazione locale:
 - source marker legacy continua a funzionare.
 
 Prossimo dato utile: pull/restart Sidee e un solo `Inspect HSPDK Context (read-only)`. Analizzare `legacyHspdkContext.modernBridgeInventory` e seguire esclusivamente i nomi/metodi realmente presenti sulla Q0707.
+
+
+---
+
+## RISULTATO TV — modern bridge inventory e vowOS.store — 2026-09-26
+
+Capture reale schema v4 dal browser Q0707:
+- build match: true;
+- `omi_platform` presente;
+- `opera_omi` presente;
+- `vowOS` presente;
+- `vowOS.service`, `vowOS.tvinfo` e soprattutto `vowOS.store` presenti come oggetti;
+- `omi_platform.sendPlatformMessage` e `addPlatformEventListener` presenti;
+- `opera_omi.sendPlatformMessage` e `addPlatformEventListener` presenti;
+- HSPDK legacy ancora assente.
+
+Wrapper moderni osservati che usano realmente `omi_platform.sendPlatformMessage`:
+- `Hisense_LoginWithVIDAA`: `type=APPMessage`, `MsgType=account`, `action=loginWithVidaa`;
+- `Hisense_GetUpdatesVerInfo`: `type=getUpdatesVerInfo`;
+- `Hisense_PrintLogMessage`: `type=log`;
+- `Hisense_CloseBrowser`: `type=closeOTTPage`, con `appname`;
+- `Hisense_SendAppMessageEvent`: forza `type=APPMessage` e inoltra l'oggetto;
+- enable/disable VKB tramite messaggi piattaforma.
+
+Questo prova che il browser moderno possiede un canale IPC verso la piattaforma, ma NON prova ancora che esista un verbo install/open arbitrario. Non inviare action/type inventati.
+
+Dato più promettente: `vowOS.store` è realmente presente sulla Q0707. È quindi prioritario rispetto a ulteriori tentativi HiUtils/fileWrite o ai nomi legacy `hi_browser/modeljs`.
+
+### Strategia corrente
+
+Obiettivo: trovare un percorso di installazione gestito dal sistema, evitando il gate `fileWrite`.
+
+Ordine:
+1. enumerare descriptor/source di `vowOS.store`, `vowOS.service`, `vowOS.tvinfo` senza invocare nulla;
+2. se `vowOS.store` espone metodi concreti di install/open/update/list, seguire solo quei metodi e ricostruirne la semantica dal source;
+3. in parallelo, mappare solo i message schema `omi_platform` già presenti nel runtime, senza indovinare action/type;
+4. se emerge un percorso store/system per installare un URL/app, testarlo prima con un'azione innocua o un'app già installata e verificare il risultato reale;
+5. solo dopo usare lo stesso percorso per una nuova app.
+
+Se `vowOS.store` non espone operazioni utili e nessun message schema install/open emerge dal runtime, la conclusione diventa che il browser pubblico Q0707 non offre una via sideload browser-only evidente; a quel punto servirebbe un altro contesto privilegiato ufficiale, non ulteriore spoof di identifier.
+
+### Implementazione Sidee schema v5
+
+`web/hspdk-context.js` ora aggiunge `vowOSNamespaces` e inventaria in sola lettura:
+- `vowOS.store`;
+- `vowOS.service`;
+- `vowOS.tvinfo`.
+
+Per ogni namespace registra:
+- descriptor del namespace;
+- nomi delle proprietà;
+- descriptor delle proprietà;
+- source delle sole funzioni data-property quando serializzabile;
+- `invoked=false`.
+
+Nessun getter o metodo viene eseguito.
