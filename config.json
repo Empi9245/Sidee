@@ -32,6 +32,5 @@
     "branch": "sidee-control",
     "request_path": "control/request.json",
     "poll_seconds": 2
-  },
-  "raw_http_test_port": 8181
+  }
 }
