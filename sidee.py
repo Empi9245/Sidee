@@ -65,6 +65,7 @@ STORE_TRACE_LOCK = threading.Lock()
 STORE_TRACE_REPORT = None
 STORE_TRACE_MAX_REQUESTS = 80
 STORE_TRACE_MAX_ERRORS = 20
+STORE_TRACE_MAX_EVENTS = 160
 STORE_TRACE_MAX_JSON_BYTES = 2 * 1024 * 1024
 STORE_TRACE_SENSITIVE_RE = re.compile(
     r"(?:authorization|cookie|token|secret|password|credential|signature|certificate|nonce|session|api[-_]?key|access[-_]?key)",
@@ -333,9 +334,11 @@ def _catalog_json_summary(body, content_type="", content_encoding=""):
         "topLevelType": "object" if isinstance(value, dict) else "array" if isinstance(value, list) else type(value).__name__,
         "topLevelKeys": sorted(str(k)[:120] for k in value.keys())[:120] if isinstance(value, dict) else [],
         "catalogApps": [],
+        "routeCategoryKeys": [],
         "redactedKeyNames": [],
     }
     redacted_keys = set()
+    route_category_keys = set()
     seen_apps = set()
     nodes = 0
 
@@ -381,8 +384,17 @@ def _catalog_json_summary(body, content_type="", content_encoding=""):
         nodes += 1
         if isinstance(node, dict):
             for key in node.keys():
-                if STORE_TRACE_SENSITIVE_RE.search(str(key)):
-                    redacted_keys.add(str(key)[:120])
+                key_text = str(key)
+                key_lower = key_text.lower()
+                if STORE_TRACE_SENSITIVE_RE.search(key_text):
+                    redacted_keys.add(key_text[:120])
+                    continue
+                if key_lower == "resultcode" and "resultCode" not in summary:
+                    scalar = _safe_catalog_scalar(node.get(key))
+                    if scalar is not None:
+                        summary["resultCode"] = scalar
+                if "route" in key_lower or "category" in key_lower:
+                    route_category_keys.add(key_text[:120])
             if isinstance(node.get("appInfo"), dict) or "unifiedAppName" in node:
                 add_app(node)
             for key, child in node.items():
@@ -397,6 +409,7 @@ def _catalog_json_summary(body, content_type="", content_encoding=""):
                 walk(child, depth + 1)
 
     walk(value)
+    summary["routeCategoryKeys"] = sorted(route_category_keys)[:80]
     summary["redactedKeyNames"] = sorted(redacted_keys)[:80]
     summary["catalogAppCountCaptured"] = len(summary["catalogApps"])
     return summary
@@ -432,6 +445,7 @@ def _new_store_trace_report():
             "httpProxyHit": False,
             "requestCount": 0,
             "status": "IDLE",
+            "events": [],
             "requests": [],
             "errors": [],
             "redactionPolicy": {
@@ -455,6 +469,37 @@ def _record_store_trace(event, detail=None):
         trace = report["storeCatalogTrace"]
         now = _utc_timestamp()
         report["updatedAt"] = now
+
+        event_type = {
+            "DNS_A": "DNS",
+            "DNS_AAAA": "DNS",
+            "TLS_SNI": "TLS_SNI",
+            "HTTP_BEGIN": "HTTP_REQUEST",
+            "HTTP_RESPONSE": "HTTP_RESPONSE",
+            "PROXY_ERROR": "PROXY_ERROR",
+        }.get(event, str(event)[:80])
+        event_item = {
+            "timestamp": now,
+            "type": event_type,
+            "host": _normalized_host(detail.get("host") or STORE_CATALOG_HOST),
+        }
+        if event_type in ("HTTP_REQUEST", "HTTP_RESPONSE", "PROXY_ERROR"):
+            event_item["method"] = str(detail.get("method", ""))[:16]
+            event_item["path"] = str(detail.get("path", ""))[:700]
+        if event_type in ("HTTP_REQUEST", "HTTP_RESPONSE"):
+            event_item["queryParameterNames"] = sorted(
+                set(str(x)[:120] for x in detail.get("queryParameterNames", []))
+            )[:80]
+        if event_type == "HTTP_RESPONSE":
+            event_item["upstreamStatus"] = detail.get("upstreamStatus")
+            event_item["contentType"] = str(detail.get("contentType", ""))[:200]
+            event_item["responseLength"] = detail.get("responseLength")
+        elif event_type == "PROXY_ERROR":
+            event_item["stage"] = str(detail.get("stage", "proxy"))[:80]
+            event_item["errorType"] = str(detail.get("errorType", ""))[:120]
+        trace["events"].append(event_item)
+        if len(trace["events"]) > STORE_TRACE_MAX_EVENTS:
+            trace["events"] = trace["events"][-STORE_TRACE_MAX_EVENTS:]
 
         if event in ("DNS_A", "DNS_AAAA"):
             trace["dnsHit"] = True
@@ -554,7 +599,12 @@ def _proxy_store_catalog_request(handler):
     path_only = parsed.path or "/"
     query_names = _store_query_parameter_names(handler.path)
     method = str(handler.command or "GET").upper()
-    _record_store_trace("HTTP_BEGIN", {"method": method, "path": path_only})
+    _record_store_trace("HTTP_BEGIN", {
+        "host": STORE_CATALOG_HOST,
+        "method": method,
+        "path": path_only,
+        "queryParameterNames": query_names,
+    })
 
     body = None
     try:
