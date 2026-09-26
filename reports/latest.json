@@ -1,10 +1,10 @@
 {
   "sessionId": "sidee-20260926-182425-cbe7",
-  "clientBuildId": "app-1ac17f5d1d6f",
-  "serverBuildId": "app-1ac17f5d1d6f",
+  "clientBuildId": "app-037c19e82796",
+  "serverBuildId": "app-037c19e82796",
   "buildMatch": true,
-  "startedAt": "2026-09-26T17:18:25.292Z",
-  "updatedAt": "2026-09-26T17:18:46.545Z",
+  "startedAt": "2026-09-26T17:22:36.435Z",
+  "updatedAt": "2026-09-26T17:22:36.811Z",
   "accessContext": {
     "href": "https://vidaahub.com/",
     "origin": "https://vidaahub.com",
@@ -58,7 +58,7 @@
     "appInfoWrite": "NOT_RUN"
   },
   "pkgmgrPackageProbe": {
-    "timestamp": "2026-09-26T17:18:34.713Z",
+    "timestamp": "2026-09-26T17:22:36.574Z",
     "readOnly": true,
     "pageContext": {
       "href": "https://vidaahub.com/",
@@ -113,6 +113,90 @@
     "sourceInventory": {
       "matches": [
         {
+          "path": "window.PaymentRequestUpdateEvent",
+          "term": "NAME_MATCH",
+          "sourceLength": 54,
+          "excerpt": "function PaymentRequestUpdateEvent() { [native code] }"
+        },
+        {
+          "path": "window.BackgroundFetchRegistration",
+          "term": "NAME_MATCH",
+          "sourceLength": 56,
+          "excerpt": "function BackgroundFetchRegistration() { [native code] }"
+        },
+        {
+          "path": "window.BackgroundFetchRecord",
+          "term": "NAME_MATCH",
+          "sourceLength": 50,
+          "excerpt": "function BackgroundFetchRecord() { [native code] }"
+        },
+        {
+          "path": "window.BackgroundFetchManager",
+          "term": "NAME_MATCH",
+          "sourceLength": 51,
+          "excerpt": "function BackgroundFetchManager() { [native code] }"
+        },
+        {
+          "path": "window.IDBObjectStore",
+          "term": "NAME_MATCH",
+          "sourceLength": 43,
+          "excerpt": "function IDBObjectStore() { [native code] }"
+        },
+        {
+          "path": "window.BeforeInstallPromptEvent",
+          "term": "NAME_MATCH",
+          "sourceLength": 53,
+          "excerpt": "function BeforeInstallPromptEvent() { [native code] }"
+        },
+        {
+          "path": "window.fetch",
+          "term": "NAME_MATCH",
+          "sourceLength": 34,
+          "excerpt": "function fetch() { [native code] }"
+        },
+        {
+          "path": "window.getInstalledAppJsonObj",
+          "term": "NAME_MATCH",
+          "sourceLength": 376,
+          "excerpt": "function() {\n        const installedAppJsonStr = Hisense_FileRead('websdk/Appinfo.json', 6)\n        if (isString(installedAppJsonStr)) {\n            try {\n                let presetAppObj = JSON.parse(installedAppJsonStr)\n                return presetAppObj\n            } catch (e) {\n                return 0\n            }\n        } else {\n            return 0\n        }\n    }"
+        },
+        {
+          "path": "window.writeInstallAppObjToJson",
+          "term": "NAME_MATCH",
+          "sourceLength": 179,
+          "excerpt": "function(AppJsonObj) {\n        const writedata = JSON.stringify(AppJsonObj)\n        const ret = HiUtils_createRequest('installApplication', writedata)\n        return ret.ret\n    }"
+        },
+        {
+          "path": "window.Hisense_installApp_V2",
+          "term": "NAME_MATCH",
+          "sourceLength": 1406,
+          "excerpt": "function(appinfo, callback) {\n        console.log('Install App V2 begin')\n        let ret = false\n\n        if (typeof (appinfo) != 'object') {\n            callback(-1)\n            return ret\n        }\n\n        const newAppInfo = mapAppInfoFields(appinfo)\n        let installAppObj = getInstalledAppJsonObj()\n        if (installAppObj) {\n            for (let i = 0; i < installAppObj.AppInfo.length; i++) {\n                if (newAppInfo.URL == installAppObj.AppInfo[i].URL) {\n                    if (newAppInfo.AppName != installAppObj.AppInfo[i].AppName) {\n                        installAppObj.AppInfo[i].AppName = newAppInfo.AppName\n                        installAppObj.AppInfo[i].URL = newAppInfo.URL\n                        installAppObj.AppInfo[i].Image = newAppInfo.Image\n                        writeInstallAppObjToJson(installAppObj)\n                        callback(0)\n                        return true\n                    } else {\n                        console.log('same app' + newAppInfo.Id)\n                        callback(0)\n                        return true\n                    }\n                }\n            }\n        }\n\n        if (installAppObj) {\n            installAppObj.AppInfo.push(newAppInfo)\n        } else {\n            installAppObj = { AppInfo: [newAppInfo] }\n        }\n\n        ret = writeInstallAppObjToJson(installAppObj)\n        callback(0)\n        return ret\n    }"
+        },
+        {
+          "path": "window.Hisense_installApp",
+          "term": "download",
+          "sourceLength": 1929,
+          "excerpt": "function(appId, appName, thumbnail, iconSmall, iconBig, appUrl, storetype, callback, configUrl, configUrlDownload, mediaId) {\n        console.log('Install App begin' + appId)\n\n        let mydate = new Date()\n        let realMonth = mydate.getMonth() + 1\n        let StoreType = storetype\n        let newApp = {\n            'Id': appId,\n            'Thumb': thumbnail,\n            'Icon_96': iconSmall,\n            'Image': thumbnail,\n            'URL': appUrl,\n            'AppName': appName,\n            'Title': appName,\n            'configUrl': configUrl,\n            'configUrlDownload': configUrlDownload,\n            'mediaId': mediaId,\n            'IconURL': iconBig,\n            'StartCommand': appUrl,\n            'InstallTime': mydate.getFullYear() + '-' + realMonth + '-' + mydate.getDate(),\n            'RunTimes': 0,\n            'StoreType': StoreType,\n            'PreInstall': false }\n        let installAppObj = getInstalledAppJsonObj()\n        if (installAppObj) {\n            for (let i = 0; i < installAppObj.AppInfo.length; i++) {\n                if (appUrl == installAppObj.AppInfo[i].URL) {\n                    if (appName != installAppObj.AppInfo[i].AppName) {\n                        installAppObj.AppInfo[i].AppName = appName\n                        installAppObj.AppInfo[i].URL = appUrl\n                        installAppObj.AppInfo[i].Image = thumbnail\n                        ret = writeInstallAppObjToJson(installAppObj)\n                        return ret\n                    } else {\n                        console.log('same app' + appId)\n                        return true\n                    }\n                }\n            }\n        }\n        if (installAppObj) {\n            installAppObj.AppInfo.push(newApp)\n        } else {\n            installAppObj = { AppInfo: [newApp] }\n        }\n\n        const ret = writeInstallAppObjToJson(installAppObj)\n\n        callback(0)\n        return ret\n    }"
+        },
+        {
+          "path": "window.Hisense_uninstallApp",
+          "term": "NAME_MATCH",
+          "sourceLength": 645,
+          "excerpt": "function(appId, callback) {\n        console.log('Uninstall App begin' + appId)\n\n        let installAppObj = getInstalledAppJsonObj()\n        let appIndex = 0\n        let ret = false\n        if (installAppObj != 0) {\n            for (appIndex = 0; appIndex < installAppObj.AppInfo.length; appIndex++) {\n                if (installAppObj.AppInfo[appIndex].Id == appId) {\n                    installAppObj.AppInfo.splice(appIndex, 1)\n                    ret = true\n                }\n            }\n            if (ret) {\n                writeInstallAppObjToJson(installAppObj)\n            }\n        }\n\n        callback(ret)\n        return true\n    }"
+        },
+        {
+          "path": "window.Hisense_getInstalledApps",
+          "term": "NAME_MATCH",
+          "sourceLength": 828,
+          "excerpt": "function(callback) {\n        console.log('getInstalledApps')\n\n        let count = 0\n        const allAppObj = getAllAppJsonObj()\n        let ret = ''\n\n        if (allAppObj.length == 0) {\n            errinfo = new Error()\n            errinfo.name = 'getInstalledApps'\n            errinfo.message = 'There is no App has installed!!!'\n            callback(errinfo, null)\n        } else {\n            let all_apps = allAppObj?.AppInfo\n            if(all_apps.length != 0) {\n                var newArray = all_apps.filter((item, i, arr) => {\n                    return item?.isShowOnLauncher != false\n                })\n                //console.log(newArray);\n            }\n            const result = {'AppInfo': newArray}\n            ret = JSON.stringify(result)\n            callback(null, ret)\n        }\n\n        return ret\n    }"
+        },
+        {
+          "path": "window.Hisense_GetUpdatesVerInfo",
+          "term": "NAME_MATCH",
+          "sourceLength": 782,
+          "excerpt": "function(callback) {\n        console.log('go to Hisense_GetUpdatesVerInfo')\n        var requestMsg = {}\n        requestMsg.type = 'getUpdatesVerInfo'\n\n        try {\n            if (window.omi_platform) {\n                omi_platform.sendPlatformMessage(JSON.stringify(requestMsg))\n            }\n        } catch (e) {\n            // handle the exception\n        }\n\n        handleGetVersionEvent = function(version) {\n            var message = JSON.parse(version)\n            if (!!message && version.indexOf('nssdb') != -1) {\n                callback(message)\n            }\n        }\n\n        if (window.alreadyAddUpdateEventListener == 0) {\n            omi_platform.addPlatformEventListener(handleGetVersionEvent)\n            window.alreadyAddUpdateEventListener = 1\n        }\n    }"
+        },
+        {
           "path": "vowOS.store.getInstalledPkgs",
           "term": "pkgmgr",
           "sourceLength": 199,
@@ -128,7 +212,7 @@
           "path": "vowOS.store.installApp",
           "term": "pkgmgr",
           "sourceLength": 990,
-          "excerpt": "pinfo.appUrl, appinfo.storetype, callback, appinfo.configUrl, appinfo.configUrlDownload, appinfo.mediaId)\n                callback({ret: ret, msg:{appId: appinfo?.appId, message: ret? \"succeed\" : \"install failed!\"}})\n                return ret\n            } else {\n                // package app\n                const param = {\n                     pkgName: appinfo?.packageName,\n                     version: '',\n                     appId: appinfo?.appId\n                }\n                this.sendPkgmgrRequest('install', param, appinfo, callback)\n                return true\n            }\n        }"
+          "excerpt": "installApp(appinfo.appId, appinfo.appName, appinfo.thumbnail, appinfo.iconSmall, appinfo.iconBig, appinfo.appUrl, appinfo.storetype, callback, appinfo.configUrl, appinfo.configUrlDownload, appinfo.mediaId)\n                callback({ret: ret, msg:{appId: appinfo?.appId, message: ret? \"succeed\" : \"install failed!\"}})\n                return ret\n            } else {\n                // package app\n                const param = {\n                     pkgName: appinfo?.packageName,\n                     version: '',\n                     appId: appinfo?.appId\n                }\n                this.sendPkgmgrRequest('install', param, appinfo, callback)\n                return true\n            }\n        }"
         },
         {
           "path": "vowOS.store.installApp",
@@ -138,9 +222,21 @@
         },
         {
           "path": "vowOS.store.installApp",
+          "term": "pkgName",
+          "sourceLength": 990,
+          "excerpt": "d: '', message:'wrong param'}})\n                return false\n            }\n            if(!appinfo?.packageName) {\n                const ret = Hisense_installApp(appinfo.appId, appinfo.appName, appinfo.thumbnail, appinfo.iconSmall, appinfo.iconBig, appinfo.appUrl, appinfo.storetype, callback, appinfo.configUrl, appinfo.configUrlDownload, appinfo.mediaId)\n                callback({ret: ret, msg:{appId: appinfo?.appId, message: ret? \"succeed\" : \"install failed!\"}})\n                return ret\n            } else {\n                // package app\n                const param = {\n                     pkgName: appinfo?.packageName,\n                     version: '',\n                     appId: appinfo?.appId\n                }\n                this.sendPkgmgrRequest('install', param, appinfo, callback)\n                return true\n            }\n        }"
+        },
+        {
+          "path": "vowOS.store.installApp",
           "term": "sendPkgmgrRequest",
           "sourceLength": 990,
-          "excerpt": ", appinfo.appUrl, appinfo.storetype, callback, appinfo.configUrl, appinfo.configUrlDownload, appinfo.mediaId)\n                callback({ret: ret, msg:{appId: appinfo?.appId, message: ret? \"succeed\" : \"install failed!\"}})\n                return ret\n            } else {\n                // package app\n                const param = {\n                     pkgName: appinfo?.packageName,\n                     version: '',\n                     appId: appinfo?.appId\n                }\n                this.sendPkgmgrRequest('install', param, appinfo, callback)\n                return true\n            }\n        }"
+          "excerpt": "nse_installApp(appinfo.appId, appinfo.appName, appinfo.thumbnail, appinfo.iconSmall, appinfo.iconBig, appinfo.appUrl, appinfo.storetype, callback, appinfo.configUrl, appinfo.configUrlDownload, appinfo.mediaId)\n                callback({ret: ret, msg:{appId: appinfo?.appId, message: ret? \"succeed\" : \"install failed!\"}})\n                return ret\n            } else {\n                // package app\n                const param = {\n                     pkgName: appinfo?.packageName,\n                     version: '',\n                     appId: appinfo?.appId\n                }\n                this.sendPkgmgrRequest('install', param, appinfo, callback)\n                return true\n            }\n        }"
+        },
+        {
+          "path": "vowOS.store.installApp",
+          "term": "download",
+          "sourceLength": 990,
+          "excerpt": "function(appinfo, callback) {\n            if (!appinfo || typeof (appinfo) != 'object') {\n                callback({ret: false, msg:{appId: '', message:'wrong param'}})\n                return false\n            }\n            if(!appinfo?.packageName) {\n                const ret = Hisense_installApp(appinfo.appId, appinfo.appName, appinfo.thumbnail, appinfo.iconSmall, appinfo.iconBig, appinfo.appUrl, appinfo.storetype, callback, appinfo.configUrl, appinfo.configUrlDownload, appinfo.mediaId)\n                callback({ret: ret, msg:{appId: appinfo?.appId, message: ret? \"succeed\" : \"install failed!\"}})\n                return ret\n            } else {\n                // package app\n                const param = {\n                     pkgName: appinfo?.packageName,\n                     version: '',\n                     appId: appinfo?.appId\n                }\n                this.sendPkgmgrRequest('install', param, appinfo, callback)\n                return true\n            }\n        }"
         },
         {
           "path": "vowOS.store.sendPkgmgrRequest",
@@ -150,11 +246,24 @@
         },
         {
           "path": "vowOS.store.sendPkgmgrRequest",
+          "term": "pkgName",
+          "sourceLength": 1477,
+          "excerpt": "onent(JSON.stringify(args));\n            const url = `https://localhost:9888/service/pkgmgr?api=${api}&args=${encodedData}`;\n            const xhr = new XMLHttpRequest();\n            xhr.onload = function() {\n                if (xhr.status >= 200 && xhr.status < 300) {\n                    // 请求成功，处理响应数据\n                    console.log(xhr.responseText)\n                    const response = JSON.parse(xhr.responseText)\n                    if(response?.ret && api == 'install') {\n                        // TODO: read from config file\n                        const path = `file:///APPS/pkgs/${args?.pkgName}/index.html`\n                        // write path into Appinfo.json\n                        ret = Hisense_installApp(args?.appId, args?.pkgName, appinfo?.thumbnail, appinfo?.iconSmall, appinfo?.iconBig, path, 'hisense', callback, appinfo?.configUrl, appinfo?.configUrlDownload, appinfo?.mediaId)\n                    }\n\n                    callback({ret: response?.ret, msg:{appId: args?.appId, message: response?.msg}})\n                } else {\n                    // 请求失败，处理错误\n                    ret = false\n                    callback({ret: ret, msg:{appId: args?.appId, message: xhr.responseText}})\n                }\n            }\n\n            xhr.open('GET', url);\n            xhr.send();\n            return ret\n        }"
+        },
+        {
+          "path": "vowOS.store.sendPkgmgrRequest",
           "term": "/APPS/pkgs/",
           "sourceLength": 1477,
-          "excerpt": "ice/pkgmgr?api=${api}&args=${encodedData}`;\n            const xhr = new XMLHttpRequest();\n            xhr.onload = function() {\n                if (xhr.status >= 200 && xhr.status < 300) {\n                    // 请求成功，处理响应数据\n                    console.log(xhr.responseText)\n                    const response = JSON.parse(xhr.responseText)\n                    if(response?.ret && api == 'install') {\n                        // TODO: read from config file\n                        const path = `file:///APPS/pkgs/${args?.pkgName}/index.html`\n                        // write path into Appinfo.json\n                        ret = Hisense_installApp(args?.appId, args?.pkgName, appinfo?.thumbnail, appinfo?.iconSmall, appinfo?.iconBig, path, 'hisense', callback, appinfo?.configUrl, appinfo?.configUrlDownload, appinfo?.mediaId)\n                    }\n\n                    callback({ret: response?.ret, msg:{appId: args?.appId, message: response?.msg}})\n                } else {\n                    // 请求失败，处理错误\n                    ret = false\n                    callback({ret: ret, msg:{appId: args?.appId, message: xhr.responseText}})\n                }\n            }\n\n            xhr.open('GET', url);\n            xhr.send();\n            return ret\n        }"
+          "excerpt": "ata = encodeURIComponent(JSON.stringify(args));\n            const url = `https://localhost:9888/service/pkgmgr?api=${api}&args=${encodedData}`;\n            const xhr = new XMLHttpRequest();\n            xhr.onload = function() {\n                if (xhr.status >= 200 && xhr.status < 300) {\n                    // 请求成功，处理响应数据\n                    console.log(xhr.responseText)\n                    const response = JSON.parse(xhr.responseText)\n                    if(response?.ret && api == 'install') {\n                        // TODO: read from config file\n                        const path = `file:///APPS/pkgs/${args?.pkgName}/index.html`\n                        // write path into Appinfo.json\n                        ret = Hisense_installApp(args?.appId, args?.pkgName, appinfo?.thumbnail, appinfo?.iconSmall, appinfo?.iconBig, path, 'hisense', callback, appinfo?.configUrl, appinfo?.configUrlDownload, appinfo?.mediaId)\n                    }\n\n                    callback({ret: response?.ret, msg:{appId: args?.appId, message: response?.msg}})\n                } else {\n                    // 请求失败，处理错误\n                    ret = false\n                    callback({ret: ret, msg:{appId: args?.appId, message: xhr.responseText}})\n                }\n            }\n\n            xhr.open('GET', url);\n            xhr.send();\n            return ret\n        }"
+        },
+        {
+          "path": "vowOS.store.sendPkgmgrRequest",
+          "term": "download",
+          "sourceLength": 1477,
+          "excerpt": "             // 请求成功，处理响应数据\n                    console.log(xhr.responseText)\n                    const response = JSON.parse(xhr.responseText)\n                    if(response?.ret && api == 'install') {\n                        // TODO: read from config file\n                        const path = `file:///APPS/pkgs/${args?.pkgName}/index.html`\n                        // write path into Appinfo.json\n                        ret = Hisense_installApp(args?.appId, args?.pkgName, appinfo?.thumbnail, appinfo?.iconSmall, appinfo?.iconBig, path, 'hisense', callback, appinfo?.configUrl, appinfo?.configUrlDownload, appinfo?.mediaId)\n                    }\n\n                    callback({ret: response?.ret, msg:{appId: args?.appId, message: response?.msg}})\n                } else {\n                    // 请求失败，处理错误\n                    ret = false\n                    callback({ret: ret, msg:{appId: args?.appId, message: xhr.responseText}})\n                }\n            }\n\n            xhr.open('GET', url);\n            xhr.send();\n            return ret\n        }"
         }
       ],
+      "objects": [],
       "error": null
     },
     "status": "READ_EMPTY",
