@@ -387,7 +387,8 @@ pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-w
   }};
   var out=document.getElementById("out"),state=document.getElementById("state");
   var noopBtn=document.getElementById("noopBtn"),noopState=document.getElementById("noopState");
-  var bootstrapSessionId=null,bootstrapBuildId=null;
+  var bootstrapSessionId=null,bootstrapBuildId=null,autoNoopStarted=false;
+  var autoNoopGuardKey="sidee.appContextNoopAuto.v1:"+location.hostname;
   out.textContent=JSON.stringify(payload,null,2);
 
   function postJson(url,body){{
@@ -421,7 +422,7 @@ pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-w
     return null;
   }}
   async function runNoopWrite(){{
-    if(!bootstrapSessionId||typeof window.HiUtils_createRequest!=="function")return;
+    if(!bootstrapSessionId||typeof window.HiUtils_createRequest!=="function")return false;
     noopBtn.disabled=true;
     noopState.className="wait";
     noopState.textContent="Reading AppInfo and creating immutable backup…";
@@ -453,11 +454,33 @@ pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-w
       var cap=saved&&saved.writeCapability?saved.writeCapability:"INCONCLUSIVE";
       noopState.textContent=cap+" · ret "+String(saved&&saved.writeResponse&&saved.writeResponse.ret)+" · code "+String(saved&&saved.writeResponse&&saved.writeResponse.code)+" · readback identical "+String(saved&&saved.readback&&saved.readback.identicalToBackup);
       noopState.className=cap==="WRITE_ALLOWED_AND_IDENTICAL"?"ok":"wait";
+      return true;
     }}catch(e){{
       noopState.textContent="No-op test stopped: "+String(e&&e.message||e);
       noopState.className="wait";
+      return false;
     }}
   }}
+
+  async function autoRunNoopWriteOnce(){{
+    if(autoNoopStarted)return;
+    autoNoopStarted=true;
+    try{{
+      if(sessionStorage.getItem(autoNoopGuardKey)==="done"){{
+        noopState.textContent="Automatic no-op test already completed in this app session.";
+        return;
+      }}
+      sessionStorage.setItem(autoNoopGuardKey,"running");
+    }}catch(e){{}}
+
+    noopState.textContent="Native app context captured. Starting the backup-protected no-op test automatically…";
+    var ok=await runNoopWrite();
+    try{{
+      if(ok)sessionStorage.setItem(autoNoopGuardKey,"done");
+      else sessionStorage.removeItem(autoNoopGuardKey);
+    }}catch(e){{}}
+  }}
+
   noopBtn.onclick=runNoopWrite;
 
   postJson("/api/app-context-bootstrap",payload).then(function(saved){{
@@ -467,7 +490,8 @@ pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-w
     state.className="ok";
     if(payload.capabilities.hiUtils&&bootstrapSessionId){{
       noopBtn.disabled=false;
-      noopState.textContent="Ready. This test writes back only the exact AppInfo bytes that are backed up first.";
+      noopState.textContent="Ready. Starting the exact backup-protected AppInfo no-op test automatically…";
+      setTimeout(function(){{autoRunNoopWriteOnce();}},250);
     }}else{{
       noopState.textContent="HiUtils or bootstrap session unavailable; no write test can run.";
     }}
