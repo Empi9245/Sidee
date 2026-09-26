@@ -1,10 +1,10 @@
 {
   "sessionId": "sidee-20260926-182425-cbe7",
-  "clientBuildId": "app-34999fc05e52",
-  "serverBuildId": "app-34999fc05e52",
+  "clientBuildId": "app-7abbfb3ccac3",
+  "serverBuildId": "app-7abbfb3ccac3",
   "buildMatch": true,
-  "startedAt": "2026-09-26T16:53:34.275Z",
-  "updatedAt": "2026-09-26T16:53:46.152Z",
+  "startedAt": "2026-09-26T17:13:49.435Z",
+  "updatedAt": "2026-09-26T17:13:49.716Z",
   "accessContext": {
     "href": "https://vidaahub.com/",
     "origin": "https://vidaahub.com",
@@ -57,8 +57,8 @@
     "permissionGate": "UNKNOWN",
     "appInfoWrite": "NOT_RUN"
   },
-  "pkgmgrInstalledPackages": {
-    "timestamp": "2026-09-26T16:53:46.050Z",
+  "pkgmgrPackageProbe": {
+    "timestamp": "2026-09-26T17:13:49.583Z",
     "readOnly": true,
     "pageContext": {
       "href": "https://vidaahub.com/",
@@ -70,279 +70,65 @@
       "secureContext": true,
       "accessMode": "VIDAAHUB_BROWSER_CONTEXT"
     },
-    "api": "vowOS.store.getInstalledPkgs",
-    "source": "vowOS.store.getInstalledPkgs -> vowOS.service.syncExecute('pkgmgr',{api:'getInstalledPkgs',args:''})",
-    "status": "READ_OK",
-    "response": {
-      "raw": {
-        "ret": true,
-        "msg": [
-          {
-            "name": "tv.vidaa.app.browser",
-            "version": "9.6.0-r20260706x",
-            "status": "install user installed",
-            "type": "ns",
-            "path": "APPS:pkgs/tv.vidaa.app.browser/CHA/"
-          },
-          {
-            "name": "tv.vidaa.res.iot",
-            "version": "1.0.1-r20260706x",
-            "status": "install user installed",
-            "type": "res",
-            "path": "APPS:pkgs/tv.vidaa.res.iot/CHA/"
-          },
-          {
-            "name": "tv.vidaa.phony.btrc",
-            "version": "1.0.0-r20260706x",
-            "status": "install user installed",
-            "type": "phony",
-            "path": "APPS:pkgs/tv.vidaa.phony.btrc/"
-          },
-          {
-            "name": "tv.vidaa.lib.odin",
-            "version": "9.6.0-r20260706x",
-            "status": "install user installed",
-            "type": "native",
-            "path": "APPS:pkgs/tv.vidaa.lib.odin/CHA/"
-          },
-          {
-            "name": "tv.vidaa.phony.pkglimit",
-            "version": "1.0.0-r20260707a",
-            "status": "install user installed",
-            "type": "phony",
-            "path": "APPS:pkgs/tv.vidaa.phony.pkglimit/CHA/"
-          },
-          {
-            "name": "tv.vidaa.lib.mediamain",
-            "version": "3.6.0-r20260706w",
-            "status": "install user installed",
-            "type": "native",
-            "path": "APPS:pkgs/tv.vidaa.lib.mediamain/CHA/"
-          },
-          {
-            "name": "tv.vidaa.app.phoenix",
-            "version": "1.0.0-r20260706x",
-            "status": "install user installed",
-            "type": "ns",
-            "path": "APPS:pkgs/tv.vidaa.app.phoenix/CHA/"
-          },
-          {
-            "name": "tv.vidaa.res.odin",
-            "version": "9.6.0-r20260706x",
-            "status": "install user installed",
-            "type": "res",
-            "path": "APPS:pkgs/tv.vidaa.res.odin/CHA/"
-          },
-          {
-            "name": "tv.vidaa.res.youtube",
-            "version": "1.0.0-r20260707a",
-            "status": "install user installed",
-            "type": "native",
-            "path": "APPS:pkgs/tv.vidaa.res.youtube/"
-          },
-          {
-            "name": "tv.vidaa.app.youtube",
-            "version": "1.0.0-r20260707a",
-            "status": "install user installed",
-            "type": "native",
-            "path": "APPS:pkgs/tv.vidaa.app.youtube/"
-          },
-          {
-            "name": "tv.vidaa.app.operationui",
-            "version": "9.61.00-a20260727u",
-            "status": "install user installed",
-            "type": "system",
-            "path": "APPS:pkgs/tv.vidaa.app.operationui/CHB/"
-          },
-          {
-            "name": "tv.vidaa.res.matter",
-            "version": "1.0.0-r20260706x",
-            "status": "install user installed",
-            "type": "res",
-            "path": "APPS:pkgs/tv.vidaa.res.matter/CHA/"
-          },
-          {
-            "name": "tv.vidaa.res.webengine",
-            "version": "9.6.0-r20260706x",
-            "status": "install user installed",
-            "type": "res",
-            "path": "APPS:pkgs/tv.vidaa.res.webengine/CHA/"
-          },
-          {
-            "name": "tv.vidaa.jsservice.basic",
-            "version": "1.0.0-r20260706x",
-            "status": "install user installed",
-            "type": "js",
-            "path": "APPS:pkgs/tv.vidaa.jsservice.basic/CHA/"
-          },
-          {
-            "name": "tv.vidaa.jsservice.system",
-            "version": "1.0.0-r20260706x",
-            "status": "install user installed",
-            "type": "js",
-            "path": "APPS:pkgs/tv.vidaa.jsservice.system/CHA/"
-          },
-          {
-            "name": "tv.vidaa.app.osconfig",
-            "version": "1.0.0-r20260707a",
-            "status": "install user installed",
-            "type": "phony",
-            "path": "APPS:pkgs/tv.vidaa.app.osconfig/CHA/"
-          },
-          {
-            "name": "tv.vidaa.phony.keystore",
-            "version": "1.0.0-r20260706x",
-            "status": "install user installed",
-            "type": "phony",
-            "path": "APPS:pkgs/tv.vidaa.phony.keystore/CHA/"
-          },
-          {
-            "name": "tv.vidaa.app.tvbrowser",
-            "version": "9.6.0-r20260706x",
-            "status": "install user installed",
-            "type": "web",
-            "path": "APPS:pkgs/tv.vidaa.app.tvbrowser/"
-          }
-        ],
-        "sdkVersion": "1.5.0",
-        "code": 0
-      },
-      "parsed": {
-        "ret": true,
-        "msg": [
-          {
-            "name": "tv.vidaa.app.browser",
-            "version": "9.6.0-r20260706x",
-            "status": "install user installed",
-            "type": "ns",
-            "path": "APPS:pkgs/tv.vidaa.app.browser/CHA/"
-          },
-          {
-            "name": "tv.vidaa.res.iot",
-            "version": "1.0.1-r20260706x",
-            "status": "install user installed",
-            "type": "res",
-            "path": "APPS:pkgs/tv.vidaa.res.iot/CHA/"
-          },
-          {
-            "name": "tv.vidaa.phony.btrc",
-            "version": "1.0.0-r20260706x",
-            "status": "install user installed",
-            "type": "phony",
-            "path": "APPS:pkgs/tv.vidaa.phony.btrc/"
-          },
-          {
-            "name": "tv.vidaa.lib.odin",
-            "version": "9.6.0-r20260706x",
-            "status": "install user installed",
-            "type": "native",
-            "path": "APPS:pkgs/tv.vidaa.lib.odin/CHA/"
-          },
-          {
-            "name": "tv.vidaa.phony.pkglimit",
-            "version": "1.0.0-r20260707a",
-            "status": "install user installed",
-            "type": "phony",
-            "path": "APPS:pkgs/tv.vidaa.phony.pkglimit/CHA/"
-          },
-          {
-            "name": "tv.vidaa.lib.mediamain",
-            "version": "3.6.0-r20260706w",
-            "status": "install user installed",
-            "type": "native",
-            "path": "APPS:pkgs/tv.vidaa.lib.mediamain/CHA/"
-          },
-          {
-            "name": "tv.vidaa.app.phoenix",
-            "version": "1.0.0-r20260706x",
-            "status": "install user installed",
-            "type": "ns",
-            "path": "APPS:pkgs/tv.vidaa.app.phoenix/CHA/"
-          },
-          {
-            "name": "tv.vidaa.res.odin",
-            "version": "9.6.0-r20260706x",
-            "status": "install user installed",
-            "type": "res",
-            "path": "APPS:pkgs/tv.vidaa.res.odin/CHA/"
-          },
-          {
-            "name": "tv.vidaa.res.youtube",
-            "version": "1.0.0-r20260707a",
-            "status": "install user installed",
-            "type": "native",
-            "path": "APPS:pkgs/tv.vidaa.res.youtube/"
-          },
-          {
-            "name": "tv.vidaa.app.youtube",
-            "version": "1.0.0-r20260707a",
-            "status": "install user installed",
-            "type": "native",
-            "path": "APPS:pkgs/tv.vidaa.app.youtube/"
-          },
-          {
-            "name": "tv.vidaa.app.operationui",
-            "version": "9.61.00-a20260727u",
-            "status": "install user installed",
-            "type": "system",
-            "path": "APPS:pkgs/tv.vidaa.app.operationui/CHB/"
-          },
-          {
-            "name": "tv.vidaa.res.matter",
-            "version": "1.0.0-r20260706x",
-            "status": "install user installed",
-            "type": "res",
-            "path": "APPS:pkgs/tv.vidaa.res.matter/CHA/"
-          },
-          {
-            "name": "tv.vidaa.res.webengine",
-            "version": "9.6.0-r20260706x",
-            "status": "install user installed",
-            "type": "res",
-            "path": "APPS:pkgs/tv.vidaa.res.webengine/CHA/"
-          },
-          {
-            "name": "tv.vidaa.jsservice.basic",
-            "version": "1.0.0-r20260706x",
-            "status": "install user installed",
-            "type": "js",
-            "path": "APPS:pkgs/tv.vidaa.jsservice.basic/CHA/"
-          },
-          {
-            "name": "tv.vidaa.jsservice.system",
-            "version": "1.0.0-r20260706x",
-            "status": "install user installed",
-            "type": "js",
-            "path": "APPS:pkgs/tv.vidaa.jsservice.system/CHA/"
-          },
-          {
-            "name": "tv.vidaa.app.osconfig",
-            "version": "1.0.0-r20260707a",
-            "status": "install user installed",
-            "type": "phony",
-            "path": "APPS:pkgs/tv.vidaa.app.osconfig/CHA/"
-          },
-          {
-            "name": "tv.vidaa.phony.keystore",
-            "version": "1.0.0-r20260706x",
-            "status": "install user installed",
-            "type": "phony",
-            "path": "APPS:pkgs/tv.vidaa.phony.keystore/CHA/"
-          },
-          {
-            "name": "tv.vidaa.app.tvbrowser",
-            "version": "9.6.0-r20260706x",
-            "status": "install user installed",
-            "type": "web",
-            "path": "APPS:pkgs/tv.vidaa.app.tvbrowser/"
-          }
-        ],
-        "sdkVersion": "1.5.0",
-        "code": 0
-      },
-      "count": 18,
+    "packageName": "tv.vidaa.app.tvbrowser",
+    "absolutePath": "/APPS/pkgs/tv.vidaa.app.tvbrowser/index.html",
+    "readPath": "../../../APPS/pkgs/tv.vidaa.app.tvbrowser/index.html",
+    "mode": 0,
+    "file": {
+      "returnedType": "string",
+      "length": 0,
+      "hash": null,
+      "references": [],
+      "preview": ""
+    },
+    "sourceInventory": {
+      "matches": [
+        {
+          "path": "vowOS.store.getInstalledPkgs",
+          "term": "pkgmgr",
+          "sourceLength": 199,
+          "excerpt": "function() {\n            const ret = window.vowOS.service.syncExecute('pkgmgr', {\n                  api: 'getInstalledPkgs',\n                  args: ''\n            })\n            return ret\n        }"
+        },
+        {
+          "path": "vowOS.store.getInstalledPkgs",
+          "term": "getInstalledPkgs",
+          "sourceLength": 199,
+          "excerpt": "function() {\n            const ret = window.vowOS.service.syncExecute('pkgmgr', {\n                  api: 'getInstalledPkgs',\n                  args: ''\n            })\n            return ret\n        }"
+        },
+        {
+          "path": "vowOS.store.installApp",
+          "term": "pkgmgr",
+          "sourceLength": 990,
+          "excerpt": "pinfo.appUrl, appinfo.storetype, callback, appinfo.configUrl, appinfo.configUrlDownload, appinfo.mediaId)\n                callback({ret: ret, msg:{appId: appinfo?.appId, message: ret? \"succeed\" : \"install failed!\"}})\n                return ret\n            } else {\n                // package app\n                const param = {\n                     pkgName: appinfo?.packageName,\n                     version: '',\n                     appId: appinfo?.appId\n                }\n                this.sendPkgmgrRequest('install', param, appinfo, callback)\n                return true\n            }\n        }"
+        },
+        {
+          "path": "vowOS.store.installApp",
+          "term": "packageName",
+          "sourceLength": 990,
+          "excerpt": "function(appinfo, callback) {\n            if (!appinfo || typeof (appinfo) != 'object') {\n                callback({ret: false, msg:{appId: '', message:'wrong param'}})\n                return false\n            }\n            if(!appinfo?.packageName) {\n                const ret = Hisense_installApp(appinfo.appId, appinfo.appName, appinfo.thumbnail, appinfo.iconSmall, appinfo.iconBig, appinfo.appUrl, appinfo.storetype, callback, appinfo.configUrl, appinfo.configUrlDownload, appinfo.mediaId)\n                callback({ret: ret, msg:{appId: appinfo?.appId, message: ret? \"succeed\" : \"install failed!\"}})\n                return ret\n            } else {\n                // package app\n                const param = {\n                     pkgName: appinfo?.packageName,\n                     version: '',\n                     appId: appinfo?.appId\n                }\n                this.sendPkgmgrRequest('install', param, appinfo, callback)\n                return true\n            }\n        }"
+        },
+        {
+          "path": "vowOS.store.installApp",
+          "term": "sendPkgmgrRequest",
+          "sourceLength": 990,
+          "excerpt": ", appinfo.appUrl, appinfo.storetype, callback, appinfo.configUrl, appinfo.configUrlDownload, appinfo.mediaId)\n                callback({ret: ret, msg:{appId: appinfo?.appId, message: ret? \"succeed\" : \"install failed!\"}})\n                return ret\n            } else {\n                // package app\n                const param = {\n                     pkgName: appinfo?.packageName,\n                     version: '',\n                     appId: appinfo?.appId\n                }\n                this.sendPkgmgrRequest('install', param, appinfo, callback)\n                return true\n            }\n        }"
+        },
+        {
+          "path": "vowOS.store.sendPkgmgrRequest",
+          "term": "pkgmgr",
+          "sourceLength": 1477,
+          "excerpt": "function(api, args, appinfo, callback) {\n            let ret = true\n            // encode param\n            const encodedData = encodeURIComponent(JSON.stringify(args));\n            const url = `https://localhost:9888/service/pkgmgr?api=${api}&args=${encodedData}`;\n            const xhr = new XMLHttpRequest();\n            xhr.onload = function() {\n                if (xhr.status >= 200 && xhr.status < 300) {\n                    // 请求成功，处理响应数据\n                    console.log(xhr.responseText)\n                    const response = JSON.parse(xhr.responseText)\n                    if(response?.ret && api == 'install') {\n                        // TODO: read from config file\n                        const path = `file:///APPS/pkgs/${args?.pkgName}/index.html`\n                        // write path into Appinfo.json\n                        ret = Hisense_installApp(args?.appId, args?.pkgName, appinfo?.thumbnail, appinfo?.iconSmall, appinfo?.iconBig, path, 'hisense', callback, appinfo?.configUrl, appinfo?.configUrlDownload, appinfo?.mediaId)\n                    }\n\n                    callback({ret: response?.ret, msg:{appId: args?.appId, message: response?.msg}})\n                } else {\n                    // 请求失败，处理错误\n                    ret = false\n                    callback({ret: ret, msg:{appId: args?.appId, message: xhr.responseText}})\n                }\n            }\n\n            xhr.open('GET', url);\n            xhr.send();\n            return ret\n        }"
+        },
+        {
+          "path": "vowOS.store.sendPkgmgrRequest",
+          "term": "/APPS/pkgs/",
+          "sourceLength": 1477,
+          "excerpt": "ice/pkgmgr?api=${api}&args=${encodedData}`;\n            const xhr = new XMLHttpRequest();\n            xhr.onload = function() {\n                if (xhr.status >= 200 && xhr.status < 300) {\n                    // 请求成功，处理响应数据\n                    console.log(xhr.responseText)\n                    const response = JSON.parse(xhr.responseText)\n                    if(response?.ret && api == 'install') {\n                        // TODO: read from config file\n                        const path = `file:///APPS/pkgs/${args?.pkgName}/index.html`\n                        // write path into Appinfo.json\n                        ret = Hisense_installApp(args?.appId, args?.pkgName, appinfo?.thumbnail, appinfo?.iconSmall, appinfo?.iconBig, path, 'hisense', callback, appinfo?.configUrl, appinfo?.configUrlDownload, appinfo?.mediaId)\n                    }\n\n                    callback({ret: response?.ret, msg:{appId: args?.appId, message: response?.msg}})\n                } else {\n                    // 请求失败，处理错误\n                    ret = false\n                    callback({ret: ret, msg:{appId: args?.appId, message: xhr.responseText}})\n                }\n            }\n\n            xhr.open('GET', url);\n            xhr.send();\n            return ret\n        }"
+        }
+      ],
       "error": null
     },
+    "status": "READ_EMPTY",
     "error": null
   }
 }
