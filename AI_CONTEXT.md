@@ -1938,3 +1938,45 @@ Obiettivo del prossimo test TV: eseguire soltanto **Trace Permission Sources** e
 - `permissionSourceTrace.runtimeObjectInventory.objects.omiPlatform`
 
 Cercare metodi non ovvi come initialize/bind/register/setParam/platform/message/context/config/access/bridge o altre funzioni che possano spiegare come il browser/runtime assegna l'identità dell'app prima di `getIdentifier()`.
+
+
+---
+
+## IMPLEMENTAZIONE — Global Phoenix Wrapper Source Trace — 2026-09-26
+
+Il Complete Runtime Bridge Inventory reale ha mostrato che:
+- `vowOSContext` espone solo `init`, `getAppIdentifier`, `getAppId`;
+- `omi_platform` espone solo `addPlatformEventListener` e `sendPlatformMessage`;
+- `vowOS.service` include un secondo trasporto oltre a `syncExecute`: `execute(module,obj_params)` via WebSocket `wss://localhost:9888`;
+- i comandi WebSocket includono `identifier: this.getIdentifier()`;
+- la gestione delle risposte conserva le sessioni con `callbacks.method == 'register'`.
+
+Per localizzare eventuali wrapper esistenti che usano questo meccanismo senza eseguire alcun servizio, il Permission Source Trace ora salva:
+
+`permissionSourceTrace.globalPhoenixWrappers`
+
+Il probe:
+- enumera le proprietà proprie di `window` tramite descriptor;
+- considera soltanto data descriptor il cui valore è già una function, senza leggere accessor;
+- esegue anche una scansione bounded di un livello dentro namespace globali object-valued già presenti, sempre tramite descriptor;
+- non invoca funzioni/getter/setter;
+- cerca nel source delle funzioni i pattern:
+  - `vowOS.service.execute(`
+  - `phoenix://service/`
+  - `method: "register"` / `method: 'register'`
+  - assegnazioni `.method = "register"`;
+- estrae eventuali path `phoenix://service/...`, source e brevi excerpt contestuali;
+- deduplica le function reference e i Phoenix paths.
+
+Limiti:
+- massimo 1200 proprietà globali;
+- namespace one-level solo se <=200 proprietà;
+- massimo 100 function match salvati;
+- nessuna chiamata Phoenix/register viene eseguita.
+
+Obiettivo del prossimo test TV: eseguire solo **Trace Permission Sources** e **Export Report**. Analizzare:
+- `permissionSourceTrace.globalPhoenixWrappers.matches`
+- `permissionSourceTrace.globalPhoenixWrappers.uniquePhoenixPaths`
+- `scannedFunctionCount`
+
+Se emergono wrapper concreti, il prossimo probe dovrà seguire soltanto quei nomi/path reali. Se non emerge nulla, la pista JavaScript dei wrapper Phoenix è sostanzialmente esaurita.
