@@ -558,3 +558,33 @@ This is deliberately different from HTTPS path tracing: it cannot see encrypted
 request paths, headers or bodies. Its purpose is to identify which backend/CDN/
 authorization host becomes active specifically when the official Store starts
 the download/install workflow.
+
+
+## Automatic Duplecast install timeline
+
+For the current Store-install phase, no TV-side Sidee dashboard interaction is required.
+
+After Sidee restarts, the DNS server waits for a known Store/UI hostname such as
+`home-ui-eu.vidaahub.com`, `layout-ui-eu.vidaahub.com`,
+`detail-ui-eu.vidaahub.com`, `category-ui-eu.vidaahub.com`,
+`appstore-vidaa.vidaahub.com`, or `tvmodules-vidaa.vidaahub.com`.
+
+When one appears, Sidee starts a bounded DNS timeline tied in memory to that TV
+DNS client. From that point it records hostname/query-type timing for the same
+client, including non-VIDAA CDN domains. The client IP itself is not persisted.
+
+`vidaa.duplecast.com` is deliberately **not spoofed** during this phase. If the
+Store or newly installed app resolves the real Duplecast hostname, the query can
+be observed in the automatic timeline without redirecting it to the old Sidee
+app-context test page.
+
+The intended test is now simply:
+1. pull/restart Sidee;
+2. on the TV, open the official Store;
+3. find Duplecast and perform the normal install/download without leaving the Store;
+4. wait for the Store result;
+5. inspect the synced report.
+
+The useful fields are `storeInstallProbe.dnsEvents`,
+`storeInstallProbe.allDnsHosts`, `allDnsQueryCount`,
+`targetDomainHit`, and `targetDomainFirstSeenAt`.
