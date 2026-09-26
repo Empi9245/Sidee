@@ -2262,3 +2262,149 @@ Il workflow remoto session-armed resta read-only ma ora include anche Identity O
 `baseline -> identity-override-lab -> permission-source-trace -> installed-metadata -> verification -> export`
 
 Non sono stati aggiunti install/uninstall, setter, fileWrite, reset o comandi arbitrari al canale remoto.
+
+
+---
+
+## NUOVA PRIORITÀ — Direct AppInfo fileWrite Lab — 2026-09-26
+
+### Ricerca mirata nuova
+
+Fonte 1 — Pikabu, post `Jellyfin на Vidaa 9`:
+- URL: `https://pikabu.ru/story/jellyfin_na_vidaa_9_13617347`;
+- data mostrata dalla fonte: 2026-01-21;
+- affidabilità: esperienza riportata da terzi, non documentazione Hisense;
+- l’autore dichiara di aver testato il metodo su VIDAA OS 9;
+- il codice legge `websdk/Appinfo.json`, modifica `AppInfo` e scrive con `HiUtils_createRequest('fileWrite', { path:'websdk/Appinfo.json', mode:6, writedata: JSON.stringify(apps) })`;
+- dopo il write la guida richiede riavvio TV e riferisce che l’app compare in fondo alla lista;
+- la fonte prova Jellyfin sul dispositivo dell’autore e NON dimostra compatibilità con `50E70LEVS_0003 / V0000.09.60A.Q0707`.
+
+Fonte 2 — `weinzii/vidaa-edge`, commit `94c3134911cbd4b813eea1f88c56819c0981518b`:
+- file: `src/app/services/app-management.service.ts`;
+- affidabilità: codice sorgente pubblico direttamente rilevante, non API ufficiale Hisense;
+- `installAppNew()` usa la stessa chiamata `fileWrite` con lo stesso path, mode e campo `writedata`;
+- la entry new-method contiene `Id`, `AppName`, `Title`, `URL`, `StartCommand`, quattro campi icona, `Type:'Browser'`, `InstallTime`, `RunTimes:0`, `StoreType:'custom'`, `PreInstall:false`.
+
+Conseguenza pratica:
+- non serve inventare la firma `fileWrite`;
+- la priorità passa temporaneamente dall’Identity Override Lab alla verifica controllata della capability `fileWrite`;
+- il primo test NON aggiunge applicazioni e riscrive la stringa `msg` originale senza re-serializzarla.
+
+### Implementazione `directAppInfoWriteLab`
+
+È stata aggiunta una nuova sezione principale **Direct AppInfo Write Lab** con:
+- `Test AppInfo Direct Write`;
+- `Add Nuvio to AppInfo` separato e inizialmente disabilitato;
+- `Restore AppInfo Backup` separato.
+
+L’Identity Override Lab resta nel codice ma la card principale è nascosta/PAUSED e non viene più eseguita dal workflow remoto read-only.
+
+### No-op write capability test
+
+Il test:
+1. richiede `buildMatch === true`;
+2. esegue `fileRead` su `websdk/Appinfo.json`;
+3. conserva raw string completa + parsed JSON + fingerprint + lunghezza + AppInfo count;
+4. valida obbligatoriamente un oggetto JSON con array `AppInfo`;
+5. invia la raw string completa al server Sidee per un backup immutabile;
+6. il server calcola SHA-256, confronta l’eventuale SHA-256 client e salva sotto `backups/appinfo/<sessionId>/`;
+7. solo dopo backup riuscito chiama `HiUtils_createRequest('fileWrite', {path:'websdk/Appinfo.json', mode:6, writedata:<raw originale>})`;
+8. esegue subito un nuovo fileRead;
+9. confronta hash, lunghezza, numero entry e struttura JSON.
+
+Classificazioni:
+- `WRITE_ALLOWED_AND_IDENTICAL`;
+- `WRITE_DENIED`;
+- `WRITE_CHANGED_CONTENT`;
+- `READBACK_FAILED`;
+- `INCONCLUSIVE`.
+
+Se write/readback cambia contenuto, Sidee non prosegue automaticamente con altre scritture.
+
+### Backup server-side
+
+Nuovo endpoint:
+- `POST /api/appinfo/backup` crea un backup non sovrascrivibile;
+- `GET /api/appinfo/backup?sessionId=...&backupId=...` legge soltanto un backup Sidee validato.
+
+Protezione:
+- sessionId usa la regex sessione già esistente;
+- backupId ha formato stretto `appinfo-backup-YYYYMMDD-HHMMSS-xxxxxxxx`;
+- path derivati server-side;
+- JSON deve contenere `AppInfo` array;
+- limite 4 MiB;
+- write con modalità esclusiva `x`;
+- SHA-256 server-side.
+
+`backups/` è gitignored.
+
+### Candidate Nuvio conservativa
+
+La candidate direct entry usa il minimo shape **noto funzionante nelle due fonti pubbliche**, non un minimo teoricamente provato:
+- Id / AppName / Title;
+- URL / StartCommand;
+- IconURL / Icon_96 / Image / Thumb;
+- Type `Browser`;
+- InstallTime;
+- RunTimes `0`;
+- StoreType `custom`;
+- PreInstall `false`.
+
+Non vengono inventati:
+- openMode;
+- venderId;
+- packaged;
+- configUrl/configUrlDownload/mediaId.
+
+Motivo: la guida Pikabu e il metodo nuovo di vidaa-edge non li richiedono; inoltre i record reali già osservati sulla TV mostrano valori differenti (Smartone openMode 98, Stremio 99, Duplecast 98; venderId 9999), quindi copiarli senza evidenza sarebbe speculativo.
+
+### Add Nuvio
+
+`Add Nuvio to AppInfo` si abilita solo dopo `WRITE_ALLOWED_AND_IDENTICAL`.
+
+Prima di scrivere:
+- rilettura fresca;
+- nuovo backup immutabile;
+- controllo duplicati per Id, URL, AppName/Title;
+- nessuna scrittura se esiste già un match.
+
+Dopo la scrittura:
+- readback;
+- verifica `APPINFO_ENTRY_PRESENT`;
+- verifica che tutte le entry precedenti siano strutturalmente preservate;
+- `LAUNCHER_APP_VISIBLE` resta `UNKNOWN_REBOOT_REQUIRED`;
+- `APP_LAUNCHES` resta `NOT_TESTED`.
+
+Il ritorno `fileWrite` non viene confuso con la presenza nel registry o la visibilità launcher.
+
+### Restore
+
+Restore usa esclusivamente il backup originale creato da Sidee nella stessa sessione.
+Prima del restore:
+- legge e valida il registry corrente;
+- crea un ulteriore backup pre-restore;
+- ricarica il backup originale dal server;
+- verifica sessionId / backupId / SHA-256;
+- esegue fileWrite;
+- fa readback;
+- dichiara `RESTORED_IDENTICAL` solo con hash/struttura confermati.
+
+Nessun rollback automatico.
+
+### Remote diagnostic
+
+Lo stesso canale `sidee-control` è stato esteso, non duplicato.
+
+Request supportate:
+- `runSafeDiagnostic:true` -> workflow read-only esistente, ora senza Identity Override Lab;
+- `runDirectAppInfoWriteNoop:true` -> solo no-op AppInfo write con backup/readback.
+
+Le due modalità sono mutuamente esclusive.
+Il vecchio server ignora `runDirectAppInfoWriteNoop`, quindi è possibile pubblicare una richiesta che diventerà eseguibile soltanto dopo `git pull` + restart della nuova build.
+
+Il remote workflow NON può:
+- aggiungere Nuvio;
+- fare restore;
+- install/uninstall;
+- invocare setter;
+- eseguire JavaScript arbitrario.
