@@ -63,6 +63,7 @@ APP_CONTEXT_TRANSPORT_LAST = {}
 STORE_CATALOG_HOST = "category-ui.vidaahub.com"
 STORE_TRACE_HOSTS = (
     STORE_CATALOG_HOST,
+    "category-ui-eu.vidaahub.com",
     "detail-ui-eu.vidaahub.com",
     "appstore-vidaa.vidaahub.com",
     "tvmodules-vidaa.vidaahub.com",
