@@ -3511,3 +3511,61 @@ Nessun filename alternativo viene indovinato.
 Nessun install/uninstall/write viene eseguito.
 
 Il report salva ogni attempt separatamente e seleziona il primo che restituisce contenuto.
+
+
+---
+
+## RISULTATO TV — tre path tvbrowser vuoti; scan staging ampliata — 2026-09-26
+
+Nuovo report reale Q0707, build match true, ha provato tre sole forme del path di `tv.vidaa.app.tvbrowser/index.html`:
+
+1. `APPS:pkgs/tv.vidaa.app.tvbrowser/index.html`
+2. `/APPS/pkgs/tv.vidaa.app.tvbrowser/index.html`
+3. `../../../APPS/pkgs/tv.vidaa.app.tvbrowser/index.html`
+
+Tutte con `Hisense_FileRead(..., 0)`.
+
+Risultato per tutte:
+- returnedType: string;
+- length: 0;
+- error: null.
+
+Conclusione: non continuare a variare la sintassi del medesimo path. Il package è reale (provato da `pkgmgr getInstalledPkgs`), ma il contenuto non è leggibile tramite questa superficie `Hisense_FileRead` nel normale browser testato.
+
+Il source inventory riconferma soltanto i tre wrapper già noti:
+- `vowOS.store.getInstalledPkgs`;
+- `vowOS.store.installApp`;
+- `vowOS.store.sendPkgmgrRequest`.
+
+### Nuova direzione read-only
+
+La domanda aperta è ora: quale componente prepara, scarica, risolve o mette in staging un package prima di `pkgmgr install`?
+
+`web/app.js` amplia `pkgmgrSourceInventory()` senza invocare funzioni.
+
+Termini source aggiunti:
+- `pkgName`;
+- `download`;
+- `packageUrl`;
+- `pkgUrl`;
+- `installPackage`;
+- `downloadPackage`;
+- `updatePackage`;
+- `bundle`;
+- `archive`;
+- `staging`;
+- `stagePackage`.
+
+Vengono inoltre inventariati, descriptor-only, gli oggetti globali il cui nome contiene famiglie:
+`pkg|package|install|download|store|update|deploy|bundle|archive|stag|fetch`.
+
+Per ogni funzione data-property viene letto soltanto `Function.prototype.toString`; getter/accessor non vengono invocati. Il report limita:
+- max 140 source matches;
+- max 40 oggetti adiacenti;
+- max 80 proprietà per oggetto.
+
+Il prossimo auto-probe per build salverà:
+- `pkgmgrPackageProbe.sourceInventory.matches`;
+- `pkgmgrPackageProbe.sourceInventory.objects`.
+
+Non viene eseguito nessun `pkgmgr install`, download, setter, fileWrite o comando inventato.
