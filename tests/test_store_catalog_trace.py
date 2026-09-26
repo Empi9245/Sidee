@@ -314,6 +314,79 @@ class StoreCatalogTraceTests(unittest.TestCase):
             sidee.STORE_TRACE_REPORT = previous_trace
             sidee.STORE_DISCOVERY_REPORT = previous_discovery
 
+    def test_store_install_probe_isolates_post_install_dns_activity(self):
+        previous = sidee.STORE_DISCOVERY_REPORT
+        sidee.STORE_DISCOVERY_REPORT = None
+        try:
+            with mock.patch.object(sidee, "write_session_report"), \
+                 mock.patch.object(sidee, "queue_report_sync"):
+                started = sidee._store_install_probe_mark("START")
+                self.assertEqual(
+                    started["storeInstallProbe"]["status"],
+                    "CAPTURING_NAVIGATION",
+                )
+
+                sidee._record_store_domain_query("home-ui-eu.vidaahub.com", 1)
+                sidee._record_store_domain_query("detail-ui-eu.vidaahub.com", 1)
+                detail = sidee._store_install_probe_mark("DETAIL_OPEN")
+                self.assertIn(
+                    "detail-ui-eu.vidaahub.com",
+                    detail["storeInstallProbe"]["hostSnapshotAtDetail"],
+                )
+
+                armed = sidee._store_install_probe_mark("ARM_INSTALL")
+                self.assertEqual(
+                    armed["storeInstallProbe"]["status"],
+                    "INSTALL_ARMED",
+                )
+                self.assertIn(
+                    "detail-ui-eu.vidaahub.com",
+                    armed["storeInstallProbe"]["hostSnapshotAtInstallArm"],
+                )
+
+                sidee._record_store_domain_query("detail-ui-eu.vidaahub.com", 1)
+                sidee._record_store_domain_query("appstore-vidaa.vidaahub.com", 1)
+                finished = sidee._store_install_probe_mark("FINISH")
+
+            probe = finished["storeInstallProbe"]
+            self.assertEqual(probe["status"], "COMPLETED")
+            self.assertEqual(
+                probe["newHostsAfterInstallArm"],
+                ["appstore-vidaa.vidaahub.com"],
+            )
+            self.assertEqual(
+                probe["contactedAfterInstallArm"],
+                [
+                    "appstore-vidaa.vidaahub.com",
+                    "detail-ui-eu.vidaahub.com",
+                ],
+            )
+            deltas = {
+                item["host"]: item["queries"]
+                for item in probe["queryDeltaAfterInstallArm"]
+            }
+            self.assertEqual(deltas["appstore-vidaa.vidaahub.com"], 1)
+            self.assertEqual(deltas["detail-ui-eu.vidaahub.com"], 1)
+            install_events = [
+                item for item in probe["dnsEvents"]
+                if item["phase"] == "INSTALL_WINDOW"
+            ]
+            self.assertEqual(len(install_events), 2)
+        finally:
+            sidee.STORE_DISCOVERY_REPORT = previous
+
+    def test_store_install_probe_requires_arm_before_finish(self):
+        previous = sidee.STORE_DISCOVERY_REPORT
+        sidee.STORE_DISCOVERY_REPORT = None
+        try:
+            with mock.patch.object(sidee, "write_session_report"), \
+                 mock.patch.object(sidee, "queue_report_sync"):
+                sidee._store_install_probe_mark("START")
+                with self.assertRaises(ValueError):
+                    sidee._store_install_probe_mark("FINISH")
+        finally:
+            sidee.STORE_DISCOVERY_REPORT = previous
+
     def test_config_does_not_spoof_store_hosts_by_default(self):
         cfg = sidee.load_config()
         for host in sidee.STORE_TRACE_HOSTS:
