@@ -10,6 +10,7 @@ Object.defineProperty(window, 'UnknownGetter', { get: forbidden });
 Object.defineProperty(window.Hisense, 'File', { get: forbidden });
 window.observedWrapper = function () { return Hisense.File.read('launcher/Appinfo.json', 1); };
 window.legacyLaunchWrapper = function (url) { return sendAM(':am,am,hi_browser:start=[hi_browser,-u,' + url + ']'); };
+window.legacyBrowserPathWrapper = function () { return '/3rd/internet_browser/browser'; };
 const context = vm.createContext({ window, location: { href: 'https://vidaahub.com/', origin: 'https://vidaahub.com' },
   navigator: { userAgent: 'test' }, document: { scripts: [] } });
 vm.runInContext(source, context);
@@ -23,6 +24,7 @@ assert.equal(result.status, 'FILE_PAIR_OBSERVED_NOT_TESTED');
 assert(result.discoveredSurfaces.some(s => s.path === 'window.OtherObservedHost'));
 assert(result.sourceMatches.some(s => s.path === 'window.observedWrapper'));
 assert(result.legacyLaunchContextMatches.some(s => s.path === 'window.legacyLaunchWrapper' && s.term.includes('hi_browser')));
+assert(result.legacyLaunchContextMatches.some(s => s.path === 'window.legacyBrowserPathWrapper' && s.term === '/3rd/internet_browser/browser'));
 assert(!result.sourceMatches.some(s => s.path === 'window.SideeHspdkContext'));
 assert(!result.legacyLaunchContextMatches.some(s => s.path === 'window.SideeHspdkContext'));
 delete window.HiBrowser;
