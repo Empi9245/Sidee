@@ -1,10 +1,14 @@
+import importlib.util
 import io
 import json
-import types
+import pathlib
 import unittest
 from unittest import mock
 
-import sidee
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+spec = importlib.util.spec_from_file_location("sidee", ROOT / "sidee.py")
+sidee = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(sidee)
 
 
 class _Headers(dict):
@@ -81,6 +85,9 @@ class _Handler:
         self.sent_headers = []
 
     def send_response(self, status, reason=None):
+        self.sent_status = status
+
+    def send_response_only(self, status, reason=None):
         self.sent_status = status
 
     def send_header(self, key, value):

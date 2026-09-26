@@ -579,7 +579,10 @@ def _proxy_store_catalog_request(handler):
         content_encoding = upstream.getheader("Content-Encoding", "")
         json_summary = _catalog_json_summary(response_body, content_type, content_encoding)
 
-        handler.send_response(upstream.status, upstream.reason)
+        if hasattr(handler, "send_response_only"):
+            handler.send_response_only(upstream.status, upstream.reason)
+        else:
+            handler.send_response(upstream.status, upstream.reason)
         response_connection_tokens = set()
         for key, value in response_headers:
             if str(key).lower() == "connection":
@@ -592,7 +595,6 @@ def _proxy_store_catalog_request(handler):
                 continue
             handler.send_header(key, value)
         handler.send_header("Content-Length", str(len(response_body)))
-        handler.send_header("X-Sidee-Store-Trace", "pass-through")
         handler.end_headers()
         if method != "HEAD":
             handler.wfile.write(response_body)
@@ -1704,6 +1706,11 @@ def run_dns(config, local_ip):
                         print(f"[DNS] store-trace report error: {exc}")
             elif host in domains and qtype == 28:
                 response = empty_dns_answer(data)
+                if host == STORE_CATALOG_HOST:
+                    try:
+                        _record_store_trace("DNS_AAAA", {"host": host})
+                    except Exception as exc:
+                        print(f"[DNS] store-trace report error: {exc}")
             else:
                 response = forward_dns(data, upstreams)
             if response:
