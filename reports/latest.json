@@ -4,7 +4,7 @@
   "serverBuildId": "app-0ec520ad7e75",
   "buildMatch": true,
   "startedAt": "2026-09-26T16:24:30.725Z",
-  "updatedAt": "2026-09-26T16:25:12.576Z",
+  "updatedAt": "2026-09-26T16:26:24.933Z",
   "accessContext": {
     "href": "https://vidaahub.com/",
     "origin": "https://vidaahub.com",
@@ -33,283 +33,6 @@
   "contextIdentityFingerprint": null,
   "clientInformation": null,
   "serviceTrace": [
-    {
-      "timestamp": "2026-09-26T16:24:51.829Z",
-      "source": "direct-appinfo-noop-filewrite",
-      "service": "hiutils",
-      "api": "fileWrite",
-      "identifier": "",
-      "endpoint": "https://localhost:9888/service/hiutils",
-      "payload": {
-        "path": "websdk/Appinfo.json",
-        "mode": 6,
-        "writedata": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"URL\":\"http://vidaa.smartone-iptv.com\",\"AppName\":\"Smartone IPTV\",\"Title\":\"Smartone IPTV\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"StartCommand\":\"http:/…"
-      },
-      "result": {
-        "ret": false,
-        "code": 503,
-        "msg": "client request permission check error, please check appconfig"
-      },
-      "errors": []
-    },
-    {
-      "timestamp": "2026-09-26T16:24:51.851Z",
-      "source": "direct-appinfo-noop-readback",
-      "service": "hiutils",
-      "api": "fileRead",
-      "identifier": "",
-      "endpoint": "https://localhost:9888/service/hiutils",
-      "payload": {
-        "path": "websdk/Appinfo.json",
-        "mode": 6
-      },
-      "result": {
-        "ret": true,
-        "code": 0,
-        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
-      },
-      "errors": []
-    },
-    {
-      "timestamp": "2026-09-26T16:25:01.822Z",
-      "source": "direct-restore-current",
-      "service": "hiutils",
-      "api": "fileRead",
-      "identifier": "",
-      "endpoint": "https://localhost:9888/service/hiutils",
-      "payload": {
-        "path": "websdk/Appinfo.json",
-        "mode": 6
-      },
-      "result": {
-        "ret": true,
-        "code": 0,
-        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
-      },
-      "errors": []
-    },
-    {
-      "timestamp": "2026-09-26T16:25:01.980Z",
-      "source": "direct-restore-filewrite",
-      "service": "hiutils",
-      "api": "fileWrite",
-      "identifier": "",
-      "endpoint": "https://localhost:9888/service/hiutils",
-      "payload": {
-        "path": "websdk/Appinfo.json",
-        "mode": 6,
-        "writedata": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"URL\":\"http://vidaa.smartone-iptv.com\",\"AppName\":\"Smartone IPTV\",\"Title\":\"Smartone IPTV\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"StartCommand\":\"http:/…"
-      },
-      "result": {
-        "ret": false,
-        "code": 503,
-        "msg": "client request permission check error, please check appconfig"
-      },
-      "errors": []
-    },
-    {
-      "timestamp": "2026-09-26T16:25:02.002Z",
-      "source": "direct-restore-readback",
-      "service": "hiutils",
-      "api": "fileRead",
-      "identifier": "",
-      "endpoint": "https://localhost:9888/service/hiutils",
-      "payload": {
-        "path": "websdk/Appinfo.json",
-        "mode": 6
-      },
-      "result": {
-        "ret": true,
-        "code": 0,
-        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
-      },
-      "errors": []
-    },
-    {
-      "timestamp": "2026-09-26T16:25:11.577Z",
-      "source": "identity-write-gate-read-before",
-      "service": "hiutils",
-      "api": "fileRead",
-      "identifier": "",
-      "endpoint": "https://localhost:9888/service/hiutils",
-      "payload": {
-        "path": "websdk/Appinfo.json",
-        "mode": 6
-      },
-      "result": {
-        "ret": true,
-        "code": 0,
-        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
-      },
-      "errors": []
-    },
-    {
-      "timestamp": "2026-09-26T16:25:11.670Z",
-      "source": "identity-write-gate-baseline",
-      "service": "hiutils",
-      "api": "fileWrite",
-      "identifier": "",
-      "endpoint": "https://localhost:9888/service/hiutils",
-      "payload": {
-        "path": "websdk/Appinfo.json",
-        "mode": 6,
-        "writedata": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"URL\":\"http://vidaa.smartone-iptv.com\",\"AppName\":\"Smartone IPTV\",\"Title\":\"Smartone IPTV\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"StartCommand\":\"http:/…"
-      },
-      "result": {
-        "ret": false,
-        "code": 503,
-        "msg": "client request permission check error, please check appconfig"
-      },
-      "errors": []
-    },
-    {
-      "timestamp": "2026-09-26T16:25:11.691Z",
-      "source": "identity-write-gate-baseline-readback",
-      "service": "hiutils",
-      "api": "fileRead",
-      "identifier": "",
-      "endpoint": "https://localhost:9888/service/hiutils",
-      "payload": {
-        "path": "websdk/Appinfo.json",
-        "mode": 6
-      },
-      "result": {
-        "ret": true,
-        "code": 0,
-        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
-      },
-      "errors": []
-    },
-    {
-      "timestamp": "2026-09-26T16:25:11.960Z",
-      "source": "identity-write-gate-candidate",
-      "service": "hiutils",
-      "api": "fileWrite",
-      "identifier": "1470",
-      "endpoint": "https://localhost:9888/service/hiutils",
-      "payload": {
-        "path": "websdk/Appinfo.json",
-        "mode": 6,
-        "writedata": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"URL\":\"http://vidaa.smartone-iptv.com\",\"AppName\":\"Smartone IPTV\",\"Title\":\"Smartone IPTV\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"StartCommand\":\"http:/…"
-      },
-      "result": {
-        "ret": false,
-        "code": 503,
-        "msg": "client request permission check error, please check appconfig"
-      },
-      "errors": []
-    },
-    {
-      "timestamp": "2026-09-26T16:25:11.982Z",
-      "source": "identity-write-gate-candidate-readback",
-      "service": "hiutils",
-      "api": "fileRead",
-      "identifier": "1470",
-      "endpoint": "https://localhost:9888/service/hiutils",
-      "payload": {
-        "path": "websdk/Appinfo.json",
-        "mode": 6
-      },
-      "result": {
-        "ret": true,
-        "code": 0,
-        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
-      },
-      "errors": []
-    },
-    {
-      "timestamp": "2026-09-26T16:25:12.067Z",
-      "source": "identity-write-gate-candidate",
-      "service": "hiutils",
-      "api": "fileWrite",
-      "identifier": "1876",
-      "endpoint": "https://localhost:9888/service/hiutils",
-      "payload": {
-        "path": "websdk/Appinfo.json",
-        "mode": 6,
-        "writedata": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"URL\":\"http://vidaa.smartone-iptv.com\",\"AppName\":\"Smartone IPTV\",\"Title\":\"Smartone IPTV\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"StartCommand\":\"http:/…"
-      },
-      "result": {
-        "ret": false,
-        "code": 503,
-        "msg": "client request permission check error, please check appconfig"
-      },
-      "errors": []
-    },
-    {
-      "timestamp": "2026-09-26T16:25:12.088Z",
-      "source": "identity-write-gate-candidate-readback",
-      "service": "hiutils",
-      "api": "fileRead",
-      "identifier": "1876",
-      "endpoint": "https://localhost:9888/service/hiutils",
-      "payload": {
-        "path": "websdk/Appinfo.json",
-        "mode": 6
-      },
-      "result": {
-        "ret": true,
-        "code": 0,
-        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
-      },
-      "errors": []
-    },
-    {
-      "timestamp": "2026-09-26T16:25:12.167Z",
-      "source": "identity-write-gate-candidate",
-      "service": "hiutils",
-      "api": "fileWrite",
-      "identifier": "2568",
-      "endpoint": "https://localhost:9888/service/hiutils",
-      "payload": {
-        "path": "websdk/Appinfo.json",
-        "mode": 6,
-        "writedata": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"URL\":\"http://vidaa.smartone-iptv.com\",\"AppName\":\"Smartone IPTV\",\"Title\":\"Smartone IPTV\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"StartCommand\":\"http:/…"
-      },
-      "result": {
-        "ret": false,
-        "code": 503,
-        "msg": "client request permission check error, please check appconfig"
-      },
-      "errors": []
-    },
-    {
-      "timestamp": "2026-09-26T16:25:12.192Z",
-      "source": "identity-write-gate-candidate-readback",
-      "service": "hiutils",
-      "api": "fileRead",
-      "identifier": "2568",
-      "endpoint": "https://localhost:9888/service/hiutils",
-      "payload": {
-        "path": "websdk/Appinfo.json",
-        "mode": 6
-      },
-      "result": {
-        "ret": true,
-        "code": 0,
-        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
-      },
-      "errors": []
-    },
-    {
-      "timestamp": "2026-09-26T16:25:12.266Z",
-      "source": "identity-write-gate-candidate",
-      "service": "hiutils",
-      "api": "fileWrite",
-      "identifier": "16",
-      "endpoint": "https://localhost:9888/service/hiutils",
-      "payload": {
-        "path": "websdk/Appinfo.json",
-        "mode": 6,
-        "writedata": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"URL\":\"http://vidaa.smartone-iptv.com\",\"AppName\":\"Smartone IPTV\",\"Title\":\"Smartone IPTV\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"StartCommand\":\"http:/…"
-      },
-      "result": {
-        "ret": false,
-        "code": 503,
-        "msg": "client request permission check error, please check appconfig"
-      },
-      "errors": []
-    },
     {
       "timestamp": "2026-09-26T16:25:12.286Z",
       "source": "identity-write-gate-candidate-readback",
@@ -401,6 +124,283 @@
         "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
       },
       "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:26:16.228Z",
+      "source": "identity-write-gate-read-before",
+      "service": "hiutils",
+      "api": "fileRead",
+      "identifier": "",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6
+      },
+      "result": {
+        "ret": true,
+        "code": 0,
+        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
+      },
+      "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:26:16.340Z",
+      "source": "identity-write-gate-baseline",
+      "service": "hiutils",
+      "api": "fileWrite",
+      "identifier": "",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6,
+        "writedata": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"URL\":\"http://vidaa.smartone-iptv.com\",\"AppName\":\"Smartone IPTV\",\"Title\":\"Smartone IPTV\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"StartCommand\":\"http:/…"
+      },
+      "result": {
+        "ret": false,
+        "code": 503,
+        "msg": "client request permission check error, please check appconfig"
+      },
+      "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:26:16.360Z",
+      "source": "identity-write-gate-baseline-readback",
+      "service": "hiutils",
+      "api": "fileRead",
+      "identifier": "",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6
+      },
+      "result": {
+        "ret": true,
+        "code": 0,
+        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
+      },
+      "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:26:16.568Z",
+      "source": "identity-write-gate-candidate",
+      "service": "hiutils",
+      "api": "fileWrite",
+      "identifier": "1470",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6,
+        "writedata": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"URL\":\"http://vidaa.smartone-iptv.com\",\"AppName\":\"Smartone IPTV\",\"Title\":\"Smartone IPTV\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"StartCommand\":\"http:/…"
+      },
+      "result": {
+        "ret": false,
+        "code": 503,
+        "msg": "client request permission check error, please check appconfig"
+      },
+      "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:26:16.589Z",
+      "source": "identity-write-gate-candidate-readback",
+      "service": "hiutils",
+      "api": "fileRead",
+      "identifier": "1470",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6
+      },
+      "result": {
+        "ret": true,
+        "code": 0,
+        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
+      },
+      "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:26:16.663Z",
+      "source": "identity-write-gate-candidate",
+      "service": "hiutils",
+      "api": "fileWrite",
+      "identifier": "1876",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6,
+        "writedata": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"URL\":\"http://vidaa.smartone-iptv.com\",\"AppName\":\"Smartone IPTV\",\"Title\":\"Smartone IPTV\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"StartCommand\":\"http:/…"
+      },
+      "result": {
+        "ret": false,
+        "code": 503,
+        "msg": "client request permission check error, please check appconfig"
+      },
+      "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:26:16.683Z",
+      "source": "identity-write-gate-candidate-readback",
+      "service": "hiutils",
+      "api": "fileRead",
+      "identifier": "1876",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6
+      },
+      "result": {
+        "ret": true,
+        "code": 0,
+        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
+      },
+      "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:26:16.763Z",
+      "source": "identity-write-gate-candidate",
+      "service": "hiutils",
+      "api": "fileWrite",
+      "identifier": "2568",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6,
+        "writedata": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"URL\":\"http://vidaa.smartone-iptv.com\",\"AppName\":\"Smartone IPTV\",\"Title\":\"Smartone IPTV\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"StartCommand\":\"http:/…"
+      },
+      "result": {
+        "ret": false,
+        "code": 503,
+        "msg": "client request permission check error, please check appconfig"
+      },
+      "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:26:16.785Z",
+      "source": "identity-write-gate-candidate-readback",
+      "service": "hiutils",
+      "api": "fileRead",
+      "identifier": "2568",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6
+      },
+      "result": {
+        "ret": true,
+        "code": 0,
+        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
+      },
+      "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:26:16.862Z",
+      "source": "identity-write-gate-candidate",
+      "service": "hiutils",
+      "api": "fileWrite",
+      "identifier": "16",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6,
+        "writedata": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"URL\":\"http://vidaa.smartone-iptv.com\",\"AppName\":\"Smartone IPTV\",\"Title\":\"Smartone IPTV\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"StartCommand\":\"http:/…"
+      },
+      "result": {
+        "ret": false,
+        "code": 503,
+        "msg": "client request permission check error, please check appconfig"
+      },
+      "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:26:16.882Z",
+      "source": "identity-write-gate-candidate-readback",
+      "service": "hiutils",
+      "api": "fileRead",
+      "identifier": "16",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6
+      },
+      "result": {
+        "ret": true,
+        "code": 0,
+        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
+      },
+      "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:26:16.996Z",
+      "source": "identity-write-gate-candidate",
+      "service": "hiutils",
+      "api": "fileWrite",
+      "identifier": "164",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6,
+        "writedata": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"URL\":\"http://vidaa.smartone-iptv.com\",\"AppName\":\"Smartone IPTV\",\"Title\":\"Smartone IPTV\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"StartCommand\":\"http:/…"
+      },
+      "result": {
+        "ret": false,
+        "code": 503,
+        "msg": "client request permission check error, please check appconfig"
+      },
+      "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:26:17.018Z",
+      "source": "identity-write-gate-candidate-readback",
+      "service": "hiutils",
+      "api": "fileRead",
+      "identifier": "164",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6
+      },
+      "result": {
+        "ret": true,
+        "code": 0,
+        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
+      },
+      "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:26:17.109Z",
+      "source": "identity-write-gate-candidate",
+      "service": "hiutils",
+      "api": "fileWrite",
+      "identifier": "1",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6,
+        "writedata": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"URL\":\"http://vidaa.smartone-iptv.com\",\"AppName\":\"Smartone IPTV\",\"Title\":\"Smartone IPTV\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"StartCommand\":\"http:/…"
+      },
+      "result": {
+        "ret": false,
+        "code": 503,
+        "msg": "client request permission check error, please check appconfig"
+      },
+      "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:26:17.129Z",
+      "source": "identity-write-gate-candidate-readback",
+      "service": "hiutils",
+      "api": "fileRead",
+      "identifier": "1",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6
+      },
+      "result": {
+        "ret": true,
+        "code": 0,
+        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
+      },
+      "errors": []
     }
   ],
   "permissionSourceTrace": null,
@@ -417,7 +417,7 @@
   "temporaryIdentifierTest": null,
   "identityOverrideLab": null,
   "identityWriteGateLab": {
-    "timestamp": "2026-09-26T16:25:11.532Z",
+    "timestamp": "2026-09-26T16:26:16.142Z",
     "clientBuildId": "app-0ec520ad7e75",
     "serverBuildId": "app-0ec520ad7e75",
     "buildMatch": true,
@@ -434,13 +434,13 @@
     "accessMode": "VIDAAHUB_BROWSER_CONTEXT",
     "originalIdentifier": "",
     "backup": {
-      "backupId": "appinfo-backup-20260926-162509-3c2bd5cf",
+      "backupId": "appinfo-backup-20260926-162614-f04558a3",
       "sessionId": "sidee-20260926-182425-cbe7",
-      "path": "backups/appinfo/sidee-20260926-182425-cbe7/appinfo-backup-20260926-162509-3c2bd5cf.json",
+      "path": "backups/appinfo/sidee-20260926-182425-cbe7/appinfo-backup-20260926-162614-f04558a3.json",
       "sha256": "d4869d266a085485c4bcf52b66202cf67bad90ebdbb8a6c36be9090c81405878",
       "bytes": 7173,
       "appInfoCount": 3,
-      "createdAt": "2026-09-26T16:25:09Z",
+      "createdAt": "2026-09-26T16:26:14Z",
       "clientBuildId": "app-0ec520ad7e75",
       "serverBuildId": "app-0ec520ad7e75"
     },
@@ -2051,7 +2051,7 @@
     "remote": false
   },
   "legacyHspdkWriteLab": {
-    "timestamp": "2026-09-26T16:25:08.293Z",
+    "timestamp": "2026-09-26T16:26:13.430Z",
     "pageContext": {
       "href": "https://vidaahub.com/",
       "origin": "https://vidaahub.com",
@@ -2194,7 +2194,7 @@
   },
   "legacyHspdkContext": {
     "version": 2,
-    "timestamp": "2026-09-26T16:25:08.362Z",
+    "timestamp": "2026-09-26T16:26:24.839Z",
     "readOnly": true,
     "page": {
       "href": "https://vidaahub.com/",
