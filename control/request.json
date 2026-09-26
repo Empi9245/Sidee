@@ -1,12 +1,13 @@
 {
-  "requestId": "sidee-request-20260926-121943-fb19",
-  "createdAt": "2026-09-26T12:19:43.549Z",
-  "expiresAt": "2026-09-26T16:19:43.549Z",
+  "requestId": "sidee-request-20260926-130356-a1e3",
+  "createdAt": "2026-09-26T13:03:56.582Z",
+  "expiresAt": "2026-09-26T17:03:56.582Z",
   "requestedBy": "ChatGPT",
-  "note": "Run the build-bound safe read-only workflow: baseline -> Identity Override Lab -> Permission Source Trace -> Installed App Metadata -> verification -> export. No install, no fileWrite, no setters.",
+  "note": "Run only the build-bound Identifier Write-Gate Lab: baseline -> immutable AppInfo backup -> exact no-op fileWrite baseline -> up to 6 concrete identifier candidates -> readback/restore -> export. Never add Nuvio.",
   "runSafeDiagnostic": false,
-  "runSafeDiagnosticV2": true,
+  "runSafeDiagnosticV2": false,
   "runDirectAppInfoWriteNoop": false,
   "runDirectAppInfoWriteNoopV2": false,
-  "requiresBuildId": "app-fb192bc1a7f4"
+  "runIdentityWriteGateLabV1": true,
+  "requiresBuildId": "app-a1e389921903"
 }
