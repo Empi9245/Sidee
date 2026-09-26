@@ -1304,13 +1304,26 @@ class ThreadingHTTPServer(http.server.ThreadingHTTPServer):
     allow_reuse_address = True
 
 
-def run_http(port):
-    server = ThreadingHTTPServer(("0.0.0.0", port), SideeHandler)
+def run_http(port, *, fatal=False, purpose="HTTP"):
+    try:
+        server = ThreadingHTTPServer(("0.0.0.0", port), SideeHandler)
+    except OSError as exc:
+        print(f"[ERROR] {purpose} could not listen on TCP/{port}: {exc}")
+        if int(port) == 80:
+            print("[ERROR] The installed-app context test requires TCP/80 because the real Smartone/Duplecast StartCommand uses plain http:// with no custom port.")
+            if os.name == "nt":
+                print("[ERROR] Run start-windows.bat as Administrator. The current launcher adds the Sidee TCP/80 Windows Firewall rule automatically.")
+        if fatal:
+            stop_event.set()
+        return
+
     server.timeout = 1
-    print(f"[HTTP] http://0.0.0.0:{port}")
-    while not stop_event.is_set():
-        server.handle_request()
-    server.server_close()
+    print(f"[HTTP] http://0.0.0.0:{port} ({purpose})")
+    try:
+        while not stop_event.is_set():
+            server.handle_request()
+    finally:
+        server.server_close()
 
 
 def run_https(port, cert, key):
@@ -1382,7 +1395,12 @@ def main():
         remote_diagnostic_thread.start()
         threads.append(remote_diagnostic_thread)
 
-    http_thread = threading.Thread(target=run_http, args=(int(cfg.get("http_port", 8080)),), daemon=True)
+    http_thread = threading.Thread(
+        target=run_http,
+        args=(int(cfg.get("http_port", 8080)),),
+        kwargs={"purpose": "dashboard"},
+        daemon=True,
+    )
     http_thread.start()
     threads.append(http_thread)
 
@@ -1391,6 +1409,7 @@ def main():
         app_context_http_thread = threading.Thread(
             target=run_http,
             args=(app_context_http_port,),
+            kwargs={"fatal": True, "purpose": "installed-app context"},
             daemon=True,
         )
         app_context_http_thread.start()
