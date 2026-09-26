@@ -3666,3 +3666,73 @@ quindi non attribuire il problema alla cache del browser.
 - imposta `stop_event` e termina invece di lasciare una falsa impressione di avvio riuscito.
 
 Questa modifica serve a garantire che il prossimo test `pkgmgrPackageCorrelation` venga eseguito dalla build realmente aggiornata.
+
+
+---
+
+## RISULTATO TV — pkgmgr e AppInfo sono dataset separati — 2026-09-26
+
+Nuovo report reale, build:
+- clientBuildId: `app-a009a09c47aa`;
+- serverBuildId: `app-a009a09c47aa`;
+- buildMatch: true;
+- accessMode: `VIDAAHUB_BROWSER_CONTEXT`.
+
+Il probe `pkgmgrPackageCorrelation` è riuscito:
+- status: `READ_OK`;
+- `websdk/Appinfo.json` letto correttamente;
+- AppInfo count: 3;
+- pkgmgr packages: 18;
+- correlation matches: **0**.
+
+### AppInfo reale corrente
+
+Le sole tre voci launcher/store presenti sono:
+1. Smartone IPTV — Id 1470 — StoreType `store` — URL `http://vidaa.smartone-iptv.com`;
+2. Stremio Lite — Id 2568 — StoreType `hisense` — URL HTTPS remota;
+3. Duplecast — Id 1876 — StoreType `store` — URL `http://vidaa.duplecast.com/`.
+
+Tutte sono web app URL-based. Nei metadata osservati:
+- `configUrl` è vuoto;
+- `configUrlDownload` è 0;
+- `mediaId` coincide con l'app ID;
+- `appInfo.appBundle` è vuoto;
+- Duplecast espone esplicitamente `packaged: 0`.
+
+### pkgmgr reale corrente
+
+I 18 package `tv.vidaa.*` includono:
+- browser / tvbrowser;
+- phoenix;
+- operationui;
+- youtube;
+- jsservice;
+- librerie/res/phony.
+
+Nessuno di questi compare in AppInfo.
+
+### Conclusione
+
+`pkgmgr` e `websdk/Appinfo.json` rappresentano due livelli distinti:
+
+- `websdk/Appinfo.json` = registry launcher/store delle app web installate;
+- `pkgmgr` = package manager di componenti/packages del sistema VIDAA.
+
+Il fatto che `vowOS.store.installApp(appinfo.packageName)` esista NON implica che sia il normale percorso usato per installare una app web Store come Smartone/Duplecast/Stremio. Nel dataset reale corrente non esiste alcun collegamento fra package names `tv.vidaa.*` e le tre web app AppInfo.
+
+Quindi:
+- non continuare a trattare `pkgmgr` come catalogo/stager delle normali app web;
+- non tentare package names inventati;
+- non tentare `pkgmgr install` finché non appare un package app reale installabile separato dal firmware/system packages.
+
+### Nuova pista prioritaria
+
+La pista più promettente torna al flusso **Store/web-app metadata → AppInfo registration**, ma non ripetendo il write 503.
+
+Dai tre record AppInfo reali bisogna ora ricostruire:
+1. da dove il VIDAA Store ottiene e materializza questi metadata completi;
+2. se esiste una API runtime o endpoint Store per una app già nota (1470/1876/2568) che ritorni l'oggetto installabile;
+3. se il processo di installazione Store usa un contesto/processo diverso dal browser `vidaahub.com`;
+4. se esistono message/action concreti nel runtime Store per aggiungere una web app che bypassano il browser-side `installApplication` 503.
+
+Partire solo da nomi/endpoint realmente osservati nel runtime o nei metadata; niente brute force di API o action.
