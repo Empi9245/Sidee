@@ -54,6 +54,8 @@ APP_CONTEXT_HOSTS = {
 }
 APP_CONTEXT_HIT_LOCK = threading.Lock()
 APP_CONTEXT_LAST_HIT = None
+APP_CONTEXT_TRANSPORT_LOCK = threading.Lock()
+APP_CONTEXT_TRANSPORT_LAST = {}
 
 
 def client_build_id():
@@ -229,6 +231,62 @@ def _normalized_host(value):
     return str(value or "").split(":", 1)[0].strip().lower().rstrip(".")
 
 
+def _sync_app_transport_observation(transport, host, path=""):
+    host = _normalized_host(host)
+    app = APP_CONTEXT_HOSTS.get(host)
+    if not app:
+        return None
+    key = f"{transport}:{host}:{path}"
+    now_epoch = time.time()
+    with APP_CONTEXT_TRANSPORT_LOCK:
+        previous = float(APP_CONTEXT_TRANSPORT_LAST.get(key, 0))
+        if now_epoch - previous < 3.0:
+            return None
+        APP_CONTEXT_TRANSPORT_LAST[key] = now_epoch
+    session_id = _new_probe_session_id()
+    now = _utc_timestamp()
+    report = {
+        "sessionId": session_id,
+        "clientBuildId": client_build_id(),
+        "serverBuildId": client_build_id(),
+        "buildMatch": True,
+        "startedAt": now,
+        "updatedAt": now,
+        "accessContext": {
+            "href": (("https://" if transport == "TLS_SNI" else "http://") + host + str(path or ""))[:1200],
+            "origin": ("https://" if transport == "TLS_SNI" else "http://") + host,
+            "protocol": "https:" if transport == "TLS_SNI" else "http:",
+            "hostname": host,
+            "host": host,
+            "accessMode": app["mode"],
+        },
+        "accessMode": app["mode"],
+        "contextIdentityFingerprint": {
+            "timestamp": now,
+            "automatic": True,
+            "transportOnly": True,
+            "expectedContext": dict(app),
+            "transportObservation": {
+                "transport": transport,
+                "host": host,
+                "path": str(path or "")[:500],
+            },
+            "classification": "APP_CONTEXT_" + transport + "_OBSERVED",
+            "safety": "Server-side transport observation only; no native API call or write was made.",
+        },
+        "summary": {
+            "runtimeIdentity": "UNKNOWN",
+            "contextInit": "NOT_RUN",
+            "contextFingerprint": "APP_CONTEXT_" + transport + "_OBSERVED",
+            "permissionGate": "UNKNOWN",
+            "appInfoWrite": "NOT_RUN",
+        },
+    }
+    write_session_report(session_id, report)
+    queue_report_sync(session_id, report, "app-context-" + transport.lower())
+    return report
+
+
 def _record_app_context_hit(host, path, client_ip, headers):
     global APP_CONTEXT_LAST_HIT
     app = APP_CONTEXT_HOSTS.get(host)
@@ -246,6 +304,7 @@ def _record_app_context_hit(host, path, client_ip, headers):
     with APP_CONTEXT_HIT_LOCK:
         APP_CONTEXT_LAST_HIT = hit
     print(f"[APP-CONTEXT] {client_ip} {host} {path}")
+    _sync_app_transport_observation("HTTP", host, path)
     return hit
 
 
@@ -878,8 +937,8 @@ def get_local_ip():
 
 def generate_cert():
     CERT_DIR.mkdir(parents=True, exist_ok=True)
-    cert = CERT_DIR / "vidaahub.com.crt"
-    key = CERT_DIR / "vidaahub.com.key"
+    cert = CERT_DIR / "sidee-vidaa-multihost.crt"
+    key = CERT_DIR / "sidee-vidaa-multihost.key"
     if cert.exists() and key.exists():
         return cert, key
 
@@ -900,7 +959,7 @@ def generate_cert():
         openssl, "req", "-x509", "-newkey", "rsa:2048",
         "-keyout", str(key), "-out", str(cert), "-days", "30", "-nodes",
         "-subj", "/CN=vidaahub.com",
-        "-addext", "subjectAltName=DNS:vidaahub.com,DNS:www.vidaahub.com",
+        "-addext", "subjectAltName=DNS:vidaahub.com,DNS:www.vidaahub.com,DNS:vidaa.smartone-iptv.com,DNS:vidaa.duplecast.com",
     ]
     try:
         subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -1253,6 +1312,17 @@ def run_https(port, cert, key):
     server = ThreadingHTTPServer(("0.0.0.0", port), SideeHandler)
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.load_cert_chain(certfile=str(cert), keyfile=str(key))
+
+    def _sni_observer(ssl_socket, server_name, ssl_context):
+        host = _normalized_host(server_name)
+        if host in APP_CONTEXT_HOSTS:
+            print(f"[TLS-SNI] {host}")
+            try:
+                _sync_app_transport_observation("TLS_SNI", host, "")
+            except Exception as exc:
+                print(f"[TLS-SNI] report error: {exc}")
+
+    context.set_servername_callback(_sni_observer)
     server.socket = context.wrap_socket(server.socket, server_side=True)
     server.timeout = 1
     print(f"[HTTPS] https://0.0.0.0:{port}")
