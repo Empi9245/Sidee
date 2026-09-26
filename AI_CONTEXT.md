@@ -4463,3 +4463,50 @@ Aggiunti test unitari per:
 - errore se FINISH viene eseguito prima di ARM_INSTALL.
 
 La sintassi JavaScript aggiornata è stata verificata tramite parser JS. Non risultano workflow GitHub Actions associati ai commit, quindi non c'è un risultato CI remoto da riportare.
+
+
+## REVISIONE — install/download trace automatico senza uscire dallo Store — 2026-09-26
+
+Il workflow manuale a marker non è più necessario per il test principale.
+
+Motivo:
+- uscire dallo Store sulla TV chiude il contesto Store;
+- uscire dal browser Sidee chiude quel browser/app;
+- il DNS server Sidee gira invece sul PC indipendentemente da quale app è aperta sulla TV.
+
+Implementazione:
+- auto-start quando il client TV risolve uno degli host Store/UI noti:
+  `category-ui-eu`, `layout-ui-eu`, `home-ui-eu`, `detail-ui-eu`,
+  `recommend-ui-eu`, `search-ui-eu`, `appstore-vidaa`, `tvmodules-vidaa`;
+- da quel momento viene acquisita una timeline DNS bounded del medesimo client;
+- la timeline include anche host esterni a VIDAA, utile per individuare eventuali CDN/package hosts;
+- l'IP client viene usato solo in memoria per isolare la TV e NON viene persistito;
+- massimo 320 eventi e 140 hostname distinti;
+- ogni host conserva firstSeen, lastSeen, firstSeenIndex, queryCount, qtypes e vendorScoped;
+- target fisso Duplecast: ID `1876`, host `vidaa.duplecast.com`;
+- se compare il dominio target, vengono valorizzati `targetDomainHit` e `targetDomainFirstSeenAt`.
+
+IMPORTANTE:
+`vidaa.duplecast.com` è stato rimosso da `config.json -> spoof_domains`.
+Durante questo test deve andare al server reale, non alla vecchia pagina app-context Sidee.
+
+Lo Store HTTPS resta non intercettato.
+
+Test reale richiesto:
+1. git pull;
+2. riavvio Sidee;
+3. DNS TV -> PC;
+4. aprire Store ufficiale;
+5. cercare/aprire Duplecast;
+6. premere Install/Download normalmente SENZA uscire dallo Store;
+7. attendere risultato;
+8. dire "fatto".
+
+Poi analizzare soprattutto:
+- `storeInstallProbe.dnsEvents`;
+- `storeInstallProbe.allDnsHosts`;
+- ordine `firstSeenIndex`;
+- host che compaiono tardi nel flusso;
+- eventuali CDN esterni;
+- `targetDomainHit`;
+- `storeDomainDiscovery` per i soli host VIDAA/Hisense.
