@@ -321,7 +321,9 @@ def _app_context_bootstrap_html(host):
 html,body{{margin:0;background:#101010;color:#fff;font-family:Arial,sans-serif}}
 main{{box-sizing:border-box;min-height:100vh;padding:6vh 6vw}}
 h1{{font-size:4vw;margin:0 0 2vh}}
-p,pre{{font-size:2vw;line-height:1.4}}
+p,pre,button{{font-size:2vw;line-height:1.4}}
+button{{display:block;margin:2vh 0;padding:1.2vh 1.6vw;border:1px solid #666;border-radius:.8vw;background:#fff;color:#111}}
+button:disabled{{opacity:.45}}
 pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-width:90vw}}
 .ok{{color:#9fe6ae}} .wait{{color:#f0d98a}}
 </style>
@@ -330,6 +332,8 @@ pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-w
 <main>
 <h1>Sidee · native app context</h1>
 <p id="state" class="wait">Capturing read-only VIDAA identity…</p>
+<button id="noopBtn" disabled>Run backup-protected AppInfo no-op write</button>
+<p id="noopState" class="wait">Waiting for the identity capture.</p>
 <pre id="out">host: {host}\nexpected app: {app["name"]} ({app["id"]})</pre>
 </main>
 <script>
@@ -382,24 +386,94 @@ pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-w
     }}
   }};
   var out=document.getElementById("out"),state=document.getElementById("state");
+  var noopBtn=document.getElementById("noopBtn"),noopState=document.getElementById("noopState");
+  var bootstrapSessionId=null,bootstrapBuildId=null;
   out.textContent=JSON.stringify(payload,null,2);
-  try{{
-    var xhr=new XMLHttpRequest();
-    xhr.open("POST","/api/app-context-bootstrap",true);
-    xhr.setRequestHeader("Content-Type","application/json");
-    xhr.onreadystatechange=function(){{
-      if(xhr.readyState!==4)return;
-      if(xhr.status>=200&&xhr.status<300){{
-        state.textContent="Captured and synced. You can leave this screen open.";
-        state.className="ok";
-      }}else{{
-        state.textContent="Captured locally in the page; server sync failed ("+xhr.status+").";
-      }}
-    }};
-    xhr.send(JSON.stringify(payload));
-  }}catch(e){{
-    state.textContent="Capture complete; upload failed: "+String(e&&e.message||e);
+
+  function postJson(url,body){{
+    return new Promise(function(resolve,reject){{
+      try{{
+        var xhr=new XMLHttpRequest();
+        xhr.open("POST",url,true);
+        xhr.setRequestHeader("Content-Type","application/json");
+        xhr.onreadystatechange=function(){{
+          if(xhr.readyState!==4)return;
+          var parsed=null;try{{parsed=JSON.parse(xhr.responseText||"null");}}catch(e){{}}
+          if(xhr.status>=200&&xhr.status<300)resolve(parsed||{{}});
+          else reject(new Error((parsed&&parsed.error)||("HTTP "+xhr.status)));
+        }};
+        xhr.onerror=function(){{reject(new Error("network error"));}};
+        xhr.send(JSON.stringify(body));
+      }}catch(e){{reject(e);}}
+    }});
   }}
+  function nativeSummary(v){{
+    if(v===true||v===false)return {{ret:v,code:null,msg:null}};
+    if(!v||typeof v!=="object")return {{ret:null,code:null,msg:null}};
+    return {{
+      ret:typeof v.ret==="boolean"?v.ret:null,
+      code:v.code===undefined?null:v.code,
+      msg:v.msg===undefined||v.msg===null?null:String(v.msg).slice(0,1000)
+    }};
+  }}
+  function appInfoRaw(v){{
+    if(v&&typeof v==="object"&&typeof v.msg==="string")return v.msg;
+    return null;
+  }}
+  async function runNoopWrite(){{
+    if(!bootstrapSessionId||typeof window.HiUtils_createRequest!=="function")return;
+    noopBtn.disabled=true;
+    noopState.className="wait";
+    noopState.textContent="Reading AppInfo and creating immutable backup…";
+    var backup=null,write=null,after=null;
+    try{{
+      var before=window.HiUtils_createRequest("fileRead",{{path:"websdk/Appinfo.json",mode:6}});
+      var raw=appInfoRaw(before);
+      if(!raw)throw new Error("fileRead did not return raw AppInfo JSON");
+      backup=await postJson("/api/appinfo/backup",{{
+        sessionId:bootstrapSessionId,
+        raw:raw,
+        clientBuildId:bootstrapBuildId
+      }});
+      if(!backup||!backup.ok||!backup.backup||!backup.backup.backupId)throw new Error("immutable backup was not confirmed");
+
+      noopState.textContent="Backup confirmed. Writing the exact same AppInfo bytes once…";
+      write=window.HiUtils_createRequest("fileWrite",{{path:"websdk/Appinfo.json",mode:6,writedata:raw}});
+      after=window.HiUtils_createRequest("fileRead",{{path:"websdk/Appinfo.json",mode:6}});
+      var afterRaw=appInfoRaw(after);
+      if(!afterRaw)throw new Error("readback did not return raw AppInfo JSON");
+
+      var saved=await postJson("/api/app-context-noop-result",{{
+        sessionId:bootstrapSessionId,
+        backupId:backup.backup.backupId,
+        writeResponse:nativeSummary(write),
+        readbackResponse:nativeSummary(after),
+        readbackRaw:afterRaw
+      }});
+      var cap=saved&&saved.writeCapability?saved.writeCapability:"INCONCLUSIVE";
+      noopState.textContent=cap+" · ret "+String(saved&&saved.writeResponse&&saved.writeResponse.ret)+" · code "+String(saved&&saved.writeResponse&&saved.writeResponse.code)+" · readback identical "+String(saved&&saved.readback&&saved.readback.identicalToBackup);
+      noopState.className=cap==="WRITE_ALLOWED_AND_IDENTICAL"?"ok":"wait";
+    }}catch(e){{
+      noopState.textContent="No-op test stopped: "+String(e&&e.message||e);
+      noopState.className="wait";
+    }}
+  }}
+  noopBtn.onclick=runNoopWrite;
+
+  postJson("/api/app-context-bootstrap",payload).then(function(saved){{
+    bootstrapSessionId=saved&&saved.sessionId||null;
+    bootstrapBuildId=saved&&saved.clientBuildId||null;
+    state.textContent="Captured and synced. Native app context is ready.";
+    state.className="ok";
+    if(payload.capabilities.hiUtils&&bootstrapSessionId){{
+      noopBtn.disabled=false;
+      noopState.textContent="Ready. This test writes back only the exact AppInfo bytes that are backed up first.";
+    }}else{{
+      noopState.textContent="HiUtils or bootstrap session unavailable; no write test can run.";
+    }}
+  }}).catch(function(e){{
+    state.textContent="Captured locally in the page; server sync failed: "+String(e&&e.message||e);
+  }});
 }})();
 </script>
 </body>
@@ -476,6 +550,120 @@ def _save_app_context_bootstrap(data, server_host, client_ip):
     write_session_report(session_id, report)
     queue_report_sync(session_id, report, "app-context-bootstrap")
     return report
+
+
+def _save_app_context_noop_result(data, server_host, client_ip):
+    host = _normalized_host(server_host)
+    expected = APP_CONTEXT_HOSTS.get(host)
+    if not expected:
+        raise ValueError("Unknown app-context host")
+    if not isinstance(data, dict):
+        raise ValueError("Expected JSON object")
+
+    session_id = data.get("sessionId")
+    if not isinstance(session_id, str) or not SESSION_ID_RE.fullmatch(session_id):
+        raise ValueError("Invalid sessionId")
+
+    report_path = session_report_path(session_id)
+    if not report_path.is_file():
+        raise ValueError("App-context session report not found")
+    try:
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"Could not read app-context session report: {exc}") from exc
+
+    if report.get("sessionId") != session_id or report.get("accessMode") != expected["mode"]:
+        raise ValueError("Session is not the expected installed-app context")
+
+    backup_id = data.get("backupId")
+    backup = read_appinfo_backup(session_id, backup_id)
+    readback_raw = data.get("readbackRaw")
+    readback_valid = False
+    readback_count = None
+    readback_sha256 = None
+    readback_error = None
+    identical = False
+
+    if isinstance(readback_raw, str):
+        try:
+            parsed, encoded = _validate_appinfo_raw(readback_raw)
+            readback_valid = True
+            readback_count = len(parsed["AppInfo"])
+            readback_sha256 = hashlib.sha256(encoded).hexdigest()
+            identical = readback_raw == backup["raw"]
+        except ValueError as exc:
+            readback_error = str(exc)
+    else:
+        readback_error = "Missing readback raw Appinfo JSON"
+
+    def compact_native_result(value):
+        if not isinstance(value, dict):
+            return {"ret": value if isinstance(value, bool) else None, "code": None, "msg": None}
+        ret = value.get("ret")
+        code = value.get("code")
+        msg = value.get("msg")
+        return {
+            "ret": ret if isinstance(ret, bool) else None,
+            "code": code if isinstance(code, (int, float, str)) else None,
+            "msg": str(msg)[:1000] if msg is not None else None,
+        }
+
+    write_result = compact_native_result(data.get("writeResponse"))
+    readback_result = compact_native_result(data.get("readbackResponse"))
+
+    if not readback_valid:
+        capability = "READBACK_FAILED"
+    elif not identical:
+        capability = "WRITE_CHANGED_CONTENT"
+    elif write_result["ret"] is False:
+        capability = "WRITE_DENIED"
+    elif write_result["ret"] is True:
+        capability = "WRITE_ALLOWED_AND_IDENTICAL"
+    else:
+        capability = "INCONCLUSIVE"
+
+    now = _utc_timestamp()
+    lab = {
+        "timestamp": now,
+        "accessMode": expected["mode"],
+        "expectedContext": dict(expected),
+        "serverObserved": {"host": host, "clientIp": str(client_ip or "")[:80]},
+        "operation": "exact AppInfo no-op fileWrite from installed-app context",
+        "path": "websdk/Appinfo.json",
+        "mode": 6,
+        "backup": {
+            "backupId": backup["backupId"],
+            "sha256": backup["sha256"],
+            "bytes": backup["bytes"],
+            "appInfoCount": backup["appInfoCount"],
+        },
+        "writeResponse": write_result,
+        "readbackResponse": readback_result,
+        "readback": {
+            "valid": readback_valid,
+            "sha256": readback_sha256,
+            "appInfoCount": readback_count,
+            "identicalToBackup": identical,
+            "error": readback_error,
+        },
+        "writeCapability": capability,
+        "safety": "The TV wrote only the exact raw Appinfo string that was first backed up immutably on the Sidee PC. No app entry was added or changed intentionally.",
+    }
+    report["updatedAt"] = now
+    report["appContextNoopWriteLab"] = lab
+    report.setdefault("summary", {})["appInfoWrite"] = capability
+    report["summary"]["permissionGate"] = (
+        "REJECTED"
+        if write_result["ret"] is False and (
+            str(write_result.get("code")) == "503"
+            or "permission" in str(write_result.get("msg") or "").lower()
+            or "appconfig" in str(write_result.get("msg") or "").lower()
+        )
+        else "PASSED" if capability == "WRITE_ALLOWED_AND_IDENTICAL" else "UNKNOWN"
+    )
+    write_session_report(session_id, report)
+    queue_report_sync(session_id, report, "app-context-noop-write")
+    return report, lab
 
 
 def _report_sync_status():
@@ -1131,6 +1319,26 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
                     snapshot["request"] = None
             return self._send_json(snapshot)
 
+        if path == "/api/app-context-noop-result":
+            try:
+                report, lab = _save_app_context_noop_result(
+                    data,
+                    self.headers.get("Host", ""),
+                    self.client_address[0],
+                )
+            except ValueError as exc:
+                return self._send_json({"ok": False, "error": str(exc)}, 400)
+            except OSError as exc:
+                return self._send_json({"ok": False, "error": f"Could not save app-context no-op result: {exc}"}, 500)
+            return self._send_json({
+                "ok": True,
+                "sessionId": report["sessionId"],
+                "writeCapability": lab["writeCapability"],
+                "writeResponse": lab["writeResponse"],
+                "readback": lab["readback"],
+                "summary": report["summary"],
+            })
+
         if path == "/api/appinfo/backup":
             params = urllib.parse.parse_qs(parsed.query)
             session_id = (params.get("sessionId") or [None])[0]
@@ -1205,6 +1413,7 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
             return self._send_json({
                 "ok": True,
                 "sessionId": report["sessionId"],
+                "clientBuildId": report["clientBuildId"],
                 "accessMode": report["accessMode"],
                 "summary": report["summary"],
             })
