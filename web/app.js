@@ -216,6 +216,58 @@
     const matched=entries.filter(x=>x.matchedTerms.length>0);
     return {timestamp:new Date().toISOString(),readOnly:true,scriptCount:scripts.length,inspectedCount:entries.filter(x=>x.status==="FETCHED"||x.status==="INLINE").length,matchedScriptCount:matched.length,mapAppInfoFieldsFound:matched.some(x=>x.matchedTerms.indexOf("mapAppInfoFields")>=0),entries:entries};
   }
+
+  const RUNTIME_IDENTITY_NAME_RE=/(app|identifier|client|config|permission|context|role|customer|auth|security|service|origin)/i;
+  function richDescriptor(root,name){
+    let cur=root;
+    for(let depth=0;cur&&depth<7;depth++){
+      try{
+        const d=Object.getOwnPropertyDescriptor(cur,name);
+        if(d){
+          const out={found:true,ownerDepth:depth,enumerable:!!d.enumerable,configurable:!!d.configurable,writable:Object.prototype.hasOwnProperty.call(d,"writable")?!!d.writable:null,hasGetter:typeof d.get==="function",hasSetter:typeof d.set==="function",valueType:Object.prototype.hasOwnProperty.call(d,"value")?(d.value===null?"null":typeof d.value):"accessor",value:null,functionSource:null,getterSource:null,setterSource:null,error:null};
+          if(Object.prototype.hasOwnProperty.call(d,"value")){
+            if(typeof d.value==="function")out.functionSource=functionSource(d.value);
+            else if(d.value===null||["string","number","boolean","undefined"].indexOf(typeof d.value)>=0)out.value=compact(d.value);
+          }
+          if(typeof d.get==="function")out.getterSource=functionSource(d.get);
+          if(typeof d.set==="function")out.setterSource=functionSource(d.set);
+          return out;
+        }
+        cur=Object.getPrototypeOf(cur);
+      }catch(e){return {found:false,error:err(e)};}
+    }
+    return {found:false};
+  }
+  function filteredRuntimeSurface(root,label){
+    const out={label:label,available:!!root,levels:[],matchingProperties:[],error:null};
+    if(!root)return out;
+    let cur=root,seenNames={};
+    for(let depth=0;cur&&depth<7;depth++){
+      let names=[];try{names=Object.getOwnPropertyNames(cur);}catch(e){out.error=err(e);break;}
+      const matched=names.filter(n=>RUNTIME_IDENTITY_NAME_RE.test(n)).slice(0,80);
+      const level={depth:depth,type:null,matchingNames:matched};
+      try{level.type=Object.prototype.toString.call(cur);}catch(e){}
+      out.levels.push(level);
+      matched.forEach(name=>{
+        const key=name.toLowerCase();if(seenNames[key])return;seenNames[key]=true;
+        const d=richDescriptor(root,name);
+        out.matchingProperties.push({name:name,descriptor:d});
+      });
+      try{cur=Object.getPrototypeOf(cur);}catch(e){break;}
+    }
+    return out;
+  }
+  function runtimeIdentitySurfaceTrace(){
+    let ctx=null,service=null;try{ctx=window.vowOSContext;}catch(e){}try{service=window.vowOS&&window.vowOS.service;}catch(e){}
+    const exact={
+      navigatorAppIdentifier:richDescriptor(navigator,"appIdentifier"),
+      vowOSContextGetAppIdentifier:richDescriptor(ctx,"getAppIdentifier"),
+      vowOSContextGetAppId:richDescriptor(ctx,"getAppId"),
+      vowOSContextInit:richDescriptor(ctx,"init"),
+      vowOSServiceGetIdentifier:richDescriptor(service,"getIdentifier")
+    };
+    return {timestamp:new Date().toISOString(),readOnly:true,exact:exact,surfaces:{vowOSContext:filteredRuntimeSurface(ctx,"window.vowOSContext"),vowOSService:filteredRuntimeSurface(service,"window.vowOS.service")},notes:["Descriptors and function/getter/setter source are inspected without invoking getters, setters, init methods or discovered functions.","Only scalar data-descriptor values are copied; object values are not traversed except through their own/prototype property names."]};
+  }
   async function permissionSourceTrace(){
     if(state.running)return;state.running=true;set("permissionSourceTraceState","Inspecting function sources and descriptors…");
     try{
@@ -239,10 +291,11 @@
       }
       const concreteReferences=[],seen={};
       targets.forEach(t=>(t.references||[]).forEach(v=>{const k=String(v).toLowerCase();if(!seen[k]){seen[k]=true;concreteReferences.push({source:t.path,value:v});}}));
-      const loadedScripts=await loadedScriptSourceTrace();
-      state.report.permissionSourceTrace={timestamp:new Date().toISOString(),readOnly:true,targets:targets,supportAppConfig:supportAppConfig,concreteReferences:concreteReferences.slice(0,150),loadedScripts:loadedScripts,notes:["Function source/descriptor inspection plus read-only source inspection of already-loaded scripts.","Only same-origin external scripts and inline script text are inspected; cross-origin scripts are skipped.","Sidee's own /app.js is listed but source scanning is skipped to avoid self-generated keyword noise.","Install-pipeline helpers are inspected but never invoked.","Hisense_SupportAppConfig is the only diagnostic function invoked; no install/uninstall, fileWrite, setters or guessed HiUtils APIs are called."]};
-      set("permissionSourceTraceState","Trace complete · "+targets.filter(t=>t.available).length+"/"+targets.length+" functions · "+loadedScripts.matchedScriptCount+"/"+loadedScripts.scriptCount+" scripts matched · mapAppInfoFields "+(loadedScripts.mapAppInfoFieldsFound?"FOUND":"not found")+".");
-      log("Permission source trace complete",{available:targets.filter(t=>t.available).map(t=>t.path),references:concreteReferences.slice(0,20),scriptSummary:{count:loadedScripts.scriptCount,inspected:loadedScripts.inspectedCount,matched:loadedScripts.matchedScriptCount,mapAppInfoFieldsFound:loadedScripts.mapAppInfoFieldsFound},supportAppConfig:supportAppConfig});
+      const loadedScripts=await loadedScriptSourceTrace(),runtimeIdentitySurface=runtimeIdentitySurfaceTrace();
+      state.report.permissionSourceTrace={timestamp:new Date().toISOString(),readOnly:true,targets:targets,supportAppConfig:supportAppConfig,concreteReferences:concreteReferences.slice(0,150),loadedScripts:loadedScripts,runtimeIdentitySurface:runtimeIdentitySurface,notes:["Function source/descriptor inspection plus read-only source inspection of already-loaded scripts and runtime identity surfaces.","Only same-origin external scripts and inline script text are inspected; cross-origin scripts are skipped.","Sidee's own /app.js is listed but source scanning is skipped to avoid self-generated keyword noise.","Runtime getters, setters, init methods and discovered functions are never invoked by the identity-surface probe.","Install-pipeline helpers are inspected but never invoked.","Hisense_SupportAppConfig is the only diagnostic function invoked; no install/uninstall, fileWrite, setters or guessed HiUtils APIs are called."]};
+      const ctxProps=runtimeIdentitySurface.surfaces.vowOSContext.matchingProperties.length,svcProps=runtimeIdentitySurface.surfaces.vowOSService.matchingProperties.length;
+      set("permissionSourceTraceState","Trace complete · "+targets.filter(t=>t.available).length+"/"+targets.length+" functions · runtime identity props ctx "+ctxProps+" / service "+svcProps+" · "+loadedScripts.matchedScriptCount+"/"+loadedScripts.scriptCount+" scripts matched.");
+      log("Permission source trace complete",{available:targets.filter(t=>t.available).map(t=>t.path),references:concreteReferences.slice(0,20),runtimeIdentitySummary:{contextProperties:ctxProps,serviceProperties:svcProps,navigatorAppIdentifier:runtimeIdentitySurface.exact.navigatorAppIdentifier},scriptSummary:{count:loadedScripts.scriptCount,inspected:loadedScripts.inspectedCount,matched:loadedScripts.matchedScriptCount,mapAppInfoFieldsFound:loadedScripts.mapAppInfoFieldsFound},supportAppConfig:supportAppConfig});
       await save("permission-source-trace");
     }catch(e){set("permissionSourceTraceState","Trace failed: "+err(e));log("Permission source trace failed",err(e));}
     finally{state.running=false;}
