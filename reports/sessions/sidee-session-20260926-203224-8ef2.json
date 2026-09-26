@@ -4,7 +4,7 @@
   "serverBuildId": "app-c022f88e412f",
   "buildMatch": true,
   "startedAt": "2026-09-26T18:32:24Z",
-  "updatedAt": "2026-09-26T18:33:36Z",
+  "updatedAt": "2026-09-26T18:34:34Z",
   "accessContext": {
     "href": "https://category-ui.vidaahub.com/",
     "origin": "https://category-ui.vidaahub.com",
@@ -254,6 +254,26 @@
         "timestamp": "2026-09-26T18:33:36Z",
         "type": "TLS_SNI",
         "host": "detail-ui-eu.vidaahub.com"
+      },
+      {
+        "timestamp": "2026-09-26T18:34:06Z",
+        "type": "DNS",
+        "host": "detail-ui-eu.vidaahub.com"
+      },
+      {
+        "timestamp": "2026-09-26T18:34:06Z",
+        "type": "TLS_SNI",
+        "host": "detail-ui-eu.vidaahub.com"
+      },
+      {
+        "timestamp": "2026-09-26T18:34:06Z",
+        "type": "TLS_SNI",
+        "host": "detail-ui-eu.vidaahub.com"
+      },
+      {
+        "timestamp": "2026-09-26T18:34:34Z",
+        "type": "TLS_SNI",
+        "host": "detail-ui-eu.vidaahub.com"
       }
     ],
     "requests": [],
@@ -286,14 +306,14 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 23,
+    "totalQueries": 25,
     "hostCount": 10,
     "hosts": [
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-26T18:32:19Z",
-        "lastSeen": "2026-09-26T18:33:28Z",
-        "queryCount": 10,
+        "lastSeen": "2026-09-26T18:33:58Z",
+        "queryCount": 12,
         "qtypes": [
           "A",
           "AAAA"
