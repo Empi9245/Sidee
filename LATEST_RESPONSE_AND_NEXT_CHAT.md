@@ -2,54 +2,60 @@
 
 Data: 2026-09-26
 
-## Ultimo test reale
+## Ultimo test passivo
 
-Dopo il fallback alla modalità passiva, la Q0707 ha prodotto:
+Report:
+- sessionId: `sidee-20260926-210157-6704`
+- build: `app-8aaa5c0cb359`
+- buildMatch: `true`
+- 30 query DNS
+- 20 host osservati
 
-- sessionId: `sidee-20260926-204550-b8a4`
-- build: `app-4ce89e866abf`
-- `QUERIES_CAPTURED`
-- 42 query DNS
-- 23 host VIDAA osservati
-
-Il risultato più importante è:
-
-`category-ui-eu.vidaahub.com`
-
-Il precedente PoC FuVIDAA usava la famiglia `category-ui.vidaahub.com`; sulla TV europea corrente è comparsa invece la variante regionale `category-ui-eu`.
-
-Altri host funzionali osservati:
+Sono ricomparsi:
 - `layout-ui-eu.vidaahub.com`
-- `detail-ui-eu.vidaahub.com`
-- `search-ui-eu.vidaahub.com`
-- `home-ui-eu.vidaahub.com`
-- `recommend-ui-eu.vidaahub.com`
 - `appstore-vidaa.vidaahub.com`
 - `tvmodules-vidaa.vidaahub.com`
+- `home-ui-eu.vidaahub.com`
+- `detail-ui-eu.vidaahub.com`
+- `recommend-ui-eu.vidaahub.com`
+- `partner.vidaahub.com`
 - `vidaa-base-auth-eu.vidaahub.com`
+
+`category-ui-eu.vidaahub.com` non è ricomparso in questa singola sessione, ma era stato osservato realmente nella sessione precedente; una mancata seconda query DNS può dipendere dalla cache.
+
+## Priorità corretta
+
+Core Store/UI:
+1. `category-ui-eu.vidaahub.com`
+2. `detail-ui-eu.vidaahub.com`
+3. `layout-ui-eu.vidaahub.com`
+4. `appstore-vidaa.vidaahub.com`
+
+Secondari/supporto:
+- `home-ui-eu`
+- `recommend-ui-eu`
+- `search-ui-eu`
 - `partner.vidaahub.com`
 
-## Stato tecnico
+`vidaa-base-auth-eu` resta interessante, ma riferimenti pubblici recenti lo associano anche a servizi base/OTA/update VIDAA, quindi non va considerato automaticamente un backend Store.
 
-NON riattivare lo spoof HTTPS Store: la Q0707 rifiuta il certificato locale prima dell'HTTP.
+## Endpoint pubblicamente documentati su backend VIDAA moderni
 
-`category-ui-eu.vidaahub.com` è stato aggiunto agli host noti del trace per completezza, ma non è presente in `spoof_domains`: resta quindi passivo di default.
+Un progetto recente usa:
+- `/api/v1.0.0/layoutApi/activityResources`
+- `/api/v1.0.0/layoutApi/columnData`
+- `/api/v1.0.0/detailApi/mediasInfo`
 
-## Evidenza pubblica utile
+su host VIDAA dedicati a layout/detail.
 
-Un progetto recente, `kineticman/FastChannels`, usa backend VIDAA moderni con:
-- famiglia `layoutApi`;
-- famiglia `detailApi`;
-- endpoint `/api/v1.0.0/detailApi/mediasInfo`;
-- host VIDAA partner dedicati a layout/detail;
-- `partner.vidaahub.com` nel flusso di autenticazione.
+Questo non prova ancora che la Q0707 Store usi gli stessi path, ma è il riferimento migliore per ricostruire la superficie API senza MITM.
 
-Questo è coerente con gli host `layout-ui-eu`, `detail-ui-eu` e `partner.vidaahub.com` osservati sulla Q0707, ma non prova che i path siano identici nel VIDAA Store TV.
+## Prossimo passo
 
-## Prossima direzione
+Non servono altri test TV immediati.
 
-Continuare senza MITM:
-1. mappare riferimenti pubblici/asset per `category-ui-eu`, `layout-ui-eu`, `detail-ui-eu`;
-2. confrontare con i path pubblicamente documentati delle famiglie `categoryApi`, `layoutApi`, `detailApi`;
-3. usare solo richieste read-only e senza credenziali della TV;
-4. non tornare ai vecchi test install/AppInfo/HSPDK finché la superficie Store moderna non è mappata meglio.
+Continuare lato PC/repo:
+- mappare solo endpoint read-only/publici;
+- correlare `category-ui-eu`, `detail-ui-eu`, `layout-ui-eu`, `appstore-vidaa`;
+- non riattivare lo spoof TLS Store;
+- non usare credenziali/token/segreti provenienti da sorgenti pubbliche.
