@@ -147,7 +147,7 @@
   }
   async function readTrace(){ if(typeof window.HiUtils_createRequest!=="function")return set("serviceTraceState","HiUtils_createRequest unavailable."); const r=await traced("readonly-appinfo",()=>window.HiUtils_createRequest("fileRead",{path:"websdk/Appinfo.json",mode:6})); set("serviceTraceState","api "+(r.trace.api||"unknown")+" · identifier "+(meaningful(r.trace.identifier)?String(r.trace.identifier):"EMPTY")+" · code "+(r.trace.result&&r.trace.result.code!==null?r.trace.result.code:"—")); log("Read-only service trace",r.trace); await save("readonly-service-trace"); }
 
-  const SOURCE_TRACE_RE=/(permission|appconfig|identifier|client|role|customer|origin|package|bundle|auth|security|sign|certificate|access|capability|privilege|config|installapplication|hiutils|syncExecute|getIdentifier)/i;
+  const SOURCE_TRACE_RE=/(permission|appconfig|identifier|client|role|customer|origin|package|bundle|auth|security|sign|certificate|access|capability|privilege|config|installapplication|hiutils|syncexecute|getidentifier|executehttprequest|filewrite|fileread|appinfo|writeinstallappobjtojson|getinstalledappjsonobj|mapappinfofields)/i;
   function functionSource(fn){
     if(typeof fn!=="function")return null;
     try{return Function.prototype.toString.call(fn);}catch(e){return "[source error: "+err(e)+"]";}
@@ -175,9 +175,13 @@
       const targets=[
         inspectFunction(window,"Hisense_installApp","window.Hisense_installApp"),
         inspectFunction(window,"Hisense_installApp_V2","window.Hisense_installApp_V2"),
+        inspectFunction(window,"writeInstallAppObjToJson","window.writeInstallAppObjToJson"),
+        inspectFunction(window,"getInstalledAppJsonObj","window.getInstalledAppJsonObj"),
+        inspectFunction(window,"mapAppInfoFields","window.mapAppInfoFields"),
         inspectFunction(window,"HiUtils_createRequest","window.HiUtils_createRequest"),
         inspectFunction(window,"Hisense_SupportAppConfig","window.Hisense_SupportAppConfig"),
         inspectFunction(service,"syncExecute","window.vowOS.service.syncExecute"),
+        inspectFunction(service,"executeHttpRequest","window.vowOS.service.executeHttpRequest"),
         inspectFunction(service,"getIdentifier","window.vowOS.service.getIdentifier")
       ];
       const supportAppConfig={available:typeof window.Hisense_SupportAppConfig==="function",called:false,status:"NOT_CALLED",value:null,error:null};
@@ -187,7 +191,7 @@
       }
       const concreteReferences=[],seen={};
       targets.forEach(t=>(t.references||[]).forEach(v=>{const k=String(v).toLowerCase();if(!seen[k]){seen[k]=true;concreteReferences.push({source:t.path,value:v});}}));
-      state.report.permissionSourceTrace={timestamp:new Date().toISOString(),readOnly:true,targets:targets,supportAppConfig:supportAppConfig,concreteReferences:concreteReferences.slice(0,150),notes:["Function source/descriptor inspection only.","Hisense_SupportAppConfig is the only diagnostic function invoked; no install/uninstall, fileWrite, setters or guessed HiUtils APIs are called."]};
+      state.report.permissionSourceTrace={timestamp:new Date().toISOString(),readOnly:true,targets:targets,supportAppConfig:supportAppConfig,concreteReferences:concreteReferences.slice(0,150),notes:["Function source/descriptor inspection only.","Install-pipeline helpers are inspected but never invoked.","Hisense_SupportAppConfig is the only diagnostic function invoked; no install/uninstall, fileWrite, setters or guessed HiUtils APIs are called."]};
       set("permissionSourceTraceState","Trace complete · "+targets.filter(t=>t.available).length+"/"+targets.length+" functions available · "+concreteReferences.length+" concrete references.");
       log("Permission source trace complete",{available:targets.filter(t=>t.available).map(t=>t.path),references:concreteReferences.slice(0,20),supportAppConfig:supportAppConfig});
       await save("permission-source-trace");
