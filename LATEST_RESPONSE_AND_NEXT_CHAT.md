@@ -1,60 +1,43 @@
-# Sidee — prossimo test: Duplecast Install/Download
+# Sidee — test attuale: installazione Duplecast automatica
 
 Data: 2026-09-26
 
-## Obiettivo
+Non servono più marker dalla TV o dal browser Sidee.
 
-Non stiamo più cercando di leggere il path HTTPS.
+## Preparazione già fatta
 
-Il test nuovo serve a capire quali host VIDAA vengono:
-- contattati specificamente durante Install/Download;
-- ricontattati dopo il click;
-- oppure compaiono per la prima volta solo nella fase install.
+- Store HTTPS resta diretto, senza MITM.
+- `vidaa.duplecast.com` NON è più spoofato verso Sidee.
+- Il dominio Duplecast reale viene risolto normalmente.
+- Sidee avvia automaticamente la cattura quando vede il primo host Store/UI noto.
+- Dopo l'avvio della cattura registra una timeline DNS bounded dello stesso client TV, compresi eventuali CDN esterni.
+- L'IP TV serve solo in memoria per separare il client e non viene scritto nel report.
 
-Target fisso:
-- Duplecast
-- App ID `1876`
-
-## Modifiche implementate
-
-Nuova card nel dashboard:
-
-`Duplecast Install/Download Probe`
-
-Nuovo report:
-
-`storeInstallProbe`
-
-Campi principali:
-- `hostSnapshotAtInstallArm`
-- `contactedAfterInstallArm`
-- `newHostsAfterInstallArm`
-- `queryDeltaAfterInstallArm`
-- `dnsEvents`
-- `phaseHosts`
-
-Il traffico Store HTTPS resta diretto ai server VIDAA reali. Sidee osserva solo DNS.
-
-## Test da fare
+## Cosa deve fare l'utente
 
 1. `git pull`
-2. riavvia Sidee
-3. lascia il DNS TV puntato al PC
-4. apri il dashboard Sidee dal PC/telefono
-5. premi **Start capture**
-6. sulla TV apri lo Store e la scheda Duplecast
-7. quando la scheda è visibile, premi **Detail page visible** sul dashboard
-8. sul dashboard premi **Arm install capture**
-9. subito dopo, sulla TV premi il normale **Install/Download**
-10. quando lo Store ha restituito il suo risultato, premi **Finish capture**
+2. riavviare Sidee
+3. lasciare DNS TV puntato al PC
+4. aprire lo Store ufficiale sulla TV
+5. cercare/aprire Duplecast
+6. premere normalmente Install/Download
+7. NON uscire dallo Store durante la prova
+8. attendere il risultato dell'installazione
+9. dire `fatto`
 
-Poi basta dire **fatto**.
+Non serve aprire Sidee nel browser della TV e non serve premere i marker manuali del dashboard.
 
-Leggere:
-- `reports/latest.json` su `sidee-reports`;
-- prima `storeInstallProbe.newHostsAfterInstallArm`;
-- poi `storeInstallProbe.contactedAfterInstallArm`;
-- poi `storeInstallProbe.queryDeltaAfterInstallArm`;
-- infine gli eventi `INSTALL_WINDOW`.
+## Cosa leggere dopo
 
-Questo test non modifica risposte Store, non intercetta TLS e non invoca install API da Sidee.
+`reports/latest.json`:
+
+- `storeInstallProbe.status` dovrebbe essere `AUTO_CAPTURING`;
+- `storeInstallProbe.triggerHost`;
+- `storeInstallProbe.dnsEvents`;
+- `storeInstallProbe.allDnsHosts`;
+- `storeInstallProbe.allDnsQueryCount`;
+- `storeInstallProbe.targetDomainHit`;
+- `storeInstallProbe.targetDomainFirstSeenAt`;
+- `storeDomainDiscovery`.
+
+Ordinare mentalmente gli host per `firstSeenIndex`: quelli comparsi verso la parte finale, in coincidenza con Install/Download, sono i candidati più interessanti per package/CDN/auth/install.
