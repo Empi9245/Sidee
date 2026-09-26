@@ -341,10 +341,12 @@ def _catalog_json_summary(body, content_type="", content_encoding=""):
 
     def add_app(node):
         appinfo = node.get("appInfo") if isinstance(node.get("appInfo"), dict) else node
+        unified_name = str(appinfo.get("unifiedAppName", ""))
+        app_url = str(appinfo.get("url", ""))
         marker = (
-            str(node.get("id", "")),
-            str(appinfo.get("unifiedAppName", "")),
-            str(appinfo.get("url", "")),
+            "app",
+            unified_name or str(node.get("id", "")),
+            app_url,
         )
         if marker in seen_apps:
             return
