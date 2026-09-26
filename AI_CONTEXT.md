@@ -2482,7 +2482,7 @@ Motivazione:
   - `ret:false`
   - `code:503`
   - `client request permission check error, please check appconfig`;
-- una guida Pikabu su VIDAA 9 riferisce invece un flusso aperto direttamente da un URL LAN HTTP tipo `http://192.168.x.x:8181`, quindi senza dipendere dal dominio spoofato;
+- una guida Pikabu su VIDAA 9 riferisce invece un flusso aperto direttamente da un URL LAN HTTP tipo `http://192.168.x.x:8080`, quindi senza dipendere dal dominio spoofato;
 - `weinzii/vidaa-edge` usa normalmente `https://vidaahub.com` su 443, ma issue #30 documenta lo stesso errore AppConfig su firmware 09.60 anche con configurazioni alternative.
 
 Confronto setup effettuato:
@@ -2496,8 +2496,8 @@ Confronto setup effettuato:
 - quindi resta utile solo un confronto A/B diretto dell'origin.
 
 Implementazione:
-- nuovo config `raw_http_test_port: 8181`;
-- Sidee avvia una seconda UI HTTP su `http://<PC-IP>:8181`, oltre al dashboard 8080 e a HTTPS 443;
+- nuovo config `existing `http_port: 8080``;
+- Sidee avvia una seconda UI HTTP su `http://<PC-IP>:8080`, oltre al dashboard 8080 e a HTTPS 443;
 - `/api/status` espone anche:
   - `requestScheme`;
   - `requestPort`;
@@ -2518,7 +2518,7 @@ A. baseline già nota:
 `https://vidaahub.com` -> no-op fileWrite -> 503 AppConfig.
 
 B. dopo pull + restart:
-1. aprire sulla TV `http://<PC-IP>:8181`;
+1. aprire sulla TV `http://<PC-IP>:8080`;
 2. non cambiare il DNS;
 3. verificare se le API VIDAA sono presenti;
 4. catturare baseline;
