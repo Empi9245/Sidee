@@ -32,6 +32,7 @@
         <div><span>Runtime identity</span><b id="summaryRuntimeIdentity" class="summaryValue">MISSING</b></div>
         <div><span>Service identifier</span><b id="summaryIdentifier" class="summaryValue">UNKNOWN</b></div>
         <div><span>Context init</span><b id="summaryContextInit" class="summaryValue">NOT_RUN</b></div>
+        <div><span>Context fingerprint</span><b id="summaryContextFingerprint" class="summaryValue">NOT_RUN</b></div>
         <div><span>Permission gate</span><b id="summaryPermissionGate" class="summaryValue">UNKNOWN</b></div>
         <div><span>AppInfo direct write</span><b id="summaryAppInfoWrite" class="summaryValue">NOT_RUN</b></div>
         <div><span>Access origin</span><b id="summaryAccessOrigin" class="summaryValue">—</b></div>
@@ -72,6 +73,26 @@
           <div><span>Customer setter available</span><b id="customerSetterValue" class="summaryValue">—</b></div>
         </div>
         <div id="baselineState" class="state">Not run yet.</div>
+      </article>
+
+      <article class="card primary">
+        <div class="cardHead">
+          <div>
+            <p class="kicker">02 · NATIVE CLIENT CONTEXT</p>
+            <h2>Context Identity Fingerprint</h2>
+          </div>
+          <button id="contextIdentityFingerprintBtn" class="secondary">Capture Context Fingerprint</button>
+        </div>
+        <p>Read-only fingerprint of the native VIDAA client context. It correlates the launcher app expected for this hostname with <code>vowOS.service</code>, <code>vowOSContext</code>, AppConfig support, Role/Customer IDs and existing identity/config metadata. Unknown accessors are not invoked and sensitive token/auth/key/session-like values are redacted.</p>
+        <div class="identityGrid">
+          <div><span>Expected launcher app</span><b id="contextFingerprintExpected" class="summaryValue">none</b></div>
+          <div><span>Core identity</span><b id="contextFingerprintIdentity" class="summaryValue">MISSING</b></div>
+          <div><span>Expected ID match</span><b id="contextFingerprintMatch" class="summaryValue">—</b></div>
+          <div><span>Support AppConfig</span><b id="contextFingerprintAppConfig" class="summaryValue">UNAVAILABLE</b></div>
+          <div><span>Metadata hits</span><b id="contextFingerprintMetadata" class="summaryValue">0</b></div>
+          <div><span>Classification</span><b id="contextFingerprintConclusion" class="summaryValue">NOT_RUN</b></div>
+        </div>
+        <div id="contextIdentityFingerprintState" class="state">Not run yet. It runs automatically when Sidee is opened by the Smartone or Duplecast launcher context.</div>
       </article>
 
       <article class="card">
