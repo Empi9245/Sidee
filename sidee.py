@@ -1319,26 +1319,6 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
                     snapshot["request"] = None
             return self._send_json(snapshot)
 
-        if path == "/api/app-context-noop-result":
-            try:
-                report, lab = _save_app_context_noop_result(
-                    data,
-                    self.headers.get("Host", ""),
-                    self.client_address[0],
-                )
-            except ValueError as exc:
-                return self._send_json({"ok": False, "error": str(exc)}, 400)
-            except OSError as exc:
-                return self._send_json({"ok": False, "error": f"Could not save app-context no-op result: {exc}"}, 500)
-            return self._send_json({
-                "ok": True,
-                "sessionId": report["sessionId"],
-                "writeCapability": lab["writeCapability"],
-                "writeResponse": lab["writeResponse"],
-                "readback": lab["readback"],
-                "summary": report["summary"],
-            })
-
         if path == "/api/appinfo/backup":
             params = urllib.parse.parse_qs(parsed.query)
             session_id = (params.get("sessionId") or [None])[0]
@@ -1415,6 +1395,26 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
                 "sessionId": report["sessionId"],
                 "clientBuildId": report["clientBuildId"],
                 "accessMode": report["accessMode"],
+                "summary": report["summary"],
+            })
+
+        if path == "/api/app-context-noop-result":
+            try:
+                report, lab = _save_app_context_noop_result(
+                    data,
+                    self.headers.get("Host", ""),
+                    self.client_address[0],
+                )
+            except ValueError as exc:
+                return self._send_json({"ok": False, "error": str(exc)}, 400)
+            except OSError as exc:
+                return self._send_json({"ok": False, "error": f"Could not save app-context no-op result: {exc}"}, 500)
+            return self._send_json({
+                "ok": True,
+                "sessionId": report["sessionId"],
+                "writeCapability": lab["writeCapability"],
+                "writeResponse": lab["writeResponse"],
+                "readback": lab["readback"],
                 "summary": report["summary"],
             })
 
