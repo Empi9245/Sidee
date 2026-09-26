@@ -383,3 +383,33 @@ For a valid trampoline run the terminal must show:
 ```
 
 If the launcher still spins after that, the DNS/HTTP transport tracing in the current build should distinguish “TV never resolved the app hostname” from “DNS reached Sidee but HTTP never arrived” from “the bootstrap page executed”.
+
+
+## Installed-app AppInfo write-gate test — 2026-09-26
+
+The Duplecast trampoline has now proven a real installed-app native context on the tested TV:
+
+- access mode `DUPLECAST_APP_CONTEXT`;
+- `appId = "1876"`;
+- `navigator.appIdentifier = {"appid":"1876","md5":"ba9a56ce0a9bfa26e8ed9e10b2cc8f46","permissions":""}`;
+- `vowOS.service.getIdentifier() = "UMdO2+D/C/NrEj31J4Ylxw=="`;
+- `vowOSContext.getAppIdentifier()` returns the same native identifier;
+- `Hisense_SupportAppConfig() = true`;
+- `HiUtils_createRequest` is available even though the high-level install/FileRead/FileWrite wrappers are not exposed.
+
+This confirms that a real launcher-created VIDAA app context carries richer native identity than the previously tested JavaScript override of `getIdentifier()`.
+
+The bootstrap page now exposes an explicit **Run backup-protected AppInfo no-op write** action. It never runs automatically. The action:
+
+1. calls `HiUtils_createRequest("fileRead", {path:"websdk/Appinfo.json", mode:6})`;
+2. sends the exact raw registry to Sidee's existing immutable backup endpoint;
+3. proceeds only after the server confirms the backup;
+4. calls `HiUtils_createRequest("fileWrite", ...)` exactly once with the same raw string;
+5. immediately reads AppInfo again;
+6. posts the write response and raw readback to `/api/app-context-noop-result`;
+7. the server reloads the immutable backup and independently compares the readback bytes/hash/count;
+8. the same app-context session report is updated and synced to `sidee-reports`.
+
+Possible classifications are `WRITE_ALLOWED_AND_IDENTICAL`, `WRITE_DENIED`, `WRITE_CHANGED_CONTENT`, `READBACK_FAILED`, or `INCONCLUSIVE`.
+
+No Nuvio entry is added by this test. A successful native-context no-op write is still only a capability result; app addition remains a separate later decision.
