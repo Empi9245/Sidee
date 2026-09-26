@@ -30,5 +30,14 @@ netsh advfirewall firewall add rule name="Sidee HTTPS TCP 443" dir=in action=all
 netsh advfirewall firewall add rule name="Sidee HTTP TCP 80" dir=in action=allow protocol=TCP localport=80 profile=private >nul 2>&1
 netsh advfirewall firewall add rule name="Sidee HTTP TCP 8080" dir=in action=allow protocol=TCP localport=8080 profile=private >nul 2>&1
 
+echo Closing any previous Sidee Python instance...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$procs = Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -and $_.CommandLine -match '(^|[\\/ ])sidee\.py([ "'']|$)' }; foreach ($p in $procs) { try { Stop-Process -Id $p.ProcessId -Force -ErrorAction Stop; Write-Host ('Stopped stale Sidee PID ' + $p.ProcessId) } catch {} }"
+timeout /t 1 /nobreak >nul
+
+where git >nul 2>&1
+if %errorlevel% equ 0 (
+  for /f %%H in ('git rev-parse HEAD 2^>nul') do echo Sidee Git HEAD: %%H
+)
+
 %SIDEE_PY% sidee.py
 pause
