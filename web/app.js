@@ -1140,6 +1140,69 @@
   }
   $("pkgmgrPackageProbeBtn").addEventListener("click",inspectTvBrowserPackage);
 
+  function packageNameFromPath(value){
+    const m=String(value||"").match(/(?:file:\/\/\/|\/)?APPS\/pkgs\/([^\/]+)\//i);
+    return m&&m[1]?m[1]:null;
+  }
+  function packageRegistryCorrelation(){
+    const out={timestamp:new Date().toISOString(),readOnly:true,status:"NOT_RUN",registry:null,packages:[],matches:[],error:null};
+    try{
+      if(typeof window.HiUtils_createRequest!=="function")throw new Error("HiUtils_createRequest unavailable");
+      const response=window.HiUtils_createRequest("fileRead",{path:"websdk/Appinfo.json",mode:6});
+      const raw=response&&response.ret===true&&typeof response.msg==="string"?response.msg:null;
+      if(!raw)throw new Error("websdk/Appinfo.json read returned no JSON string");
+      const parsed=JSON.parse(raw);
+      const apps=parsed&&Array.isArray(parsed.AppInfo)?parsed.AppInfo:[];
+      out.registry={response:labSafe(response),appInfoCount:apps.length,length:raw.length};
+      let installed=[];
+      try{
+        const store=window.vowOS&&window.vowOS.store;
+        const pkgs=store&&typeof store.getInstalledPkgs==="function"?store.getInstalledPkgs():null;
+        if(pkgs&&pkgs.ret===true&&Array.isArray(pkgs.msg))installed=pkgs.msg;
+      }catch(e){}
+      out.packages=installed.map(p=>({name:p&&p.name||null,version:p&&p.version||null,type:p&&p.type||null,path:p&&p.path||null}));
+      const pkgMap={};out.packages.forEach(p=>{if(p.name)pkgMap[String(p.name).toLowerCase()]=p;});
+      for(let i=0;i<apps.length;i++){
+        const app=apps[i]||{};
+        const values=[app.URL,app.StartCommand,app.AppName,app.Title,app.Id,app.AppId].filter(v=>v!=null).map(String);
+        let pkgName=null;
+        for(const v of values){pkgName=packageNameFromPath(v);if(pkgName)break;}
+        if(!pkgName){
+          const joined=values.join(" ").toLowerCase();
+          const names=Object.keys(pkgMap);
+          for(let j=0;j<names.length;j++){if(joined.indexOf(names[j])>=0){pkgName=pkgMap[names[j]].name;break;}}
+        }
+        if(!pkgName)continue;
+        out.matches.push({
+          index:i,
+          packageName:pkgName,
+          package:pkgMap[String(pkgName).toLowerCase()]||null,
+          app:{
+            Id:app.Id??null,AppId:app.AppId??null,AppName:app.AppName??null,Title:app.Title??null,
+            URL:app.URL??null,StartCommand:app.StartCommand??null,StoreType:app.StoreType??null,
+            configUrl:app.configUrl??null,configUrlDownload:app.configUrlDownload??null,mediaId:app.mediaId??null,
+            PreInstall:app.PreInstall??null,isShowOnLauncher:app.isShowOnLauncher??null
+          }
+        });
+        if(out.matches.length>=80)break;
+      }
+      out.status="READ_OK";
+    }catch(e){out.status="READ_ERROR";out.error=err(e);}
+    return out;
+  }
+  async function inspectPackageRegistryCorrelation(){
+    if(state.running)return;
+    state.running=true;
+    set("pkgmgrPackageCorrelationState","Correlating pkgmgr packages with AppInfo metadata…");
+    const report=packageRegistryCorrelation();
+    state.report.pkgmgrPackageCorrelation=report;
+    set("pkgmgrPackageCorrelationState",report.status+" · "+report.matches.length+" package-backed AppInfo entries");
+    log("pkgmgr/AppInfo correlation",{status:report.status,matches:report.matches.length,error:report.error});
+    state.running=false;
+    await save("pkgmgr-appinfo-correlation");
+  }
+  $("pkgmgrPackageCorrelationBtn").addEventListener("click",inspectPackageRegistryCorrelation);
+
   function hspdkHosts(){
     const names=["Hisense","HiBrowser"],out=[];
     for(let i=0;i<names.length;i++){
@@ -2008,6 +2071,14 @@
     log("Sidee targeted identity diagnostic ready.");
     if(expectedInstalledAppContext())await contextIdentityFingerprint({automatic:true});
     await autoRunPkgmgrPackageProbeOnce();
+    try{
+      const corrKey="sidee.pkgmgrPackageCorrelation."+CLIENT_BUILD_ID;
+      if(sessionStorage.getItem(corrKey)!=="done"&&typeof window.HiUtils_createRequest==="function"){
+        sessionStorage.setItem(corrKey,"started");
+        await inspectPackageRegistryCorrelation();
+        sessionStorage.setItem(corrKey,"done");
+      }
+    }catch(e){log("Automatic pkgmgr/AppInfo correlation failed",err(e));}
     startRemoteDiagnosticPolling();
   }).catch(e=>log("Config load failed",err(e)));
 })();
