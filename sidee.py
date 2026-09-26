@@ -1039,6 +1039,11 @@ def run_dns(config, local_ip):
             if host in domains and qtype == 1:
                 response = dns_answer(data, local_ip)
                 print(f"[DNS] {client[0]} {host} -> {local_ip}")
+                if host in APP_CONTEXT_HOSTS:
+                    try:
+                        _sync_app_transport_observation("DNS_A", host, "")
+                    except Exception as exc:
+                        print(f"[DNS] app-context report error: {exc}")
             elif host in domains and qtype == 28:
                 response = empty_dns_answer(data)
             else:
