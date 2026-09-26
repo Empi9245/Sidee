@@ -1694,3 +1694,17 @@ L'ispezione considera i campi core richiesti (ID, nome, URL/start command, Store
 Il report di sessione unico contiene `installedAppMetadata` con `sources`, `apps`, `fieldDistribution`, `discoveredReferences` e `summary`. I riferimenti path/config già presenti nei metadata vengono soltanto registrati; non vengono letti automaticamente. Un rerun sostituisce la sezione precedente invece di accumulare duplicati.
 
 Vincoli mantenuti: nessun directory traversal, path guessing, filesystem scan, fileWrite, install/uninstall automatico, Role/Customer setter, clientInformation setter, API security/signature o reset. Il prossimo report reale deve mostrare quali campi espone ciascuna fonte, quali app fanno match, distribuzioni tra store/hisense/preinstalled/unknown, eventuali campi permission/AppConfig/security/identifier/client/role e riferimenti config/path concreti da valutare in una fase successiva.
+
+---
+
+## TEST REALE — Installed App Metadata Inspector parsing fix — 2026-09-26
+
+Il report reale `sidee-session-20260926-104537-d029` ha confermato che `Hisense_getInstalledApps` restituisce 61 record e che il `fileRead` di `websdk/Appinfo.json` passa ancora con identifier vuoto (`ret:true`, `code:0`). Tuttavia la prima versione dell'Inspector riportava erroneamente `appInfoCount: 0` e `matchedCount: 0`.
+
+Root cause: `Appinfo.json` arriva nel campo `msg` come stringa JSON. Il collector incrementava la profondità una volta entrando nel campo `msg` e una seconda volta durante il parse della stringa JSON; gli oggetti dentro `AppInfo[]` arrivavano così a depth 4 e venivano esclusi dal limite depth 3. Il parse JSON ora non consuma un livello strutturale e il child già parsato viene passato direttamente al collector.
+
+Il report reale ha inoltre mostrato `StoreType` numerico 98/99/100 nella fonte `Hisense_getInstalledApps`, mentre i metadata più ricchi di `Appinfo.json` non erano ancora stati estratti a causa del bug sopra. La classificazione `store / hisense / preinstalled / unknown` resta quindi basata solo su valori testuali reali quando presenti; i codici numerici non vengono interpretati/inventati.
+
+È stata corretta anche la `fieldDistribution`: i campi normalizzati e i corrispondenti metadata raw con differenze solo di maiuscole/minuscole non vengono più contati due volte (nel report precedente `isShowOnLauncher:true` risultava 122 su 61 app).
+
+Il prossimo test TV deve rieseguire soltanto `Inspect Installed Apps` e poi `Export Report`. Il risultato atteso è `appInfoCount > 0`, match per ID con almeno le app presenti in entrambe le fonti, metadata Appinfo come StoreType/openMode/venderId/unifiedAppName/configUrl e distribuzioni senza duplicazione.

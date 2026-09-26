@@ -208,13 +208,19 @@
   function collectAppRecords(v,out,d,seen){
     d=d||0;seen=seen||[];
     if(d>3||out.length>=120||v==null)return;
-    const parsed=parseJson(v);if(parsed)return collectAppRecords(parsed,out,d+1,seen);
+    const parsed=parseJson(v);if(parsed)return collectAppRecords(parsed,out,d,seen);
     if(typeof v!=="object")return;
     if(seen.indexOf(v)>=0)return;seen.push(v);
     if(Array.isArray(v)){v.slice(0,100).forEach(x=>collectAppRecords(x,out,d+1,seen));seen.pop();return;}
     if(appLike(v))out.push(v);
     let keys=[];try{keys=Object.keys(v).slice(0,60);}catch(e){}
-    keys.forEach(k=>{if(APP_SKIP_RE.test(k))return;let child;try{child=v[k];}catch(e){return;}if((child&&typeof child==="object")||parseJson(child))collectAppRecords(child,out,d+1,seen);});
+    keys.forEach(k=>{
+      if(APP_SKIP_RE.test(k))return;
+      let child;try{child=v[k];}catch(e){return;}
+      const parsedChild=parseJson(child);
+      if(child&&typeof child==="object")collectAppRecords(child,out,d+1,seen);
+      else if(parsedChild)collectAppRecords(parsedChild,out,d+1,seen);
+    });
     seen.pop();
   }
   function recordKey(n){
@@ -295,9 +301,10 @@
     const out={},special=["storeType","openMode","venderId","vendorId","unifiedAppName","initialFrom","configUrl","configUrlDownload","appBundle","package","packageName","version","developer","categoryName","subCategory","preInstall","isShowOnLauncher"];
     function add(k,v){if(v===null||v===undefined||typeof v==="object")return;if(!out[k])out[k]={};const s=String(v)===""?"(empty)":cut(v,120);out[k][s]=(out[k][s]||0)+1;}
     apps.forEach(a=>{
-      special.forEach(k=>add(k,firstValue(a.appInfo,a.installedApps,k)));
+      const counted={};
+      special.forEach(k=>{const v=firstValue(a.appInfo,a.installedApps,k);if(v!==null&&v!==undefined){add(k,v);counted[k.toLowerCase()]=true;}});
       const perField={};Object.keys(a.interestingMetadata).forEach(path=>{const k=path.split(".").pop();if(!Object.prototype.hasOwnProperty.call(perField,k))perField[k]=a.interestingMetadata[path];});
-      Object.keys(perField).slice(0,40).forEach(k=>add(k,perField[k]));
+      Object.keys(perField).slice(0,40).forEach(k=>{const key=k.toLowerCase();if(counted[key])return;add(k,perField[k]);counted[key]=true;});
     });
     return out;
   }
@@ -326,7 +333,7 @@
       const fields={};apps.forEach(x=>{x._fields.forEach(k=>fields[k]=true);delete x._fields;});
       const special=["storeType","openMode","venderId","vendorId","unifiedAppName","initialFrom","configUrl","configUrlDownload","appBundle","package","packageName","version","developer","categoryName","subCategory","preInstall","isShowOnLauncher"];
       special.forEach(k=>{if(apps.some(x=>meaningful(firstValue(x.appInfo,x.installedApps,k))))fields[k]=true;});
-      const interestingFields=Object.keys(fields).sort(),summary={installedAppsCount:a.source.count,appInfoCount:b.source.count,matchedCount:apps.filter(x=>x.matchedSources.length===2).length,appsCount:apps.length,storeTypes:countTypes(apps),interestingFieldsSeen:interestingFields,permissionLikeFieldsSeen:interestingFields.filter(k=>APP_PERMISSION_RE.test(k)),configLikeFieldsSeen:interestingFields.filter(k=>APP_CONFIG_RE.test(k))};
+      const fieldNames=Object.keys(fields).sort(),seenFieldNames={},interestingFields=fieldNames.filter(k=>{const key=k.toLowerCase();if(seenFieldNames[key])return false;seenFieldNames[key]=true;return true;}),summary={installedAppsCount:a.source.count,appInfoCount:b.source.count,matchedCount:apps.filter(x=>x.matchedSources.length===2).length,appsCount:apps.length,storeTypes:countTypes(apps),interestingFieldsSeen:interestingFields,permissionLikeFieldsSeen:interestingFields.filter(k=>APP_PERMISSION_RE.test(k)),configLikeFieldsSeen:interestingFields.filter(k=>APP_CONFIG_RE.test(k))};
       const result={timestamp:new Date().toISOString(),sources:{installedApps:a.source,appInfo:b.source},apps:apps,fieldDistribution:distribution(apps),discoveredReferences:references,summary:summary};
       state.report.installedAppMetadata=result;
       set("metadataApps",summary.installedAppsCount);set("metadataMatched",summary.matchedCount);set("metadataStoreTypes",formatCounts(summary.storeTypes));set("metadataFields",interestingFields.length?interestingFields.slice(0,8).join(", ")+(interestingFields.length>8?" +"+(interestingFields.length-8):""):"none");set("metadataReferences",references.length);
