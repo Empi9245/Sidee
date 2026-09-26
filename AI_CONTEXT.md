@@ -2761,3 +2761,18 @@ Then the separate backup-protected Direct AppInfo no-op write remains the decisi
 - if the installed-app context still reports anonymous-like identity, the launcher entry/hostname does not by itself create the required privileged client context on this firmware.
 
 Do not treat `Hisense_SupportAppConfig()` by itself as proof of write permission.
+
+
+### Windows TCP/80 fix — 2026-09-26
+
+The installed-app trampoline uses the apps' real HTTP StartCommand on the default TCP port 80. A Windows-specific launcher bug was found: `start-windows.bat` opened UDP/53, TCP/443 and TCP/8080 in Windows Firewall, but not TCP/80. That can leave Smartone/Duplecast on the VIDAA loading spinner even while the normal Sidee browser UI works correctly.
+
+The Windows launcher now also creates the `Sidee HTTP TCP 80` inbound firewall rule. The TCP/80 listener is also treated as critical: if it cannot bind (for example because another local service already owns port 80), Sidee prints a clear error and stops instead of silently continuing with a broken installed-app test.
+
+For a valid trampoline run the terminal must show:
+
+```
+[HTTP] http://0.0.0.0:80 (installed-app context)
+```
+
+If the launcher still spins after that, the DNS/HTTP transport tracing in the current build should distinguish “TV never resolved the app hostname” from “DNS reached Sidee but HTTP never arrived” from “the bootstrap page executed”.
