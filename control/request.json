@@ -1,8 +1,9 @@
 {
-  "requestId": "sidee-request-20260926-113416-9f55",
-  "createdAt": "2026-09-26T11:34:16.568Z",
-  "expiresAt": "2026-09-26T11:49:16.568Z",
+  "requestId": "sidee-request-20260926-120654-a36d",
+  "createdAt": "2026-09-26T12:06:54.390Z",
+  "expiresAt": "2026-09-26T20:06:54.390Z",
   "requestedBy": "ChatGPT",
-  "note": "Run the armed fixed read-only workflow on the current Sidee build, including Identity Override Lab when available.",
-  "runSafeDiagnostic": true
+  "note": "Run only the backup-protected Direct AppInfo no-op write capability test on the current build. Do not add Nuvio and do not restore automatically.",
+  "runSafeDiagnostic": false,
+  "runDirectAppInfoWriteNoop": true
 }
