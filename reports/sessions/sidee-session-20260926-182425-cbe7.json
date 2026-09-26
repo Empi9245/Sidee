@@ -4,7 +4,7 @@
   "serverBuildId": "app-0ec520ad7e75",
   "buildMatch": true,
   "startedAt": "2026-09-26T16:24:30.725Z",
-  "updatedAt": "2026-09-26T16:25:02.037Z",
+  "updatedAt": "2026-09-26T16:25:08.677Z",
   "accessContext": {
     "href": "https://vidaahub.com/",
     "origin": "https://vidaahub.com",
@@ -838,12 +838,394 @@
     "conclusion": "WRITE_DENIED",
     "remote": false
   },
-  "legacyHspdkWriteLab": null,
+  "legacyHspdkWriteLab": {
+    "timestamp": "2026-09-26T16:25:08.293Z",
+    "pageContext": {
+      "href": "https://vidaahub.com/",
+      "origin": "https://vidaahub.com",
+      "protocol": "https:",
+      "hostname": "vidaahub.com",
+      "port": "443",
+      "host": "vidaahub.com",
+      "secureContext": true,
+      "accessMode": "VIDAAHUB_BROWSER_CONTEXT"
+    },
+    "source": {
+      "article": "https://4pda.to/forum/index.php?showtopic=1004810&st=5220",
+      "legacyImplementation": "Hisense.File.read/write('launcher/Appinfo.json', mode 1) + libhspdk-jsx.so fallback"
+    },
+    "beforeLoad": {
+      "owner": "Hisense",
+      "ownerAvailable": true,
+      "ownerType": "object",
+      "loadLibrary": {
+        "available": false,
+        "descriptor": {
+          "found": false
+        },
+        "name": null,
+        "length": null,
+        "source": null
+      },
+      "fileAvailable": false,
+      "fileError": null,
+      "fileProperties": [],
+      "read": {
+        "available": false
+      },
+      "write": {
+        "available": false
+      },
+      "surfaces": [
+        {
+          "owner": "Hisense",
+          "ownerType": "object",
+          "loadLibrary": {
+            "available": false,
+            "descriptor": {
+              "found": false
+            },
+            "name": null,
+            "length": null,
+            "source": null
+          },
+          "fileAvailable": false,
+          "fileError": null,
+          "fileProperties": [],
+          "read": {
+            "available": false
+          },
+          "write": {
+            "available": false
+          }
+        }
+      ]
+    },
+    "libraryLoad": {
+      "attempted": false,
+      "library": "libhspdk-jsx.so",
+      "returnValue": null,
+      "error": null
+    },
+    "resolutionAttempts": [
+      {
+        "owner": "Hisense",
+        "direct": false,
+        "loadAttempted": false,
+        "loadReturnValue": null,
+        "loadError": null,
+        "ready": false
+      }
+    ],
+    "selectedOwner": null,
+    "afterLoad": {
+      "owner": "Hisense",
+      "ownerAvailable": true,
+      "ownerType": "object",
+      "loadLibrary": {
+        "available": false,
+        "descriptor": {
+          "found": false
+        },
+        "name": null,
+        "length": null,
+        "source": null
+      },
+      "fileAvailable": false,
+      "fileError": null,
+      "fileProperties": [],
+      "read": {
+        "available": false
+      },
+      "write": {
+        "available": false
+      },
+      "surfaces": [
+        {
+          "owner": "Hisense",
+          "ownerType": "object",
+          "loadLibrary": {
+            "available": false,
+            "descriptor": {
+              "found": false
+            },
+            "name": null,
+            "length": null,
+            "source": null
+          },
+          "fileAvailable": false,
+          "fileError": null,
+          "fileProperties": [],
+          "read": {
+            "available": false
+          },
+          "write": {
+            "available": false
+          }
+        }
+      ]
+    },
+    "registry": null,
+    "readAttempts": [],
+    "backup": null,
+    "probe": null,
+    "restore": null,
+    "writeCapability": "WRITER_UNAVAILABLE",
+    "error": "Neither Hisense nor HiBrowser exposed a usable legacy File.read/File.write surface"
+  },
   "summary": {
     "runtimeIdentity": "MISSING",
     "contextInit": "NOT_RUN",
     "contextFingerprint": "NOT_RUN",
     "permissionGate": "UNKNOWN",
-    "appInfoWrite": "WRITE_DENIED"
+    "appInfoWrite": "HSPDK_WRITER_UNAVAILABLE"
+  },
+  "legacyHspdkContext": {
+    "version": 2,
+    "timestamp": "2026-09-26T16:25:08.362Z",
+    "readOnly": true,
+    "page": {
+      "href": "https://vidaahub.com/",
+      "origin": "https://vidaahub.com",
+      "userAgent": "Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 WebExplorer/4.5.0 Safari/537.36"
+    },
+    "exact": [
+      {
+        "path": "window.Hisense",
+        "root": {
+          "status": "DATA",
+          "ownerDepth": 0,
+          "type": "object",
+          "hasGetter": false,
+          "hasSetter": false
+        },
+        "properties": [
+          {
+            "depth": 0,
+            "truncated": false,
+            "properties": [
+              {
+                "name": "log",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "VirtualKeyboard",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "object",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              }
+            ]
+          },
+          {
+            "depth": 1,
+            "truncated": false,
+            "properties": [
+              {
+                "name": "constructor",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "__defineGetter__",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "__defineSetter__",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "hasOwnProperty",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "__lookupGetter__",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "__lookupSetter__",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "isPrototypeOf",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "propertyIsEnumerable",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "toString",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "valueOf",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              },
+              {
+                "name": "__proto__",
+                "descriptor": {
+                  "status": "ACCESSOR_NOT_READ",
+                  "ownerDepth": 0,
+                  "type": "accessor",
+                  "hasGetter": true,
+                  "hasSetter": true
+                }
+              },
+              {
+                "name": "toLocaleString",
+                "descriptor": {
+                  "status": "DATA",
+                  "ownerDepth": 0,
+                  "type": "function",
+                  "hasGetter": false,
+                  "hasSetter": false
+                }
+              }
+            ]
+          }
+        ],
+        "loadLibrary": {
+          "status": "ABSENT",
+          "error": null
+        },
+        "File": {
+          "status": "ABSENT",
+          "error": null
+        },
+        "read": {
+          "status": "ABSENT",
+          "error": null
+        },
+        "write": {
+          "status": "ABSENT",
+          "error": null
+        },
+        "callablePairObserved": false
+      },
+      {
+        "path": "window.HiBrowser",
+        "root": {
+          "status": "ABSENT",
+          "error": null
+        },
+        "properties": [],
+        "loadLibrary": {
+          "status": "ABSENT",
+          "error": null
+        },
+        "File": {
+          "status": "ABSENT",
+          "error": null
+        },
+        "read": {
+          "status": "ABSENT",
+          "error": null
+        },
+        "write": {
+          "status": "ABSENT",
+          "error": null
+        },
+        "callablePairObserved": false
+      }
+    ],
+    "discoveredSurfaces": [],
+    "sourceMatches": [
+      {
+        "path": "window.getInstalledAppJsonObj",
+        "term": "websdk/Appinfo.json",
+        "sourceLength": 376,
+        "truncated": false,
+        "excerpt": "function() {\n        const installedAppJsonStr = Hisense_FileRead('websdk/Appinfo.json', 6)\n        if (isString(installedAppJsonStr)) {\n            try {\n                let presetAppObj = JSON.parse(installedAppJsonStr)\n                return presetAppObj\n            } catch (e) {\n                return 0\n            }\n        } else {\n            return 0\n        }\n    }"
+      }
+    ],
+    "legacyLaunchContextMatches": [],
+    "scripts": [
+      {
+        "index": 0,
+        "src": "https://vidaahub.com/hspdk-context.js?v=app-0ec520ad7e75",
+        "inline": false,
+        "sideeOwned": true
+      },
+      {
+        "index": 1,
+        "src": "https://vidaahub.com/app.js?v=app-0ec520ad7e75",
+        "inline": false,
+        "sideeOwned": true
+      }
+    ],
+    "scannedGlobals": 1285,
+    "scannedFunctions": 1241,
+    "truncated": true,
+    "note": "Presence is not write permission. No getter, loader, file read/write or discovered function is invoked.",
+    "status": "NO_FILE_PAIR_OBSERVED"
   }
 }
