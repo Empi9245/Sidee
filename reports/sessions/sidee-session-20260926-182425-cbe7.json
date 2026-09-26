@@ -4,7 +4,7 @@
   "serverBuildId": "app-0ec520ad7e75",
   "buildMatch": true,
   "startedAt": "2026-09-26T16:24:30.725Z",
-  "updatedAt": "2026-09-26T16:24:51.904Z",
+  "updatedAt": "2026-09-26T16:25:02.037Z",
   "accessContext": {
     "href": "https://vidaahub.com/",
     "origin": "https://vidaahub.com",
@@ -73,6 +73,61 @@
     {
       "timestamp": "2026-09-26T16:24:51.851Z",
       "source": "direct-appinfo-noop-readback",
+      "service": "hiutils",
+      "api": "fileRead",
+      "identifier": "",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6
+      },
+      "result": {
+        "ret": true,
+        "code": 0,
+        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
+      },
+      "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:25:01.822Z",
+      "source": "direct-restore-current",
+      "service": "hiutils",
+      "api": "fileRead",
+      "identifier": "",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6
+      },
+      "result": {
+        "ret": true,
+        "code": 0,
+        "msg": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"UR…"
+      },
+      "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:25:01.980Z",
+      "source": "direct-restore-filewrite",
+      "service": "hiutils",
+      "api": "fileWrite",
+      "identifier": "",
+      "endpoint": "https://localhost:9888/service/hiutils",
+      "payload": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6,
+        "writedata": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"URL\":\"http://vidaa.smartone-iptv.com\",\"AppName\":\"Smartone IPTV\",\"Title\":\"Smartone IPTV\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"StartCommand\":\"http:/…"
+      },
+      "result": {
+        "ret": false,
+        "code": 503,
+        "msg": "client request permission check error, please check appconfig"
+      },
+      "errors": []
+    },
+    {
+      "timestamp": "2026-09-26T16:25:02.002Z",
+      "source": "direct-restore-readback",
       "service": "hiutils",
       "api": "fileRead",
       "identifier": "",
@@ -724,7 +779,62 @@
       }
     },
     "addResult": null,
-    "restoreResult": null,
+    "restoreResult": {
+      "timestamp": "2026-09-26T16:25:01.770Z",
+      "backupId": "appinfo-backup-20260926-162449-9f175254",
+      "status": "RESTORED_IDENTICAL",
+      "preRestoreBackup": {
+        "backupId": "appinfo-backup-20260926-162500-d7ec05cf",
+        "sessionId": "sidee-20260926-182425-cbe7",
+        "path": "backups/appinfo/sidee-20260926-182425-cbe7/appinfo-backup-20260926-162500-d7ec05cf.json",
+        "sha256": "d4869d266a085485c4bcf52b66202cf67bad90ebdbb8a6c36be9090c81405878",
+        "bytes": 7173,
+        "appInfoCount": 3,
+        "createdAt": "2026-09-26T16:25:00Z",
+        "clientBuildId": "app-0ec520ad7e75",
+        "serverBuildId": "app-0ec520ad7e75"
+      },
+      "error": null,
+      "verifiedBackup": {
+        "backupId": "appinfo-backup-20260926-162449-9f175254",
+        "sessionId": "sidee-20260926-182425-cbe7",
+        "createdAt": "2026-09-26T16:24:49Z",
+        "sha256": "d4869d266a085485c4bcf52b66202cf67bad90ebdbb8a6c36be9090c81405878",
+        "bytes": 7173,
+        "appInfoCount": 3,
+        "path": "backups/appinfo/sidee-20260926-182425-cbe7/appinfo-backup-20260926-162449-9f175254.json"
+      },
+      "request": {
+        "path": "websdk/Appinfo.json",
+        "mode": 6,
+        "writedata": "{\"AppInfo\":[{\"Id\":\"1470\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"URL\":\"http://vidaa.smartone-iptv.com\",\"AppName\":\"Smartone IPTV\",\"Title\":\"Smartone IPTV\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/5/202205250729434335.png?resize=w_300,h_300\",\"StartCommand\":\"http://vidaa.smartone-iptv.com\",\"InstallTime\":\"2026-2-3\",\"RunTimes\":0,\"StoreType\":\"store\",\"configUrl\":\"\",\"configUrlDownload\":0,\"mediaId\":1470,\"initialFrom\":\"\",\"appInfo\":{\"url\":\"http://vidaa.smartone-iptv.com\",\"openMode\":\"98\",\"configUrlDownload\":0,\"configUrl\":\"\",\"appRelatedPics\":[{\"url\":\"https://img.vidaahub.com/vidaa/2022/5/202205250730009258.jpg\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/vidaa/2022/5/202205250730078223.jpg\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/vidaa/2022/5/202205250730149686.jpg\",\"width\":1920,\"height\":1080}],\"venderId\":9999,\"rating\":\"\",\"rate\":0,\"reviews\":0,\"categoryName\":\"Internet TV\",\"summary\":\"SmartOne IPTV is a media player for smart TVs, SmartOne IPTV app allow end-users of Xtream Code panel or similar panels to watch their contents via their API, SmartOne IPTV allow users to watch live channels, VOD (Video On Demand)and series in all smart TVs with easy tasks. Smartone IPTV is multi-languages and customizable APP.\",\"multiDesc\":{\"ita\":\"SmartOne IPTV è un lettore multimediale per smart TV, l'app SmartOne IPTV consente agli utenti finali del pannello Xtream Code o pannelli simili di guardare i propri contenuti tramite la loro API, SmartOne IPTV consente agli utenti di guardare i canali in diretta, VOD (Video On Demand) e le serie in tutte le smart TV con compiti facili. Smartone IPTV è un'APP multilingua e personalizzabile.\"},\"developer\":\"NH Group\",\"developerUrl\":\"\",\"appBundle\":\"\",\"fee\":1,\"pubdate\":\"\",\"latestUpgradeDate\":\"\",\"version\":\"0\",\"unifiedAppName\":\"1470\",\"hasDetailPage\":1,\"multiviewType\":0,\"unsearchable\":0,\"subCategory\":\"Internet TV\"},\"subCategory\":\"Internet TV\",\"categoryName\":\"Internet TV\",\"showInfo\":{\"promotionalPic\":\"https://img.vidaahub.com/vidaa/2022/5/202205250730328891.jpg\"}},{\"Id\":\"2568\",\"Thumb\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/a14b838fd3d7a02375371564a0545f89?f=webp&resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/a14b838fd3d7a02375371564a0545f89?f=webp&resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/a14b838fd3d7a02375371564a0545f89?f=webp&resize=w_300,h_300\",\"URL\":\"https://relvhgchz5.strem.io/hello-world/index.html\",\"AppName\":\"Stremio Lite\",\"Title\":\"Stremio Lite\",\"IconURL\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/a14b838fd3d7a02375371564a0545f89?f=webp&resize=w_300,h_300\",\"StartCommand\":\"https://relvhgchz5.strem.io/hello-world/index.html\",\"InstallTime\":\"2026-2-9\",\"RunTimes\":0,\"StoreType\":\"hisense\",\"configUrl\":\"\",\"configUrlDownload\":0,\"mediaId\":2568,\"initialFrom\":\"\",\"appInfo\":{\"url\":\"https://relvhgchz5.strem.io/hello-world/index.html\",\"openMode\":\"99\",\"configUrlDownload\":0,\"configUrl\":\"\",\"appRelatedPics\":[{\"url\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/4cf1fa429dfca796de5e754a34129399?f=webp\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/4889ea7af86f49d81ef7266b95ae74e6?f=webp\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/53ade93950c99a523592e48f4737903d?f=webp\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/d3dea6b45298362744ab6c34cd0d89a4?f=webp\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/s3_bucket/9999/app/9999_80d92da5-01bf-4416-b46b-901c63b257d1/d5d7c82815a3beb75e69fdedb3a0644f?f=webp\",\"width\":1920,\"height\":1080}],\"venderId\":9999,\"rating\":\"3\",\"rate\":0,\"reviews\":0,\"categoryName\":\"Film e serie TV \",\"summary\":\"Stremio is a video streaming application, that allows you to watch and organize video content from different services, including movies, series, live TV and video channels.\",\"multiDesc\":{\"ita\":\"Stremio è un'applicazione di streaming video che consente di guardare e organizzare contenuti video provenienti da diversi servizi, tra cui film, serie TV, programmi televisivi in diretta e canali video.\",\"eng\":\"Stremio is a video streaming application, that allows you to watch and organize video content from different services, including movies, series, live TV and video channels.\"},\"developer\":\"Stremio\",\"developerUrl\":\"\",\"appBundle\":\"\",\"fee\":0,\"pubdate\":\"\",\"latestUpgradeDate\":\"\",\"version\":\"0\",\"unifiedAppName\":\"2568\",\"hasDetailPage\":1,\"multiviewType\":0,\"unsearchable\":0,\"subCategory\":\"Movies & TV series\"},\"subCategory\":\"Movies & TV series\",\"categoryName\":\"Film e serie TV \",\"showInfo\":{\"promotionalPic\":\"\"}},{\"Id\":\"1876\",\"Thumb\":\"https://img.vidaahub.com/vidaa/2022/11/202211102142287972.jpg?resize=w_300,h_300\",\"Icon_96\":\"https://img.vidaahub.com/vidaa/2022/11/202211102142287972.jpg?resize=w_300,h_300\",\"Image\":\"https://img.vidaahub.com/vidaa/2022/11/202211102142287972.jpg?resize=w_300,h_300\",\"URL\":\"http://vidaa.duplecast.com/\",\"AppName\":\"Duplecast\",\"Title\":\"Duplecast\",\"IconURL\":\"https://img.vidaahub.com/vidaa/2022/11/202211102142287972.jpg?resize=w_300,h_300\",\"StartCommand\":\"http://vidaa.duplecast.com/\",\"InstallTime\":\"2026-7-24\",\"RunTimes\":0,\"StoreType\":\"store\",\"configUrl\":\"\",\"configUrlDownload\":0,\"mediaId\":1876,\"initialFrom\":\"\",\"appInfo\":{\"icon\":\"https://img.vidaahub.com/vidaa/2022/11/202211102142454833.jpg\",\"fee\":1,\"unifiedAppName\":\"1876\",\"deletable\":1,\"hasDetailPage\":1,\"subCategory\":\"Internet TV\",\"categoryName\":\"Internet TV\",\"rating\":\"\",\"parentControlRating\":0,\"appBundle\":\"\",\"packaged\":0,\"multiviewType\":0,\"unsearchable\":0,\"venderId\":9999,\"rate\":0,\"reviews\":0,\"summary\":\"Duplecast is the most advanced and user friendly TV media player. With Duplecast you will enjoy your favorite media content on your TV.\",\"multiDesc\":{\"ita\":\"Duplecast è il lettore multimediale TV più avanzato e facile da usare. Con Duplecast potrai goderti i tuoi contenuti multimediali preferiti sulla tua TV.\"},\"developer\":\"CreativeKeys\",\"developerUrl\":\"\",\"pubdate\":\"\",\"latestUpgradeDate\":\"\",\"version\":\"0\",\"configUrl\":\"\",\"configUrlDownload\":0,\"url\":\"http://vidaa.duplecast.com/\",\"openMode\":\"98\",\"appRelatedPics\":[{\"url\":\"https://img.vidaahub.com/vidaa/2022/11/202211102143001943.jpg\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/vidaa/2022/11/202211102143041524.jpg\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/vidaa/2022/11/202211102143085531.jpg\",\"width\":1920,\"height\":1080},{\"url\":\"https://img.vidaahub.com/vidaa/2022/11/202211102143139365.jpg\",\"width\":1920,\"height\":1080}]},\"subCategory\":\"Internet TV\",\"categoryName\":\"Internet TV\",\"showInfo\":{\"promotionalPic\":\"\"}}]}"
+      },
+      "response": {
+        "raw": {
+          "ret": false,
+          "msg": "client request permission check error, please check appconfig",
+          "code": 503,
+          "sdkVersion": "1.5.0"
+        },
+        "result": {
+          "ret": false,
+          "code": 503,
+          "msg": "client request permission check error, please check appconfig"
+        },
+        "error": null
+      },
+      "readback": {
+        "rawHash": {
+          "algorithm": "SHA-256",
+          "value": "d4869d266a085485c4bcf52b66202cf67bad90ebdbb8a6c36be9090c81405878"
+        },
+        "length": 7166,
+        "appInfoCount": 3,
+        "parseValid": true,
+        "error": null
+      },
+      "identicalToBackup": true
+    },
     "conclusion": "WRITE_DENIED",
     "remote": false
   },
