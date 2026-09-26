@@ -369,6 +369,11 @@ def _record_store_domain_query(host, qtype):
         snapshot = json.loads(json.dumps(report))
         should_sync = new_host or new_qtype or discovery["totalQueries"] % 20 == 0
 
+    trace_snapshot = _store_trace_snapshot()
+    if trace_snapshot.get("status") != "IDLE":
+        snapshot["storeCatalogTrace"] = trace_snapshot
+        snapshot.setdefault("summary", {})["storeCatalogTrace"] = trace_snapshot.get("status", "IDLE")
+
     try:
         write_session_report(snapshot["sessionId"], snapshot)
     except Exception as exc:
@@ -378,19 +383,6 @@ def _record_store_domain_query(host, qtype):
             queue_report_sync(snapshot["sessionId"], snapshot, "store-domain-discovery")
         except Exception as exc:
             print(f"[STORE-DNS] sync error: {exc}")
-    trace_snapshot = _store_trace_snapshot()
-    if trace_snapshot.get("status") != "IDLE":
-        snapshot["storeCatalogTrace"] = trace_snapshot
-        snapshot.setdefault("summary", {})["storeCatalogTrace"] = trace_snapshot.get("status", "IDLE")
-        try:
-            write_session_report(snapshot["sessionId"], snapshot)
-        except Exception as exc:
-            print(f"[STORE-DNS] correlated trace report error: {exc}")
-        if should_sync:
-            try:
-                queue_report_sync(snapshot["sessionId"], snapshot, "store-domain-discovery")
-            except Exception as exc:
-                print(f"[STORE-DNS] correlated sync error: {exc}")
 
     if new_host:
         print(f"[STORE-DNS] discovered {host} ({qtype_name})")
