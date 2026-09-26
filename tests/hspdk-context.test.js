@@ -12,7 +12,11 @@ const window = {
   modeljs: { sendam: forbidden },
   Hisense_TestRead: forbidden,
   HiUtils_probe: forbidden,
-  vowOS: { service: { syncExecute: forbidden } },
+  vowOS: {
+    service: { syncExecute: forbidden, getIdentifier: forbidden },
+    store: { install: forbidden, open: forbidden, getApps: forbidden },
+    tvinfo: { getParam: forbidden }
+  },
   omi_platform: { inspectOnly: forbidden },
   opera_omi: { inspectOnly: forbidden },
   TvInfo_Json: { readOnlyValue: 1 }
@@ -29,7 +33,12 @@ const context = vm.createContext({ window, location: { href: 'https://vidaahub.c
 vm.runInContext(source, context);
 const result = window.SideeHspdkContext();
 assert.equal(calls, 0);
-assert.equal(result.version, 4);
+assert.equal(result.version, 5);
+assert.equal(result.vowOSNamespaces.store.descriptor.status, 'DATA');
+assert(result.vowOSNamespaces.store.properties.some(p => p.name === 'install' && p.descriptor.type === 'function'));
+assert(result.vowOSNamespaces.service.properties.some(p => p.name === 'syncExecute' && p.descriptor.type === 'function'));
+assert(result.vowOSNamespaces.tvinfo.properties.some(p => p.name === 'getParam' && p.descriptor.type === 'function'));
+assert.equal(result.vowOSNamespaces.store.invoked, false);
 assert(result.modernBridgeInventory.globals.some(g => g.name === 'Hisense_TestRead' && g.descriptor.type === 'function'));
 assert(result.modernBridgeInventory.globals.some(g => g.name === 'HiUtils_probe' && g.descriptor.type === 'function'));
 assert.equal(result.modernBridgeInventory.objects.vowOS.descriptor.status, 'DATA');
@@ -68,6 +77,9 @@ assert.equal(missing.exact[1].root.status, 'ABSENT');
 assert.equal(missing.legacyAppManagerBridge.modeljs.status, 'ABSENT');
 assert.equal(missing.legacyAppManagerBridge.sendam.status, 'ABSENT');
 assert.equal(missing.modernBridgeInventory.objects.vowOS.descriptor.status, 'ABSENT');
+assert.equal(missing.vowOSNamespaces.store.descriptor.status, 'ABSENT');
+assert.equal(missing.vowOSNamespaces.service.descriptor.status, 'ABSENT');
+assert.equal(missing.vowOSNamespaces.tvinfo.descriptor.status, 'ABSENT');
 assert.equal(missing.modernBridgeInventory.objects.omi_platform.descriptor.status, 'ABSENT');
 assert.equal(missing.status, 'NO_FILE_PAIR_OBSERVED');
 assert.equal(calls, 0);
