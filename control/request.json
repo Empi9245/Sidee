@@ -1,13 +1,8 @@
 {
-  "requestId": "sidee-request-20260926-130356-a1e3",
-  "createdAt": "2026-09-26T13:03:56.582Z",
-  "expiresAt": "2026-09-26T17:03:56.582Z",
-  "requestedBy": "ChatGPT",
-  "note": "Run only the build-bound Identifier Write-Gate Lab: baseline -> immutable AppInfo backup -> exact no-op fileWrite baseline -> up to 6 concrete identifier candidates -> readback/restore -> export. Never add Nuvio.",
   "runSafeDiagnostic": false,
   "runSafeDiagnosticV2": false,
   "runDirectAppInfoWriteNoop": false,
   "runDirectAppInfoWriteNoopV2": false,
-  "runIdentityWriteGateLabV1": true,
-  "requiresBuildId": "app-a1e389921903"
+  "runIdentityWriteGateLabV1": false,
+  "note": "Idle. Identifier Write-Gate Lab completed manually: 1470, 1876 and 2568 all returned the same AppConfig 503 with identical registry readback."
 }
