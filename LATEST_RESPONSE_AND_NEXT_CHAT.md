@@ -1,51 +1,73 @@
-# Sidee — determine whether current no-pointer mode changed runtime permissions
+# Sidee — dashboard input failure + no-pointer permission test
 
 Date: 2026-09-29
 
-User observation:
-- pointer is now absent inside the TV page;
-- VIDAA browser chrome itself remains controllable;
-- Sidee dashboard controls are still not selectable.
+Observed after user's latest TV test:
+- browser chrome can still be controlled;
+- Sidee dashboard itself cannot be controlled;
+- pointer is absent;
+- no `runtimeSurfaceAutoProbe`, `remoteInputProbe` or `launcherBridgeProbe` appeared in the synced session reports.
 
-Do NOT infer from pointer absence alone that Sidee is running as a registered VIDAA app. Pointer mode and app runtime are separate questions.
+Latest synced session at ~19:05 local:
+- `sidee-20260929-190401-363a`
+- only Store DNS discovery data was present;
+- there was no browser-side auto telemetry.
 
-Important possibility:
-- if the page really moved from normal browser context into a hosted-app/launcher context, the native identity/identifier presented to VIDAA services could change;
-- because the existing install failure is an AppConfig/permission check, a changed native identity would be worth testing;
-- however the current report cannot establish this because latest.json is currently being overwritten by the Store DNS/install probe session.
+Important interpretation:
+- pointer absence alone does NOT prove Sidee is running as a registered VIDAA app;
+- however, if the page context really changed, its native identifier/AppConfig authorization could differ, so a fresh install-gate test in that exact context is worth doing;
+- the lack of browser-side report strongly suggests the dashboard JS is not reaching its startup section.
 
-Implemented on Sidee main:
-- `e8a15598b00f2c7421bb7e4af2e2bfabff924b31`
-  - automatic runtime surface snapshot on page load;
-  - records Hisense current browser, firmware/OS, AppConfig support, install API availability, vowOS/vowOSContext, service identifier, clientInformation, omi_platform/opera_omi methods;
-  - captures raw keydown/keyup/keypress events without requiring a click;
-  - autosaves remote input telemetry after remote activity;
-  - adds keyup fallback when VIDAA suppresses/changes keydown behavior.
-- `1ab3c0271f97469b46667f75e1af6d44e5754431`
-  - visible automatic remote telemetry state card.
-- `49302086d9554f6dbd4b07887bd189df493c0553`
-  - seeds initial DOM focus on the first visible dashboard control at load.
+Likely failure mode found:
+- VIDAA may be serving a stale `index.html` together with a newer `app.js`;
+- the newer JS previously bound listeners with direct calls such as `$("launcherBridgeProbeBtn").addEventListener(...)`;
+- if the cached HTML did not contain that newly-added element, JS execution stopped before startup, explaining:
+  - no initial focus,
+  - no input telemetry,
+  - no runtime snapshot,
+  - no automatic reports,
+  - apparently dead dashboard controls.
 
-## Next test
+Fixes on main:
+- `43808eeb1d9bbbe575f16ffa939f41fe254eb95b`
+  - all dashboard event binding now tolerates missing/stale HTML elements;
+  - mixed cached HTML/JS can no longer abort the entire script.
+- `150d6015940dea8b7e7334df13e5b273462163c7`
+  - when the new client actually starts, Sidee automatically snapshots the current VIDAA runtime and runs one install-permission attempt for the configured Nuvio target;
+  - no dashboard click is required;
+  - result is saved as `automaticRuntimeInstallProbe`.
+- prior commits:
+  - `e8a15598...` automatic runtime + raw remote input telemetry
+  - `49302086...` initial focus seeding
 
-1. `git pull`
-2. restart Sidee
-3. open Sidee on TV in the current no-pointer mode
-4. do NOT click anything
-5. press: Right, Down, OK, Left, Up, OK
-6. wait a few seconds for autosave
-7. reply `fatto input`
+Current configured Nuvio target is still:
+`http://192.168.1.5:4173/?wrapper=vidaa`
 
-Then inspect the newest session report (not only reports/latest.json) for:
-- runtimeSurfaceAutoProbe
-- remoteInputProbe.events
-- launcherBridgeProbe
-- serviceIdentifier
-- clientInformation
-- currentBrowser
-- install API availability
+This is suitable only as a permission/runtime experiment; it is not the desired permanent PC-free final URL. The user's Vercel project was previously paused and no exact active public Vercel URL is currently available.
+
+## Next action
+
+Update the local Sidee checkout to current main and restart the process so the TV cannot keep executing the broken mixed dashboard:
+
+`git pull --ff-only origin main`
+
+Then fully stop the old Sidee process and start it again as Administrator.
+
+On the TV:
+- close the Sidee/browser page completely;
+- reopen Sidee;
+- no button interaction is required;
+- leave the page open for several seconds.
+
+Then reply `fatto auto`.
+
+Inspect newest session files for:
+- `runtimeSurfaceAutoProbe`
+- `launcherBridgeProbe`
+- `automaticRuntimeInstallProbe`
+- `remoteInputProbe`
 
 Decision:
-- if runtime identity/identifier differs from prior vidaahub browser context, run ONE explicit install permission test in this exact context;
-- if identity is unchanged, no-pointer mode did not grant install permission and the dashboard issue is purely input/focus;
-- if no raw key events arrive at all, the browser/OS is consuming D-pad before the page and Sidee must use a native/launcher input bridge rather than DOM keyboard handlers.
+- if automaticRuntimeInstallProbe is `INSTALLED/PASSED`, the no-pointer context has materially different install permission and we can proceed to register a permanent hosted Nuvio URL;
+- if it still returns 503 AppConfig, no-pointer mode did not change install authorization;
+- if no browser-side fields appear again, the TV is still not executing the new client and the next step is to move the auto-probe into an inline bootstrap served directly by index.html (before app.js), removing app.js startup as a dependency.
