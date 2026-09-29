@@ -4,7 +4,7 @@
   "serverBuildId": "app-f44d5fed09b5",
   "buildMatch": true,
   "startedAt": "2026-09-29T16:55:28Z",
-  "updatedAt": "2026-09-29T16:56:36Z",
+  "updatedAt": "2026-09-29T16:57:56Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,14 +18,14 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 60,
-    "hostCount": 7,
+    "totalQueries": 65,
+    "hostCount": 8,
     "hosts": [
       {
         "host": "iot-voice-eu.vidaahub.com",
         "firstSeen": "2026-09-29T16:55:28Z",
-        "lastSeen": "2026-09-29T16:56:36Z",
-        "queryCount": 12,
+        "lastSeen": "2026-09-29T16:56:45Z",
+        "queryCount": 16,
         "qtypes": [
           "A"
         ]
@@ -81,6 +81,15 @@
         "firstSeen": "2026-09-29T16:56:01Z",
         "lastSeen": "2026-09-29T16:56:33Z",
         "queryCount": 6,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T16:57:56Z",
+        "lastSeen": "2026-09-29T16:57:56Z",
+        "queryCount": 1,
         "qtypes": [
           "A"
         ]
@@ -579,6 +588,41 @@
         "host": "iot-voice-eu.vidaahub.com",
         "qtype": "A",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:56:38Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:56:40Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:56:43Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:56:45Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:57:56Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
       }
     ],
     "allDnsHosts": [
@@ -607,9 +651,9 @@
       {
         "host": "iot-voice-eu.vidaahub.com",
         "firstSeen": "2026-09-29T16:55:33Z",
-        "lastSeen": "2026-09-29T16:56:36Z",
+        "lastSeen": "2026-09-29T16:56:45Z",
         "firstSeenIndex": 3,
-        "queryCount": 11,
+        "queryCount": 15,
         "qtypes": [
           "A"
         ],
@@ -682,9 +726,20 @@
           "AAAA"
         ],
         "vendorScoped": false
+      },
+      {
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T16:57:56Z",
+        "lastSeen": "2026-09-29T16:57:56Z",
+        "firstSeenIndex": 72,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
       }
     ],
-    "allDnsQueryCount": 67,
+    "allDnsQueryCount": 72,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
