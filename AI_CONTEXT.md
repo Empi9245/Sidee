@@ -4752,3 +4752,26 @@ keep the official Store and all VIDAA base/UI services completely direct while r
 
 Next diagnostic:
 pull/restart Sidee and reopen Store. If failure persists, inspect the new report and focus on DNS forwarding/network path rather than TLS/MITM.
+
+
+## FIX — DNS diagnostic critical path / Store retry storm — 2026-09-29
+
+Fresh report after root-spoof rollback:
+- session `sidee-20260929-161057-217e`;
+- Store still failed with spinner;
+- exact Store hosts resolve repeatedly every ~4-6 seconds;
+- no VIDAA Store subdomain/root spoof remains;
+- only `vidaa.smartone-iptv.com` is spoofed.
+
+Code review found a real performance bug:
+`run_dns` called Store diagnostic functions before forwarding the DNS response. Those functions synchronously serialized and wrote the growing report JSON. The resolver was also single-threaded.
+
+Implemented:
+- reply/forward DNS before diagnostic processing;
+- async `DNS_OBSERVATION_QUEUE` + `dns_observation_worker`;
+- bounded concurrent DNS request handlers (32);
+- 65535-byte UDP receive;
+- TCP retry for truncated upstream DNS replies;
+- `/api/dns-health` with query/success/failure/latency/queue/worker metrics.
+
+This is now the primary fix to test before changing Store or TLS behavior again.
