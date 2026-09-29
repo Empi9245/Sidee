@@ -26,6 +26,7 @@ import json
 import mimetypes
 import os
 import pathlib
+import queue
 import re
 import signal
 import shutil
@@ -94,6 +95,18 @@ STORE_PROXY_HOP_HEADERS = {
 STORE_DISCOVERY_LOCK = threading.Lock()
 STORE_DISCOVERY_REPORT = None
 STORE_DISCOVERY_MAX_HOSTS = 40
+DNS_OBSERVATION_QUEUE = queue.Queue(maxsize=4096)
+DNS_OBSERVATION_DROP_LOCK = threading.Lock()
+DNS_OBSERVATION_DROPPED = 0
+DNS_FORWARD_STATS_LOCK = threading.Lock()
+DNS_FORWARD_STATS = {
+    "queries": 0,
+    "success": 0,
+    "failures": 0,
+    "lastLatencyMs": None,
+    "maxLatencyMs": 0.0,
+    "lastFailureHost": None,
+}
 STORE_INSTALL_PROBE_MAX_EVENTS = 320
 STORE_INSTALL_PROBE_MAX_HOSTS = 140
 STORE_INSTALL_PROBE_TARGET = {
@@ -2873,17 +2886,144 @@ def empty_dns_answer(data):
     return data[:2] + b"\x81\x80" + data[4:6] + b"\x00\x00\x00\x00\x00\x00" + question
 
 
+def _dns_forward_stats_snapshot():
+    with DNS_FORWARD_STATS_LOCK:
+        out = dict(DNS_FORWARD_STATS)
+    with DNS_OBSERVATION_DROP_LOCK:
+        out["observationQueueDropped"] = DNS_OBSERVATION_DROPPED
+    out["observationQueueDepth"] = DNS_OBSERVATION_QUEUE.qsize()
+    return out
+
+
+def _dns_forward_stats_record(host, success, latency_ms):
+    with DNS_FORWARD_STATS_LOCK:
+        DNS_FORWARD_STATS["queries"] = int(DNS_FORWARD_STATS.get("queries", 0)) + 1
+        if success:
+            DNS_FORWARD_STATS["success"] = int(DNS_FORWARD_STATS.get("success", 0)) + 1
+        else:
+            DNS_FORWARD_STATS["failures"] = int(DNS_FORWARD_STATS.get("failures", 0)) + 1
+            DNS_FORWARD_STATS["lastFailureHost"] = _normalized_host(host)
+        DNS_FORWARD_STATS["lastLatencyMs"] = round(float(latency_ms), 2)
+        DNS_FORWARD_STATS["maxLatencyMs"] = max(
+            float(DNS_FORWARD_STATS.get("maxLatencyMs", 0.0)),
+            float(latency_ms),
+        )
+
+
+def _queue_dns_observation(host, qtype, client_ip, spoofed):
+    global DNS_OBSERVATION_DROPPED
+    item = {
+        "host": _normalized_host(host),
+        "qtype": int(qtype or 0),
+        "clientIp": str(client_ip or ""),
+        "spoofed": bool(spoofed),
+    }
+    try:
+        DNS_OBSERVATION_QUEUE.put_nowait(item)
+        return True
+    except queue.Full:
+        with DNS_OBSERVATION_DROP_LOCK:
+            DNS_OBSERVATION_DROPPED += 1
+            dropped = DNS_OBSERVATION_DROPPED
+        if dropped == 1 or dropped % 100 == 0:
+            print(f"[DNS-OBS] queue full; dropped {dropped} observations")
+        return False
+
+
+def dns_observation_worker():
+    while not stop_event.is_set():
+        try:
+            item = DNS_OBSERVATION_QUEUE.get(timeout=0.5)
+        except queue.Empty:
+            continue
+        try:
+            host = item.get("host") or ""
+            qtype = int(item.get("qtype") or 0)
+            client_ip = item.get("clientIp") or ""
+            spoofed = bool(item.get("spoofed"))
+
+            if host in STORE_INSTALL_AUTO_TRIGGER_HOSTS:
+                try:
+                    _network_capture_maybe_start(client_ip, host)
+                except Exception as exc:
+                    print(f"[DNS-OBS] full-network capture auto-start error: {exc}")
+                try:
+                    _store_install_probe_auto_start(host, client_ip)
+                except Exception as exc:
+                    print(f"[DNS-OBS] store-install auto-start error: {exc}")
+
+            try:
+                _record_store_install_dns_timeline(host, qtype, client_ip)
+            except Exception as exc:
+                print(f"[DNS-OBS] store-install timeline error: {exc}")
+
+            if _is_store_discovery_host(host) and not spoofed:
+                try:
+                    _record_store_domain_query(host, qtype)
+                except Exception as exc:
+                    print(f"[DNS-OBS] store-domain discovery error: {exc}")
+
+            if spoofed and host in APP_CONTEXT_HOSTS:
+                try:
+                    _sync_app_transport_observation(
+                        "DNS_A" if qtype == 1 else "DNS_AAAA",
+                        host,
+                        "",
+                    )
+                except Exception as exc:
+                    print(f"[DNS-OBS] app-context report error: {exc}")
+            elif spoofed and host in STORE_TRACE_HOST_SET:
+                try:
+                    _record_store_trace(
+                        "DNS_A" if qtype == 1 else "DNS_AAAA",
+                        {"host": host},
+                    )
+                except Exception as exc:
+                    print(f"[DNS-OBS] store-trace report error: {exc}")
+        finally:
+            DNS_OBSERVATION_QUEUE.task_done()
+
+
+def _forward_dns_tcp(data, addr):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        sock.settimeout(2)
+        sock.connect((addr, 53))
+        sock.sendall(struct.pack("!H", len(data)) + data)
+        header = b""
+        while len(header) < 2:
+            chunk = sock.recv(2 - len(header))
+            if not chunk:
+                return None
+            header += chunk
+        length = struct.unpack("!H", header)[0]
+        body = bytearray()
+        while len(body) < length:
+            chunk = sock.recv(min(65535, length - len(body)))
+            if not chunk:
+                return None
+            body.extend(chunk)
+        return bytes(body)
+    finally:
+        sock.close()
+
+
 def forward_dns(data, upstreams):
     for addr in upstreams:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
-            s.settimeout(2)
-            s.sendto(data, (addr, 53))
-            return s.recvfrom(4096)[0]
+            sock.settimeout(1.5)
+            sock.sendto(data, (addr, 53))
+            response = sock.recvfrom(65535)[0]
+            if len(response) >= 4 and (response[2] & 0x02):
+                tcp_response = _forward_dns_tcp(data, addr)
+                if tcp_response:
+                    return tcp_response
+            return response
         except Exception:
             pass
         finally:
-            s.close()
+            sock.close()
     return None
 
 
@@ -2891,11 +3031,11 @@ def run_dns(config, local_ip):
     domains = {d.lower().rstrip(".") for d in config.get("spoof_domains", ["vidaahub.com"])}
     port = int(config.get("dns_port", 53))
     upstreams = config.get("upstream_dns", ["1.1.1.1", "8.8.8.8"])
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    server_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        s.bind(("0.0.0.0", port))
+        server_sock.bind(("0.0.0.0", port))
     except OSError as exc:
-        s.close()
+        server_sock.close()
         print(f"[ERROR] DNS could not listen on UDP/{port}: {exc}")
         if os.name == "nt" and getattr(exc, "winerror", None) == 10048:
             print(f"[ERROR] UDP/{port} is already in use. Most often another Sidee instance is still running.")
@@ -2904,62 +3044,47 @@ def run_dns(config, local_ip):
             print('[ERROR] If it is an old Sidee/Python process, close that Sidee window or use: taskkill /PID <PID> /F')
         stop_event.set()
         return
-    s.settimeout(1)
+    server_sock.settimeout(1)
     print(f"[DNS] UDP/{port} -> {', '.join(sorted(domains))} = {local_ip}")
+    print("[DNS] Fast path enabled: reply first, diagnostics queued in background.")
+
     while not stop_event.is_set():
         try:
-            data, client = s.recvfrom(4096)
+            data, client = server_sock.recvfrom(65535)
         except socket.timeout:
             continue
         except OSError:
             break
+
         try:
             host, qtype, _ = parse_dns_question(data)
-            if _normalized_host(host) in STORE_INSTALL_AUTO_TRIGGER_HOSTS:
-                try:
-                    _network_capture_maybe_start(client[0], host)
-                except Exception as exc:
-                    print(f"[DNS] full-network capture auto-start error: {exc}")
-                try:
-                    _store_install_probe_auto_start(host, client[0])
-                except Exception as exc:
-                    print(f"[DNS] store-install auto-start error: {exc}")
-            try:
-                _record_store_install_dns_timeline(host, qtype, client[0])
-            except Exception as exc:
-                print(f"[DNS] store-install timeline error: {exc}")
-            if _is_store_discovery_host(host) and host not in domains:
-                try:
-                    _record_store_domain_query(host, qtype)
-                except Exception as exc:
-                    print(f"[DNS] store-domain discovery error: {exc}")
-            if host in domains and qtype == 1:
+            spoofed = host in domains
+            response = None
+
+            if spoofed and qtype == 1:
                 response = dns_answer(data, local_ip)
-                print(f"[DNS] {client[0]} {host} -> {local_ip}")
-                if host in APP_CONTEXT_HOSTS:
-                    try:
-                        _sync_app_transport_observation("DNS_A", host, "")
-                    except Exception as exc:
-                        print(f"[DNS] app-context report error: {exc}")
-                elif host in STORE_TRACE_HOST_SET:
-                    try:
-                        _record_store_trace("DNS_A", {"host": host})
-                    except Exception as exc:
-                        print(f"[DNS] store-trace report error: {exc}")
-            elif host in domains and qtype == 28:
+            elif spoofed and qtype == 28:
                 response = empty_dns_answer(data)
-                if host in STORE_TRACE_HOST_SET:
-                    try:
-                        _record_store_trace("DNS_AAAA", {"host": host})
-                    except Exception as exc:
-                        print(f"[DNS] store-trace report error: {exc}")
             else:
+                started = time.perf_counter()
                 response = forward_dns(data, upstreams)
+                latency_ms = (time.perf_counter() - started) * 1000.0
+                _dns_forward_stats_record(host, response is not None, latency_ms)
+
             if response:
-                s.sendto(response, client)
-        except Exception:
+                server_sock.sendto(response, client)
+            else:
+                print(f"[DNS] upstream failure for {client[0]} {host} type={_dns_qtype_name(qtype)}")
+
+            if spoofed and qtype in (1, 28):
+                print(f"[DNS] {client[0]} {host} -> {'local IPv4' if qtype == 1 else 'empty AAAA'}")
+
+            _queue_dns_observation(host, qtype, client[0], spoofed)
+        except Exception as exc:
+            print(f"[DNS] request error: {type(exc).__name__}: {exc}")
             continue
-    s.close()
+
+    server_sock.close()
 
 
 class SideeHandler(http.server.BaseHTTPRequestHandler):
@@ -3014,6 +3139,12 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(data)
             return
+
+        if path == "/api/dns-health":
+            return self._send_json({
+                "ok": True,
+                "dnsHealth": _dns_forward_stats_snapshot(),
+            })
 
         if path == "/api/status":
             cfg = load_config()
@@ -3487,6 +3618,14 @@ def main():
         threads.append(app_context_http_thread)
 
     if not args.no_dns:
+        dns_observation_thread = threading.Thread(
+            target=dns_observation_worker,
+            name="sidee-dns-observation",
+            daemon=True,
+        )
+        dns_observation_thread.start()
+        threads.append(dns_observation_thread)
+
         dns_thread = threading.Thread(target=run_dns, args=(cfg, local_ip), daemon=True)
         dns_thread.start()
         threads.append(dns_thread)
