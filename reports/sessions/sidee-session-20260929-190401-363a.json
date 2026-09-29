@@ -4,7 +4,7 @@
   "serverBuildId": "app-b431d96138fb",
   "buildMatch": true,
   "startedAt": "2026-09-29T17:04:01Z",
-  "updatedAt": "2026-09-29T17:04:53Z",
+  "updatedAt": "2026-09-29T17:05:59Z",
   "accessMode": "VIDAA_STORE_DOMAIN_DISCOVERY",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,14 +18,14 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 20,
+    "totalQueries": 40,
     "hostCount": 3,
     "hosts": [
       {
         "host": "vidaa-base-auth-eu.vidaahub.com",
         "firstSeen": "2026-09-29T17:04:01Z",
-        "lastSeen": "2026-09-29T17:04:52Z",
-        "queryCount": 9,
+        "lastSeen": "2026-09-29T17:05:59Z",
+        "queryCount": 20,
         "qtypes": [
           "A"
         ]
@@ -33,8 +33,8 @@
       {
         "host": "iot-voice-eu.vidaahub.com",
         "firstSeen": "2026-09-29T17:04:27Z",
-        "lastSeen": "2026-09-29T17:04:49Z",
-        "queryCount": 5,
+        "lastSeen": "2026-09-29T17:05:00Z",
+        "queryCount": 8,
         "qtypes": [
           "A"
         ]
@@ -42,8 +42,8 @@
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T17:04:36Z",
-        "lastSeen": "2026-09-29T17:04:53Z",
-        "queryCount": 6,
+        "lastSeen": "2026-09-29T17:05:10Z",
+        "queryCount": 12,
         "qtypes": [
           "A",
           "AAAA"
