@@ -4,7 +4,7 @@
   "serverBuildId": "app-c947484c30df",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:21:20Z",
-  "updatedAt": "2026-09-29T14:21:41Z",
+  "updatedAt": "2026-09-29T14:21:51Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,7 +18,7 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 16,
+    "totalQueries": 20,
     "hostCount": 8,
     "hosts": [
       {
@@ -52,8 +52,8 @@
       {
         "host": "upgrade-plc-tv-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:28Z",
-        "lastSeen": "2026-09-29T14:21:33Z",
-        "queryCount": 2,
+        "lastSeen": "2026-09-29T14:21:47Z",
+        "queryCount": 4,
         "qtypes": [
           "A"
         ]
@@ -79,8 +79,8 @@
       {
         "host": "rsc-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:38Z",
-        "lastSeen": "2026-09-29T14:21:38Z",
-        "queryCount": 1,
+        "lastSeen": "2026-09-29T14:21:43Z",
+        "queryCount": 2,
         "qtypes": [
           "A"
         ]
@@ -88,8 +88,8 @@
       {
         "host": "vidaa-base-auth-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:41Z",
-        "lastSeen": "2026-09-29T14:21:41Z",
-        "queryCount": 1,
+        "lastSeen": "2026-09-29T14:21:46Z",
+        "queryCount": 2,
         "qtypes": [
           "A"
         ]
@@ -357,6 +357,90 @@
         "host": "vidaa-base-auth-eu.vidaahub.com",
         "qtype": "A",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:42Z",
+        "phase": "NAVIGATION",
+        "host": "upgrade-plc-tv-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:42Z",
+        "phase": "NAVIGATION",
+        "host": "upgrade-plc-tv-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:43Z",
+        "phase": "NAVIGATION",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:43Z",
+        "phase": "NAVIGATION",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:46Z",
+        "phase": "NAVIGATION",
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:46Z",
+        "phase": "NAVIGATION",
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:47Z",
+        "phase": "NAVIGATION",
+        "host": "upgrade-plc-tv-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:47Z",
+        "phase": "NAVIGATION",
+        "host": "upgrade-plc-tv-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:48Z",
+        "phase": "NAVIGATION",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:21:50Z",
+        "phase": "NAVIGATION",
+        "host": "www.youtube.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:21:51Z",
+        "phase": "NAVIGATION",
+        "host": "www.gstatic.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:21:51Z",
+        "phase": "NAVIGATION",
+        "host": "i.ytimg.com",
+        "qtype": "A",
+        "vendorScoped": false
       }
     ],
     "hostSnapshotAtDetail": [],
@@ -390,7 +474,7 @@
       "vidaa-base-auth-eu.vidaahub.com"
     ],
     "note": "Passive DNS differential only. Arm immediately before pressing Install/Download on the TV. HTTPS content is not intercepted.",
-    "allDnsQueryCount": 18,
+    "allDnsQueryCount": 26,
     "allDnsHosts": [
       {
         "host": "threeplr-a2ehk4y01zqss3-0.api.amazonvideo.com",
@@ -440,9 +524,9 @@
       {
         "host": "hisense-0ba453d1.prod.partner.netflix.net",
         "firstSeen": "2026-09-29T14:21:23Z",
-        "lastSeen": "2026-09-29T14:21:23Z",
+        "lastSeen": "2026-09-29T14:21:48Z",
         "firstSeenIndex": 6,
-        "queryCount": 1,
+        "queryCount": 2,
         "qtypes": [
           "A"
         ],
@@ -451,9 +535,9 @@
       {
         "host": "upgrade-plc-tv-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:28Z",
-        "lastSeen": "2026-09-29T14:21:33Z",
+        "lastSeen": "2026-09-29T14:21:47Z",
         "firstSeenIndex": 11,
-        "queryCount": 2,
+        "queryCount": 4,
         "qtypes": [
           "A"
         ],
@@ -484,9 +568,9 @@
       {
         "host": "rsc-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:38Z",
-        "lastSeen": "2026-09-29T14:21:38Z",
+        "lastSeen": "2026-09-29T14:21:43Z",
         "firstSeenIndex": 17,
-        "queryCount": 1,
+        "queryCount": 2,
         "qtypes": [
           "A"
         ],
@@ -495,13 +579,46 @@
       {
         "host": "vidaa-base-auth-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:41Z",
-        "lastSeen": "2026-09-29T14:21:41Z",
+        "lastSeen": "2026-09-29T14:21:46Z",
         "firstSeenIndex": 18,
-        "queryCount": 1,
+        "queryCount": 2,
         "qtypes": [
           "A"
         ],
         "vendorScoped": true
+      },
+      {
+        "host": "www.youtube.com",
+        "firstSeen": "2026-09-29T14:21:50Z",
+        "lastSeen": "2026-09-29T14:21:50Z",
+        "firstSeenIndex": 24,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "www.gstatic.com",
+        "firstSeen": "2026-09-29T14:21:51Z",
+        "lastSeen": "2026-09-29T14:21:51Z",
+        "firstSeenIndex": 25,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "i.ytimg.com",
+        "firstSeen": "2026-09-29T14:21:51Z",
+        "lastSeen": "2026-09-29T14:21:51Z",
+        "firstSeenIndex": 26,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
       }
     ]
   }
