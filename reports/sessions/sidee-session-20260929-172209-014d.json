@@ -4,7 +4,7 @@
   "serverBuildId": "app-f3065f7c7e3c",
   "buildMatch": true,
   "startedAt": "2026-09-29T15:22:09Z",
-  "updatedAt": "2026-09-29T15:22:32Z",
+  "updatedAt": "2026-09-29T15:22:48Z",
   "accessMode": "VIDAA_STORE_DOMAIN_DISCOVERY",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -44,22 +44,22 @@
   },
   "summary": {
     "storeDomainDiscovery": "QUERIES_CAPTURED",
-    "fullNetworkCapture": "ARMED"
+    "fullNetworkCapture": "CAPTURING"
   },
   "fullNetworkCapture": {
-    "status": "ARMED",
-    "captureId": "sidee-net-20260929-172232",
-    "armedAt": "2026-09-29T15:22:32Z",
-    "startedAt": null,
+    "status": "CAPTURING",
+    "captureId": "sidee-net-20260929-172248",
+    "armedAt": "2026-09-29T15:22:48Z",
+    "startedAt": "2026-09-29T15:22:48Z",
     "stoppedAt": null,
-    "triggerHost": null,
-    "tvClientBound": false,
-    "etlFile": null,
-    "pcapngFile": null,
-    "txtFile": null,
+    "triggerHost": "known-store-client",
+    "tvClientBound": true,
+    "etlFile": "captures\\sidee-net-20260929-172248\\sidee-net-20260929-172248.etl",
+    "pcapngFile": "captures\\sidee-net-20260929-172248\\sidee-net-20260929-172248.pcapng",
+    "txtFile": "captures\\sidee-net-20260929-172248\\sidee-net-20260929-172248.txt",
     "summary": null,
     "error": null,
-    "pktmonOutput": null,
+    "pktmonOutput": "Parametri registratore:\n    Nome registratore:        PktMon\n    ModalitÃ  di registrazione:       Circolare\n    File di log:           C:\\Users\\empi0\\Desktop\\Sidee\\captures\\sidee-net-20260929-172248\\sidee-net-20260929-172248.etl\n    Dimensioni massime file:      512 MB\n    Memoria utilizzata:        384 MB\n\nDati raccolti:\n    Contatori pacchetti, acquisizione pacchetti\n\nTipo cattura:\n    Solo pacchetti di flusso\n\nComponenti monitorati:\n    Schede di rete\n\nFiltri pacchetti:\n    n. Nome     Indirizzo IP  \n    -- ----     ------------  \n     1 Sidee-TV 192.168.137.1",
     "preflight": {
       "pktmon": true,
       "preexistingFilters": false,
