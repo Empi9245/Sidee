@@ -689,6 +689,7 @@ def _network_capture_parse_pcapng(pcapng_path, tv_ip):
         "pcapPacketBlocks": 0,
         "pcapIpv4Packets": 0,
         "tvMatchedPacketRecords": 0,
+        "filterScopedPacketRecords": 0,
         "httpsPacketRecords": 0,
         "httpPacketRecords": 0,
         "dnsPacketRecords": 0,
@@ -705,6 +706,44 @@ def _network_capture_parse_pcapng(pcapng_path, tv_ip):
     interfaces = []
     peers = {}
     sni_counts = {}
+
+    def record_filtered_flow(parsed, packet_bytes):
+        src = parsed["src"]
+        dst = parsed["dst"]
+        sport = parsed["sport"]
+        dport = parsed["dport"]
+        summary["filterScopedPacketRecords"] += 1
+
+        service_port = None
+        peer = None
+        if dport in (443, 80, 53):
+            service_port = dport
+            peer = dst
+        elif sport in (443, 80, 53):
+            service_port = sport
+            peer = src
+        elif dport is not None and sport is not None:
+            if dport < 49152 <= sport:
+                service_port = dport
+                peer = dst
+            elif sport < 49152 <= dport:
+                service_port = sport
+                peer = src
+
+        if service_port == 443:
+            summary["httpsPacketRecords"] += 1
+        elif service_port == 80:
+            summary["httpPacketRecords"] += 1
+        elif service_port == 53:
+            summary["dnsPacketRecords"] += 1
+
+        if peer:
+            rec = peers.setdefault(peer, {"ip": peer, "packetRecords": 0, "bytes": 0, "ports": {}})
+            rec["packetRecords"] += 1
+            rec["bytes"] += int(packet_bytes or 0)
+            if service_port is not None:
+                key = str(service_port)
+                rec["ports"][key] = int(rec["ports"].get(key, 0)) + 1
 
     while pos + 12 <= len(raw):
         block_type_bytes = raw[pos:pos + 4]
@@ -748,30 +787,9 @@ def _network_capture_parse_pcapng(pcapng_path, tv_ip):
                 sni = _network_capture_tls_sni(parsed.get("tcpPayload"))
                 if sni:
                     sni_counts[sni] = int(sni_counts.get(sni, 0)) + 1
-                src = parsed["src"]
-                dst = parsed["dst"]
-                sport = parsed["sport"]
-                dport = parsed["dport"]
-                if src == tv_ip:
-                    peer, peer_port = dst, dport
-                elif dst == tv_ip:
-                    peer, peer_port = src, sport
-                else:
-                    pos += block_len
-                    continue
-                summary["tvMatchedPacketRecords"] += 1
-                rec = peers.setdefault(peer, {"ip": peer, "packetRecords": 0, "bytes": 0, "ports": {}})
-                rec["packetRecords"] += 1
-                rec["bytes"] += int(packet_len or captured_len)
-                if peer_port is not None:
-                    key = str(peer_port)
-                    rec["ports"][key] = int(rec["ports"].get(key, 0)) + 1
-                    if peer_port == 443:
-                        summary["httpsPacketRecords"] += 1
-                    elif peer_port == 80:
-                        summary["httpPacketRecords"] += 1
-                    elif peer_port == 53:
-                        summary["dnsPacketRecords"] += 1
+                record_filtered_flow(parsed, packet_len or captured_len)
+                if parsed["src"] == tv_ip or parsed["dst"] == tv_ip:
+                    summary["tvMatchedPacketRecords"] += 1
         elif block_type == 0x00000003 and block_len >= 16:
             packet_len = struct.unpack_from(endian + "I", raw, pos + 8)[0]
             data_start = pos + 12
@@ -787,30 +805,9 @@ def _network_capture_parse_pcapng(pcapng_path, tv_ip):
                 sni = _network_capture_tls_sni(parsed.get("tcpPayload"))
                 if sni:
                     sni_counts[sni] = int(sni_counts.get(sni, 0)) + 1
-                src = parsed["src"]
-                dst = parsed["dst"]
-                sport = parsed["sport"]
-                dport = parsed["dport"]
-                if src == tv_ip:
-                    peer, peer_port = dst, dport
-                elif dst == tv_ip:
-                    peer, peer_port = src, sport
-                else:
-                    pos += block_len
-                    continue
-                summary["tvMatchedPacketRecords"] += 1
-                rec = peers.setdefault(peer, {"ip": peer, "packetRecords": 0, "bytes": 0, "ports": {}})
-                rec["packetRecords"] += 1
-                rec["bytes"] += int(packet_len)
-                if peer_port is not None:
-                    key = str(peer_port)
-                    rec["ports"][key] = int(rec["ports"].get(key, 0)) + 1
-                    if peer_port == 443:
-                        summary["httpsPacketRecords"] += 1
-                    elif peer_port == 80:
-                        summary["httpPacketRecords"] += 1
-                    elif peer_port == 53:
-                        summary["dnsPacketRecords"] += 1
+                record_filtered_flow(parsed, packet_len)
+                if parsed["src"] == tv_ip or parsed["dst"] == tv_ip:
+                    summary["tvMatchedPacketRecords"] += 1
 
         pos += block_len
 
@@ -820,8 +817,10 @@ def _network_capture_parse_pcapng(pcapng_path, tv_ip):
     ]
     ordered = sorted(peers.values(), key=lambda x: (x["bytes"], x["packetRecords"]), reverse=True)
     summary["topPeers"] = ordered[:30]
-    if summary["httpsPacketRecords"] >= 5:
+    if summary["httpsPacketRecords"] >= 5 and summary["tvMatchedPacketRecords"] > 0:
         summary["topologyClassification"] = "FULL_PATH_VISIBLE"
+    elif summary["httpsPacketRecords"] >= 5:
+        summary["topologyClassification"] = "FILTERED_FLOW_VISIBLE_AFTER_NAT"
     elif summary["tvMatchedPacketRecords"] > 0:
         summary["topologyClassification"] = "DNS_OR_LOCAL_ONLY_LIKELY"
     elif summary["packetRecords"] > 0:
