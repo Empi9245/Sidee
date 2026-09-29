@@ -142,15 +142,15 @@ STORE_STATIC_MAP_KEYWORDS = (
     "signatureServer",
 )
 STORE_STATIC_API_RE = re.compile(
-    r"(/api/[A-Za-z0-9._~!$&'()*+,;=:@%/?#\\-]{3,220})",
+    r"(/api/[A-Za-z0-9._~!$&'()*+,;=:@%/?#\-]{3,220})",
     re.IGNORECASE,
 )
 STORE_STATIC_URL_RE = re.compile(
-    r"(https?://[A-Za-z0-9._~:%\\-]+(?:/[A-Za-z0-9._~!$&'()*+,;=:@%/?#\\-]*)?)",
+    r"(https?://[A-Za-z0-9._~:%\-]+(?:/[A-Za-z0-9._~!$&'()*+,;=:@%/?#\-]*)?)",
     re.IGNORECASE,
 )
 STORE_STATIC_SCRIPT_RE = re.compile(
-    r"<(?:script|link)\\b[^>]+?(?:src|href)\\s*=\\s*[\"']([^\"'#]+)[\"']",
+    r"<(?:script|link)\b[^>]+?(?:src|href)\s*=\s*[\"']([^\"'#]+)[\"']",
     re.IGNORECASE,
 )
 STORE_STATIC_SENSITIVE_RE = re.compile(
@@ -260,7 +260,7 @@ def _store_static_extract(fetch):
             if idx < 0:
                 break
             excerpt = text[max(0, idx - 180):min(len(text), idx + 420)]
-            excerpt = re.sub(r"\\s+", " ", excerpt)
+            excerpt = re.sub(r"\s+", " ", excerpt)
             if not STORE_STATIC_SENSITIVE_RE.search(excerpt):
                 hits.append({"keyword": keyword, "excerpt": excerpt[:700]})
             start = idx + len(keyword)
