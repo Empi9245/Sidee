@@ -4,7 +4,7 @@
   "serverBuildId": "app-c947484c30df",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:21:20Z",
-  "updatedAt": "2026-09-29T14:26:24Z",
+  "updatedAt": "2026-09-29T14:26:38Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,7 +18,7 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 231,
+    "totalQueries": 240,
     "hostCount": 17,
     "hosts": [
       {
@@ -52,8 +52,8 @@
       {
         "host": "upgrade-plc-tv-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:28Z",
-        "lastSeen": "2026-09-29T14:26:22Z",
-        "queryCount": 15,
+        "lastSeen": "2026-09-29T14:26:27Z",
+        "queryCount": 16,
         "qtypes": [
           "A"
         ]
@@ -79,8 +79,8 @@
       {
         "host": "rsc-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:38Z",
-        "lastSeen": "2026-09-29T14:25:07Z",
-        "queryCount": 16,
+        "lastSeen": "2026-09-29T14:26:38Z",
+        "queryCount": 20,
         "qtypes": [
           "A"
         ]
@@ -117,8 +117,8 @@
       {
         "host": "tvmodules-vidaa.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:18Z",
-        "lastSeen": "2026-09-29T14:26:24Z",
-        "queryCount": 31,
+        "lastSeen": "2026-09-29T14:26:28Z",
+        "queryCount": 32,
         "qtypes": [
           "A"
         ]
@@ -126,8 +126,8 @@
       {
         "host": "layout-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:18Z",
-        "lastSeen": "2026-09-29T14:26:04Z",
-        "queryCount": 16,
+        "lastSeen": "2026-09-29T14:26:34Z",
+        "queryCount": 18,
         "qtypes": [
           "A"
         ]
@@ -172,8 +172,8 @@
       {
         "host": "params-msg-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:26:24Z",
-        "lastSeen": "2026-09-29T14:26:24Z",
-        "queryCount": 1,
+        "lastSeen": "2026-09-29T14:26:29Z",
+        "queryCount": 2,
         "qtypes": [
           "A"
         ]
@@ -204,132 +204,6 @@
       }
     ],
     "dnsEvents": [
-      {
-        "timestamp": "2026-09-29T14:23:07Z",
-        "phase": "NAVIGATION",
-        "host": "ter-jrnl-eu.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:07Z",
-        "phase": "NAVIGATION",
-        "host": "ter-jrnl-eu.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:07Z",
-        "phase": "NAVIGATION",
-        "host": "abtest-tv.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:07Z",
-        "phase": "NAVIGATION",
-        "host": "abtest-tv.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:08Z",
-        "phase": "NAVIGATION",
-        "host": "archive-mmb-eu.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:09Z",
-        "phase": "NAVIGATION",
-        "host": "archive-mmb-eu.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:11Z",
-        "phase": "NAVIGATION",
-        "host": "img.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:11Z",
-        "phase": "NAVIGATION",
-        "host": "img.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:12Z",
-        "phase": "NAVIGATION",
-        "host": "www.google.it",
-        "qtype": "A",
-        "vendorScoped": false
-      },
-      {
-        "timestamp": "2026-09-29T14:23:12Z",
-        "phase": "NAVIGATION",
-        "host": "abtest-tv.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:12Z",
-        "phase": "NAVIGATION",
-        "host": "abtest-tv.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:13Z",
-        "phase": "NAVIGATION",
-        "host": "www.google.it",
-        "qtype": "A",
-        "vendorScoped": false
-      },
-      {
-        "timestamp": "2026-09-29T14:23:14Z",
-        "phase": "NAVIGATION",
-        "host": "archive-mmb-eu.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:14Z",
-        "phase": "NAVIGATION",
-        "host": "archive-mmb-eu.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:16Z",
-        "phase": "NAVIGATION",
-        "host": "img.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:16Z",
-        "phase": "NAVIGATION",
-        "host": "img.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:17Z",
-        "phase": "NAVIGATION",
-        "host": "abtest-tv.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:17Z",
-        "phase": "NAVIGATION",
-        "host": "abtest-tv.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
       {
         "timestamp": "2026-09-29T14:23:18Z",
         "phase": "NAVIGATION",
@@ -2443,6 +2317,132 @@
         "host": "params-msg-eu.vidaahub.com",
         "qtype": "A",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:27Z",
+        "phase": "NAVIGATION",
+        "host": "upgrade-plc-tv-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:27Z",
+        "phase": "NAVIGATION",
+        "host": "upgrade-plc-tv-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:28Z",
+        "phase": "NAVIGATION",
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:28Z",
+        "phase": "NAVIGATION",
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:29Z",
+        "phase": "NAVIGATION",
+        "host": "layout-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:29Z",
+        "phase": "NAVIGATION",
+        "host": "layout-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:29Z",
+        "phase": "NAVIGATION",
+        "host": "params-msg-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:29Z",
+        "phase": "NAVIGATION",
+        "host": "params-msg-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:32Z",
+        "phase": "NAVIGATION",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:32Z",
+        "phase": "NAVIGATION",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:33Z",
+        "phase": "NAVIGATION",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:33Z",
+        "phase": "NAVIGATION",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:34Z",
+        "phase": "NAVIGATION",
+        "host": "layout-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:34Z",
+        "phase": "NAVIGATION",
+        "host": "layout-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:37Z",
+        "phase": "NAVIGATION",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:37Z",
+        "phase": "NAVIGATION",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:38Z",
+        "phase": "NAVIGATION",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:26:38Z",
+        "phase": "NAVIGATION",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
       }
     ],
     "hostSnapshotAtDetail": [],
@@ -2511,7 +2511,7 @@
       "vidaahub.com"
     ],
     "note": "Passive DNS differential only. Arm immediately before pressing Install/Download on the TV. HTTPS content is not intercepted.",
-    "allDnsQueryCount": 320,
+    "allDnsQueryCount": 329,
     "allDnsHosts": [
       {
         "host": "threeplr-a2ehk4y01zqss3-0.api.amazonvideo.com",
@@ -2572,9 +2572,9 @@
       {
         "host": "upgrade-plc-tv-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:28Z",
-        "lastSeen": "2026-09-29T14:26:22Z",
+        "lastSeen": "2026-09-29T14:26:27Z",
         "firstSeenIndex": 11,
-        "queryCount": 15,
+        "queryCount": 16,
         "qtypes": [
           "A"
         ],
@@ -2605,9 +2605,9 @@
       {
         "host": "rsc-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:38Z",
-        "lastSeen": "2026-09-29T14:25:07Z",
+        "lastSeen": "2026-09-29T14:26:38Z",
         "firstSeenIndex": 17,
-        "queryCount": 16,
+        "queryCount": 20,
         "qtypes": [
           "A"
         ],
@@ -2695,9 +2695,9 @@
       {
         "host": "tvmodules-vidaa.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:18Z",
-        "lastSeen": "2026-09-29T14:26:24Z",
+        "lastSeen": "2026-09-29T14:26:28Z",
         "firstSeenIndex": 73,
-        "queryCount": 31,
+        "queryCount": 32,
         "qtypes": [
           "A"
         ],
@@ -2706,9 +2706,9 @@
       {
         "host": "layout-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:18Z",
-        "lastSeen": "2026-09-29T14:26:04Z",
+        "lastSeen": "2026-09-29T14:26:34Z",
         "firstSeenIndex": 74,
-        "queryCount": 16,
+        "queryCount": 18,
         "qtypes": [
           "A"
         ],
@@ -3004,9 +3004,9 @@
       {
         "host": "params-msg-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:26:24Z",
-        "lastSeen": "2026-09-29T14:26:24Z",
+        "lastSeen": "2026-09-29T14:26:29Z",
         "firstSeenIndex": 320,
-        "queryCount": 1,
+        "queryCount": 2,
         "qtypes": [
           "A"
         ],
