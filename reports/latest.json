@@ -4,7 +4,7 @@
   "serverBuildId": "app-e59b512a9ef8",
   "buildMatch": true,
   "startedAt": "2026-09-29T16:40:53Z",
-  "updatedAt": "2026-09-29T16:42:22Z",
+  "updatedAt": "2026-09-29T16:42:37Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,8 +18,8 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 80,
-    "hostCount": 13,
+    "totalQueries": 96,
+    "hostCount": 14,
     "hosts": [
       {
         "host": "recommend-ui-eu.vidaahub.com",
@@ -54,8 +54,8 @@
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T16:41:05Z",
-        "lastSeen": "2026-09-29T16:42:08Z",
-        "queryCount": 12,
+        "lastSeen": "2026-09-29T16:42:37Z",
+        "queryCount": 15,
         "qtypes": [
           "A",
           "AAAA"
@@ -73,8 +73,8 @@
       {
         "host": "vidaa-base-auth-eu.vidaahub.com",
         "firstSeen": "2026-09-29T16:41:27Z",
-        "lastSeen": "2026-09-29T16:41:42Z",
-        "queryCount": 6,
+        "lastSeen": "2026-09-29T16:42:35Z",
+        "queryCount": 8,
         "qtypes": [
           "A"
         ]
@@ -82,8 +82,8 @@
       {
         "host": "sttc-iot.vidaahub.com",
         "firstSeen": "2026-09-29T16:41:27Z",
-        "lastSeen": "2026-09-29T16:42:17Z",
-        "queryCount": 11,
+        "lastSeen": "2026-09-29T16:42:32Z",
+        "queryCount": 14,
         "qtypes": [
           "A"
         ]
@@ -91,8 +91,8 @@
       {
         "host": "tvmodules-vidaa.vidaahub.com",
         "firstSeen": "2026-09-29T16:41:36Z",
-        "lastSeen": "2026-09-29T16:42:17Z",
-        "queryCount": 13,
+        "lastSeen": "2026-09-29T16:42:22Z",
+        "queryCount": 14,
         "qtypes": [
           "A"
         ]
@@ -100,8 +100,8 @@
       {
         "host": "rsc-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T16:41:37Z",
-        "lastSeen": "2026-09-29T16:42:17Z",
-        "queryCount": 9,
+        "lastSeen": "2026-09-29T16:42:32Z",
+        "queryCount": 14,
         "qtypes": [
           "A"
         ]
@@ -119,8 +119,8 @@
       {
         "host": "time-bas-eu.vidaahub.com",
         "firstSeen": "2026-09-29T16:41:40Z",
-        "lastSeen": "2026-09-29T16:42:20Z",
-        "queryCount": 3,
+        "lastSeen": "2026-09-29T16:42:25Z",
+        "queryCount": 4,
         "qtypes": [
           "A"
         ]
@@ -139,6 +139,15 @@
         "firstSeen": "2026-09-29T16:42:00Z",
         "lastSeen": "2026-09-29T16:42:05Z",
         "queryCount": 2,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "partner.vidaahub.com",
+        "firstSeen": "2026-09-29T16:42:37Z",
+        "lastSeen": "2026-09-29T16:42:37Z",
+        "queryCount": 1,
         "qtypes": [
           "A"
         ]
