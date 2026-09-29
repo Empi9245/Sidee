@@ -4,7 +4,7 @@
   "serverBuildId": "app-c947484c30df",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:21:20Z",
-  "updatedAt": "2026-09-29T14:21:38Z",
+  "updatedAt": "2026-09-29T14:21:41Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,8 +18,8 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 15,
-    "hostCount": 7,
+    "totalQueries": 16,
+    "hostCount": 8,
     "hosts": [
       {
         "host": "home-ui-eu.vidaahub.com",
@@ -80,6 +80,15 @@
         "host": "rsc-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:38Z",
         "lastSeen": "2026-09-29T14:21:38Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T14:21:41Z",
+        "lastSeen": "2026-09-29T14:21:41Z",
         "queryCount": 1,
         "qtypes": [
           "A"
@@ -334,6 +343,20 @@
         "host": "rsc-mntz.vidaahub.com",
         "qtype": "A",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:41Z",
+        "phase": "NAVIGATION",
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:41Z",
+        "phase": "NAVIGATION",
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
       }
     ],
     "hostSnapshotAtDetail": [],
@@ -349,7 +372,8 @@
         "iot-voice-eu.vidaahub.com",
         "rsc-mntz.vidaahub.com",
         "threeplr-a2ehk4y01zqss3-0.api.amazonvideo.com",
-        "upgrade-plc-tv-eu.vidaahub.com"
+        "upgrade-plc-tv-eu.vidaahub.com",
+        "vidaa-base-auth-eu.vidaahub.com"
       ]
     },
     "contactedAfterInstallArm": [],
@@ -362,10 +386,11 @@
       "home-ui-eu.vidaahub.com",
       "iot-voice-eu.vidaahub.com",
       "rsc-mntz.vidaahub.com",
-      "upgrade-plc-tv-eu.vidaahub.com"
+      "upgrade-plc-tv-eu.vidaahub.com",
+      "vidaa-base-auth-eu.vidaahub.com"
     ],
     "note": "Passive DNS differential only. Arm immediately before pressing Install/Download on the TV. HTTPS content is not intercepted.",
-    "allDnsQueryCount": 17,
+    "allDnsQueryCount": 18,
     "allDnsHosts": [
       {
         "host": "threeplr-a2ehk4y01zqss3-0.api.amazonvideo.com",
@@ -461,6 +486,17 @@
         "firstSeen": "2026-09-29T14:21:38Z",
         "lastSeen": "2026-09-29T14:21:38Z",
         "firstSeenIndex": 17,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
+      },
+      {
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T14:21:41Z",
+        "lastSeen": "2026-09-29T14:21:41Z",
+        "firstSeenIndex": 18,
         "queryCount": 1,
         "qtypes": [
           "A"
