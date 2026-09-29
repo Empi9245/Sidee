@@ -2132,11 +2132,59 @@
     }catch(e){}
   }
 
+  function renderStoreStaticMap(map){
+    map=map||{};
+    const apiPaths=Array.isArray(map.apiPaths)?map.apiPaths:[];
+    const summary=map.keywordSummary||{};
+    const keywordCount=Object.keys(summary).reduce((n,k)=>n+(Number(summary[k])||0),0);
+    set("storeStaticMapStatus",map.status||"NOT_RUN");
+    set("storeStaticMapResources",map.fetchCount==null?0:map.fetchCount);
+    set("storeStaticMapApiCount",apiPaths.length);
+    set("storeStaticMapKeywordCount",keywordCount);
+    set("storeStaticMapPaths",apiPaths.length?apiPaths.slice(0,8).join(" · "):"—");
+    const errors=map.errorCount==null?0:map.errorCount;
+    set("storeStaticMapState",(map.status||"NOT_RUN")+" · "+apiPaths.length+" API paths · "+keywordCount+" keyword hits · "+errors+" errors");
+  }
+  async function refreshStoreStaticMap(){
+    try{
+      const response=await fetch("/api/store-static-map?cb="+Date.now(),{cache:"no-store"});
+      const data=await response.json();
+      if(response.ok&&data.ok)renderStoreStaticMap(data.storeStaticMap);
+    }catch(e){}
+  }
+  async function runStoreStaticMap(){
+    const btn=$("storeStaticMapBtn");
+    if(btn)btn.disabled=true;
+    set("storeStaticMapState","Mapping public VIDAA Store assets from the PC…");
+    try{
+      const response=await fetch("/api/store-static-map",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:"{}"
+      });
+      const data=await response.json();
+      if(!response.ok||!data.ok)throw new Error(data.error||"Store API mapper failed");
+      renderStoreStaticMap(data.storeStaticMap);
+      log("Store static API mapper",{
+        status:data.storeStaticMap&&data.storeStaticMap.status,
+        apiPaths:data.storeStaticMap&&data.storeStaticMap.apiPaths,
+        interestingUrls:data.storeStaticMap&&data.storeStaticMap.interestingUrls,
+        keywordSummary:data.storeStaticMap&&data.storeStaticMap.keywordSummary
+      });
+    }catch(e){
+      set("storeStaticMapState","Mapper failed · "+err(e));
+      log("Store static API mapper failed",err(e));
+    }finally{
+      if(btn)btn.disabled=false;
+    }
+  }
+
   function controls(){return Array.prototype.slice.call(document.querySelectorAll("button,input,summary")).filter(el=>{if(!el||el.disabled||el.hidden)return false;const s=getComputedStyle(el);return s.display!=="none"&&s.visibility!=="hidden"&&el.getClientRects().length>0;});}
   function center(el){const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};}
   function nextControl(cur,key,list){const from=center(cur);let best=null,score=Infinity;list.forEach(el=>{if(el===cur)return;const to=center(el),dx=to.x-from.x,dy=to.y-from.y;let p=null,c=0;if(key==="ArrowUp"&&dy<-4){p=-dy;c=Math.abs(dx);}if(key==="ArrowDown"&&dy>4){p=dy;c=Math.abs(dx);}if(key==="ArrowLeft"&&dx<-4){p=-dx;c=Math.abs(dy);}if(key==="ArrowRight"&&dx>4){p=dx;c=Math.abs(dy);}if(p===null)return;const s=p*10+c;if(s<score){score=s;best=el;}});return best;}
   window.addEventListener("keydown",e=>{const key=e.key||({13:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[e.keyCode]),active=document.activeElement;if((key==="Enter"||key==="OK")&&active&&(active.tagName==="BUTTON"||active.tagName==="SUMMARY")){e.preventDefault();active.click();return;}if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(key)<0)return;if(active&&active.tagName==="INPUT"&&(key==="ArrowLeft"||key==="ArrowRight"))return;const list=controls();if(!list.length)return;const cur=list.indexOf(active)>=0?active:list[0],to=nextControl(cur,key,list);if(to){to.focus();e.preventDefault();}else if(list.indexOf(active)<0){cur.focus();e.preventDefault();}});
 
+  $("storeStaticMapBtn").addEventListener("click",runStoreStaticMap);
   $("storeInstallProbeStartBtn").addEventListener("click",()=>storeInstallProbeAction("START"));
   $("storeInstallProbeDetailBtn").addEventListener("click",()=>storeInstallProbeAction("DETAIL_OPEN"));
   $("storeInstallProbeArmBtn").addEventListener("click",()=>storeInstallProbeAction("ARM_INSTALL"));
@@ -2163,6 +2211,7 @@
     if(expectedInstalledAppContext())await contextIdentityFingerprint({automatic:true});
     log("pkgmgr/tvbrowser and pkgmgr↔AppInfo auto-probes are disabled for this phase; use their explicit buttons only if the runtime context changes.");
     await refreshStoreInstallProbe();
+    await refreshStoreStaticMap();
     startRemoteDiagnosticPolling();
   }).catch(e=>log("Config load failed",err(e)));
 })();
