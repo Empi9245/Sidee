@@ -4,7 +4,7 @@
   "serverBuildId": "app-f3065f7c7e3c",
   "buildMatch": true,
   "startedAt": "2026-09-29T15:22:09Z",
-  "updatedAt": "2026-09-29T15:25:56Z",
+  "updatedAt": "2026-09-29T15:29:08Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,7 +18,7 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 53,
+    "totalQueries": 55,
     "hostCount": 16,
     "hosts": [
       {
@@ -34,8 +34,8 @@
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T15:22:11Z",
-        "lastSeen": "2026-09-29T15:24:35Z",
-        "queryCount": 9,
+        "lastSeen": "2026-09-29T15:26:36Z",
+        "queryCount": 11,
         "qtypes": [
           "A",
           "AAAA"
@@ -181,23 +181,52 @@
   },
   "summary": {
     "storeDomainDiscovery": "QUERIES_CAPTURED",
-    "fullNetworkCapture": "CAPTURING",
+    "fullNetworkCapture": "STOPPED",
     "storeInstallProbe": "AUTO_CAPTURING"
   },
   "fullNetworkCapture": {
-    "status": "CAPTURING",
+    "status": "STOPPED",
     "captureId": "sidee-net-20260929-172248",
     "armedAt": "2026-09-29T15:22:48Z",
     "startedAt": "2026-09-29T15:22:48Z",
-    "stoppedAt": null,
+    "stoppedAt": "2026-09-29T15:29:08Z",
     "triggerHost": "known-store-client",
     "tvClientBound": true,
     "etlFile": "captures\\sidee-net-20260929-172248\\sidee-net-20260929-172248.etl",
     "pcapngFile": "captures\\sidee-net-20260929-172248\\sidee-net-20260929-172248.pcapng",
     "txtFile": "captures\\sidee-net-20260929-172248\\sidee-net-20260929-172248.txt",
-    "summary": null,
+    "summary": {
+      "packetRecords": 0,
+      "originalBytes": 0,
+      "httpsPacketRecords": 0,
+      "httpPacketRecords": 0,
+      "dnsPacketRecords": 0,
+      "topPeers": [],
+      "topologyClassification": "NO_PACKET_RECORDS",
+      "etlBytes": 62270,
+      "pcapngBytes": 72912,
+      "textBytes": 425292,
+      "conversion": {
+        "stopExitCode": 0,
+        "pcapng": {
+          "exitCode": 0,
+          "output": "Elaborazione in corso...\n\nPacchetti totali:       340\nConteggio mancata elaborazione pacchetti:   0\nPacchetti formattati:   340\nFile formattato:      C:\\Users\\empi0\\Desktop\\Sidee\\captures\\sidee-net-20260929-172248\\sidee-net-20260929-172248.pcapng",
+          "bytes": 72912
+        },
+        "text": {
+          "exitCode": 0,
+          "output": "Elaborazione in corso...\n\nEventi formattati:    1166\nFile formattato:      C:\\Users\\empi0\\Desktop\\Sidee\\captures\\sidee-net-20260929-172248\\sidee-net-20260929-172248.txt",
+          "bytes": 425292
+        }
+      },
+      "pktmonStatusBeforeStop": {
+        "exitCode": 0,
+        "output": "Dati raccolti:\n    Contatori pacchetti, acquisizione pacchetti\n\nTipo cattura:\n    Solo pacchetti di flusso\n\nComponenti monitorati:\n    Schede di rete\n\nFiltri pacchetti:\n    n. Nome     Indirizzo IP  \n    -- ----     ------------  \n     1 Sidee-TV 192.168.137.1 \n\nParametri registratore:\n    Nome registratore:        PktMon\n    ModalitÃ  di registrazione:       Circolare\n    File di log:           C:\\Users\\empi0\\Desktop\\Sidee\\captures\\sidee-net-20260929-172248\\sidee-net-20260929-172248.etl\n    Dimensioni massime file:      512 MB\n    Memoria utilizzata:        384 MB\n    Eventi persi:        0\n\nProvider eventi:\n    ID                       Livello Parole chiave \n    --                       ------- ------------- \n    Microsoft-Windows-PktMon       4          0x32"
+      },
+      "note": "PCAPNG contains full captured packet bytes for the filtered TV IP. HTTPS payload/path remains encrypted unless the protocol itself exposes metadata such as SNI."
+    },
     "error": null,
-    "pktmonOutput": "Parametri registratore:\n    Nome registratore:        PktMon\n    ModalitÃ  di registrazione:       Circolare\n    File di log:           C:\\Users\\empi0\\Desktop\\Sidee\\captures\\sidee-net-20260929-172248\\sidee-net-20260929-172248.etl\n    Dimensioni massime file:      512 MB\n    Memoria utilizzata:        384 MB\n\nDati raccolti:\n    Contatori pacchetti, acquisizione pacchetti\n\nTipo cattura:\n    Solo pacchetti di flusso\n\nComponenti monitorati:\n    Schede di rete\n\nFiltri pacchetti:\n    n. Nome     Indirizzo IP  \n    -- ----     ------------  \n     1 Sidee-TV 192.168.137.1",
+    "pktmonOutput": "Scaricamento log in corso...\nUnione dei metadati in...\nFile di log: C:\\Users\\empi0\\Desktop\\Sidee\\captures\\sidee-net-20260929-172248\\sidee-net-20260929-172248.etl (nessun evento perduto)",
     "preflight": {
       "pktmon": true,
       "preexistingFilters": false,
@@ -669,6 +698,20 @@
         "host": "spectrum.s3.amazonaws.com",
         "qtype": "AAAA",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:26:36Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T15:26:36Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
       }
     ],
     "allDnsHosts": [
@@ -902,9 +945,9 @@
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T15:23:35Z",
-        "lastSeen": "2026-09-29T15:24:35Z",
+        "lastSeen": "2026-09-29T15:26:36Z",
         "firstSeenIndex": 29,
-        "queryCount": 6,
+        "queryCount": 8,
         "qtypes": [
           "A",
           "AAAA"
@@ -984,7 +1027,7 @@
         "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 63,
+    "allDnsQueryCount": 65,
     "targetDomainHit": true,
     "targetDomainFirstSeenAt": "2026-09-29T15:23:21Z",
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
