@@ -4,7 +4,7 @@
   "serverBuildId": "app-f3065f7c7e3c",
   "buildMatch": true,
   "startedAt": "2026-09-29T15:22:09Z",
-  "updatedAt": "2026-09-29T15:22:23Z",
+  "updatedAt": "2026-09-29T15:22:32Z",
   "accessMode": "VIDAA_STORE_DOMAIN_DISCOVERY",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -48,8 +48,8 @@
   },
   "fullNetworkCapture": {
     "status": "ARMED",
-    "captureId": "sidee-net-20260929-172223",
-    "armedAt": "2026-09-29T15:22:23Z",
+    "captureId": "sidee-net-20260929-172232",
+    "armedAt": "2026-09-29T15:22:32Z",
     "startedAt": null,
     "stoppedAt": null,
     "triggerHost": null,
@@ -64,11 +64,11 @@
       "pktmon": true,
       "preexistingFilters": false,
       "statusExitCode": 0,
-      "etlLogDetected": true,
-      "sideeOwnedEtlDetected": true,
-      "staleSideeCaptureStopped": true,
-      "staleSideeCaptureStopExitCode": 0,
-      "staleSideeFilterCleared": true
+      "etlLogDetected": false,
+      "sideeOwnedEtlDetected": false,
+      "staleSideeCaptureStopped": false,
+      "staleSideeCaptureStopExitCode": null,
+      "staleSideeFilterCleared": false
     }
   }
 }
