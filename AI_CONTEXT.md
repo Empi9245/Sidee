@@ -4947,3 +4947,38 @@ Next test:
 6. Stop & analyze;
 7. inspect `packetRecords`, `parsedIpPacketLines`, `tvMatchedPacketRecords`, HTTPS count and topology classification.
 Do NOT reinstall Duplecast for this validation. Reinstall only after normal TV HTTPS is confirmed visible.
+
+## UPDATE — direct PCAPNG reanalysis + TLS SNI — 2026-09-29
+
+Latest completed capture after automatic TV-client binding:
+- session `sidee-20260929-173911-7b2f`
+- capture `sidee-net-20260929-173911`
+- auto-bound filter: `192.168.137.158` (observed TV client)
+- ETL: 170,013 bytes
+- PCAPNG: 380,504 bytes
+- TXT: 992,400 bytes
+- pktmon conversion: 1,328 total packets / 1,328 formatted / 0 missed
+- TXT parser still reported zero parsed IP packet lines.
+
+Conclusion:
+- Windows pktmon + ICS path is capturing real traffic and the TV-client binding is now correct;
+- the remaining blocker is only TXT representation/parsing, not capture emptiness;
+- Microsoft documents pktmon PCAPNG as directly analyzable by Wireshark or another pcapng analyzer, so Sidee should no longer depend on localized/version-specific text formatting.
+
+Main changes:
+- `221a7535ad175dd8a9e09f7f52970b82761772ce`: pure-Python PCAPNG parser for Section/Interface/Enhanced/Simple Packet blocks; Ethernet/raw IPv4 decoding; TCP/UDP ports; TV peer/HTTPS classification; re-analysis of the latest saved capture without taking a new capture.
+- `46264ec619f21e8733d606cb87c69fd29e52a7a6`: regression test with a synthetic PCAPNG containing TV->HTTPS traffic.
+- `5310c4cf52caa2010243368c800b90d1b3c2bf43` + `dd17be81ed6ff10523ebdfb8f7f8522b2c279625`: new UI action `Re-analyze latest capture`.
+- `ecb31e407e420c5b7ad43d4eeaca7ca428063858`: TLS ClientHello SNI extraction from captured TCP payloads.
+- `93198126161facc5d2206e4e44029d295c08296d`: regression coverage for SNI extraction with `files.duplecast.com`.
+- `eb118964b0586dfcc502297a2d85ef2f0cd096fd`: show extracted TLS hostnames in the Full Network Capture state.
+
+The same saved Duplecast-install capture can now be analyzed after a restart. No reinstall is required for this step.
+
+Next action:
+1. `git pull`;
+2. restart Sidee as Administrator;
+3. open Sidee dashboard;
+4. click **Re-analyze latest capture**;
+5. wait for STOPPED / classification;
+6. inspect report fields: `analysisSource=PCAPNG`, `pcapPacketBlocks`, `pcapIpv4Packets`, `tvMatchedPacketRecords`, `httpsPacketRecords`, `tlsServerNames`, `topPeers`, `topologyClassification`.
