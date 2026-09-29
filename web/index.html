@@ -325,6 +325,14 @@
         <div id="targetState" class="microState">Target loaded from config.</div>
       </article>
 
+      <article class="card">
+        <p class="kicker">APP RUNTIME · READ ONLY</p>
+        <h2>Launcher Bridge Probe</h2>
+        <p>Enumerates <code>omi_platform</code>, <code>opera_omi</code> and launcher/start-related browser globals without invoking them. Goal: find a supported bridge that can open a hosted URL in VIDAA app context instead of the normal pointer-based browser.</p>
+        <button id="launcherBridgeProbeBtn" class="secondary">Inspect launcher bridge</button>
+        <div id="launcherBridgeState" class="state">Not inspected yet.</div>
+      </article>
+
       <article class="card installCard">
         <p class="kicker">08 · PERMISSION TEST</p>
         <h2>Install Permission Test</h2>
