@@ -4,7 +4,7 @@
   "serverBuildId": "app-929d4c414c2a",
   "buildMatch": true,
   "startedAt": "2026-09-29T17:18:24Z",
-  "updatedAt": "2026-09-29T17:19:17Z",
+  "updatedAt": "2026-09-29T17:19:48Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,8 +18,8 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 49,
-    "hostCount": 6,
+    "totalQueries": 74,
+    "hostCount": 7,
     "hosts": [
       {
         "host": "vidaahub.com",
@@ -33,8 +33,8 @@
       {
         "host": "iot-voice-eu.vidaahub.com",
         "firstSeen": "2026-09-29T17:18:34Z",
-        "lastSeen": "2026-09-29T17:18:52Z",
-        "queryCount": 4,
+        "lastSeen": "2026-09-29T17:19:40Z",
+        "queryCount": 12,
         "qtypes": [
           "A"
         ]
@@ -42,8 +42,8 @@
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T17:18:35Z",
-        "lastSeen": "2026-09-29T17:19:10Z",
-        "queryCount": 12,
+        "lastSeen": "2026-09-29T17:19:37Z",
+        "queryCount": 19,
         "qtypes": [
           "A",
           "AAAA"
@@ -52,8 +52,8 @@
       {
         "host": "rsc-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T17:18:37Z",
-        "lastSeen": "2026-09-29T17:19:14Z",
-        "queryCount": 9,
+        "lastSeen": "2026-09-29T17:19:19Z",
+        "queryCount": 10,
         "qtypes": [
           "A"
         ]
@@ -61,8 +61,8 @@
       {
         "host": "recommend-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T17:18:37Z",
-        "lastSeen": "2026-09-29T17:19:12Z",
-        "queryCount": 8,
+        "lastSeen": "2026-09-29T17:19:47Z",
+        "queryCount": 13,
         "qtypes": [
           "A"
         ]
@@ -74,6 +74,16 @@
         "queryCount": 8,
         "qtypes": [
           "A"
+        ]
+      },
+      {
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T17:19:23Z",
+        "lastSeen": "2026-09-29T17:19:25Z",
+        "queryCount": 4,
+        "qtypes": [
+          "A",
+          "AAAA"
         ]
       }
     ]
@@ -451,15 +461,190 @@
         "host": "recommend-ui-eu.vidaahub.com",
         "qtype": "A",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:17Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:19Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:21Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:21Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:22Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "recommend-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:22Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:23Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:23Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:23Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:23Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:24Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:25Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:25Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:29Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:29Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:34Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:35Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:35Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:35Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:37Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:40Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:41Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "recommend-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:46Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "recommend-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:47Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "recommend-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:19:48Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
       }
     ],
     "allDnsHosts": [
       {
         "host": "recommend-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T17:18:37Z",
-        "lastSeen": "2026-09-29T17:19:17Z",
+        "lastSeen": "2026-09-29T17:19:47Z",
         "firstSeenIndex": 1,
-        "queryCount": 9,
+        "queryCount": 13,
         "qtypes": [
           "A"
         ],
@@ -468,9 +653,9 @@
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T17:18:37Z",
-        "lastSeen": "2026-09-29T17:19:10Z",
+        "lastSeen": "2026-09-29T17:19:37Z",
         "firstSeenIndex": 2,
-        "queryCount": 10,
+        "queryCount": 17,
         "qtypes": [
           "A",
           "AAAA"
@@ -480,9 +665,9 @@
       {
         "host": "iot-voice-eu.vidaahub.com",
         "firstSeen": "2026-09-29T17:18:39Z",
-        "lastSeen": "2026-09-29T17:18:52Z",
+        "lastSeen": "2026-09-29T17:19:48Z",
         "firstSeenIndex": 3,
-        "queryCount": 3,
+        "queryCount": 12,
         "qtypes": [
           "A"
         ],
@@ -502,9 +687,9 @@
       {
         "host": "rsc-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T17:18:42Z",
-        "lastSeen": "2026-09-29T17:19:14Z",
+        "lastSeen": "2026-09-29T17:19:19Z",
         "firstSeenIndex": 6,
-        "queryCount": 8,
+        "queryCount": 9,
         "qtypes": [
           "A"
         ],
@@ -542,9 +727,21 @@
           "A"
         ],
         "vendorScoped": false
+      },
+      {
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T17:19:23Z",
+        "lastSeen": "2026-09-29T17:19:25Z",
+        "firstSeenIndex": 59,
+        "queryCount": 4,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": true
       }
     ],
-    "allDnsQueryCount": 50,
+    "allDnsQueryCount": 75,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
