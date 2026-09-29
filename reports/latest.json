@@ -4,7 +4,7 @@
   "serverBuildId": "app-f3065f7c7e3c",
   "buildMatch": true,
   "startedAt": "2026-09-29T15:22:09Z",
-  "updatedAt": "2026-09-29T15:23:35Z",
+  "updatedAt": "2026-09-29T15:23:41Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,7 +18,7 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 29,
+    "totalQueries": 31,
     "hostCount": 14,
     "hosts": [
       {
@@ -55,7 +55,7 @@
         "host": "exc-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T15:23:05Z",
         "lastSeen": "2026-09-29T15:23:35Z",
-        "queryCount": 3,
+        "queryCount": 4,
         "qtypes": [
           "A",
           "AAAA"
@@ -119,10 +119,11 @@
       {
         "host": "crtv-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T15:23:15Z",
-        "lastSeen": "2026-09-29T15:23:15Z",
-        "queryCount": 1,
+        "lastSeen": "2026-09-29T15:23:41Z",
+        "queryCount": 2,
         "qtypes": [
-          "A"
+          "A",
+          "AAAA"
         ]
       },
       {
@@ -430,6 +431,13 @@
         "host": "exc-jrnl-eu.vidaahub.com",
         "qtype": "AAAA",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T15:23:41Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "crtv-mntz.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
       }
     ],
     "allDnsHosts": [
@@ -514,11 +522,12 @@
       {
         "host": "crtv-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T15:23:15Z",
-        "lastSeen": "2026-09-29T15:23:15Z",
+        "lastSeen": "2026-09-29T15:23:41Z",
         "firstSeenIndex": 8,
-        "queryCount": 1,
+        "queryCount": 2,
         "qtypes": [
-          "A"
+          "A",
+          "AAAA"
         ],
         "vendorScoped": true
       },
@@ -683,7 +692,7 @@
         "vendorScoped": true
       }
     ],
-    "allDnsQueryCount": 32,
+    "allDnsQueryCount": 33,
     "targetDomainHit": true,
     "targetDomainFirstSeenAt": "2026-09-29T15:23:21Z",
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
