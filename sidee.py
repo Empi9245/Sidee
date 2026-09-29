@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import gzip
 import hashlib
+import ipaddress
 import http.client
 import http.server
 import json
@@ -112,6 +113,27 @@ STORE_INSTALL_AUTO_TRIGGER_HOSTS = {
     "tvmodules-vidaa.vidaahub.com",
 }
 
+NETWORK_CAPTURE_DIR = ROOT / "captures"
+NETWORK_CAPTURE_LOCK = threading.Lock()
+NETWORK_CAPTURE_STATE = {
+    "status": "IDLE",
+    "captureId": None,
+    "armedAt": None,
+    "startedAt": None,
+    "stoppedAt": None,
+    "triggerHost": None,
+    "tvClientBound": False,
+    "tvIp": None,
+    "etlFile": None,
+    "pcapngFile": None,
+    "txtFile": None,
+    "summary": None,
+    "error": None,
+    "pktmonOutput": None,
+}
+NETWORK_CAPTURE_FILTER_NAME = "Sidee-TV"
+NETWORK_CAPTURE_MAX_FILE_MB = 512
+
 STORE_STATIC_MAP_LOCK = threading.Lock()
 STORE_STATIC_MAP_LAST = None
 STORE_STATIC_MAP_HOSTS = (
@@ -157,6 +179,316 @@ STORE_STATIC_SENSITIVE_RE = re.compile(
     r"(authorization|cookie|token|secret|password|credential|api[-_]?key|access[-_]?key|client[-_]?secret)",
     re.IGNORECASE,
 )
+
+
+def _network_capture_public_state():
+    with NETWORK_CAPTURE_LOCK:
+        state = dict(NETWORK_CAPTURE_STATE)
+    state.pop("tvIp", None)
+    return json.loads(json.dumps(state))
+
+
+def _network_capture_set(**values):
+    with NETWORK_CAPTURE_LOCK:
+        NETWORK_CAPTURE_STATE.update(values)
+        return dict(NETWORK_CAPTURE_STATE)
+
+
+def _network_capture_cmd(args, timeout=20):
+    executable = shutil.which("pktmon")
+    if not executable:
+        raise RuntimeError("pktmon.exe is not available on this Windows PC")
+    completed = subprocess.run(
+        [executable] + list(args),
+        capture_output=True,
+        text=True,
+        errors="replace",
+        timeout=timeout,
+        check=False,
+    )
+    output = ((completed.stdout or "") + "\n" + (completed.stderr or "")).strip()
+    return completed.returncode, output
+
+
+def _network_capture_preflight():
+    if os.name != "nt":
+        raise RuntimeError("Full TV capture currently requires Windows pktmon")
+    if not shutil.which("pktmon"):
+        raise RuntimeError("pktmon.exe was not found")
+
+    code, filters = _network_capture_cmd(["filter", "list"], timeout=10)
+    if code != 0:
+        raise RuntimeError("Could not inspect pktmon filters: " + filters[:400])
+    numbered_filter = re.search(r"(?m)^\s*\d+\s+\S+", filters or "")
+    if numbered_filter:
+        raise RuntimeError(
+            "pktmon already has active filters. Remove or finish the other capture first; "
+            "Sidee will not overwrite unrelated pktmon filters."
+        )
+    return {"pktmon": True, "preexistingFilters": False}
+
+
+def _network_capture_id():
+    return "sidee-net-" + time.strftime("%Y%m%d-%H%M%S", time.localtime())
+
+
+def _network_capture_paths(capture_id):
+    safe = re.sub(r"[^A-Za-z0-9._-]+", "-", str(capture_id))
+    directory = (NETWORK_CAPTURE_DIR / safe).resolve()
+    root = NETWORK_CAPTURE_DIR.resolve()
+    if directory.parent != root:
+        raise ValueError("Invalid capture directory")
+    directory.mkdir(parents=True, exist_ok=True)
+    return {
+        "dir": directory,
+        "etl": directory / (safe + ".etl"),
+        "pcapng": directory / (safe + ".pcapng"),
+        "txt": directory / (safe + ".txt"),
+    }
+
+
+def _network_capture_start_for_ip(tv_ip, trigger_host=None):
+    try:
+        parsed_ip = str(ipaddress.ip_address(str(tv_ip or "")))
+        if ":" in parsed_ip:
+            raise ValueError("IPv6 TV capture is not enabled in this probe")
+    except ValueError as exc:
+        _network_capture_set(status="ERROR", error="Invalid TV IPv4 address")
+        raise RuntimeError("Invalid TV IPv4 address") from exc
+
+    with NETWORK_CAPTURE_LOCK:
+        if NETWORK_CAPTURE_STATE.get("status") not in ("ARMED", "STARTING"):
+            return _network_capture_public_state()
+        capture_id = NETWORK_CAPTURE_STATE.get("captureId") or _network_capture_id()
+        NETWORK_CAPTURE_STATE.update({
+            "status": "STARTING",
+            "captureId": capture_id,
+            "triggerHost": _normalized_host(trigger_host or "") or None,
+            "tvClientBound": True,
+            "tvIp": parsed_ip,
+            "error": None,
+        })
+
+    try:
+        _network_capture_preflight()
+        paths = _network_capture_paths(capture_id)
+        code, output = _network_capture_cmd([
+            "filter", "add", NETWORK_CAPTURE_FILTER_NAME, "-i", parsed_ip
+        ], timeout=10)
+        if code != 0:
+            raise RuntimeError("pktmon filter add failed: " + output[:500])
+
+        try:
+            code, start_output = _network_capture_cmd([
+                "start",
+                "--capture",
+                "--comp", "nics",
+                "--type", "flow",
+                "--pkt-size", "0",
+                "--file-name", str(paths["etl"]),
+                "--file-size", str(NETWORK_CAPTURE_MAX_FILE_MB),
+                "--log-mode", "circular",
+            ], timeout=15)
+            if code != 0:
+                raise RuntimeError("pktmon start failed: " + start_output[:700])
+        except Exception:
+            _network_capture_cmd(["filter", "remove"], timeout=10)
+            raise
+
+        _network_capture_set(
+            status="CAPTURING",
+            startedAt=_utc_timestamp(),
+            etlFile=str(paths["etl"].relative_to(ROOT)),
+            pcapngFile=str(paths["pcapng"].relative_to(ROOT)),
+            txtFile=str(paths["txt"].relative_to(ROOT)),
+            pktmonOutput=start_output[:1000],
+        )
+        print(f"[NETCAP] CAPTURING {capture_id} for TV client")
+    except Exception as exc:
+        _network_capture_set(status="ERROR", error=str(exc)[:1000])
+        print(f"[NETCAP] start error: {exc}")
+    return _network_capture_public_state()
+
+
+def _network_capture_maybe_start(tv_ip, trigger_host):
+    with NETWORK_CAPTURE_LOCK:
+        status = NETWORK_CAPTURE_STATE.get("status")
+        if status != "ARMED":
+            return False
+        NETWORK_CAPTURE_STATE["status"] = "STARTING"
+    thread = threading.Thread(
+        target=_network_capture_start_for_ip,
+        args=(tv_ip, trigger_host),
+        name="sidee-network-capture-start",
+        daemon=True,
+    )
+    thread.start()
+    return True
+
+
+def _network_capture_arm():
+    _network_capture_preflight()
+    capture_id = _network_capture_id()
+    state = _network_capture_set(
+        status="ARMED",
+        captureId=capture_id,
+        armedAt=_utc_timestamp(),
+        startedAt=None,
+        stoppedAt=None,
+        triggerHost=None,
+        tvClientBound=False,
+        tvIp=None,
+        etlFile=None,
+        pcapngFile=None,
+        txtFile=None,
+        summary=None,
+        error=None,
+        pktmonOutput=None,
+    )
+    client_ip = STORE_INSTALL_PROBE_CLIENT
+    if client_ip:
+        _network_capture_set(status="STARTING")
+        thread = threading.Thread(
+            target=_network_capture_start_for_ip,
+            args=(client_ip, "known-store-client"),
+            name="sidee-network-capture-start",
+            daemon=True,
+        )
+        thread.start()
+    return _network_capture_public_state()
+
+
+def _network_capture_parse_text(txt_path, tv_ip):
+    summary = {
+        "packetRecords": 0,
+        "originalBytes": 0,
+        "httpsPacketRecords": 0,
+        "httpPacketRecords": 0,
+        "dnsPacketRecords": 0,
+        "topPeers": [],
+        "topologyClassification": "UNKNOWN",
+    }
+    if not txt_path.is_file():
+        return summary
+
+    peers = {}
+    pending_size = 0
+    ip_pair = re.compile(
+        r"(\d{1,3}(?:\.\d{1,3}){3})(?:\.(\d+))?\s*>\s*"
+        r"(\d{1,3}(?:\.\d{1,3}){3})(?:\.(\d+))?"
+    )
+    for raw_line in txt_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        size_match = re.search(r"OriginalSize\s+(\d+)", raw_line)
+        if size_match:
+            pending_size = int(size_match.group(1))
+            summary["packetRecords"] += 1
+            summary["originalBytes"] += pending_size
+            continue
+        match = ip_pair.search(raw_line)
+        if not match:
+            continue
+        src, sport, dst, dport = match.groups()
+        sport_i = int(sport) if sport else None
+        dport_i = int(dport) if dport else None
+        if src == tv_ip:
+            peer, peer_port = dst, dport_i
+        elif dst == tv_ip:
+            peer, peer_port = src, sport_i
+        else:
+            continue
+        rec = peers.setdefault(peer, {"ip": peer, "packetRecords": 0, "bytes": 0, "ports": {}})
+        rec["packetRecords"] += 1
+        rec["bytes"] += pending_size
+        if peer_port is not None:
+            rec["ports"][str(peer_port)] = int(rec["ports"].get(str(peer_port), 0)) + 1
+            if peer_port == 443:
+                summary["httpsPacketRecords"] += 1
+            elif peer_port == 80:
+                summary["httpPacketRecords"] += 1
+            elif peer_port == 53:
+                summary["dnsPacketRecords"] += 1
+        pending_size = 0
+
+    ordered = sorted(peers.values(), key=lambda x: (x["bytes"], x["packetRecords"]), reverse=True)
+    summary["topPeers"] = ordered[:30]
+    if summary["httpsPacketRecords"] >= 5:
+        summary["topologyClassification"] = "FULL_PATH_VISIBLE"
+    elif summary["packetRecords"] > 0:
+        summary["topologyClassification"] = "DNS_OR_LOCAL_ONLY_LIKELY"
+    else:
+        summary["topologyClassification"] = "NO_PACKET_RECORDS"
+    return summary
+
+
+def _network_capture_sync_report(public_state):
+    global STORE_DISCOVERY_REPORT
+    try:
+        with STORE_DISCOVERY_LOCK:
+            if STORE_DISCOVERY_REPORT is None:
+                return
+            report = STORE_DISCOVERY_REPORT
+            report["updatedAt"] = _utc_timestamp()
+            report["fullNetworkCapture"] = json.loads(json.dumps(public_state))
+            report.setdefault("summary", {})["fullNetworkCapture"] = public_state.get("status")
+            snapshot = json.loads(json.dumps(report))
+        write_session_report(snapshot["sessionId"], snapshot)
+        queue_report_sync(snapshot["sessionId"], snapshot, "full-network-capture")
+    except Exception as exc:
+        print(f"[NETCAP] report sync error: {exc}")
+
+
+def _network_capture_stop():
+    with NETWORK_CAPTURE_LOCK:
+        state = dict(NETWORK_CAPTURE_STATE)
+    if state.get("status") not in ("CAPTURING", "STARTING"):
+        raise RuntimeError("No active Sidee full-network capture")
+
+    code, stop_output = _network_capture_cmd(["stop"], timeout=20)
+    tv_ip = state.get("tvIp")
+    paths = _network_capture_paths(state.get("captureId"))
+    conversion = {"stopExitCode": code, "pcapng": None, "text": None}
+
+    if paths["etl"].is_file():
+        pcap_code, pcap_output = _network_capture_cmd([
+            "etl2pcap", str(paths["etl"]), "--out", str(paths["pcapng"])
+        ], timeout=120)
+        conversion["pcapng"] = {
+            "exitCode": pcap_code,
+            "output": pcap_output[:1000],
+            "bytes": paths["pcapng"].stat().st_size if paths["pcapng"].is_file() else 0,
+        }
+        txt_code, txt_output = _network_capture_cmd([
+            "etl2txt", str(paths["etl"]), "--out", str(paths["txt"]),
+            "--brief", "--timestamp-only"
+        ], timeout=120)
+        conversion["text"] = {
+            "exitCode": txt_code,
+            "output": txt_output[:1000],
+            "bytes": paths["txt"].stat().st_size if paths["txt"].is_file() else 0,
+        }
+
+    _network_capture_cmd(["filter", "remove"], timeout=10)
+    summary = _network_capture_parse_text(paths["txt"], tv_ip) if tv_ip else None
+    summary = summary or {}
+    summary["etlBytes"] = paths["etl"].stat().st_size if paths["etl"].is_file() else 0
+    summary["pcapngBytes"] = paths["pcapng"].stat().st_size if paths["pcapng"].is_file() else 0
+    summary["textBytes"] = paths["txt"].stat().st_size if paths["txt"].is_file() else 0
+    summary["conversion"] = conversion
+    summary["note"] = (
+        "PCAPNG contains full captured packet bytes for the filtered TV IP. "
+        "HTTPS payload/path remains encrypted unless the protocol itself exposes metadata such as SNI."
+    )
+    public = _network_capture_set(
+        status="STOPPED",
+        stoppedAt=_utc_timestamp(),
+        summary=summary,
+        error=None if code == 0 else ("pktmon stop returned " + str(code)),
+        pktmonOutput=stop_output[:1000],
+    )
+    public.pop("tvIp", None)
+    _network_capture_sync_report(public)
+    print(f"[NETCAP] STOPPED {state.get('captureId')} · {summary.get('topologyClassification')}")
+    return public
 
 
 def _store_static_fetch(host, path):
@@ -2583,6 +2915,10 @@ def run_dns(config, local_ip):
             host, qtype, _ = parse_dns_question(data)
             if _normalized_host(host) in STORE_INSTALL_AUTO_TRIGGER_HOSTS:
                 try:
+                    _network_capture_maybe_start(client[0], host)
+                except Exception as exc:
+                    print(f"[DNS] full-network capture auto-start error: {exc}")
+                try:
                     _store_install_probe_auto_start(host, client[0])
                 except Exception as exc:
                     print(f"[DNS] store-install auto-start error: {exc}")
@@ -2711,6 +3047,12 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
                 "storeInstallProbe": _store_install_probe_snapshot(),
             })
 
+        if path == "/api/full-network-capture":
+            return self._send_json({
+                "ok": True,
+                "fullNetworkCapture": _network_capture_public_state(),
+            })
+
         if path == "/api/store-static-map":
             return self._send_json({
                 "ok": True,
@@ -2790,6 +3132,31 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
             data = self._read_json()
         except Exception as exc:
             return self._send_json({"ok": False, "error": str(exc)}, 400)
+
+        if path == "/api/full-network-capture":
+            if not isinstance(data, dict):
+                return self._send_json({"ok": False, "error": "Expected JSON object"}, 400)
+            action = str(data.get("action") or "").strip().upper()
+            try:
+                if action == "ARM":
+                    result = _network_capture_arm()
+                elif action == "STOP":
+                    result = _network_capture_stop()
+                else:
+                    return self._send_json({
+                        "ok": False,
+                        "error": "Action must be ARM or STOP",
+                    }, 400)
+            except Exception as exc:
+                return self._send_json({
+                    "ok": False,
+                    "error": str(exc)[:1000],
+                    "fullNetworkCapture": _network_capture_public_state(),
+                }, 500)
+            return self._send_json({
+                "ok": True,
+                "fullNetworkCapture": result,
+            })
 
         if path == "/api/store-static-map":
             try:
