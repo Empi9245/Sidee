@@ -4,7 +4,7 @@
   "serverBuildId": "app-33eb1d4a987a",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:01:34Z",
-  "updatedAt": "2026-09-29T14:02:03Z",
+  "updatedAt": "2026-09-29T14:02:12Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,8 +18,8 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 12,
-    "hostCount": 8,
+    "totalQueries": 26,
+    "hostCount": 13,
     "hosts": [
       {
         "host": "iot-voice-eu.vidaahub.com",
@@ -60,8 +60,8 @@
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:01:50Z",
-        "lastSeen": "2026-09-29T14:01:50Z",
-        "queryCount": 2,
+        "lastSeen": "2026-09-29T14:02:12Z",
+        "queryCount": 4,
         "qtypes": [
           "A",
           "AAAA"
@@ -80,8 +80,8 @@
       {
         "host": "vidaa-base-auth-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:02:02Z",
-        "lastSeen": "2026-09-29T14:02:03Z",
-        "queryCount": 2,
+        "lastSeen": "2026-09-29T14:02:07Z",
+        "queryCount": 4,
         "qtypes": [
           "A",
           "AAAA"
@@ -91,6 +91,56 @@
         "host": "sttc-iot.vidaahub.com",
         "firstSeen": "2026-09-29T14:02:03Z",
         "lastSeen": "2026-09-29T14:02:03Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ]
+      },
+      {
+        "host": "time-bas-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T14:02:07Z",
+        "lastSeen": "2026-09-29T14:02:07Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ]
+      },
+      {
+        "host": "params-msg-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T14:02:07Z",
+        "lastSeen": "2026-09-29T14:02:07Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ]
+      },
+      {
+        "host": "domain.vidaahub.com",
+        "firstSeen": "2026-09-29T14:02:07Z",
+        "lastSeen": "2026-09-29T14:02:07Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ]
+      },
+      {
+        "host": "hub-v2-msg.vidaahub.com",
+        "firstSeen": "2026-09-29T14:02:08Z",
+        "lastSeen": "2026-09-29T14:02:08Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ]
+      },
+      {
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T14:02:12Z",
+        "lastSeen": "2026-09-29T14:02:12Z",
         "queryCount": 2,
         "qtypes": [
           "A",
