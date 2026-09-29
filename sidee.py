@@ -493,7 +493,8 @@ def _network_capture_sync_report(public_state):
     try:
         with STORE_DISCOVERY_LOCK:
             if STORE_DISCOVERY_REPORT is None:
-                return
+                STORE_DISCOVERY_REPORT = _new_store_domain_discovery_report()
+                STORE_DISCOVERY_REPORT["accessMode"] = "FULL_TV_NETWORK_CAPTURE"
             report = STORE_DISCOVERY_REPORT
             report["updatedAt"] = _utc_timestamp()
             report["fullNetworkCapture"] = json.loads(json.dumps(public_state))
