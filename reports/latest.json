@@ -4,7 +4,7 @@
   "serverBuildId": "app-5dbeec3fbd21",
   "buildMatch": true,
   "startedAt": "2026-09-29T17:42:24Z",
-  "updatedAt": "2026-09-29T18:46:56Z",
+  "updatedAt": "2026-09-29T18:47:47Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,7 +18,7 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 164,
+    "totalQueries": 175,
     "hostCount": 9,
     "hosts": [
       {
@@ -80,8 +80,8 @@
       {
         "host": "layout-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T18:44:08Z",
-        "lastSeen": "2026-09-29T18:46:56Z",
-        "queryCount": 17,
+        "lastSeen": "2026-09-29T18:47:11Z",
+        "queryCount": 20,
         "qtypes": [
           "A"
         ]
@@ -89,8 +89,8 @@
       {
         "host": "home-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T18:44:08Z",
-        "lastSeen": "2026-09-29T18:45:40Z",
-        "queryCount": 16,
+        "lastSeen": "2026-09-29T18:47:11Z",
+        "queryCount": 20,
         "qtypes": [
           "A"
         ]
@@ -98,8 +98,8 @@
       {
         "host": "recommend-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T18:44:08Z",
-        "lastSeen": "2026-09-29T18:45:40Z",
-        "queryCount": 16,
+        "lastSeen": "2026-09-29T18:47:11Z",
+        "queryCount": 20,
         "qtypes": [
           "A"
         ]
@@ -479,15 +479,99 @@
         "host": "recommend-ui-eu.vidaahub.com",
         "qtype": "A",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:46:56Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "home-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:47:01Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "recommend-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:47:01Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "layout-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:47:01Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "home-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:47:06Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "recommend-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:47:06Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "layout-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:47:06Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "home-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:47:11Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "layout-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:47:11Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "recommend-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:47:11Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "home-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:47:47Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:47:47Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
       }
     ],
     "allDnsHosts": [
       {
         "host": "layout-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T18:44:08Z",
-        "lastSeen": "2026-09-29T18:46:56Z",
+        "lastSeen": "2026-09-29T18:47:11Z",
         "firstSeenIndex": 1,
-        "queryCount": 17,
+        "queryCount": 20,
         "qtypes": [
           "A"
         ],
@@ -496,9 +580,9 @@
       {
         "host": "home-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T18:44:08Z",
-        "lastSeen": "2026-09-29T18:45:40Z",
+        "lastSeen": "2026-09-29T18:47:11Z",
         "firstSeenIndex": 2,
-        "queryCount": 16,
+        "queryCount": 20,
         "qtypes": [
           "A"
         ],
@@ -507,16 +591,28 @@
       {
         "host": "recommend-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T18:44:08Z",
-        "lastSeen": "2026-09-29T18:46:56Z",
+        "lastSeen": "2026-09-29T18:47:11Z",
         "firstSeenIndex": 3,
-        "queryCount": 17,
+        "queryCount": 20,
         "qtypes": [
           "A"
         ],
         "vendorScoped": true
+      },
+      {
+        "host": "spectrum.s3.amazonaws.com",
+        "firstSeen": "2026-09-29T18:47:47Z",
+        "lastSeen": "2026-09-29T18:47:47Z",
+        "firstSeenIndex": 61,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 50,
+    "allDnsQueryCount": 62,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
