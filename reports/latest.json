@@ -4,7 +4,7 @@
   "serverBuildId": "app-9cc325c439b6",
   "buildMatch": true,
   "startedAt": "2026-09-29T15:39:11Z",
-  "updatedAt": "2026-09-29T16:00:34Z",
+  "updatedAt": "2026-09-29T16:07:33Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -188,7 +188,8 @@
       "pcapPacketBlocks": 1328,
       "pcapIpv4Packets": 384,
       "tvMatchedPacketRecords": 0,
-      "httpsPacketRecords": 0,
+      "filterScopedPacketRecords": 384,
+      "httpsPacketRecords": 382,
       "httpPacketRecords": 0,
       "dnsPacketRecords": 0,
       "tlsServerNames": [
@@ -237,8 +238,105 @@
           "count": 1
         }
       ],
-      "topPeers": [],
-      "topologyClassification": "CAPTURED_BUT_TV_IP_NOT_VISIBLE",
+      "topPeers": [
+        {
+          "ip": "98.67.144.87",
+          "packetRecords": 148,
+          "bytes": 40098,
+          "ports": {
+            "443": 148
+          }
+        },
+        {
+          "ip": "20.170.91.169",
+          "packetRecords": 35,
+          "bytes": 10800,
+          "ports": {
+            "443": 35
+          }
+        },
+        {
+          "ip": "20.170.76.123",
+          "packetRecords": 39,
+          "bytes": 7295,
+          "ports": {
+            "443": 39
+          }
+        },
+        {
+          "ip": "84.17.59.9",
+          "packetRecords": 38,
+          "bytes": 7032,
+          "ports": {
+            "443": 38
+          }
+        },
+        {
+          "ip": "48.201.112.197",
+          "packetRecords": 21,
+          "bytes": 6326,
+          "ports": {
+            "443": 21
+          }
+        },
+        {
+          "ip": "72.144.75.200",
+          "packetRecords": 27,
+          "bytes": 5959,
+          "ports": {
+            "443": 27
+          }
+        },
+        {
+          "ip": "108.139.229.5",
+          "packetRecords": 27,
+          "bytes": 3579,
+          "ports": {
+            "443": 27
+          }
+        },
+        {
+          "ip": "108.139.210.9",
+          "packetRecords": 20,
+          "bytes": 3204,
+          "ports": {
+            "443": 20
+          }
+        },
+        {
+          "ip": "20.113.97.24",
+          "packetRecords": 12,
+          "bytes": 2975,
+          "ports": {
+            "443": 12
+          }
+        },
+        {
+          "ip": "212.102.55.183",
+          "packetRecords": 14,
+          "bytes": 2189,
+          "ports": {
+            "443": 14
+          }
+        },
+        {
+          "ip": "43.157.101.228",
+          "packetRecords": 2,
+          "bytes": 143,
+          "ports": {
+            "10443": 2
+          }
+        },
+        {
+          "ip": "18.203.57.224",
+          "packetRecords": 1,
+          "bytes": 66,
+          "ports": {
+            "443": 1
+          }
+        }
+      ],
+      "topologyClassification": "FILTERED_FLOW_VISIBLE_AFTER_NAT",
       "etlBytes": 170013,
       "pcapngBytes": 380504,
       "textBytes": 992400,
@@ -260,7 +358,7 @@
         "output": "Dati raccolti:\n    Contatori pacchetti, acquisizione pacchetti\n\nTipo cattura:\n    Solo pacchetti di flusso\n\nComponenti monitorati:\n    Schede di rete\n\nFiltri pacchetti:\n    n. Nome     Indirizzo IP    \n    -- ----     ------------    \n     1 Sidee-TV 192.168.137.158 \n\nParametri registratore:\n    Nome registratore:        PktMon\n    ModalitÃ  di registrazione:       Circolare\n    File di log:           C:\\Users\\empi0\\Desktop\\Sidee\\captures\\sidee-net-20260929-173911\\sidee-net-20260929-173911.etl\n    Dimensioni massime file:      512 MB\n    Memoria utilizzata:        384 MB\n    Eventi persi:        0\n\nProvider eventi:\n    ID                       Livello Parole chiave \n    --                       ------- ------------- \n    Microsoft-Windows-PktMon       4          0x32"
       },
       "note": "PCAPNG contains full captured packet bytes for the filtered TV IP. HTTPS payload/path remains encrypted unless the protocol itself exposes metadata such as SNI.",
-      "reanalyzedAt": "2026-09-29T16:00:34Z"
+      "reanalyzedAt": "2026-09-29T16:07:33Z"
     },
     "error": null,
     "pktmonOutput": "Scaricamento log in corso...\nUnione dei metadati in...\nFile di log: C:\\Users\\empi0\\Desktop\\Sidee\\captures\\sidee-net-20260929-173911\\sidee-net-20260929-173911.etl (nessun evento perduto)",
@@ -518,6 +616,34 @@
         "host": "spectrum.s3.amazonaws.com",
         "qtype": "A",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:00:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:00:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:06:00Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:06:00Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
       }
     ],
     "allDnsHosts": [
@@ -684,9 +810,9 @@
       {
         "host": "spectrum.s3.amazonaws.com",
         "firstSeen": "2026-09-29T15:40:58Z",
-        "lastSeen": "2026-09-29T15:55:59Z",
+        "lastSeen": "2026-09-29T16:06:00Z",
         "firstSeenIndex": 23,
-        "queryCount": 8,
+        "queryCount": 12,
         "qtypes": [
           "A",
           "AAAA"
@@ -694,7 +820,7 @@
         "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 32,
+    "allDnsQueryCount": 36,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
