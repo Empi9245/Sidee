@@ -4,7 +4,7 @@
   "serverBuildId": "app-9cc325c439b6",
   "buildMatch": true,
   "startedAt": "2026-09-29T15:39:11Z",
-  "updatedAt": "2026-09-29T15:42:05Z",
+  "updatedAt": "2026-09-29T16:00:34Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,7 +18,7 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 24,
+    "totalQueries": 26,
     "hostCount": 15,
     "hosts": [
       {
@@ -146,8 +146,8 @@
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T15:40:05Z",
-        "lastSeen": "2026-09-29T15:40:05Z",
-        "queryCount": 2,
+        "lastSeen": "2026-09-29T15:42:05Z",
+        "queryCount": 4,
         "qtypes": [
           "A",
           "AAAA"
@@ -182,15 +182,63 @@
     "pcapngFile": "captures\\sidee-net-20260929-173911\\sidee-net-20260929-173911.pcapng",
     "txtFile": "captures\\sidee-net-20260929-173911\\sidee-net-20260929-173911.txt",
     "summary": {
-      "packetRecords": 0,
-      "originalBytes": 0,
-      "parsedIpPacketLines": 0,
+      "analysisSource": "PCAPNG",
+      "packetRecords": 384,
+      "originalBytes": 89666,
+      "pcapPacketBlocks": 1328,
+      "pcapIpv4Packets": 384,
       "tvMatchedPacketRecords": 0,
       "httpsPacketRecords": 0,
       "httpPacketRecords": 0,
       "dnsPacketRecords": 0,
+      "tlsServerNames": [
+        {
+          "host": "rsc-mntz.vidaahub.com",
+          "count": 2
+        },
+        {
+          "host": "appstore-vidaa.vidaahub.com",
+          "count": 1
+        },
+        {
+          "host": "crtv-mntz.vidaahub.com",
+          "count": 1
+        },
+        {
+          "host": "exc-jrnl-eu.vidaahub.com",
+          "count": 1
+        },
+        {
+          "host": "home-ui-eu.vidaahub.com",
+          "count": 1
+        },
+        {
+          "host": "img.vidaahub.com",
+          "count": 1
+        },
+        {
+          "host": "rpt-mntz-azure.vidaahub.com",
+          "count": 1
+        },
+        {
+          "host": "search-ui-eu.vidaahub.com",
+          "count": 1
+        },
+        {
+          "host": "static-ui.vidaahub.com",
+          "count": 1
+        },
+        {
+          "host": "ter-jrnl-eu.vidaahub.com",
+          "count": 1
+        },
+        {
+          "host": "tvmodules-vidaa.vidaahub.com",
+          "count": 1
+        }
+      ],
       "topPeers": [],
-      "topologyClassification": "NO_PACKET_RECORDS",
+      "topologyClassification": "CAPTURED_BUT_TV_IP_NOT_VISIBLE",
       "etlBytes": 170013,
       "pcapngBytes": 380504,
       "textBytes": 992400,
@@ -211,7 +259,8 @@
         "exitCode": 0,
         "output": "Dati raccolti:\n    Contatori pacchetti, acquisizione pacchetti\n\nTipo cattura:\n    Solo pacchetti di flusso\n\nComponenti monitorati:\n    Schede di rete\n\nFiltri pacchetti:\n    n. Nome     Indirizzo IP    \n    -- ----     ------------    \n     1 Sidee-TV 192.168.137.158 \n\nParametri registratore:\n    Nome registratore:        PktMon\n    ModalitÃ  di registrazione:       Circolare\n    File di log:           C:\\Users\\empi0\\Desktop\\Sidee\\captures\\sidee-net-20260929-173911\\sidee-net-20260929-173911.etl\n    Dimensioni massime file:      512 MB\n    Memoria utilizzata:        384 MB\n    Eventi persi:        0\n\nProvider eventi:\n    ID                       Livello Parole chiave \n    --                       ------- ------------- \n    Microsoft-Windows-PktMon       4          0x32"
       },
-      "note": "PCAPNG contains full captured packet bytes for the filtered TV IP. HTTPS payload/path remains encrypted unless the protocol itself exposes metadata such as SNI."
+      "note": "PCAPNG contains full captured packet bytes for the filtered TV IP. HTTPS payload/path remains encrypted unless the protocol itself exposes metadata such as SNI.",
+      "reanalyzedAt": "2026-09-29T16:00:34Z"
     },
     "error": null,
     "pktmonOutput": "Scaricamento log in corso...\nUnione dei metadati in...\nFile di log: C:\\Users\\empi0\\Desktop\\Sidee\\captures\\sidee-net-20260929-173911\\sidee-net-20260929-173911.etl (nessun evento perduto)",
@@ -420,6 +469,55 @@
         "host": "ter-jrnl-eu.vidaahub.com",
         "qtype": "A",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T15:42:05Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T15:45:58Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:45:58Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:50:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:50:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:55:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:55:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
       }
     ],
     "allDnsHosts": [
@@ -564,7 +662,7 @@
         "firstSeen": "2026-09-29T15:40:05Z",
         "lastSeen": "2026-09-29T15:42:05Z",
         "firstSeenIndex": 19,
-        "queryCount": 3,
+        "queryCount": 4,
         "qtypes": [
           "A",
           "AAAA"
@@ -586,9 +684,9 @@
       {
         "host": "spectrum.s3.amazonaws.com",
         "firstSeen": "2026-09-29T15:40:58Z",
-        "lastSeen": "2026-09-29T15:40:58Z",
+        "lastSeen": "2026-09-29T15:55:59Z",
         "firstSeenIndex": 23,
-        "queryCount": 2,
+        "queryCount": 8,
         "qtypes": [
           "A",
           "AAAA"
@@ -596,7 +694,7 @@
         "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 25,
+    "allDnsQueryCount": 32,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
