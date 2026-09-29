@@ -1,48 +1,46 @@
-# Sidee — pktmon packets exist; validate parser + automatic TV binding
+# Sidee — re-analyze the existing Duplecast capture directly from PCAPNG
 
 Data: 2026-09-29
 
-Latest completed capture is NOT empty:
-- session `sidee-20260929-172209-014d`
-- capture `sidee-net-20260929-172248`
-- ETL 62,270 bytes
-- PCAPNG 72,912 bytes
-- TXT 425,292 bytes
-- pktmon conversion: 340 total packets, 340 formatted, 0 missed
-- old Sidee result: `packetRecords=0` / `NO_PACKET_RECORDS`
+Latest completed capture:
+- session `sidee-20260929-173911-7b2f`
+- TV auto-bound as `192.168.137.158`
+- pktmon captured 1,328 packets
+- ETL 170,013 bytes
+- PCAPNG 380,504 bytes
+- TXT 992,400 bytes
+- zero packet loss reported by pktmon
+- old TXT parser still produced zero packet lines
 
-Cause:
-1. Sidee used `etl2txt --brief` but the parser depended on `OriginalSize`;
-2. the filter used `192.168.137.1`, which may be the Windows ICS/hotspot host/gateway rather than the TV.
+This proves capture and TV binding work. The remaining problem is TXT decoding.
 
-Fixes now on main:
-- full/non-brief pktmon text conversion;
-- fallback parsing of IPv4 packet lines when `OriginalSize` is absent;
-- separate `parsedIpPacketLines` and `tvMatchedPacketRecords`;
-- new `CAPTURED_BUT_TV_IP_NOT_VISIBLE` classification;
-- UI recommends blank TV IPv4 for automatic binding to the actual DNS client observed from the TV.
+Sidee now bypasses TXT and parses the saved PCAPNG directly:
+- IPv4/TCP/UDP packet metadata;
+- TV matched packet count;
+- HTTPS/HTTP/DNS ports;
+- top peers;
+- topology classification;
+- TLS ClientHello SNI hostnames when present.
 
-Duplecast install DNS sequence already captured:
-`appstore-vidaa.vidaahub.com -> tvmodules-vidaa.vidaahub.com -> detail-ui-eu.vidaahub.com -> vidaa.duplecast.com -> files.duplecast.com`
-with `targetDomainHit=true`.
+There is also a new **Re-analyze latest capture** button. It reuses the existing saved capture, so Duplecast does NOT need to be reinstalled for this step.
 
-## Next test — do NOT reinstall Duplecast yet
+## Next test
 
 1. `git pull`
 2. restart Sidee as Administrator
-3. leave TV IPv4 EMPTY
-4. press Arm
-5. open VIDAA Store on TV to trigger automatic client binding
-6. confirm CAPTURING
-7. play YouTube 15-20 seconds
-8. Stop & analyze
-9. reply `fatto parser`
+3. open the dashboard
+4. press **Re-analyze latest capture**
+5. wait for the result
+6. reply `fatto reanalyze`
 
-Next inspection:
-- packetRecords
-- parsedIpPacketLines
+Next report inspection:
+- analysisSource
+- pcapPacketBlocks
+- pcapIpv4Packets
 - tvMatchedPacketRecords
 - httpsPacketRecords
+- tlsServerNames
+- topPeers
 - topologyClassification
 
-Only after normal TV HTTPS is visible should Duplecast be reinstalled/captured again.
+If `files.duplecast.com`, `vidaa.duplecast.com`, or a VIDAA Store hostname appears in `tlsServerNames`, correlate it with the install window before deciding the next probe.
