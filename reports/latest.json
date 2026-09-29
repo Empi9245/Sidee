@@ -4,7 +4,7 @@
   "serverBuildId": "app-c947484c30df",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:21:20Z",
-  "updatedAt": "2026-09-29T14:23:44Z",
+  "updatedAt": "2026-09-29T14:23:47Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,8 +18,8 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 120,
-    "hostCount": 15,
+    "totalQueries": 126,
+    "hostCount": 16,
     "hosts": [
       {
         "host": "home-ui-eu.vidaahub.com",
@@ -88,8 +88,8 @@
       {
         "host": "vidaa-base-auth-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:41Z",
-        "lastSeen": "2026-09-29T14:23:37Z",
-        "queryCount": 12,
+        "lastSeen": "2026-09-29T14:23:47Z",
+        "queryCount": 16,
         "qtypes": [
           "A",
           "AAAA"
@@ -158,6 +158,16 @@
         "qtypes": [
           "A"
         ]
+      },
+      {
+        "host": "ota-tv.vidaahub.com",
+        "firstSeen": "2026-09-29T14:23:47Z",
+        "lastSeen": "2026-09-29T14:23:47Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ]
       }
     ]
   },
@@ -185,97 +195,6 @@
       }
     ],
     "dnsEvents": [
-      {
-        "timestamp": "2026-09-29T14:21:21Z",
-        "phase": "NAVIGATION",
-        "host": "threeplr-a2ehk4y01zqss3-0.api.amazonvideo.com",
-        "qtype": "A",
-        "vendorScoped": false
-      },
-      {
-        "timestamp": "2026-09-29T14:21:21Z",
-        "phase": "NAVIGATION",
-        "host": "home-ui-eu.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:21:21Z",
-        "phase": "NAVIGATION",
-        "host": "home-ui-eu.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:21:22Z",
-        "phase": "NAVIGATION",
-        "host": "iot-voice-eu.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:21:22Z",
-        "phase": "NAVIGATION",
-        "host": "iot-voice-eu.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:21:23Z",
-        "phase": "NAVIGATION",
-        "host": "exc-jrnl-eu.vidaahub.com",
-        "qtype": "AAAA",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:21:23Z",
-        "phase": "NAVIGATION",
-        "host": "exc-jrnl-eu.vidaahub.com",
-        "qtype": "AAAA",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:21:23Z",
-        "phase": "NAVIGATION",
-        "host": "exc-jrnl-eu.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:21:23Z",
-        "phase": "NAVIGATION",
-        "host": "exc-jrnl-eu.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:21:23Z",
-        "phase": "NAVIGATION",
-        "host": "hisense-0ba453d1.prod.partner.netflix.net",
-        "qtype": "A",
-        "vendorScoped": false
-      },
-      {
-        "timestamp": "2026-09-29T14:21:25Z",
-        "phase": "NAVIGATION",
-        "host": "exc-jrnl-eu.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:21:25Z",
-        "phase": "NAVIGATION",
-        "host": "exc-jrnl-eu.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:21:25Z",
-        "phase": "NAVIGATION",
-        "host": "exc-jrnl-eu.vidaahub.com",
-        "qtype": "AAAA",
-        "vendorScoped": true
-      },
       {
         "timestamp": "2026-09-29T14:21:25Z",
         "phase": "NAVIGATION",
@@ -2424,6 +2343,97 @@
         "host": "hisense-0ba453d1.prod.partner.netflix.net",
         "qtype": "A",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:45Z",
+        "phase": "NAVIGATION",
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:45Z",
+        "phase": "NAVIGATION",
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:45Z",
+        "phase": "NAVIGATION",
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:45Z",
+        "phase": "NAVIGATION",
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:46Z",
+        "phase": "NAVIGATION",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:47Z",
+        "phase": "NAVIGATION",
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:47Z",
+        "phase": "NAVIGATION",
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:47Z",
+        "phase": "NAVIGATION",
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:47Z",
+        "phase": "NAVIGATION",
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:47Z",
+        "phase": "NAVIGATION",
+        "host": "ota-tv.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:47Z",
+        "phase": "NAVIGATION",
+        "host": "ota-tv.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:47Z",
+        "phase": "NAVIGATION",
+        "host": "ota-tv.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:47Z",
+        "phase": "NAVIGATION",
+        "host": "ota-tv.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
       }
     ],
     "hostSnapshotAtDetail": [],
@@ -2458,12 +2468,12 @@
         "mask.icloud.com",
         "n8z7zwivjg.execute-api.us-east-1.amazonaws.com",
         "netcts.cdn-apple.com",
+        "ota-tv.vidaahub.com",
         "partner.vidaahub.com",
         "recommend-ui-eu.vidaahub.com",
         "rsc-mntz.vidaahub.com",
         "sd3n0344di.execute-api.eu-west-3.amazonaws.com",
         "ter-jrnl-eu.vidaahub.com",
-        "threeplr-a2ehk4y01zqss3-0.api.amazonvideo.com",
         "tvmodules-vidaa.vidaahub.com",
         "upgrade-plc-tv-eu.vidaahub.com",
         "vidaa-base-auth-eu.vidaahub.com",
@@ -2485,6 +2495,7 @@
       "img.vidaahub.com",
       "iot-voice-eu.vidaahub.com",
       "layout-ui-eu.vidaahub.com",
+      "ota-tv.vidaahub.com",
       "partner.vidaahub.com",
       "recommend-ui-eu.vidaahub.com",
       "rsc-mntz.vidaahub.com",
@@ -2495,7 +2506,7 @@
       "vidaahub.com"
     ],
     "note": "Passive DNS differential only. Arm immediately before pressing Install/Download on the TV. HTTPS content is not intercepted.",
-    "allDnsQueryCount": 200,
+    "allDnsQueryCount": 207,
     "allDnsHosts": [
       {
         "host": "threeplr-a2ehk4y01zqss3-0.api.amazonvideo.com",
@@ -2545,9 +2556,9 @@
       {
         "host": "hisense-0ba453d1.prod.partner.netflix.net",
         "firstSeen": "2026-09-29T14:21:23Z",
-        "lastSeen": "2026-09-29T14:23:44Z",
+        "lastSeen": "2026-09-29T14:23:46Z",
         "firstSeenIndex": 6,
-        "queryCount": 6,
+        "queryCount": 7,
         "qtypes": [
           "A"
         ],
@@ -2600,9 +2611,9 @@
       {
         "host": "vidaa-base-auth-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:41Z",
-        "lastSeen": "2026-09-29T14:23:37Z",
+        "lastSeen": "2026-09-29T14:23:47Z",
         "firstSeenIndex": 18,
-        "queryCount": 12,
+        "queryCount": 16,
         "qtypes": [
           "A",
           "AAAA"
@@ -2958,6 +2969,18 @@
         "queryCount": 1,
         "qtypes": [
           "A"
+        ],
+        "vendorScoped": true
+      },
+      {
+        "host": "ota-tv.vidaahub.com",
+        "firstSeen": "2026-09-29T14:23:47Z",
+        "lastSeen": "2026-09-29T14:23:47Z",
+        "firstSeenIndex": 206,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
         ],
         "vendorScoped": true
       }
