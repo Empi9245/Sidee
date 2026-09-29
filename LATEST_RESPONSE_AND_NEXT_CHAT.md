@@ -1,43 +1,39 @@
-# Sidee — current network/capture test
+# Sidee — next test: verify capture topology before Store
 
 Data: 2026-09-29
 
-Current symptoms:
-- phone connected to the shared/hotspot network has working Internet (~30 Mbps);
-- TV on the same shared network cannot use YouTube/Store;
-- therefore WAN quality is probably not the primary problem;
-- strongest suspect: TV network settings, especially manual DNS and/or static gateway/subnet left from the old LAN.
+Latest Store install run:
+- session `sidee-20260929-163507-4a6a`
+- Duplecast was installed successfully
+- `fullNetworkCapture` was missing from the synced report
+- DNS Store timeline was present
 
-For the FULL NETWORK CAPTURE phase:
-- TV should use IP/DHCP AUTOMATIC;
-- TV should use DNS AUTOMATIC;
-- Sidee does NOT need to be the TV DNS server;
-- enter the TV IPv4 manually in the Full Network Capture card.
+Two separate causes identified:
 
-Reason:
-the manual TV-IP pktmon capture no longer depends on Sidee DNS. This removes Sidee DNS forwarding from the network path and gives a clean Internet baseline.
+1. Topology possibility:
+If PC and TV are merely peers on the same hotspot/router, the PC cannot normally see TV -> Internet HTTPS unicast traffic. It may still see DNS packets addressed directly to the PC.
 
-pktmon issue:
-- user received: "pktmon already has active filters".
-- Microsoft documents that `pktmon filter remove` removes ALL filters, not one named filter.
-- Sidee was therefore intentionally refusing to remove them blindly.
-- new behavior: if the only active filter is Sidee's own stale `Sidee-TV`, Sidee may stop a stale Sidee capture if active and safely clear the filter set;
-- if any unrelated filter is present, Sidee still refuses to remove filters.
+2. Reporting bug:
+Full-network capture state was only synchronized into an already-existing Store report. With TV DNS automatic, a standalone pktmon capture could run without a report object and therefore never appear in GitHub.
 
-Next user test:
+Fix:
+- ARM/CAPTURING/ERROR/STOPPED are now published;
+- full capture creates its own report with accessMode `FULL_TV_NETWORK_CAPTURE` when necessary;
+- pktmon status before stop is included in the summary.
+
+Do NOT reinstall Duplecast yet.
+
+Topology smoke test:
 1. git pull
 2. restart Sidee as Administrator
-3. on TV set network/IP to automatic DHCP
-4. set TV DNS to automatic
-5. reconnect TV to the shared network
-6. test YouTube FIRST
-7. if YouTube works, note TV IPv4
-8. enter that IPv4 in Sidee Full Network Capture
-9. Arm / Start capture
-10. Store -> Duplecast -> Install
-11. Stop & analyze capture
-12. report "fatto full capture"
+3. TV IP/DHCP automatic and DNS automatic
+4. note current TV IPv4
+5. enter TV IPv4 in Full Network Capture
+6. press Arm / Start capture
+7. on TV open YouTube and play a video for ~15-20 seconds
+8. press Stop & analyze capture
+9. say `fatto topology`
 
-If YouTube still does not work with IP+DNS automatic while phone works on the same shared network:
-- problem is not Sidee DNS;
-- inspect TV-assigned IP/gateway/subnet and Windows ICS/routing.
+Interpretation:
+- `FULL_PATH_VISIBLE` + HTTPS packet records > 0 => PC can see TV internet traffic; proceed to Store reinstall/download experiment.
+- `DNS_OR_LOCAL_ONLY_LIKELY` or zero packet records => PC is not on the TV's gateway path; same-network pktmon cannot capture the install traffic.
