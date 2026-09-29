@@ -4,7 +4,7 @@
   "serverBuildId": "app-e59b512a9ef8",
   "buildMatch": true,
   "startedAt": "2026-09-29T16:40:53Z",
-  "updatedAt": "2026-09-29T16:53:37Z",
+  "updatedAt": "2026-09-29T16:54:12Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,7 +18,7 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 540,
+    "totalQueries": 560,
     "hostCount": 20,
     "hosts": [
       {
@@ -92,8 +92,8 @@
       {
         "host": "tvmodules-vidaa.vidaahub.com",
         "firstSeen": "2026-09-29T16:41:36Z",
-        "lastSeen": "2026-09-29T16:53:37Z",
-        "queryCount": 79,
+        "lastSeen": "2026-09-29T16:54:12Z",
+        "queryCount": 87,
         "qtypes": [
           "A"
         ]
@@ -101,8 +101,8 @@
       {
         "host": "rsc-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T16:41:37Z",
-        "lastSeen": "2026-09-29T16:53:32Z",
-        "queryCount": 50,
+        "lastSeen": "2026-09-29T16:54:11Z",
+        "queryCount": 57,
         "qtypes": [
           "A"
         ]
@@ -192,8 +192,8 @@
       {
         "host": "upgrade-plc-tv-eu.vidaahub.com",
         "firstSeen": "2026-09-29T16:46:06Z",
-        "lastSeen": "2026-09-29T16:53:37Z",
-        "queryCount": 27,
+        "lastSeen": "2026-09-29T16:54:02Z",
+        "queryCount": 32,
         "qtypes": [
           "A"
         ]
