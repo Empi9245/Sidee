@@ -394,6 +394,72 @@ class StoreCatalogTraceTests(unittest.TestCase):
             "files.duplecast.com",
         )
 
+    def test_network_capture_pcapng_correlates_sni_to_peer_flow(self):
+        def block(block_type, body):
+            total = 12 + len(body)
+            padding = (4 - (total % 4)) % 4
+            body += b"\x00" * padding
+            total = 12 + len(body)
+            return (
+                sidee.struct.pack("<II", block_type, total)
+                + body
+                + sidee.struct.pack("<I", total)
+            )
+
+        host = b"files.duplecast.com"
+        name = b"\x00" + len(host).to_bytes(2, "big") + host
+        sni_data = len(name).to_bytes(2, "big") + name
+        extension = b"\x00\x00" + len(sni_data).to_bytes(2, "big") + sni_data
+        hello_body = (
+            b"\x03\x03" + b"\x00" * 32 + b"\x00"
+            + b"\x00\x02\x13\x01" + b"\x01\x00"
+            + len(extension).to_bytes(2, "big") + extension
+        )
+        handshake = b"\x01" + len(hello_body).to_bytes(3, "big") + hello_body
+        tls = b"\x16\x03\x01" + len(handshake).to_bytes(2, "big") + handshake
+
+        src_ip = sidee.socket.inet_aton("192.168.1.25")
+        dst_ip = sidee.socket.inet_aton("203.0.113.20")
+        eth = b"\x00" * 12 + b"\x08\x00"
+        total_len = 20 + 20 + len(tls)
+        ip_header = (
+            b"\x45\x00" + sidee.struct.pack("!H", total_len)
+            + b"\x00\x01\x00\x00\x40\x06\x00\x00"
+            + src_ip + dst_ip
+        )
+        tcp_header = (
+            sidee.struct.pack("!HH", 51000, 443)
+            + b"\x00" * 8
+            + b"\x50\x18"
+            + b"\x00" * 6
+        )
+        packet = eth + ip_header + tcp_header + tls
+        epb_body = (
+            sidee.struct.pack("<IIIII", 0, 0, 0, len(packet), len(packet))
+            + packet
+        )
+        shb = block(
+            0x0A0D0D0A,
+            sidee.struct.pack("<IHHq", 0x1A2B3C4D, 1, 0, -1),
+        )
+        idb = block(0x00000001, sidee.struct.pack("<HHI", 1, 0, 65535))
+        payload = shb + idb + block(0x00000006, epb_body)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / "capture.pcapng"
+            path.write_bytes(payload)
+            summary = sidee._network_capture_parse_pcapng(
+                path, "192.168.137.158"
+            )
+
+        self.assertEqual(summary["tlsServerNames"][0]["host"], "files.duplecast.com")
+        self.assertEqual(summary["tlsHostFlows"][0]["host"], "files.duplecast.com")
+        self.assertEqual(
+            summary["tlsHostFlows"][0]["peerIps"][0]["ip"],
+            "203.0.113.20",
+        )
+        self.assertGreater(summary["tlsHostFlows"][0]["bytes"], 0)
+
     def test_network_capture_pcapng_summary_detects_tv_https(self):
         def block(block_type, body):
             total = 12 + len(body)
