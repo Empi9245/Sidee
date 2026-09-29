@@ -475,6 +475,8 @@ def _network_capture_parse_text(txt_path, tv_ip):
     summary = {
         "packetRecords": 0,
         "originalBytes": 0,
+        "parsedIpPacketLines": 0,
+        "tvMatchedPacketRecords": 0,
         "httpsPacketRecords": 0,
         "httpPacketRecords": 0,
         "dnsPacketRecords": 0,
@@ -485,21 +487,31 @@ def _network_capture_parse_text(txt_path, tv_ip):
         return summary
 
     peers = {}
+    header_records = 0
+    header_bytes = 0
+    parsed_ip_lines = 0
+    parsed_ip_bytes = 0
     pending_size = 0
     ip_pair = re.compile(
-        r"(\d{1,3}(?:\.\d{1,3}){3})(?:\.(\d+))?\s*>\s*"
-        r"(\d{1,3}(?:\.\d{1,3}){3})(?:\.(\d+))?"
+        r"(\d{1,3}(?:\.\d{1,3}){3})(?:[.:](\d+))?\s*>\s*"
+        r"(\d{1,3}(?:\.\d{1,3}){3})(?:[.:](\d+))?"
     )
     for raw_line in txt_path.read_text(encoding="utf-8", errors="replace").splitlines():
-        size_match = re.search(r"OriginalSize\s+(\d+)", raw_line)
+        size_match = re.search(r"OriginalSize\s+(\d+)", raw_line, re.IGNORECASE)
         if size_match:
             pending_size = int(size_match.group(1))
-            summary["packetRecords"] += 1
-            summary["originalBytes"] += pending_size
-            continue
+            header_records += 1
+            header_bytes += pending_size
+
         match = ip_pair.search(raw_line)
         if not match:
             continue
+
+        parsed_ip_lines += 1
+        length_matches = re.findall(r"\blength\s+(\d+)\b", raw_line, re.IGNORECASE)
+        fallback_size = int(length_matches[-1]) if length_matches else 0
+        parsed_ip_bytes += pending_size or fallback_size
+
         src, sport, dst, dport = match.groups()
         sport_i = int(sport) if sport else None
         dport_i = int(dport) if dport else None
@@ -508,10 +520,13 @@ def _network_capture_parse_text(txt_path, tv_ip):
         elif dst == tv_ip:
             peer, peer_port = src, sport_i
         else:
+            pending_size = 0
             continue
+
+        summary["tvMatchedPacketRecords"] += 1
         rec = peers.setdefault(peer, {"ip": peer, "packetRecords": 0, "bytes": 0, "ports": {}})
         rec["packetRecords"] += 1
-        rec["bytes"] += pending_size
+        rec["bytes"] += pending_size or fallback_size
         if peer_port is not None:
             rec["ports"][str(peer_port)] = int(rec["ports"].get(str(peer_port), 0)) + 1
             if peer_port == 443:
@@ -522,16 +537,21 @@ def _network_capture_parse_text(txt_path, tv_ip):
                 summary["dnsPacketRecords"] += 1
         pending_size = 0
 
+    summary["parsedIpPacketLines"] = parsed_ip_lines
+    summary["packetRecords"] = header_records or parsed_ip_lines
+    summary["originalBytes"] = header_bytes or parsed_ip_bytes
+
     ordered = sorted(peers.values(), key=lambda x: (x["bytes"], x["packetRecords"]), reverse=True)
     summary["topPeers"] = ordered[:30]
     if summary["httpsPacketRecords"] >= 5:
         summary["topologyClassification"] = "FULL_PATH_VISIBLE"
-    elif summary["packetRecords"] > 0:
+    elif summary["tvMatchedPacketRecords"] > 0:
         summary["topologyClassification"] = "DNS_OR_LOCAL_ONLY_LIKELY"
+    elif summary["packetRecords"] > 0:
+        summary["topologyClassification"] = "CAPTURED_BUT_TV_IP_NOT_VISIBLE"
     else:
         summary["topologyClassification"] = "NO_PACKET_RECORDS"
     return summary
-
 
 def _network_capture_sync_report(public_state):
     global STORE_DISCOVERY_REPORT
@@ -574,7 +594,7 @@ def _network_capture_stop():
         }
         txt_code, txt_output = _network_capture_cmd([
             "etl2txt", str(paths["etl"]), "--out", str(paths["txt"]),
-            "--brief", "--timestamp-only"
+            "--timestamp-only"
         ], timeout=120)
         conversion["text"] = {
             "exitCode": txt_code,
