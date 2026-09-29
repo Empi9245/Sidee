@@ -15,7 +15,7 @@
   const CONTEXT_IDENTITY_KEYS = /(app.?config|permission|capabilit|privileg|identifier|app.?id|client|context|role|customer|origin|domain|host|package|bundle|store|vendor|launcher|browser|profile)/i;
   const CONTEXT_SENSITIVE_KEYS = /(token|secret|password|cookie|credential|authorization|\bauth\b|private|\bkey\b|certificate|signature|nonce|session)/i;
   const logBox = $("console");
-  const state = { config:null, report:null, running:false, saveChain:Promise.resolve(), syncWatchToken:0, remoteDiagnosticArmed:false, remoteDiagnosticRunning:false, remoteDiagnosticTimer:null };
+  const state = { config:null, report:null, running:false, saveChain:Promise.resolve(), syncWatchToken:0, remoteDiagnosticArmed:false, remoteDiagnosticRunning:false, remoteDiagnosticTimer:null, fullNetworkCaptureTimer:null };
 
   function err(e){ return String(e && e.message || e); }
   function cut(v,n){ const s=String(v); return s.length>n?s.slice(0,n)+"…":s; }
@@ -2188,6 +2188,10 @@
       if(response.ok&&data.ok)renderFullNetworkCapture(data.fullNetworkCapture);
     }catch(e){}
   }
+  function startFullNetworkCapturePolling(){
+    if(state.fullNetworkCaptureTimer)clearInterval(state.fullNetworkCaptureTimer);
+    state.fullNetworkCaptureTimer=setInterval(refreshFullNetworkCapture,1200);
+  }
   async function fullNetworkCaptureAction(action){
     const stateEl=$("fullNetworkCaptureState");
     if(stateEl)stateEl.textContent=action==="ARM"?"Arming Windows packet capture…":"Stopping and converting capture…";
@@ -2345,6 +2349,7 @@
     log("pkgmgr/tvbrowser and pkgmgr↔AppInfo auto-probes are disabled for this phase; use their explicit buttons only if the runtime context changes.");
     await refreshStoreInstallProbe();
     await refreshFullNetworkCapture();
+    startFullNetworkCapturePolling();
     await refreshStoreStaticMap();
     startRemoteDiagnosticPolling();
   }).catch(e=>log("Config load failed",err(e)));
