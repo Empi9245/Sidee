@@ -1,61 +1,61 @@
-# Sidee — prossimo test: Native Install API Surface
+# Sidee — prossimo test: Full TV Network Capture
 
 Data: 2026-09-29
 
-## Risultato Store Static API Mapper
+## Cosa è stato aggiunto
 
-Sessione:
-`sidee-20260929-151455-56a1`
+Sidee può ora usare Windows `pktmon` per catturare l'intero traffico della TV durante l'installazione Duplecast.
 
-Risultato:
-- 18 fetch;
-- 0 errori;
-- 0 path `/api/...` ricavati;
-- 0 URL install/download;
-- gli host UI moderni rispondono HTTP 401 con `no signature found`;
-- `appstore-vidaa` e `tvmodules-vidaa` rispondono 403.
+Dashboard:
+- **Arm / Start capture**
+- **Stop & analyze capture**
 
-Quindi il frontend/API Store è request-signed e non è leggibile anonimamente dal PC.
+Il capture:
+- si filtra sull'IPv4 della TV;
+- registra pacchetto intero;
+- salva ETL + PCAPNG + TXT in `captures/<captureId>/`;
+- i file restano SOLO sul PC e `captures/` è gitignored;
+- GitHub riceve soltanto il riepilogo `fullNetworkCapture`.
 
-## Cosa sappiamo già
+## IMPORTANTE — topologia
 
-La pipeline browser classica è:
+Con il setup vecchio, PC = solo DNS, la cattura NON può vedere normalmente HTTPS TV -> Internet.
 
-`Hisense_installApp / Hisense_installApp_V2`
-→ `HiUtils_createRequest("installApplication", ...)`
-→ gate AppConfig
-→ Q0707: 503 permission check error.
+Per il test completo la TV deve usare il PC come gateway.
 
-Questo però non dimostra che lo Store ufficiale usi esattamente la stessa superficie privilegiata.
-
-## Nuovo probe
-
-Aggiunto pulsante:
-
-**Map native install APIs (read-only)**
-
-Legge solo function source/descriptors già disponibili nel runtime TV per:
-- `Hisense_installApp`
-- `Hisense_installApp_V2`
-- `HiUtils_createRequest`
-- funzioni `vowOS.store` con nomi/install references
-- inventory pkgmgr
-
-Non invoca nessuna funzione di install/download/write.
+Percorso consigliato:
+1. attiva **Hotspot mobile di Windows** sul PC condividendo la connessione Internet;
+2. collega la Hisense alla rete Wi-Fi dell'hotspot del PC;
+3. fai in modo che il DNS della TV punti al PC/hotspot così Sidee continua a vedere le query DNS;
+4. avvia Sidee come amministratore.
 
 ## Test
 
 1. `git pull`
-2. riavvia Sidee
-3. apri Sidee dal browser della TV
-4. premi **Map native install APIs (read-only)**
-5. attendi il salvataggio/sync
-6. dì `fatto native API`
+2. riavvia Sidee come amministratore
+3. TV collegata all'hotspot Windows del PC
+4. apri Sidee sul PC
+5. premi **Arm / Start capture**
+6. sulla TV apri Store -> Duplecast
+7. premi **Install/Download**
+8. resta nello Store fino alla fine/errore
+9. sul PC premi **Stop & analyze capture**
+10. dì `fatto full capture`
 
-Poi leggere:
-- `nativeInstallApiSurface.conclusionHint`
-- `nativeInstallApiSurface.exact`
-- `nativeInstallApiSurface.vowStore.functions`
-- `nativeInstallApiSurface.sourceInventory.matches`
+Se all'arm Sidee non conosce ancora l'IP TV, resta ARMED e parte automaticamente alla prima query Store della TV.
 
-Se emergono `installApplication`, `installPackage`, `downloadPackage` o un'altra API concreta, quella diventa il prossimo target di analisi.
+## Dopo il test
+
+Leggere `reports/latest.json -> fullNetworkCapture`.
+
+Campi prioritari:
+- `status`
+- `summary.topologyClassification`
+- `summary.httpsPacketRecords`
+- `summary.originalBytes`
+- `summary.topPeers`
+- dimensione PCAPNG.
+
+Se `topologyClassification = FULL_PATH_VISIBLE`, il setup è corretto e possiamo correlare i grossi trasferimenti con DNS/Store.
+
+Se `DNS_OR_LOCAL_ONLY_LIKELY`, la TV non sta realmente attraversando il PC come gateway.
