@@ -413,6 +413,12 @@ def _network_capture_start_for_ip(tv_ip, trigger_host=None):
             pktmonOutput=start_output[:1000],
         )
         _network_capture_publish("capture started")
+        try:
+            capture_cfg = load_config().get("store_download_capture", {})
+            if capture_cfg.get("enabled") and capture_cfg.get("auto_stop_seconds"):
+                _network_capture_schedule_auto_stop(capture_cfg.get("auto_stop_seconds"))
+        except Exception as exc:
+            print(f"[NETCAP] auto-stop scheduling error: {exc}")
         print(f"[NETCAP] CAPTURING {capture_id} for TV client")
     except Exception as exc:
         _network_capture_set(status="ERROR", error=str(exc)[:1000])
@@ -435,6 +441,38 @@ def _network_capture_maybe_start(tv_ip, trigger_host):
     )
     thread.start()
     return True
+
+
+def _network_capture_auto_stop_after(seconds):
+    try:
+        seconds = max(15, min(int(seconds), 900))
+    except Exception:
+        seconds = 180
+    deadline = time.time() + seconds
+    while not stop_event.is_set() and time.time() < deadline:
+        time.sleep(0.5)
+    if stop_event.is_set():
+        return
+    with NETWORK_CAPTURE_LOCK:
+        status = NETWORK_CAPTURE_STATE.get("status")
+    if status not in ("CAPTURING", "STARTING"):
+        return
+    try:
+        _network_capture_stop()
+        print(f"[NETCAP] automatic Store capture stop after {seconds}s")
+    except Exception as exc:
+        print(f"[NETCAP] automatic stop error: {exc}")
+
+
+def _network_capture_schedule_auto_stop(seconds):
+    thread = threading.Thread(
+        target=_network_capture_auto_stop_after,
+        args=(seconds,),
+        name="sidee-network-capture-auto-stop",
+        daemon=True,
+    )
+    thread.start()
+    return thread
 
 
 def _network_capture_arm(manual_tv_ip=None):
@@ -4378,12 +4416,11 @@ def main():
     else:
         print("Report sync: disabled")
     print("TV flow:")
-    print("  Installed-app context probe: with TV DNS pointed to this PC, launch Smartone IPTV or Duplecast from the VIDAA launcher.")
     print(f"  1. Set the TV DNS manually to {local_ip}")
-    print("  2. Open https://vidaahub.com in the TV browser")
-    print("  3. Accept the local certificate warning if shown")
-    print("  4. Capture Baseline, initialize runtime context, then run the explicit permission test")
-    print(f"  A/B raw-IP check: open http://{local_ip}:{cfg.get('http_port', 8080)} without changing DNS")
+    print("  2. Open the normal VIDAA App Store from the TV launcher")
+    print("  3. Uninstall Duplecast first if it is already installed")
+    print("  4. Install Duplecast normally from the Store while Sidee passively captures the TV flow")
+    print("  5. No Sidee dashboard interaction is required")
     print("=" * 52)
 
     threads = []
@@ -4430,6 +4467,17 @@ def main():
         dns_thread = threading.Thread(target=run_dns, args=(cfg, local_ip), daemon=True)
         dns_thread.start()
         threads.append(dns_thread)
+
+        capture_cfg = cfg.get("store_download_capture", {})
+        if capture_cfg.get("enabled") and capture_cfg.get("auto_arm_on_start"):
+            try:
+                _network_capture_arm()
+                print(
+                    "[STORE-DOWNLOAD] full TV capture ARMED automatically · "
+                    "open VIDAA Store and install the target app normally"
+                )
+            except Exception as exc:
+                print(f"[STORE-DOWNLOAD] automatic capture arm failed: {exc}")
 
     if not args.no_https:
         cert, key = generate_cert()
