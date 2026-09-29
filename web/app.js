@@ -2195,7 +2195,10 @@
       const response=await fetch("/api/full-network-capture",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({action:action})
+        body:JSON.stringify({
+          action:action,
+          tvIp:action==="ARM"&&$("fullNetworkCaptureTvIp")?$("fullNetworkCaptureTvIp").value.trim():null
+        })
       });
       const data=await response.json();
       if(!response.ok||!data.ok)throw new Error(data.error||"Full network capture failed");
