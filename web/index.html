@@ -60,7 +60,7 @@
         </div>
         <button id="fullNetworkCaptureArmBtn">Arm / Start capture</button>
       </div>
-      <p>This captures the TV's full packet flow on the PC during the official Store install. For the full-capture phase, keep the TV on automatic IP/DHCP and automatic DNS; enter the TV IPv4 manually below. Sidee does not need to be the TV DNS server. HTTPS traffic is visible only when the TV routes through this PC as its gateway (Windows sharing/ICS, hotspot, or another routed/mirrored setup).</p>
+      <p>This captures the TV's packet flow on the PC during the official Store install. Keep the TV on automatic IP/DHCP and automatic DNS. For Windows hotspot/ICS, leave the TV IPv4 field empty first: Sidee can bind the capture to the client IP observed from the TV's Store DNS request, which avoids accidentally filtering the PC/gateway address. Enter a TV IPv4 manually only when auto-bind is unavailable.</p>
       <div class="identityGrid">
         <div><span>Status</span><b id="fullNetworkCaptureStatus" class="summaryValue">IDLE</b></div>
         <div><span>TV bound</span><b id="fullNetworkCaptureBound" class="summaryValue">NO</b></div>
@@ -73,7 +73,7 @@
         <input id="fullNetworkCaptureTvIp" type="text" inputmode="decimal" placeholder="TV IPv4 (optional, e.g. 192.168.x.x)" aria-label="TV IPv4 address">
         <button id="fullNetworkCaptureStopBtn" class="secondary">Stop & analyze capture</button>
       </div>
-      <div id="fullNetworkCaptureState" class="state">IDLE · Route the TV through this PC (Windows hotspot, Ethernet Internet Connection Sharing, or mirrored gateway). Enter TV IPv4 if auto-detect is unavailable.</div>
+      <div id="fullNetworkCaptureState" class="state">IDLE · Route the TV through this PC. On hotspot/ICS, leave TV IPv4 blank and open the VIDAA Store after arming so Sidee can bind to the observed TV client.</div>
     </section>
 
     <section class="card storeInstallProbeCard" aria-live="polite">
