@@ -3,8 +3,8 @@
   "clientBuildId": "app-929d4c414c2a",
   "serverBuildId": "app-929d4c414c2a",
   "buildMatch": true,
-  "startedAt": "2026-09-29T17:35:31.648Z",
-  "updatedAt": "2026-09-29T17:35:33.853Z",
+  "startedAt": "2026-09-29T17:36:22.995Z",
+  "updatedAt": "2026-09-29T17:36:26.333Z",
   "accessContext": {
     "href": "http://192.168.1.5:8080/",
     "origin": "http://192.168.1.5:8080",
@@ -52,7 +52,7 @@
   "legacyHspdkWriteLab": null,
   "storeWorkflowProbe": null,
   "launcherBridgeProbe": {
-    "timestamp": "2026-09-29T17:35:33.782Z",
+    "timestamp": "2026-09-29T17:36:26.098Z",
     "context": {
       "href": "http://192.168.1.5:8080/",
       "origin": "http://192.168.1.5:8080",
@@ -137,7 +137,7 @@
     ]
   },
   "runtimeSurfaceAutoProbe": {
-    "timestamp": "2026-09-29T17:35:32.994Z",
+    "timestamp": "2026-09-29T17:36:25.202Z",
     "href": "http://192.168.1.5:8080/",
     "hostname": "192.168.1.5",
     "userAgent": "Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 WebNavigator/7.0.0 Safari/537.36",
@@ -181,7 +181,7 @@
     "serviceIdentifier": "",
     "serviceIdentifierError": null,
     "clientInformation": {
-      "timestamp": "2026-09-29T17:35:33.040Z",
+      "timestamp": "2026-09-29T17:36:25.256Z",
       "descriptor": {
         "found": true,
         "ownerDepth": 0,
@@ -207,11 +207,11 @@
     "lastEventAt": null
   },
   "automaticRuntimeInstallProbe": {
-    "timestamp": "2026-09-29T17:35:33.829Z",
+    "timestamp": "2026-09-29T17:36:26.311Z",
     "status": "SKIPPED",
     "reason": "INSTALL_API_UNAVAILABLE",
     "runtime": {
-      "timestamp": "2026-09-29T17:35:33.829Z",
+      "timestamp": "2026-09-29T17:36:26.311Z",
       "href": "http://192.168.1.5:8080/",
       "hostname": "192.168.1.5",
       "userAgent": "Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 WebNavigator/7.0.0 Safari/537.36",
@@ -255,7 +255,7 @@
       "serviceIdentifier": "",
       "serviceIdentifierError": null,
       "clientInformation": {
-        "timestamp": "2026-09-29T17:35:33.852Z",
+        "timestamp": "2026-09-29T17:36:26.332Z",
         "descriptor": {
           "found": true,
           "ownerDepth": 0,
