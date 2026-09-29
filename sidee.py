@@ -480,6 +480,7 @@ def _network_capture_parse_text(txt_path, tv_ip):
         "httpsPacketRecords": 0,
         "httpPacketRecords": 0,
         "dnsPacketRecords": 0,
+        "tlsServerNames": [],
         "topPeers": [],
         "topologyClassification": "UNKNOWN",
     }
@@ -541,6 +542,10 @@ def _network_capture_parse_text(txt_path, tv_ip):
     summary["packetRecords"] = header_records or parsed_ip_lines
     summary["originalBytes"] = header_bytes or parsed_ip_bytes
 
+    summary["tlsServerNames"] = [
+        {"host": host, "count": count}
+        for host, count in sorted(sni_counts.items(), key=lambda item: (-item[1], item[0]))[:40]
+    ]
     ordered = sorted(peers.values(), key=lambda x: (x["bytes"], x["packetRecords"]), reverse=True)
     summary["topPeers"] = ordered[:30]
     if summary["httpsPacketRecords"] >= 5:
@@ -595,9 +600,14 @@ def _network_capture_decode_ipv4_packet(packet, linktype):
         dst = socket.inet_ntoa(data[offset + 16:offset + 20])
         sport = dport = None
         l4 = offset + ihl
+        tcp_payload = b""
         if proto in (6, 17) and len(data) >= l4 + 4:
             sport = int.from_bytes(data[l4:l4 + 2], "big")
             dport = int.from_bytes(data[l4 + 2:l4 + 4], "big")
+        if proto == 6 and len(data) >= l4 + 20:
+            tcp_header_len = (data[l4 + 12] >> 4) * 4
+            if tcp_header_len >= 20 and len(data) >= l4 + tcp_header_len:
+                tcp_payload = data[l4 + tcp_header_len:]
         return {
             "src": src,
             "dst": dst,
@@ -605,7 +615,73 @@ def _network_capture_decode_ipv4_packet(packet, linktype):
             "dport": dport,
             "protocol": proto,
             "ipOffset": offset,
+            "tcpPayload": tcp_payload,
         }
+    return None
+
+
+def _network_capture_tls_sni(payload):
+    if not isinstance(payload, (bytes, bytearray)):
+        return None
+    data = bytes(payload)
+    if len(data) < 9 or data[0] != 0x16:
+        return None
+    record_len = int.from_bytes(data[3:5], "big")
+    if record_len < 4 or len(data) < 5 + min(record_len, len(data) - 5):
+        return None
+    if data[5] != 0x01:
+        return None
+    hello_len = int.from_bytes(data[6:9], "big")
+    end = min(len(data), 9 + hello_len)
+    pos = 9
+    if pos + 34 > end:
+        return None
+    pos += 34
+    if pos >= end:
+        return None
+    session_len = data[pos]
+    pos += 1 + session_len
+    if pos + 2 > end:
+        return None
+    cipher_len = int.from_bytes(data[pos:pos + 2], "big")
+    pos += 2 + cipher_len
+    if pos >= end:
+        return None
+    compression_len = data[pos]
+    pos += 1 + compression_len
+    if pos + 2 > end:
+        return None
+    extensions_len = int.from_bytes(data[pos:pos + 2], "big")
+    pos += 2
+    extensions_end = min(end, pos + extensions_len)
+    while pos + 4 <= extensions_end:
+        ext_type = int.from_bytes(data[pos:pos + 2], "big")
+        ext_len = int.from_bytes(data[pos + 2:pos + 4], "big")
+        pos += 4
+        ext_end = pos + ext_len
+        if ext_end > extensions_end:
+            return None
+        if ext_type == 0 and ext_len >= 5:
+            if pos + 2 > ext_end:
+                return None
+            names_len = int.from_bytes(data[pos:pos + 2], "big")
+            name_pos = pos + 2
+            names_end = min(ext_end, name_pos + names_len)
+            while name_pos + 3 <= names_end:
+                name_type = data[name_pos]
+                name_len = int.from_bytes(data[name_pos + 1:name_pos + 3], "big")
+                name_pos += 3
+                if name_pos + name_len > names_end:
+                    break
+                if name_type == 0:
+                    try:
+                        host = data[name_pos:name_pos + name_len].decode("ascii").strip().lower()
+                    except UnicodeDecodeError:
+                        return None
+                    if host and len(host) <= 253 and re.fullmatch(r"[a-z0-9._*-]+", host):
+                        return host
+                name_pos += name_len
+        pos = ext_end
     return None
 
 
@@ -631,6 +707,7 @@ def _network_capture_parse_pcapng(pcapng_path, tv_ip):
     endian = "<"
     interfaces = []
     peers = {}
+    sni_counts = {}
 
     while pos + 12 <= len(raw):
         block_type_bytes = raw[pos:pos + 4]
@@ -671,6 +748,9 @@ def _network_capture_parse_pcapng(pcapng_path, tv_ip):
                 summary["pcapIpv4Packets"] += 1
                 summary["packetRecords"] += 1
                 summary["originalBytes"] += int(packet_len or captured_len)
+                sni = _network_capture_tls_sni(parsed.get("tcpPayload"))
+                if sni:
+                    sni_counts[sni] = int(sni_counts.get(sni, 0)) + 1
                 src = parsed["src"]
                 dst = parsed["dst"]
                 sport = parsed["sport"]
@@ -707,6 +787,9 @@ def _network_capture_parse_pcapng(pcapng_path, tv_ip):
                 summary["pcapIpv4Packets"] += 1
                 summary["packetRecords"] += 1
                 summary["originalBytes"] += int(packet_len)
+                sni = _network_capture_tls_sni(parsed.get("tcpPayload"))
+                if sni:
+                    sni_counts[sni] = int(sni_counts.get(sni, 0)) + 1
                 src = parsed["src"]
                 dst = parsed["dst"]
                 sport = parsed["sport"]
