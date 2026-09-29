@@ -52,7 +52,7 @@
     try{ const a=new Uint8Array(2); crypto.getRandomValues(a); tail=Array.from(a).map(x=>x.toString(16).padStart(2,"0")).join(""); }catch(e){}
     const id="sidee-"+stamp+"-"+tail; try{sessionStorage.setItem("sidee.sessionId",id);}catch(e){} return id;
   }
-  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,accessContext:pageContext(),accessMode:accessMode(),serverAccess:null,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},contextIdentityFingerprint:null,clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,identityOverrideLab:null,identityWriteGateLab:null,candidatePermissionTest:null,directAppInfoWriteLab:null,legacyHspdkWriteLab:null,storeWorkflowProbe:null,launcherBridgeProbe:null,runtimeSurfaceAutoProbe:null,remoteInputProbe:{events:[],lastEventAt:null},summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",contextFingerprint:"NOT_RUN",permissionGate:"UNKNOWN",appInfoWrite:"NOT_RUN"}}; }
+  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,accessContext:pageContext(),accessMode:accessMode(),serverAccess:null,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},contextIdentityFingerprint:null,clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,identityOverrideLab:null,identityWriteGateLab:null,candidatePermissionTest:null,directAppInfoWriteLab:null,legacyHspdkWriteLab:null,storeWorkflowProbe:null,launcherBridgeProbe:null,runtimeSurfaceAutoProbe:null,remoteInputProbe:{events:[],lastEventAt:null},automaticRuntimeInstallProbe:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",contextFingerprint:"NOT_RUN",permissionGate:"UNKNOWN",appInfoWrite:"NOT_RUN"}}; }
   state.report=newReport();
 
   function meaningful(v){
@@ -2058,6 +2058,71 @@
     await save("launcher-bridge-probe");
   }
 
+  async function automaticRuntimeInstallProbeOnce(){
+    const key="sidee.autoRuntimeInstallProbe."+CLIENT_BUILD_ID;
+    try{
+      if(sessionStorage.getItem(key)==="done"||sessionStorage.getItem(key)==="running")return;
+    }catch(e){}
+    const t=target();
+    const hasInstall=
+      typeof window.Hisense_installApp_V2==="function"||
+      typeof window.Hisense_installApp==="function";
+    if(!hasInstall||!t.app_id||!t.app_name||!t.app_url){
+      state.report.automaticRuntimeInstallProbe={
+        timestamp:new Date().toISOString(),
+        status:"SKIPPED",
+        reason:!hasInstall?"INSTALL_API_UNAVAILABLE":"TARGET_INCOMPLETE",
+        runtime:runtimeSurfaceSnapshot()
+      };
+      await save("automatic-runtime-install-probe-skipped");
+      return;
+    }
+    try{sessionStorage.setItem(key,"running");}catch(e){}
+    const previousRunning=state.running;
+    state.running=true;
+    const runtimeBefore=runtimeSurfaceSnapshot();
+    const chosen=typeof window.Hisense_installApp_V2==="function"?"v2":"legacy";
+    let test=null,verification=null,internal={ret:null,code:null,msg:null},status="UNKNOWN",error=null;
+    try{
+      test=await installCall(chosen);
+      verification=await verify();
+      internal=test&&test.trace&&test.trace.result||internal;
+      status=gate(test,verification,state.report.installTest);
+    }catch(e){
+      error=err(e);
+    }
+    const runtimeAfter=runtimeSurfaceSnapshot();
+    state.report.automaticRuntimeInstallProbe={
+      timestamp:new Date().toISOString(),
+      explicitUserGoal:true,
+      oneShotPerBuild:true,
+      target:compact(t),
+      method:chosen,
+      runtimeBefore:runtimeBefore,
+      runtimeAfter:runtimeAfter,
+      identifierUsed:test&&test.trace?test.trace.identifier:null,
+      internal:internal,
+      returnValue:test?test.returnValue:null,
+      externalCallback:test?test.externalCallback:null,
+      error:error||(test&&test.error)||null,
+      verification:verification,
+      status:verification&&verification.verified?"INSTALLED":status,
+      note:"Automatic one-shot install permission test requested to determine whether the current no-pointer VIDAA context has a different AppConfig permission level. If the gate passes, the target Nuvio app may actually be registered."
+    };
+    state.report.installTest=state.report.automaticRuntimeInstallProbe;
+    state.report.summary.permissionGate=verification&&verification.verified?"PASSED":status;
+    renderSummary();
+    set("installState",
+      (verification&&verification.verified?"INSTALLED":status)+
+      " · code "+String(internal&&internal.code)+
+      " · "+(verification&&verification.verified?"Nuvio verified installed":"Nuvio not verified")
+    );
+    log("Automatic runtime install probe",state.report.automaticRuntimeInstallProbe);
+    state.running=previousRunning;
+    try{sessionStorage.setItem(key,"done");}catch(e){}
+    await save("automatic-runtime-install-probe");
+  }
+
   function syncTarget(){state.report.target=compact(target());}
   async function saveTarget(){syncTarget();try{const r=await fetch("/api/config",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({nuvio:target()})}),d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||"Could not save target");state.config.nuvio=d.nuvio;set("targetState","Target saved.");await save("target");}catch(e){set("targetState","Save failed: "+err(e));}}
   async function watchReportSync(sessionId){
@@ -2589,13 +2654,18 @@
     state.report.runtimeSurfaceAutoProbe=runtimeSurfaceSnapshot();
     set("remoteInputState","AUTO PROBE · press arrows and OK on the remote");
     try{
+      document.body.tabIndex=-1;
+      window.focus?.();
+      document.body.focus?.({preventScroll:true});
       const firstControl=controls()[0];
-      const active=document.activeElement;
-      if(firstControl&&(!active||active===document.body||active===document.documentElement)){
-        firstControl.focus();
+      if(firstControl){
+        firstControl.focus?.({preventScroll:true});
+        setTimeout(()=>{try{firstControl.focus?.({preventScroll:true});}catch(e){}},250);
+        setTimeout(()=>{try{firstControl.focus?.({preventScroll:true});}catch(e){}},900);
       }
     }catch(e){}
     await save("runtime-surface-auto-probe");
     try{await inspectLauncherBridge();}catch(e){log("Automatic launcher bridge probe failed",err(e));}
+    try{await automaticRuntimeInstallProbeOnce();}catch(e){log("Automatic runtime install probe failed",err(e));}
   }).catch(e=>log("Config load failed",err(e)));
 })();
