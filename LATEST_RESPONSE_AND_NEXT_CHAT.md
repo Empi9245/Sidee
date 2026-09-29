@@ -21,6 +21,7 @@ Sidee now bypasses TXT and parses the saved PCAPNG directly:
 - top peers;
 - topology classification;
 - TLS ClientHello SNI hostnames when present.
+- parser hotfix `2ad4f66e7e04c2cb7f830dfc2987294e235d08b6` keeps SNI aggregation scoped to PCAPNG analysis.
 
 There is also a new **Re-analyze latest capture** button. It reuses the existing saved capture, so Duplecast does NOT need to be reinstalled for this step.
 
