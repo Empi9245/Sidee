@@ -4,7 +4,7 @@
   "serverBuildId": "app-f44d5fed09b5",
   "buildMatch": true,
   "startedAt": "2026-09-29T16:55:28Z",
-  "updatedAt": "2026-09-29T16:57:56Z",
+  "updatedAt": "2026-09-29T16:58:56Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,8 +18,8 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 65,
-    "hostCount": 8,
+    "totalQueries": 70,
+    "hostCount": 10,
     "hosts": [
       {
         "host": "iot-voice-eu.vidaahub.com",
@@ -88,7 +88,25 @@
       {
         "host": "vidaa-base-auth-eu.vidaahub.com",
         "firstSeen": "2026-09-29T16:57:56Z",
-        "lastSeen": "2026-09-29T16:57:56Z",
+        "lastSeen": "2026-09-29T16:58:07Z",
+        "queryCount": 4,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "upgrade-plc-tv-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T16:58:56Z",
+        "lastSeen": "2026-09-29T16:58:56Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "rsc-mntz.vidaahub.com",
+        "firstSeen": "2026-09-29T16:58:56Z",
+        "lastSeen": "2026-09-29T16:58:56Z",
         "queryCount": 1,
         "qtypes": [
           "A"
@@ -623,6 +641,41 @@
         "host": "vidaa-base-auth-eu.vidaahub.com",
         "qtype": "A",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:58:01Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:58:02Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:58:07Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "vidaa-base-auth-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:58:56Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "upgrade-plc-tv-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:58:56Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
       }
     ],
     "allDnsHosts": [
@@ -730,8 +783,30 @@
       {
         "host": "vidaa-base-auth-eu.vidaahub.com",
         "firstSeen": "2026-09-29T16:57:56Z",
-        "lastSeen": "2026-09-29T16:57:56Z",
+        "lastSeen": "2026-09-29T16:58:07Z",
         "firstSeenIndex": 72,
+        "queryCount": 4,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
+      },
+      {
+        "host": "upgrade-plc-tv-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T16:58:56Z",
+        "lastSeen": "2026-09-29T16:58:56Z",
+        "firstSeenIndex": 76,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
+      },
+      {
+        "host": "rsc-mntz.vidaahub.com",
+        "firstSeen": "2026-09-29T16:58:56Z",
+        "lastSeen": "2026-09-29T16:58:56Z",
+        "firstSeenIndex": 77,
         "queryCount": 1,
         "qtypes": [
           "A"
@@ -739,7 +814,7 @@
         "vendorScoped": true
       }
     ],
-    "allDnsQueryCount": 72,
+    "allDnsQueryCount": 77,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
