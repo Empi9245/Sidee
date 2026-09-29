@@ -4799,3 +4799,24 @@ pktmon stale filter fix:
 - official pktmon behavior: `pktmon filter remove` removes all filters;
 - Sidee now auto-clears only when the filter list contains exactly one filter and it is `Sidee-TV`;
 - otherwise it preserves existing filters and fails safely.
+
+
+## FULL CAPTURE RESULT — missing report + topology smoke test — 2026-09-29
+
+Latest run:
+- `sidee-20260929-163507-4a6a`
+- Duplecast installed successfully;
+- DNS Store timeline present;
+- `fullNetworkCapture` absent.
+
+Reporting issue fixed:
+- capture state publishes on ARM, CAPTURING, ERROR and STOPPED;
+- standalone full capture now creates a report with `accessMode=FULL_TV_NETWORK_CAPTURE`;
+- no dependency on Sidee DNS/Store report;
+- pktmon status before stop included.
+
+Topology remains a separate issue:
+PC + TV as peers on the same hotspot/router normally does not expose TV -> Internet unicast frames to the PC. DNS traffic can still be visible when addressed to the PC, which can misleadingly make the setup look observable.
+
+Next test is NOT another Duplecast install.
+Use YouTube for 15-20 seconds under pktmon capture to validate whether HTTPS traffic is visible at all.
