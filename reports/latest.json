@@ -4,7 +4,7 @@
   "serverBuildId": "app-c947484c30df",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:21:20Z",
-  "updatedAt": "2026-09-29T14:30:11Z",
+  "updatedAt": "2026-09-29T14:30:49Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,7 +18,7 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 279,
+    "totalQueries": 283,
     "hostCount": 19,
     "hosts": [
       {
@@ -190,8 +190,8 @@
       {
         "host": "upgrade-plc-tv.vidaahub.com",
         "firstSeen": "2026-09-29T14:29:50Z",
-        "lastSeen": "2026-09-29T14:30:08Z",
-        "queryCount": 4,
+        "lastSeen": "2026-09-29T14:30:38Z",
+        "queryCount": 8,
         "qtypes": [
           "A"
         ]
@@ -222,76 +222,6 @@
       }
     ],
     "dnsEvents": [
-      {
-        "timestamp": "2026-09-29T14:23:47Z",
-        "phase": "NAVIGATION",
-        "host": "vidaa-base-auth-eu.vidaahub.com",
-        "qtype": "AAAA",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:47Z",
-        "phase": "NAVIGATION",
-        "host": "ota-tv.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:47Z",
-        "phase": "NAVIGATION",
-        "host": "ota-tv.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:47Z",
-        "phase": "NAVIGATION",
-        "host": "ota-tv.vidaahub.com",
-        "qtype": "AAAA",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:47Z",
-        "phase": "NAVIGATION",
-        "host": "ota-tv.vidaahub.com",
-        "qtype": "AAAA",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:47Z",
-        "phase": "NAVIGATION",
-        "host": "partner.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:47Z",
-        "phase": "NAVIGATION",
-        "host": "partner.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:49Z",
-        "phase": "NAVIGATION",
-        "host": "archive-mmb-eu.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:49Z",
-        "phase": "NAVIGATION",
-        "host": "archive-mmb-eu.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
-      {
-        "timestamp": "2026-09-29T14:23:49Z",
-        "phase": "NAVIGATION",
-        "host": "ota-tv.vidaahub.com",
-        "qtype": "A",
-        "vendorScoped": true
-      },
       {
         "timestamp": "2026-09-29T14:23:49Z",
         "phase": "NAVIGATION",
@@ -2461,6 +2391,76 @@
         "host": "mask.apple-dns.net",
         "qtype": "A",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:30:20Z",
+        "phase": "NAVIGATION",
+        "host": "upgrade-plc-tv.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:30:20Z",
+        "phase": "NAVIGATION",
+        "host": "upgrade-plc-tv.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:30:25Z",
+        "phase": "NAVIGATION",
+        "host": "upgrade-plc-tv.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:30:25Z",
+        "phase": "NAVIGATION",
+        "host": "upgrade-plc-tv.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:30:33Z",
+        "phase": "NAVIGATION",
+        "host": "upgrade-plc-tv.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:30:33Z",
+        "phase": "NAVIGATION",
+        "host": "upgrade-plc-tv.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:30:38Z",
+        "phase": "NAVIGATION",
+        "host": "upgrade-plc-tv.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:30:38Z",
+        "phase": "NAVIGATION",
+        "host": "upgrade-plc-tv.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:30:49Z",
+        "phase": "NAVIGATION",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:30:49Z",
+        "phase": "NAVIGATION",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
       }
     ],
     "hostSnapshotAtDetail": [],
@@ -2476,6 +2476,7 @@
         "img.vidaahub.com",
         "iot-voice-eu.vidaahub.com",
         "layout-ui-eu.vidaahub.com",
+        "mask.apple-dns.net",
         "ota-tv.vidaahub.com",
         "params-msg-eu.vidaahub.com",
         "partner.vidaahub.com",
@@ -2514,7 +2515,7 @@
       "vidaahub.com"
     ],
     "note": "Passive DNS differential only. Arm immediately before pressing Install/Download on the TV. HTTPS content is not intercepted.",
-    "allDnsQueryCount": 369,
+    "allDnsQueryCount": 375,
     "allDnsHosts": [
       {
         "host": "threeplr-a2ehk4y01zqss3-0.api.amazonvideo.com",
@@ -2996,9 +2997,9 @@
       {
         "host": "spectrum.s3.amazonaws.com",
         "firstSeen": "2026-09-29T14:25:43Z",
-        "lastSeen": "2026-09-29T14:25:48Z",
+        "lastSeen": "2026-09-29T14:30:49Z",
         "firstSeenIndex": 287,
-        "queryCount": 4,
+        "queryCount": 6,
         "qtypes": [
           "A",
           "AAAA"
@@ -3030,9 +3031,9 @@
       {
         "host": "upgrade-plc-tv.vidaahub.com",
         "firstSeen": "2026-09-29T14:29:50Z",
-        "lastSeen": "2026-09-29T14:30:08Z",
+        "lastSeen": "2026-09-29T14:30:38Z",
         "firstSeenIndex": 361,
-        "queryCount": 4,
+        "queryCount": 8,
         "qtypes": [
           "A"
         ],
