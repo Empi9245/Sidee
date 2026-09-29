@@ -47,5 +47,14 @@
         "host": "vidaa.duplecast.com"
       }
     ]
+  },
+  "store_download_capture": {
+    "enabled": true,
+    "auto_arm_on_start": true,
+    "auto_stop_seconds": 180,
+    "target": {
+      "name": "Duplecast",
+      "app_id": "1876"
+    }
   }
 }
