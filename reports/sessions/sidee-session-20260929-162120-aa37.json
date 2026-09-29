@@ -4,7 +4,7 @@
   "serverBuildId": "app-c947484c30df",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:21:20Z",
-  "updatedAt": "2026-09-29T14:22:56Z",
+  "updatedAt": "2026-09-29T14:22:58Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,7 +18,7 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 85,
+    "totalQueries": 87,
     "hostCount": 14,
     "hosts": [
       {
@@ -116,8 +116,8 @@
       {
         "host": "tvmodules-vidaa.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:18Z",
-        "lastSeen": "2026-09-29T14:22:52Z",
-        "queryCount": 13,
+        "lastSeen": "2026-09-29T14:22:57Z",
+        "queryCount": 14,
         "qtypes": [
           "A"
         ]
@@ -125,8 +125,8 @@
       {
         "host": "layout-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:18Z",
-        "lastSeen": "2026-09-29T14:22:51Z",
-        "queryCount": 5,
+        "lastSeen": "2026-09-29T14:22:56Z",
+        "queryCount": 6,
         "qtypes": [
           "A"
         ]
@@ -1623,6 +1623,41 @@
         "host": "www.google.it",
         "qtype": "A",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:22:56Z",
+        "phase": "NAVIGATION",
+        "host": "layout-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:22:56Z",
+        "phase": "NAVIGATION",
+        "host": "layout-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:22:57Z",
+        "phase": "NAVIGATION",
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:22:57Z",
+        "phase": "NAVIGATION",
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:22:58Z",
+        "phase": "NAVIGATION",
+        "host": "vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
       }
     ],
     "hostSnapshotAtDetail": [],
@@ -1649,6 +1684,7 @@
         "vidaa-base-auth-eu.vidaahub.com",
         "vidaahub.com",
         "web.stremio.com",
+        "www.google.it",
         "www.gstatic.com",
         "www.youtube.com"
       ]
@@ -1673,7 +1709,7 @@
       "vidaahub.com"
     ],
     "note": "Passive DNS differential only. Arm immediately before pressing Install/Download on the TV. HTTPS content is not intercepted.",
-    "allDnsQueryCount": 122,
+    "allDnsQueryCount": 125,
     "allDnsHosts": [
       {
         "host": "threeplr-a2ehk4y01zqss3-0.api.amazonvideo.com",
@@ -1856,9 +1892,9 @@
       {
         "host": "tvmodules-vidaa.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:18Z",
-        "lastSeen": "2026-09-29T14:22:52Z",
+        "lastSeen": "2026-09-29T14:22:57Z",
         "firstSeenIndex": 73,
-        "queryCount": 13,
+        "queryCount": 14,
         "qtypes": [
           "A"
         ],
@@ -1867,9 +1903,9 @@
       {
         "host": "layout-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:18Z",
-        "lastSeen": "2026-09-29T14:22:51Z",
+        "lastSeen": "2026-09-29T14:22:56Z",
         "firstSeenIndex": 74,
-        "queryCount": 5,
+        "queryCount": 6,
         "qtypes": [
           "A"
         ],
@@ -1889,9 +1925,9 @@
       {
         "host": "vidaahub.com",
         "firstSeen": "2026-09-29T14:22:37Z",
-        "lastSeen": "2026-09-29T14:22:53Z",
+        "lastSeen": "2026-09-29T14:22:58Z",
         "firstSeenIndex": 98,
-        "queryCount": 7,
+        "queryCount": 8,
         "qtypes": [
           "A"
         ],
