@@ -4,7 +4,7 @@
   "serverBuildId": "app-2613fcc7d404",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:45:23Z",
-  "updatedAt": "2026-09-29T14:46:10Z",
+  "updatedAt": "2026-09-29T14:46:17Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -356,6 +356,69 @@
         "host": "detail-ui-eu.vidaahub.com",
         "qtype": "AAAA",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:46:14Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "vidaa.duplecast.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:46:14Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "cdnjs.cloudflare.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:46:14Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "fonts.googleapis.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:46:15Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "www.youtube.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:46:15Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "remotejs.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:46:16Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "fonts.gstatic.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:46:16Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "files.duplecast.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:46:16Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "www.google-analytics.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:46:17Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "usage.trackjs.com",
+        "qtype": "A",
+        "vendorScoped": false
       }
     ],
     "allDnsHosts": [
@@ -519,11 +582,110 @@
           "AAAA"
         ],
         "vendorScoped": true
+      },
+      {
+        "host": "vidaa.duplecast.com",
+        "firstSeen": "2026-09-29T14:46:14Z",
+        "lastSeen": "2026-09-29T14:46:14Z",
+        "firstSeenIndex": 24,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "cdnjs.cloudflare.com",
+        "firstSeen": "2026-09-29T14:46:14Z",
+        "lastSeen": "2026-09-29T14:46:14Z",
+        "firstSeenIndex": 25,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "fonts.googleapis.com",
+        "firstSeen": "2026-09-29T14:46:14Z",
+        "lastSeen": "2026-09-29T14:46:14Z",
+        "firstSeenIndex": 26,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "www.youtube.com",
+        "firstSeen": "2026-09-29T14:46:15Z",
+        "lastSeen": "2026-09-29T14:46:15Z",
+        "firstSeenIndex": 27,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "remotejs.com",
+        "firstSeen": "2026-09-29T14:46:15Z",
+        "lastSeen": "2026-09-29T14:46:15Z",
+        "firstSeenIndex": 28,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "fonts.gstatic.com",
+        "firstSeen": "2026-09-29T14:46:16Z",
+        "lastSeen": "2026-09-29T14:46:16Z",
+        "firstSeenIndex": 29,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "files.duplecast.com",
+        "firstSeen": "2026-09-29T14:46:16Z",
+        "lastSeen": "2026-09-29T14:46:16Z",
+        "firstSeenIndex": 30,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "www.google-analytics.com",
+        "firstSeen": "2026-09-29T14:46:16Z",
+        "lastSeen": "2026-09-29T14:46:16Z",
+        "firstSeenIndex": 31,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "usage.trackjs.com",
+        "firstSeen": "2026-09-29T14:46:17Z",
+        "lastSeen": "2026-09-29T14:46:17Z",
+        "firstSeenIndex": 32,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 23,
-    "targetDomainHit": false,
-    "targetDomainFirstSeenAt": null,
+    "allDnsQueryCount": 32,
+    "targetDomainHit": true,
+    "targetDomainFirstSeenAt": "2026-09-29T14:46:14Z",
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
   }
 }
