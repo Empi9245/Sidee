@@ -4775,3 +4775,27 @@ Implemented:
 - `/api/dns-health` with query/success/failure/latency/queue/worker metrics.
 
 This is now the primary fix to test before changing Store or TLS behavior again.
+
+
+## NETWORK FIX — bypass Sidee DNS during full capture — 2026-09-29
+
+Observed:
+- phone on the shared/hotspot network has ~30 Mbps Internet;
+- TV on same network cannot load YouTube/Store;
+- therefore likely TV-specific network configuration rather than upstream WAN.
+
+For the pktmon full-capture phase Sidee DNS is no longer required because the TV IPv4 can be entered manually.
+
+Recommended clean topology test:
+- TV IP/DHCP automatic;
+- TV DNS automatic;
+- reconnect TV;
+- verify YouTube before any Store/capture test;
+- use assigned TV IPv4 in Sidee capture UI.
+
+This isolates DNS forwarding from the full-capture experiment.
+
+pktmon stale filter fix:
+- official pktmon behavior: `pktmon filter remove` removes all filters;
+- Sidee now auto-clears only when the filter list contains exactly one filter and it is `Sidee-TV`;
+- otherwise it preserves existing filters and fails safely.
