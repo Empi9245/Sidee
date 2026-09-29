@@ -1,37 +1,81 @@
-# Sidee — HTTPS flow confirmed; correlate TLS hosts to peer IPs
+# Sidee — strategic pivot: install Nuvio as a VIDAA U9 Home Shortcut first
 
-Data: 2026-09-29
+Date: 2026-09-29
 
-Latest re-analysis succeeded:
-- 1,328 PCAP packet blocks
-- 384 decoded IPv4 packets
-- 384 filter-scoped packets
-- 382 HTTPS packets
-- topology: `FILTERED_FLOW_VISIBLE_AFTER_NAT`
+## What changed
 
-This proves the Windows ICS/pktmon path is now working for the TV's real Store HTTPS traffic.
+The packet-capture work proved the TV Store path is observable, but it also clarified that continuing to hunt for a "Duplecast package replacement" is not the best route to the actual goal.
 
-Current TLS SNI includes multiple VIDAA Store hosts, including:
-- appstore-vidaa.vidaahub.com
-- tvmodules-vidaa.vidaahub.com
-- rsc-mntz.vidaahub.com
-- home-ui-eu.vidaahub.com
-- static-ui.vidaahub.com
-- search-ui-eu.vidaahub.com
-- journal/reporting hosts
+Known facts on this TV:
+- VIDAA U09.60 / MTK9603;
+- Hisense_installApp / installApplication reaches the AppConfig permission gate and returns 503;
+- direct websdk/Appinfo.json writes are permission-gated;
+- official Store traffic is signed/authenticated and HTTPS;
+- pktmon can see the real Store HTTPS flow through Windows ICS/NAT;
+- older/custom VIDAA installers register HTML5 apps primarily as launcher entries pointing to a URL, not necessarily as a native binary package.
 
-Current top remote HTTPS peer is `98.67.144.87` with 148 packets / 40,098 bytes, but the previous parser did not yet attach each SNI hostname to its specific peer/flow.
+## Better route found
 
-New changes on main:
-- `b03c71d7b90a3a80f3a0556644f5d4ea7eebf071`: adds `tlsHostFlows` with hostname → peer IP → packets → bytes.
-- `bd7703d73ab0bb17d71ef607d82fb82f5c2a313c`: regression test.
-- `14f24cff52bc2dafed0d83ea99c75a6181e82825`: UI shows TLS host→peer correlations.
+Hisense documentation for MT9603 + VIDAA U9 explicitly documents:
+- Browser -> visit a webpage;
+- use Add to Home;
+- the webpage appears persistently in Home -> Shortcuts.
 
-## Next action — no reinstall
+That gives a supported, persistent launcher entry with:
+- no devkit;
+- no permanent PC/server;
+- no DNS override after setup;
+- no AppConfig bypass;
+- no Store signature bypass.
 
-1. `git pull`
-2. restart Sidee as Administrator
-3. click **Re-analyze latest capture**
-4. reply `fatto flows`
+For Nuvio this is functionally close to the desired install because Nuvio is already a VIDAA-targeted HTML5 web app.
 
-Then inspect `tlsHostFlows` and identify which VIDAA endpoint carried the largest share of the install-window HTTPS traffic.
+## Nuvio changes already made
+
+Repo: Empi9245/nuviotvsmart main
+
+- commit 218d4fd7b24bcdb395828c2f99ebb8ef503e6f3e
+  - application-name, theme-color, favicon and touch icon metadata
+- commit a5dc9c172f43df1c43e5f75238875dea77c41188
+  - manifest id/scope and VIDAA-forced start_url:
+    ./?platform=vidaa&source=home-shortcut
+- commit af3b704c6a9dbacc56de4df559b1cf49a4af3365
+  - service worker cache bump
+
+Nuvio already had:
+- VIDAA detection;
+- 1920x1080 logical viewport;
+- D-pad/remote support;
+- VIDAA PWA manifest;
+- service worker;
+- fullscreen display request.
+
+## Practical target
+
+First goal: get Nuvio pinned to VIDAA Home Shortcuts from the TV Browser and verify that launching from Home:
+1. opens the Nuvio TV build directly;
+2. preserves VIDAA mode;
+3. is usable without a PC or custom DNS;
+4. survives TV restart;
+5. has acceptable browser chrome/fullscreen behavior.
+
+If that works, the user's practical installation goal is solved.
+
+## True Store/My Apps route
+
+A real Store app is a separate track. Public VIDAA documentation exposes a partner/developer portal and official App Store distribution is partner-controlled. Current firmware evidence does not support a safe unauthorised local replacement of signed Store metadata.
+
+If a true Store listing is required, prepare Nuvio as the HTML5 VIDAA partner app and pursue VIDAA Partner onboarding rather than trying to bypass Store signatures.
+
+## Next test
+
+Use the deployed public Nuvio URL on the TV Browser with:
+?platform=vidaa&source=home-shortcut
+
+Then use VIDAA U9 Browser -> Add to Home.
+
+After adding:
+- return to Home;
+- launch the Nuvio shortcut;
+- restart TV and launch again;
+- report whether browser chrome is visible, whether pointer appears, and whether D-pad/back/player behavior matches the existing VIDAA build.
