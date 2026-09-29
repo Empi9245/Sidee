@@ -4,7 +4,7 @@
   "serverBuildId": "app-29a68e832ad6",
   "buildMatch": true,
   "startedAt": "2026-09-29T15:13:09Z",
-  "updatedAt": "2026-09-29T15:14:43Z",
+  "updatedAt": "2026-09-29T15:14:50Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -434,6 +434,34 @@
         "host": "r4---sn-8vq54voxpu-hm2k.googlevideo.com",
         "qtype": "AAAA",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:14:47Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "googleads.g.doubleclick.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:14:47Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "googleads.g.doubleclick.net",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:14:50Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "www.youtube.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:14:50Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "www.youtube.com",
+        "qtype": "A",
+        "vendorScoped": false
       }
     ],
     "allDnsHosts": [
@@ -476,9 +504,9 @@
       {
         "host": "www.youtube.com",
         "firstSeen": "2026-09-29T15:13:49Z",
-        "lastSeen": "2026-09-29T15:13:49Z",
+        "lastSeen": "2026-09-29T15:14:50Z",
         "firstSeenIndex": 7,
-        "queryCount": 2,
+        "queryCount": 4,
         "qtypes": [
           "A",
           "AAAA"
@@ -712,9 +740,21 @@
           "AAAA"
         ],
         "vendorScoped": false
+      },
+      {
+        "host": "googleads.g.doubleclick.net",
+        "firstSeen": "2026-09-29T15:14:47Z",
+        "lastSeen": "2026-09-29T15:14:47Z",
+        "firstSeenIndex": 47,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 46,
+    "allDnsQueryCount": 50,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
