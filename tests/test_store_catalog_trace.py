@@ -372,6 +372,61 @@ class StoreCatalogTraceTests(unittest.TestCase):
         self.assertEqual(summary["tvMatchedPacketRecords"], 0)
         self.assertEqual(summary["topologyClassification"], "CAPTURED_BUT_TV_IP_NOT_VISIBLE")
 
+    def test_network_capture_pcapng_summary_detects_tv_https(self):
+        def block(block_type, body):
+            total = 12 + len(body)
+            padding = (4 - (total % 4)) % 4
+            body += b"\x00" * padding
+            total = 12 + len(body)
+            return (
+                sidee.struct.pack("<II", block_type, total)
+                + body
+                + sidee.struct.pack("<I", total)
+            )
+
+        shb_body = (
+            sidee.struct.pack("<IHHq", 0x1A2B3C4D, 1, 0, -1)
+        )
+        idb_body = sidee.struct.pack("<HHI", 1, 0, 65535)
+
+        src = sidee.socket.inet_aton("192.168.137.158")
+        dst = sidee.socket.inet_aton("203.0.113.10")
+        eth = b"\x00" * 12 + b"\x08\x00"
+        ip_header = (
+            b"\x45\x00"
+            + sidee.struct.pack("!H", 40)
+            + b"\x00\x01\x00\x00\x40\x06\x00\x00"
+            + src
+            + dst
+        )
+        tcp_header = sidee.struct.pack("!HH", 51000, 443) + b"\x00" * 16
+        packet = eth + ip_header + tcp_header
+        epb_body = (
+            sidee.struct.pack("<IIIII", 0, 0, 0, len(packet), len(packet))
+            + packet
+        )
+
+        payload = (
+            block(0x0A0D0D0A, shb_body)
+            + block(0x00000001, idb_body)
+            + b"".join(block(0x00000006, epb_body) for _ in range(5))
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / "capture.pcapng"
+            path.write_bytes(payload)
+            summary = sidee._network_capture_parse_pcapng(
+                path, "192.168.137.158"
+            )
+
+        self.assertEqual(summary["analysisSource"], "PCAPNG")
+        self.assertEqual(summary["pcapPacketBlocks"], 5)
+        self.assertEqual(summary["pcapIpv4Packets"], 5)
+        self.assertEqual(summary["tvMatchedPacketRecords"], 5)
+        self.assertEqual(summary["httpsPacketRecords"], 5)
+        self.assertEqual(summary["topologyClassification"], "FULL_PATH_VISIBLE")
+        self.assertEqual(summary["topPeers"][0]["ip"], "203.0.113.10")
+
     def test_network_capture_preflight_stops_sidee_filter_without_english_status(self):
         calls = []
 
