@@ -53,7 +53,7 @@
     try{ const a=new Uint8Array(2); crypto.getRandomValues(a); tail=Array.from(a).map(x=>x.toString(16).padStart(2,"0")).join(""); }catch(e){}
     const id="sidee-"+stamp+"-"+tail; try{sessionStorage.setItem("sidee.sessionId",id);}catch(e){} return id;
   }
-  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,accessContext:pageContext(),accessMode:accessMode(),serverAccess:null,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},contextIdentityFingerprint:null,clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,identityOverrideLab:null,identityWriteGateLab:null,candidatePermissionTest:null,directAppInfoWriteLab:null,legacyHspdkWriteLab:null,storeWorkflowProbe:null,launcherBridgeProbe:null,runtimeSurfaceAutoProbe:null,remoteInputProbe:{events:[],lastEventAt:null},automaticRuntimeInstallProbe:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",contextFingerprint:"NOT_RUN",permissionGate:"UNKNOWN",appInfoWrite:"NOT_RUN"}}; }
+  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,accessContext:pageContext(),accessMode:accessMode(),serverAccess:null,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},contextIdentityFingerprint:null,clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,identityOverrideLab:null,identityWriteGateLab:null,candidatePermissionTest:null,directAppInfoWriteLab:null,legacyHspdkWriteLab:null,storeWorkflowProbe:null,launcherBridgeProbe:null,runtimeSurfaceAutoProbe:null,remoteInputProbe:{events:[],lastEventAt:null},automaticRuntimeInstallProbe:null,nativeKeyRoutingProbe:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",contextFingerprint:"NOT_RUN",permissionGate:"UNKNOWN",appInfoWrite:"NOT_RUN"}}; }
   state.report=newReport();
 
   function meaningful(v){
@@ -2456,6 +2456,72 @@
     }
   }
 
+  function nativeKeyRoutingProbe(){
+    const result={
+      timestamp:new Date().toISOString(),
+      hiWebOsFrameAvailable:false,
+      hiWebOsFrameMethods:[],
+      keyboardAvailable:false,
+      keyboardMethods:[],
+      routeAttempted:false,
+      routeMethod:null,
+      success:false,
+      error:null
+    };
+    let frame=null,kb=null;
+    try{frame=window.hiWebOsFrame||null;}catch(e){}
+    try{kb=window.keyboard||null;}catch(e){}
+    result.hiWebOsFrameAvailable=!!frame;
+    result.keyboardAvailable=!!kb;
+    const names=obj=>{
+      if(!obj)return [];
+      const out=[],seen={};let cur=obj;
+      for(let depth=0;cur&&depth<4;depth++){
+        let own=[];try{own=Object.getOwnPropertyNames(cur);}catch(e){}
+        own.forEach(name=>{if(!seen[name]&&out.length<120){seen[name]=true;out.push(name);}});
+        try{cur=Object.getPrototypeOf(cur);}catch(e){break;}
+      }
+      return out;
+    };
+    result.hiWebOsFrameMethods=names(frame).filter(n=>/(key|register|focus)/i.test(n));
+    result.keyboardMethods=names(kb).filter(n=>/(key|register|want|group)/i.test(n));
+    try{
+      if(frame&&typeof frame.registerKeyCodesForAppExcludeKey==="function"){
+        result.routeAttempted=true;
+        result.routeMethod="hiWebOsFrame.registerKeyCodesForAppExcludeKey";
+        frame.registerKeyCodesForAppExcludeKey();
+        result.success=true;
+      }else if(kb&&typeof kb.registerKeyCodes==="function"&&typeof kb.setWantGroup==="function"){
+        const constantNames=[
+          "VK_HOME","VK_EXIT","VK_LIVETV","VK_MENU","VK_ALLAPP",
+          "VK_NETFLIX","VK_VUDU","VK_SOURCE","VK_MUTE","VK_YOUTUBE",
+          "VK_VOLUME_DOWN","VK_VOLUME_UP","VK_AMAZON","VK_FAC_M",
+          "VK_KEYPAD_VOLUME_DOWN","VK_KEYPAD_VOLUME_UP","VK_ASPECT"
+        ];
+        const systemKeys=[];
+        constantNames.forEach(name=>{
+          try{
+            const value=window[name];
+            if(typeof value==="number"&&systemKeys.indexOf(value)<0)systemKeys.push(value);
+          }catch(e){}
+        });
+        if(systemKeys.length>=6){
+          result.routeAttempted=true;
+          result.routeMethod="keyboard.registerKeyCodes + setWantGroup(0)";
+          kb.registerKeyCodes(systemKeys);
+          kb.setWantGroup(0);
+          result.systemKeyCount=systemKeys.length;
+          result.success=true;
+        }
+      }
+    }catch(e){
+      result.error=err(e);
+    }
+    state.report.nativeKeyRoutingProbe=result;
+    log("Native VIDAA key routing probe",result);
+    return result;
+  }
+
   function runtimeSurfaceSnapshot(){
     const pickCall=name=>{
       try{
@@ -2501,6 +2567,8 @@
       operaOmiAvailable:!!window.opera_omi,
       omiPlatformMethods:bridgeMethods(window.omi_platform),
       operaOmiMethods:bridgeMethods(window.opera_omi),
+      hiWebOsFrameAvailable:!!window.hiWebOsFrame,
+      keyboardAvailable:!!window.keyboard,
       vowOsAvailable:!!window.vowOS,
       vowOsContextAvailable:!!window.vowOSContext,
       serviceIdentifier:identifier,
@@ -2675,7 +2743,12 @@
     await refreshStoreStaticMap();
     startRemoteDiagnosticPolling();
     state.report.runtimeSurfaceAutoProbe=runtimeSurfaceSnapshot();
-    set("remoteInputState","AUTO PROBE · press arrows and OK on the remote");
+    const keyRoute=nativeKeyRoutingProbe();
+    set("remoteInputState",
+      keyRoute.success
+        ?"NATIVE KEY ROUTING ENABLED · try arrows and OK"
+        :"AUTO PROBE · press arrows and OK on the remote"
+    );
     try{
       document.body.tabIndex=-1;
       window.focus?.();
