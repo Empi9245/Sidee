@@ -314,6 +314,49 @@ class StoreCatalogTraceTests(unittest.TestCase):
             sidee.STORE_TRACE_REPORT = previous_trace
             sidee.STORE_DISCOVERY_REPORT = previous_discovery
 
+    def test_store_static_extract_finds_api_paths_and_install_metadata(self):
+        html = """
+        <html>
+          <head>
+            <script src="https://static-ui.vidaahub.com/store/main.js"></script>
+          </head>
+          <body>
+            <script>
+              const endpoint = "/api/v1.0.0/appApi/installApplication";
+              const meta = {
+                configUrlDownload: "https://appstore-vidaa.vidaahub.com/download/app.json",
+                productCode: "1876",
+                appBundle: "duplecast"
+              };
+            </script>
+          </body>
+        </html>
+        """
+        result = sidee._store_static_extract({
+            "host": "home-ui-eu.vidaahub.com",
+            "path": "/",
+            "status": 200,
+            "contentType": "text/html",
+            "bytes": len(html),
+            "truncated": False,
+            "sha256": "0" * 64,
+            "location": None,
+            "text": html,
+        })
+        self.assertIn(
+            "/api/v1.0.0/appApi/installApplication",
+            result["apiPaths"],
+        )
+        self.assertIn(
+            "https://static-ui.vidaahub.com/store/main.js",
+            result["assetRefs"],
+        )
+        keywords = {item["keyword"] for item in result["keywordHits"]}
+        self.assertIn("installApplication", keywords)
+        self.assertIn("configUrlDownload", keywords)
+        self.assertIn("productCode", keywords)
+        self.assertIn("appBundle", keywords)
+
     def test_store_install_probe_isolates_post_install_dns_activity(self):
         previous = sidee.STORE_DISCOVERY_REPORT
         sidee.STORE_DISCOVERY_REPORT = None
@@ -391,6 +434,7 @@ class StoreCatalogTraceTests(unittest.TestCase):
         cfg = sidee.load_config()
         for host in sidee.STORE_TRACE_HOSTS:
             self.assertNotIn(host, cfg["spoof_domains"])
+        self.assertNotIn("vidaa.duplecast.com", cfg["spoof_domains"])
 
     def test_store_trace_hosts_are_present_in_default_snapshot(self):
         previous = sidee.STORE_TRACE_REPORT
