@@ -2194,7 +2194,9 @@
   }
   async function fullNetworkCaptureAction(action){
     const stateEl=$("fullNetworkCaptureState");
-    if(stateEl)stateEl.textContent=action==="ARM"?"Arming Windows packet capture…":"Stopping and converting capture…";
+    if(stateEl)stateEl.textContent=action==="ARM"
+      ?"Arming Windows packet capture…"
+      :(action==="REANALYZE_LATEST"?"Reading saved PCAPNG directly…":"Stopping and converting capture…");
     try{
       const response=await fetch("/api/full-network-capture",{
         method:"POST",
@@ -2320,6 +2322,7 @@
 
   $("fullNetworkCaptureArmBtn").addEventListener("click",()=>fullNetworkCaptureAction("ARM"));
   $("fullNetworkCaptureStopBtn").addEventListener("click",()=>fullNetworkCaptureAction("STOP"));
+  $("fullNetworkCaptureReanalyzeBtn").addEventListener("click",()=>fullNetworkCaptureAction("REANALYZE_LATEST"));
   $("storeStaticMapBtn").addEventListener("click",runStoreStaticMap);
   $("nativeInstallApiBtn").addEventListener("click",inspectNativeInstallApiSurface);
   $("storeInstallProbeStartBtn").addEventListener("click",()=>storeInstallProbeAction("START"));
