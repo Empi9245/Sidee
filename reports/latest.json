@@ -4,7 +4,7 @@
   "serverBuildId": "app-e59b512a9ef8",
   "buildMatch": true,
   "startedAt": "2026-09-29T16:40:53Z",
-  "updatedAt": "2026-09-29T16:41:08Z",
+  "updatedAt": "2026-09-29T16:41:15Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -226,6 +226,83 @@
         "host": "cdn.consentmanager.net",
         "qtype": "A",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:11Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "a.delivery.consentmanager.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:12Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "data-enabler-cloud.mediaset.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:13Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "feed.entertainment.tv.theplatform.eu",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:13Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "mediaservices.cdn-apple.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:13Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "mediaservices.cdn-apple.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:14Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "mediasetplay.api-graph.mediaset.it",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:14Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "static-api.mediaset.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:14Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "a-fds.youborafds01.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:14Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "vod08.msf.cdn.mediaset.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:15Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "img-prod-api2.mediasetplay.mediaset.it",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:15Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "enabler.datalake.mediaset.it",
+        "qtype": "A",
+        "vendorScoped": false
       }
     ],
     "allDnsHosts": [
@@ -377,9 +454,120 @@
           "A"
         ],
         "vendorScoped": false
+      },
+      {
+        "host": "a.delivery.consentmanager.net",
+        "firstSeen": "2026-09-29T16:41:11Z",
+        "lastSeen": "2026-09-29T16:41:11Z",
+        "firstSeenIndex": 21,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "data-enabler-cloud.mediaset.net",
+        "firstSeen": "2026-09-29T16:41:12Z",
+        "lastSeen": "2026-09-29T16:41:12Z",
+        "firstSeenIndex": 22,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "feed.entertainment.tv.theplatform.eu",
+        "firstSeen": "2026-09-29T16:41:13Z",
+        "lastSeen": "2026-09-29T16:41:13Z",
+        "firstSeenIndex": 23,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "mediaservices.cdn-apple.com",
+        "firstSeen": "2026-09-29T16:41:13Z",
+        "lastSeen": "2026-09-29T16:41:13Z",
+        "firstSeenIndex": 24,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "mediasetplay.api-graph.mediaset.it",
+        "firstSeen": "2026-09-29T16:41:14Z",
+        "lastSeen": "2026-09-29T16:41:14Z",
+        "firstSeenIndex": 26,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "static-api.mediaset.net",
+        "firstSeen": "2026-09-29T16:41:14Z",
+        "lastSeen": "2026-09-29T16:41:14Z",
+        "firstSeenIndex": 27,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "a-fds.youborafds01.com",
+        "firstSeen": "2026-09-29T16:41:14Z",
+        "lastSeen": "2026-09-29T16:41:14Z",
+        "firstSeenIndex": 28,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "vod08.msf.cdn.mediaset.net",
+        "firstSeen": "2026-09-29T16:41:14Z",
+        "lastSeen": "2026-09-29T16:41:14Z",
+        "firstSeenIndex": 29,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "img-prod-api2.mediasetplay.mediaset.it",
+        "firstSeen": "2026-09-29T16:41:15Z",
+        "lastSeen": "2026-09-29T16:41:15Z",
+        "firstSeenIndex": 30,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "enabler.datalake.mediaset.it",
+        "firstSeen": "2026-09-29T16:41:15Z",
+        "lastSeen": "2026-09-29T16:41:15Z",
+        "firstSeenIndex": 31,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 20,
+    "allDnsQueryCount": 31,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
