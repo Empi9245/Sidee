@@ -5024,3 +5024,48 @@ Next step:
 - restart Sidee;
 - press **Re-analyze latest capture** once more;
 - inspect HTTPS count, filterScopedPacketRecords and topPeers from the same existing PCAP; no reinstall required.
+
+## RESULT — NAT-aware HTTPS confirmed; add TLS host→peer flow correlation — 2026-09-29 18:07
+
+Re-analysis of session `sidee-20260929-173911-7b2f` after NAT-aware parsing:
+- `analysisSource=PCAPNG`
+- `pcapPacketBlocks=1328`
+- `pcapIpv4Packets=384`
+- `filterScopedPacketRecords=384`
+- `httpsPacketRecords=382`
+- `httpPacketRecords=0`
+- `dnsPacketRecords=0`
+- `topologyClassification=FILTERED_FLOW_VISIBLE_AFTER_NAT`
+
+Top HTTPS peers:
+- `98.67.144.87` — 148 packets / 40,098 bytes
+- `20.170.91.169` — 35 / 10,800
+- `20.170.76.123` — 39 / 7,295
+- `84.17.59.9` — 38 / 7,032
+- `48.201.112.197` — 21 / 6,326
+- `72.144.75.200` — 27 / 5,959
+- `108.139.229.5` — 27 / 3,579
+- `108.139.210.9` — 20 / 3,204
+- `20.113.97.24` — 12 / 2,975
+- `212.102.55.183` — 14 / 2,189
+
+TLS SNI in the same capture:
+`rsc-mntz.vidaahub.com`, `appstore-vidaa.vidaahub.com`,
+`crtv-mntz.vidaahub.com`, `exc-jrnl-eu.vidaahub.com`,
+`home-ui-eu.vidaahub.com`, `img.vidaahub.com`,
+`rpt-mntz-azure.vidaahub.com`, `search-ui-eu.vidaahub.com`,
+`static-ui.vidaahub.com`, `ter-jrnl-eu.vidaahub.com`,
+`tvmodules-vidaa.vidaahub.com`.
+
+This proves Sidee sees the real TV HTTPS Store flow through ICS/NAT.
+
+New main changes:
+- `b03c71d7b90a3a80f3a0556644f5d4ea7eebf071`: correlate each TLS SNI with the normalized HTTPS flow, peer IP, packet count and bytes; expose `tlsHostFlows`.
+- `bd7703d73ab0bb17d71ef607d82fb82f5c2a313c`: regression test for SNI→peer correlation.
+- `14f24cff52bc2dafed0d83ea99c75a6181e82825`: show top TLS host→peer correlations in UI.
+
+Next action:
+- pull/restart Sidee;
+- click **Re-analyze latest capture** once more;
+- inspect `tlsHostFlows`.
+No new Store install is required.
