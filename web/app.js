@@ -2176,9 +2176,11 @@
     set("fullNetworkCaptureTopology",summary.topologyClassification||"UNKNOWN");
     set("fullNetworkCapturePcap",capture.pcapngFile||"—");
     const top=(summary.topPeers||[]).slice(0,4).map(x=>x.ip+" · "+formatBytes(x.bytes||0)).join(" | ");
+    const sni=(summary.tlsServerNames||[]).slice(0,4).map(x=>x.host).join(" | ");
     set("fullNetworkCaptureState",(capture.status||"IDLE")+
       (capture.error?" · "+capture.error:"")+
       (summary.topologyClassification?" · "+summary.topologyClassification:"")+
+      (sni?" · TLS: "+sni:"")+
       (top?" · top peers: "+top:""));
   }
   async function refreshFullNetworkCapture(){
