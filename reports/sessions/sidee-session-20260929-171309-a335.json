@@ -4,7 +4,7 @@
   "serverBuildId": "app-29a68e832ad6",
   "buildMatch": true,
   "startedAt": "2026-09-29T15:13:09Z",
-  "updatedAt": "2026-09-29T15:14:19Z",
+  "updatedAt": "2026-09-29T15:14:43Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -420,6 +420,20 @@
         "host": "tools.google.com",
         "qtype": "AAAA",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:14:43Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "r4---sn-8vq54voxpu-hm2k.googlevideo.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:14:43Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "r4---sn-8vq54voxpu-hm2k.googlevideo.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
       }
     ],
     "allDnsHosts": [
@@ -686,9 +700,21 @@
           "AAAA"
         ],
         "vendorScoped": false
+      },
+      {
+        "host": "r4---sn-8vq54voxpu-hm2k.googlevideo.com",
+        "firstSeen": "2026-09-29T15:14:43Z",
+        "lastSeen": "2026-09-29T15:14:43Z",
+        "firstSeenIndex": 45,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 44,
+    "allDnsQueryCount": 46,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
