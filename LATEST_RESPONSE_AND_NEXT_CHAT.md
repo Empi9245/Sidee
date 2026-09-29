@@ -1,62 +1,76 @@
-# Sidee — automatic installed-app runtime handoff test
+# Sidee — back to Store download/install path
 
 Date: 2026-09-29
 
-## Why dashboard D-pad work is stopped
+User explicitly wants the **real VIDAA Store download/install route**, not runtime-container or handoff workarounds.
 
-Latest raw-IP session:
-- client/server build match: `app-5dbeec3fbd21`
-- `remoteInputProbe.events = []`
-- `hiWebOsFrameAvailable = false`
-- `keyboardAvailable = false`
-- `Hisense_installApp = false`
-- `Hisense_installApp_V2 = false`
-- context remains `RAW_IP_BROWSER_CONTEXT`
+## Important model correction
 
-Therefore the raw dashboard cannot claim D-pad/OK ownership with the browser-exposed surfaces currently available. More DOM key mapping changes are not useful.
+VIDAA officially supports hosted web apps. A hosted app is launched from a URL and downloads its resources from the remote server at runtime. Therefore an App Store "install" does not necessarily mean a binary app package is downloaded to the TV; for hosted apps it may primarily create/store launcher metadata, app identity, icon, URL and related Store state.
 
-## New test: real installed-app runtime -> cross-origin handoff
+This is especially relevant to Duplecast because the installed app later talks to:
+- `vidaa.duplecast.com`
+- `files.duplecast.com`
 
-Implemented in:
-- `b8b8dfb489ebfd38b83631bb5f2371507d14593e`
+So the next capture must determine empirically whether the Duplecast Store install does one of these:
+1. downloads a real package/bundle from a download/CDN host; or
+2. performs signed Store/launcher registration of a hosted URL plus metadata/assets.
 
-Flow:
-1. Launch a real installed app context intercepted by Sidee (current config spoofs Smartone: `vidaa.smartone-iptv.com`).
-2. Sidee bootstrap captures the real installed-app identity as before.
-3. After the bootstrap report is successfully saved, the page automatically navigates to:
-   `http://<PC-IP>:8080/app-runtime-handoff`
-4. The handoff page automatically captures:
-   - navigator.appIdentifier
-   - vowOS serviceIdentifier
-   - vowOSContext appIdentifier/appId
-   - Hisense_SupportAppConfig
-   - install API availability
-   - omi_platform/opera_omi availability
-   - raw remote key events
-5. It updates the *same* app-context session report under:
-   - `appRuntimeHandoffProbe.runtimePreserved`
-   - `appRuntimeHandoffProbe.inputReachedPage`
-   - `summary.appRuntimeHandoff`
-   - `summary.handoffInput`
+Do not assume a package exists until traffic proves it.
 
-Classifications:
-- `APP_RUNTIME_PRESERVED_AFTER_CROSS_ORIGIN_HANDOFF`
-- `APP_RUNTIME_LOST_AFTER_CROSS_ORIGIN_HANDOFF`
+## Previous useful capture
 
-## Next user test
+Session `sidee-20260929-173911-7b2f` successfully captured Store TLS flows through pktmon:
+- 384 packet records
+- 89,666 bytes
+- 382 HTTPS packet records
+- topology: `FILTERED_FLOW_VISIBLE_AFTER_NAT`
+- SNI included:
+  - `appstore-vidaa.vidaahub.com`
+  - `tvmodules-vidaa.vidaahub.com`
+  - `home-ui-eu.vidaahub.com`
+  - `search-ui-eu.vidaahub.com`
+  - `static-ui.vidaahub.com`
+  - monitoring/journal hosts
+
+That capture did **not** include the actual Duplecast install window, so no conclusion about package delivery was possible.
+
+## New implementation
+
+Commits:
+- `10ae20912f6cbefc6116526ce1c8dcb20710ae29`
+  - adds `store_download_capture` config
+  - enabled by default
+  - auto-arm on Sidee startup
+  - target documented as Duplecast appId 1876
+  - automatic capture window: 180 seconds
+- `c895f314205e3d8752af47333646bafb8dfec3f6`
+  - Sidee automatically arms pktmon after startup
+  - first VIDAA Store DNS activity from the TV starts the TV-IP-filtered full capture
+  - no dashboard click is required
+  - capture automatically stops after 180 seconds and converts to PCAPNG/TXT
+  - report sync happens through the existing `fullNetworkCapture` path
+  - startup instructions now focus on normal Store install, not app-context tests
+
+## Next test
 
 1. `git pull --ff-only origin main`
 2. fully restart Sidee as Administrator
-3. keep the TV DNS pointed to the Sidee PC
-4. launch **Smartone IPTV from the VIDAA launcher**, not the normal browser
-5. do not touch the Sidee dashboard
-6. Smartone should first show the Sidee app-context page briefly, then automatically switch to **Sidee · app runtime handoff**
-7. once the handoff page is visible, press arrows + OK a few times
-8. reply `fatto handoff`
+3. TV DNS remains pointed to the Sidee PC
+4. ensure Duplecast is uninstalled
+5. open the **normal VIDAA App Store from the launcher**
+6. search/open Duplecast and install it normally
+7. do not use the Sidee dashboard
+8. leave Store open until the capture has had enough time to include the install flow
+9. reply `fatto download`
 
-Then inspect the newest `SMARTONE_APP_CONTEXT` session containing `appRuntimeHandoffProbe`.
+Then inspect the newest report/capture for:
+- SNI appearing only during install
+- `file-dl.vidaahub.com`
+- `files.duplecast.com`
+- new CDN/object-storage hosts
+- a high-byte TLS flow coincident with Install
+- absence of large package flow, which would support hosted-app metadata registration instead
 
-Decision:
-- if runtime is PRESERVED and input events are captured: hosted Nuvio can potentially be launched from an installed app shell while retaining real VIDAA app behavior; next step is handoff to Nuvio itself.
-- if runtime is PRESERVED but input is not captured: app identity survives, but key routing is separately controlled; test same-origin shell/proxy.
-- if runtime is LOST: cross-origin top-level navigation drops app identity; next step is a same-origin Nuvio shell/proxy under the installed app host.
+If a package/download host is proven, continue tracing its supported Store flow.
+If no package flow exists and the install is metadata/URL registration, refocus on the exact official launcher-registration request rather than looking for a nonexistent package.
