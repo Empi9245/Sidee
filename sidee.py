@@ -328,7 +328,7 @@ def _network_capture_maybe_start(tv_ip, trigger_host):
     return True
 
 
-def _network_capture_arm():
+def _network_capture_arm(manual_tv_ip=None):
     _network_capture_preflight()
     capture_id = _network_capture_id()
     state = _network_capture_set(
@@ -347,7 +347,7 @@ def _network_capture_arm():
         error=None,
         pktmonOutput=None,
     )
-    client_ip = STORE_INSTALL_PROBE_CLIENT
+    client_ip = str(manual_tv_ip or STORE_INSTALL_PROBE_CLIENT or "").strip()
     if client_ip:
         _network_capture_set(status="STARTING")
         thread = threading.Thread(
@@ -3141,7 +3141,7 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
             action = str(data.get("action") or "").strip().upper()
             try:
                 if action == "ARM":
-                    result = _network_capture_arm()
+                    result = _network_capture_arm(data.get("tvIp"))
                 elif action == "STOP":
                     result = _network_capture_stop()
                 else:
