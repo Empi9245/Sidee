@@ -1047,6 +1047,83 @@
   }
   $("pkgmgrInstalledBtn").addEventListener("click",inspectPkgmgrInstalled);
 
+  function nativeInstallApiSurface(){
+    const sensitive=/(token|secret|password|cookie|auth|key|sign|cert|nonce|session)/i;
+    const interesting=/(install|download|pkg|package|store|bundle|archive|stag|app)/i;
+    const out={
+      timestamp:new Date().toISOString(),
+      readOnly:true,
+      invoked:false,
+      pageContext:pageContext(),
+      exact:{},
+      vowStore:{available:false,functions:[]},
+      sourceInventory:null,
+      conclusionHint:null
+    };
+    function fnInfo(owner,name,path){
+      const rec={path:path||name,available:false,type:"missing",length:null,source:null,references:[],error:null};
+      try{
+        const fn=owner&&owner[name];
+        rec.type=fn===null?"null":typeof fn;
+        if(typeof fn!=="function")return rec;
+        rec.available=true;
+        rec.length=fn.length;
+        const src=functionSource(fn);
+        rec.source=src&&sensitive.test(src)?null:src;
+        rec.references=sourceReferences(src).filter(x=>!sensitive.test(String(x||""))).slice(0,80);
+      }catch(e){rec.error=err(e);}
+      return rec;
+    }
+    out.exact.Hisense_installApp=fnInfo(window,"Hisense_installApp","window.Hisense_installApp");
+    out.exact.Hisense_installApp_V2=fnInfo(window,"Hisense_installApp_V2","window.Hisense_installApp_V2");
+    out.exact.HiUtils_createRequest=fnInfo(window,"HiUtils_createRequest","window.HiUtils_createRequest");
+    try{
+      const store=window.vowOS&&window.vowOS.store;
+      out.vowStore.available=!!store;
+      if(store){
+        const names=Object.getOwnPropertyNames(store).filter(n=>interesting.test(n)).slice(0,100);
+        for(const name of names){
+          const rec=fnInfo(store,name,"vowOS.store."+name);
+          if(rec.available)out.vowStore.functions.push(rec);
+        }
+      }
+    }catch(e){out.vowStore.error=err(e);}
+    out.sourceInventory=pkgmgrSourceInventory();
+    const refs=[];
+    Object.keys(out.exact).forEach(k=>{
+      const r=out.exact[k];
+      (r.references||[]).forEach(v=>{if(refs.indexOf(v)<0)refs.push(v);});
+    });
+    (out.vowStore.functions||[]).forEach(r=>(r.references||[]).forEach(v=>{if(refs.indexOf(v)<0)refs.push(v);}));
+    (out.sourceInventory&&out.sourceInventory.matches||[]).forEach(m=>{
+      if(m.term&&refs.indexOf(m.term)<0)refs.push(m.term);
+    });
+    out.conclusionHint=refs.some(v=>/installapplication/i.test(String(v)))?"INSTALLAPPLICATION_REFERENCE_FOUND":
+      refs.some(v=>/(installpackage|downloadpackage|pkgmgr)/i.test(String(v)))?"PKGMGR_INSTALL_REFERENCE_FOUND":
+      "NO_EXPLICIT_INSTALL_REFERENCE_FOUND";
+    return out;
+  }
+  async function inspectNativeInstallApiSurface(){
+    if(state.running)return;
+    state.running=true;
+    set("nativeInstallApiState","Inspecting native install API surface…");
+    try{
+      const report=nativeInstallApiSurface();
+      state.report.nativeInstallApiSurface=report;
+      set("nativeInstallApiState",report.conclusionHint+" · store functions "+(report.vowStore.functions||[]).length+" · read-only");
+      log("Native install API surface",{
+        conclusion:report.conclusionHint,
+        exact:Object.keys(report.exact).reduce((o,k)=>{o[k]={available:report.exact[k].available,references:report.exact[k].references};return o;},{}),
+        storeFunctions:(report.vowStore.functions||[]).map(x=>({path:x.path,references:x.references})),
+        inventoryMatches:report.sourceInventory&&report.sourceInventory.matches?report.sourceInventory.matches.length:0
+      });
+      await save("native-install-api-surface");
+    }catch(e){
+      set("nativeInstallApiState","Probe failed · "+err(e));
+      log("Native install API surface failed",err(e));
+    }finally{state.running=false;}
+  }
+
   function pkgmgrSourceInventory(){
     const sourceTerms=[
       "pkgmgr","packageName","pkgName","sendPkgmgrRequest","/APPS/pkgs/","getInstalledPkgs",
@@ -2185,6 +2262,7 @@
   window.addEventListener("keydown",e=>{const key=e.key||({13:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[e.keyCode]),active=document.activeElement;if((key==="Enter"||key==="OK")&&active&&(active.tagName==="BUTTON"||active.tagName==="SUMMARY")){e.preventDefault();active.click();return;}if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(key)<0)return;if(active&&active.tagName==="INPUT"&&(key==="ArrowLeft"||key==="ArrowRight"))return;const list=controls();if(!list.length)return;const cur=list.indexOf(active)>=0?active:list[0],to=nextControl(cur,key,list);if(to){to.focus();e.preventDefault();}else if(list.indexOf(active)<0){cur.focus();e.preventDefault();}});
 
   $("storeStaticMapBtn").addEventListener("click",runStoreStaticMap);
+  $("nativeInstallApiBtn").addEventListener("click",inspectNativeInstallApiSurface);
   $("storeInstallProbeStartBtn").addEventListener("click",()=>storeInstallProbeAction("START"));
   $("storeInstallProbeDetailBtn").addEventListener("click",()=>storeInstallProbeAction("DETAIL_OPEN"));
   $("storeInstallProbeArmBtn").addEventListener("click",()=>storeInstallProbeAction("ARM_INSTALL"));
