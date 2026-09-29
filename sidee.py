@@ -142,31 +142,11 @@ STORE_STATIC_MAP_KEYWORDS = (
     "signatureServer",
 )
 STORE_STATIC_API_RE = re.compile(
-    r"(/api/[A-Za-z0-9._~!STORE_INSTALL_AUTO_TRIGGER_HOSTS = {
-    "category-ui-eu.vidaahub.com",
-    "layout-ui-eu.vidaahub.com",
-    "home-ui-eu.vidaahub.com",
-    "detail-ui-eu.vidaahub.com",
-    "recommend-ui-eu.vidaahub.com",
-    "search-ui-eu.vidaahub.com",
-    "appstore-vidaa.vidaahub.com",
-    "tvmodules-vidaa.vidaahub.com",
-}
-'()*+,;=:@%/?#\\-]{3,220})",
+    r"(/api/[A-Za-z0-9._~!$&'()*+,;=:@%/?#\\-]{3,220})",
     re.IGNORECASE,
 )
 STORE_STATIC_URL_RE = re.compile(
-    r"(https?://[A-Za-z0-9._~:%\\-]+(?:/[A-Za-z0-9._~!STORE_INSTALL_AUTO_TRIGGER_HOSTS = {
-    "category-ui-eu.vidaahub.com",
-    "layout-ui-eu.vidaahub.com",
-    "home-ui-eu.vidaahub.com",
-    "detail-ui-eu.vidaahub.com",
-    "recommend-ui-eu.vidaahub.com",
-    "search-ui-eu.vidaahub.com",
-    "appstore-vidaa.vidaahub.com",
-    "tvmodules-vidaa.vidaahub.com",
-}
-'()*+,;=:@%/?#\\-]*)?)",
+    r"(https?://[A-Za-z0-9._~:%\\-]+(?:/[A-Za-z0-9._~!$&'()*+,;=:@%/?#\\-]*)?)",
     re.IGNORECASE,
 )
 STORE_STATIC_SCRIPT_RE = re.compile(
@@ -179,7 +159,6 @@ STORE_STATIC_SENSITIVE_RE = re.compile(
 )
 
 
-
 def _store_static_fetch(host, path):
     host = _normalized_host(host)
     if host not in STORE_STATIC_MAP_HOST_SET:
@@ -188,10 +167,7 @@ def _store_static_fetch(host, path):
         raise ValueError("Store static path must be absolute")
 
     conn = http.client.HTTPSConnection(
-        host,
-        443,
-        timeout=8,
-        context=ssl.create_default_context(),
+        host, 443, timeout=8, context=ssl.create_default_context()
     )
     try:
         conn.request(
@@ -255,20 +231,20 @@ def _store_static_extract(fetch):
 
     api_paths = []
     for match in STORE_STATIC_API_RE.finditer(text):
-        value = match.group(1).rstrip("\\"');,}]")
+        value = match.group(1)[:240]
         if value not in api_paths and not STORE_STATIC_SENSITIVE_RE.search(value):
-            api_paths.append(value[:240])
+            api_paths.append(value)
         if len(api_paths) >= 80:
             break
     out["apiPaths"] = api_paths
 
     urls = []
     for match in STORE_STATIC_URL_RE.finditer(text):
-        value = match.group(1).rstrip("\\"');,}]")
+        value = match.group(1)[:500]
         if STORE_STATIC_SENSITIVE_RE.search(value):
             continue
         if value not in urls:
-            urls.append(value[:500])
+            urls.append(value)
         if len(urls) >= 80:
             break
     out["urls"] = urls
@@ -286,10 +262,7 @@ def _store_static_extract(fetch):
             excerpt = text[max(0, idx - 180):min(len(text), idx + 420)]
             excerpt = re.sub(r"\\s+", " ", excerpt)
             if not STORE_STATIC_SENSITIVE_RE.search(excerpt):
-                hits.append({
-                    "keyword": keyword,
-                    "excerpt": excerpt[:700],
-                })
+                hits.append({"keyword": keyword, "excerpt": excerpt[:700]})
             start = idx + len(keyword)
             found += 1
             if len(hits) >= 60:
@@ -320,13 +293,31 @@ def _store_static_extract(fetch):
     return out
 
 
+def _sync_store_static_map_into_report(static_map):
+    global STORE_DISCOVERY_REPORT
+    with STORE_DISCOVERY_LOCK:
+        if STORE_DISCOVERY_REPORT is None:
+            STORE_DISCOVERY_REPORT = _new_store_domain_discovery_report()
+            STORE_DISCOVERY_REPORT["accessMode"] = "VIDAA_STORE_STATIC_API_MAP"
+        report = STORE_DISCOVERY_REPORT
+        report["updatedAt"] = _utc_timestamp()
+        report["storeStaticMap"] = json.loads(json.dumps(static_map))
+        report.setdefault("summary", {})["storeStaticMap"] = static_map.get("status", "UNKNOWN")
+        snapshot = json.loads(json.dumps(report))
+    write_session_report(snapshot["sessionId"], snapshot)
+    try:
+        queue_report_sync(snapshot["sessionId"], snapshot, "store-static-api-map")
+    except Exception as exc:
+        print(f"[STORE-STATIC] sync error: {exc}")
+    return snapshot
+
+
 def _run_store_static_api_map():
     started = _utc_timestamp()
     queue = []
     seen = set()
     results = []
     errors = []
-
     for host in STORE_STATIC_MAP_HOSTS:
         queue.append((host, "/"))
         queue.append((host, "/index.html"))
@@ -362,11 +353,7 @@ def _run_store_static_api_map():
                 if asset_host in STORE_STATIC_MAP_HOST_SET:
                     queue.append((asset_host, asset_path))
         except Exception as exc:
-            errors.append({
-                "host": host,
-                "path": path,
-                "error": str(exc)[:500],
-            })
+            errors.append({"host": host, "path": path, "error": str(exc)[:500]})
             if len(errors) >= 40:
                 break
 
@@ -407,6 +394,7 @@ def _run_store_static_api_map():
     global STORE_STATIC_MAP_LAST
     with STORE_STATIC_MAP_LOCK:
         STORE_STATIC_MAP_LAST = report
+    _sync_store_static_map_into_report(report)
     return json.loads(json.dumps(report))
 
 
@@ -2717,19 +2705,6 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
         if path == "/api/store-catalog-trace":
             return self._send_json({"ok": True, "storeCatalogTrace": _store_trace_snapshot()})
 
-        if path == "/api/store-static-map":
-            try:
-                result = _run_store_static_api_map()
-            except Exception as exc:
-                return self._send_json({
-                    "ok": False,
-                    "error": ("Store static map failed: " + str(exc))[:1000],
-                }, 500)
-            return self._send_json({
-                "ok": True,
-                "storeStaticMap": result,
-            })
-
         if path == "/api/store-install-probe":
             return self._send_json({
                 "ok": True,
@@ -2815,6 +2790,19 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
             data = self._read_json()
         except Exception as exc:
             return self._send_json({"ok": False, "error": str(exc)}, 400)
+
+        if path == "/api/store-static-map":
+            try:
+                result = _run_store_static_api_map()
+            except Exception as exc:
+                return self._send_json({
+                    "ok": False,
+                    "error": ("Store static map failed: " + str(exc))[:1000],
+                }, 500)
+            return self._send_json({
+                "ok": True,
+                "storeStaticMap": result,
+            })
 
         if path == "/api/store-install-probe":
             if not isinstance(data, dict):
