@@ -4,7 +4,7 @@
   "serverBuildId": "app-c947484c30df",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:21:20Z",
-  "updatedAt": "2026-09-29T14:23:38Z",
+  "updatedAt": "2026-09-29T14:23:44Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,8 +18,8 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 119,
-    "hostCount": 14,
+    "totalQueries": 120,
+    "hostCount": 15,
     "hosts": [
       {
         "host": "home-ui-eu.vidaahub.com",
@@ -146,6 +146,15 @@
         "firstSeen": "2026-09-29T14:22:48Z",
         "lastSeen": "2026-09-29T14:23:37Z",
         "queryCount": 8,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "partner.vidaahub.com",
+        "firstSeen": "2026-09-29T14:23:42Z",
+        "lastSeen": "2026-09-29T14:23:42Z",
+        "queryCount": 1,
         "qtypes": [
           "A"
         ]
@@ -2380,6 +2389,41 @@
         "host": "n8z7zwivjg.execute-api.us-east-1.amazonaws.com",
         "qtype": "A",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:39Z",
+        "phase": "NAVIGATION",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:41Z",
+        "phase": "NAVIGATION",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:42Z",
+        "phase": "NAVIGATION",
+        "host": "partner.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:42Z",
+        "phase": "NAVIGATION",
+        "host": "partner.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:44Z",
+        "phase": "NAVIGATION",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
       }
     ],
     "hostSnapshotAtDetail": [],
@@ -2412,7 +2456,9 @@
         "lfl45c-cd7yq0vl7clzp.hdzss5crg9ndk4f2syy.com",
         "mask.apple-dns.net",
         "mask.icloud.com",
+        "n8z7zwivjg.execute-api.us-east-1.amazonaws.com",
         "netcts.cdn-apple.com",
+        "partner.vidaahub.com",
         "recommend-ui-eu.vidaahub.com",
         "rsc-mntz.vidaahub.com",
         "sd3n0344di.execute-api.eu-west-3.amazonaws.com",
@@ -2439,6 +2485,7 @@
       "img.vidaahub.com",
       "iot-voice-eu.vidaahub.com",
       "layout-ui-eu.vidaahub.com",
+      "partner.vidaahub.com",
       "recommend-ui-eu.vidaahub.com",
       "rsc-mntz.vidaahub.com",
       "ter-jrnl-eu.vidaahub.com",
@@ -2448,7 +2495,7 @@
       "vidaahub.com"
     ],
     "note": "Passive DNS differential only. Arm immediately before pressing Install/Download on the TV. HTTPS content is not intercepted.",
-    "allDnsQueryCount": 196,
+    "allDnsQueryCount": 200,
     "allDnsHosts": [
       {
         "host": "threeplr-a2ehk4y01zqss3-0.api.amazonvideo.com",
@@ -2498,9 +2545,9 @@
       {
         "host": "hisense-0ba453d1.prod.partner.netflix.net",
         "firstSeen": "2026-09-29T14:21:23Z",
-        "lastSeen": "2026-09-29T14:21:53Z",
+        "lastSeen": "2026-09-29T14:23:44Z",
         "firstSeenIndex": 6,
-        "queryCount": 3,
+        "queryCount": 6,
         "qtypes": [
           "A"
         ],
@@ -2902,6 +2949,17 @@
           "HTTPS"
         ],
         "vendorScoped": false
+      },
+      {
+        "host": "partner.vidaahub.com",
+        "firstSeen": "2026-09-29T14:23:42Z",
+        "lastSeen": "2026-09-29T14:23:42Z",
+        "firstSeenIndex": 199,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
       }
     ]
   }
