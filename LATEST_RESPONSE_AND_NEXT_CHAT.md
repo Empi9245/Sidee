@@ -1,43 +1,43 @@
-# Sidee — Store spinner: DNS fast-path fix
+# Sidee — current network/capture test
 
 Data: 2026-09-29
 
-Symptom persisted after removing root vidaahub spoof:
-- Store home partially loads;
-- spinner;
-- "impossibile caricare contenuto".
+Current symptoms:
+- phone connected to the shared/hotspot network has working Internet (~30 Mbps);
+- TV on the same shared network cannot use YouTube/Store;
+- therefore WAN quality is probably not the primary problem;
+- strongest suspect: TV network settings, especially manual DNS and/or static gateway/subnet left from the old LAN.
 
-Fresh session:
-`sidee-20260929-161057-217e`
+For the FULL NETWORK CAPTURE phase:
+- TV should use IP/DHCP AUTOMATIC;
+- TV should use DNS AUTOMATIC;
+- Sidee does NOT need to be the TV DNS server;
+- enter the TV IPv4 manually in the Full Network Capture card.
 
-Observed pattern:
-- repeated A lookups every few seconds to `home-ui-eu`, `appstore-vidaa`, `img`, `rsc-mntz`;
-- no Store TLS interception;
-- spoof list only contains `vidaa.smartone-iptv.com`.
+Reason:
+the manual TV-IP pktmon capture no longer depends on Sidee DNS. This removes Sidee DNS forwarding from the network path and gives a clean Internet baseline.
 
-Root cause candidate found in Sidee:
-the DNS loop performed synchronous diagnostic/report writes BEFORE forwarding/replying to the TV. The automatic Store timeline can write a growing JSON report on every DNS query. The DNS resolver was also single-threaded, so one slow upstream lookup blocked the rest.
+pktmon issue:
+- user received: "pktmon already has active filters".
+- Microsoft documents that `pktmon filter remove` removes ALL filters, not one named filter.
+- Sidee was therefore intentionally refusing to remove them blindly.
+- new behavior: if the only active filter is Sidee's own stale `Sidee-TV`, Sidee may stop a stale Sidee capture if active and safely clear the filter set;
+- if any unrelated filter is present, Sidee still refuses to remove filters.
 
-Fixes:
-1. DNS fast path:
-   receive -> resolve/spoof -> send response -> queue diagnostics.
-2. Diagnostic Store/DNS logging now runs in a background queue worker.
-3. DNS requests are concurrent with a bounded 32-request semaphore.
-4. UDP receive buffer raised to 65535.
-5. DNS TCP fallback is used when an upstream UDP reply has TC/truncated set.
-6. New GET endpoint:
-   `/api/dns-health`
-   exposing counts/latency/failures/queue depth/worker peak.
-
-Next test:
+Next user test:
 1. git pull
-2. restart Sidee
-3. TV DNS stays pointed to PC
-4. reopen official Store
-5. report whether content now loads.
+2. restart Sidee as Administrator
+3. on TV set network/IP to automatic DHCP
+4. set TV DNS to automatic
+5. reconnect TV to the shared network
+6. test YouTube FIRST
+7. if YouTube works, note TV IPv4
+8. enter that IPv4 in Sidee Full Network Capture
+9. Arm / Start capture
+10. Store -> Duplecast -> Install
+11. Stop & analyze capture
+12. report "fatto full capture"
 
-If it still fails:
-- read `http://<PC-IP>:8080/api/dns-health` or use report/log;
-- temporarily set TV DNS to automatic/router once as a clean A/B test.
-If Store works on automatic DNS but not Sidee DNS, resolver forwarding remains the issue.
-If Store fails even on automatic DNS, the problem is outside Sidee DNS and should be isolated from TV/router/cache/network state.
+If YouTube still does not work with IP+DNS automatic while phone works on the same shared network:
+- problem is not Sidee DNS;
+- inspect TV-assigned IP/gateway/subnet and Windows ICS/routing.
