@@ -147,6 +147,7 @@ NETWORK_CAPTURE_STATE = {
     "summary": None,
     "error": None,
     "pktmonOutput": None,
+    "preflight": None,
 }
 NETWORK_CAPTURE_FILTER_NAME = "Sidee-TV"
 NETWORK_CAPTURE_MAX_FILE_MB = 512
@@ -238,6 +239,26 @@ def _network_capture_cmd(args, timeout=20):
     return completed.returncode, output
 
 
+def _network_capture_status_probe():
+    code, output = _network_capture_cmd(["status"], timeout=10)
+    normalized = (output or "").replace("\\", "/").lower()
+    capture_root = str(NETWORK_CAPTURE_DIR.resolve()).replace("\\", "/").lower().rstrip("/")
+    etl_log_detected = ".etl" in normalized
+    sidee_owned_etl = (
+        etl_log_detected
+        and "sidee-net-" in normalized
+        and (
+            "/captures/" in normalized
+            or (capture_root and capture_root in normalized)
+        )
+    )
+    return {
+        "exitCode": code,
+        "etlLogDetected": etl_log_detected,
+        "sideeOwnedEtlDetected": sidee_owned_etl,
+    }
+
+
 def _network_capture_preflight():
     if os.name != "nt":
         raise RuntimeError("Full TV capture currently requires Windows pktmon")
@@ -248,19 +269,33 @@ def _network_capture_preflight():
     if code != 0:
         raise RuntimeError("Could not inspect pktmon filters: " + filters[:400])
 
+    status = _network_capture_status_probe()
     filter_lines = re.findall(r"(?m)^\s*\d+\s+.*$", filters or "")
+    result = {
+        "pktmon": True,
+        "preexistingFilters": bool(filter_lines),
+        "statusExitCode": status.get("exitCode"),
+        "etlLogDetected": bool(status.get("etlLogDetected")),
+        "sideeOwnedEtlDetected": bool(status.get("sideeOwnedEtlDetected")),
+        "staleSideeCaptureStopped": False,
+        "staleSideeCaptureStopExitCode": None,
+        "staleSideeFilterCleared": False,
+    }
+
     if filter_lines:
         own_filter_only = (
             len(filter_lines) == 1
             and NETWORK_CAPTURE_FILTER_NAME.lower() in filter_lines[0].lower()
         )
         if own_filter_only:
-            status_code, status_output = _network_capture_cmd(["status"], timeout=10)
-            status_text = (status_output or "").lower()
-            if status_code == 0 and any(word in status_text for word in (
-                "running", "capturing", "collection is active", "capture is active"
-            )):
-                _network_capture_cmd(["stop"], timeout=20)
+            # start-windows.bat force-stops stale sidee.py processes. pktmon can
+            # survive that process, and status prose is localized by Windows.
+            # If our sole filter remains, stop before removing it without
+            # depending on English words such as "running" or "capturing".
+            stop_code, _ = _network_capture_cmd(["stop"], timeout=20)
+            result["staleSideeCaptureStopExitCode"] = stop_code
+            result["staleSideeCaptureStopped"] = stop_code == 0
+
             remove_code, remove_output = _network_capture_cmd(["filter", "remove"], timeout=10)
             if remove_code != 0:
                 raise RuntimeError(
@@ -273,22 +308,30 @@ def _network_capture_preflight():
                 raise RuntimeError(
                     "Sidee cleared its stale filter but pktmon still reports active filters."
                 )
-            return {
-                "pktmon": True,
-                "preexistingFilters": False,
-                "staleSideeFilterCleared": True,
-            }
+            result["preexistingFilters"] = False
+            result["staleSideeFilterCleared"] = True
+            return result
 
         raise RuntimeError(
             "pktmon already has active filters not owned exclusively by Sidee. "
             "Sidee will not remove unrelated pktmon filters."
         )
 
-    return {
-        "pktmon": True,
-        "preexistingFilters": False,
-        "staleSideeFilterCleared": False,
-    }
+    if status.get("sideeOwnedEtlDetected"):
+        # Older Sidee builds could remove Sidee-TV without stopping a localized
+        # pktmon session. Recover only an ETL whose status path is clearly ours.
+        stop_code, _ = _network_capture_cmd(["stop"], timeout=20)
+        result["staleSideeCaptureStopExitCode"] = stop_code
+        result["staleSideeCaptureStopped"] = stop_code == 0
+        return result
+
+    if status.get("etlLogDetected"):
+        raise RuntimeError(
+            "pktmon appears to have an active ETL capture not owned by Sidee. "
+            "Sidee will not stop or modify that capture."
+        )
+
+    return result
 
 
 def _network_capture_id():
@@ -335,7 +378,8 @@ def _network_capture_start_for_ip(tv_ip, trigger_host=None):
         })
 
     try:
-        _network_capture_preflight()
+        preflight = _network_capture_preflight()
+        _network_capture_set(preflight=preflight)
         paths = _network_capture_paths(capture_id)
         code, output = _network_capture_cmd([
             "filter", "add", NETWORK_CAPTURE_FILTER_NAME, "-i", parsed_ip
@@ -394,7 +438,7 @@ def _network_capture_maybe_start(tv_ip, trigger_host):
 
 
 def _network_capture_arm(manual_tv_ip=None):
-    _network_capture_preflight()
+    preflight = _network_capture_preflight()
     capture_id = _network_capture_id()
     state = _network_capture_set(
         status="ARMED",
@@ -411,6 +455,7 @@ def _network_capture_arm(manual_tv_ip=None):
         summary=None,
         error=None,
         pktmonOutput=None,
+        preflight=preflight,
     )
     _network_capture_publish("capture armed")
     client_ip = str(manual_tv_ip or STORE_INSTALL_PROBE_CLIENT or "").strip()

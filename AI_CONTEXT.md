@@ -4820,3 +4820,94 @@ PC + TV as peers on the same hotspot/router normally does not expose TV -> Inter
 
 Next test is NOT another Duplecast install.
 Use YouTube for 15-20 seconds under pktmon capture to validate whether HTTPS traffic is visible at all.
+
+## FIX — localized pktmon stale session recovery — 2026-09-29
+
+### Latest real report diagnosed
+
+Current synced report:
+- sessionId: `sidee-20260929-164523-4fb4`;
+- buildMatch: `true`;
+- `fullNetworkCapture.status = ERROR`;
+- captureId: `sidee-net-20260929-164556`;
+- `armedAt` present;
+- `startedAt = null`;
+- `stoppedAt = null`;
+- `etlFile = null`;
+- `pcapngFile = null`;
+- `txtFile = null`;
+- `summary = null`;
+- error: `pktmon start failed: Monitoraggio pacchetti già avviato.`
+
+This failed run did **not** reach packet capture at all. It is not evidence of an empty ETL, a parser failure, a wrong pktmon component, or an ICS/NAT visibility problem. Those questions remain untested until a run reaches `CAPTURING`.
+
+### Root cause in Sidee
+
+The stale-filter recovery queried `pktmon status` but decided whether to execute `pktmon stop` by searching status text for English words such as `running`, `capturing`, `collection is active` and `capture is active`.
+
+On the tested Windows installation pktmon reports localized Italian output. In addition, `start-windows.bat` force-stops an old `sidee.py` process; the pktmon ETW collection can survive that Python process termination.
+
+The old sequence could therefore be:
+1. previous Sidee starts pktmon with filter `Sidee-TV`;
+2. Sidee Python is force-stopped/restarted;
+3. new Sidee sees the stale `Sidee-TV` filter;
+4. localized `pktmon status` does not match the English active-status words;
+5. Sidee removes its filter but does not stop the existing pktmon collection;
+6. the next `pktmon start` fails with “Monitoraggio pacchetti già avviato”.
+
+This sequence matches the latest report and current code path.
+
+### Fix
+
+The preflight no longer depends on localized status prose.
+
+Rules now:
+- if the only pktmon filter is `Sidee-TV`, Sidee attempts `pktmon stop` unconditionally before removing its own filter;
+- if there are no filters but `pktmon status` references a Sidee-owned ETL under `captures/sidee-net-*`, Sidee recovers that orphan by stopping it;
+- if status references an ETL that is not Sidee-owned, Sidee fails safely and does not stop/remove anything;
+- unrelated pktmon filters remain protected;
+- the bounded preflight result is persisted in `fullNetworkCapture.preflight` for the next report.
+
+Sources:
+- Microsoft Learn, `pktmon status`: https://learn.microsoft.com/it-it/windows-server/administration/windows-commands/pktmon-status
+- Microsoft Learn, pktmon command formatting: https://learn.microsoft.com/it-it/windows-server/networking/technologies/pktmon/pktmon-syntax
+- Cisco TAC packet-capture guide shows an active `pktmon status` including the ETL log-file path: https://www.cisco.com/c/en/us/support/docs/contact-center/unified-intelligent-contact-management-enterprise/221945-collect-packet-captures-on-windows-clien.html
+
+Reliability:
+- pktmon command semantics: confirmed by Microsoft documentation;
+- active status containing an ETL log path: reliable technical example from Cisco TAC;
+- Sidee localization failure: confirmed by current code plus the real Italian error/status environment.
+
+### Native install surface status
+
+The latest Store/DNS session does not contain `nativeInstallApiSurface`. No new native install evidence emerged from this run.
+
+Keep the prior verified runtime conclusions:
+- `vowOS.store.getInstalledPkgs()` works read-only;
+- `vowOS.store.installApp()` and `sendPkgmgrRequest()` exist;
+- package install and launcher registration are separate in the exposed wrapper;
+- the real pkgmgr package set did not correlate with the three Store web-app AppInfo entries;
+- no exposed JavaScript downloader/stager was found.
+
+Do not repeat pkgmgr/install/download probes without new evidence.
+
+### Next test — HTTPS topology smoke test only
+
+Do **not** reinstall Duplecast yet.
+
+1. `git pull`;
+2. restart Sidee as Administrator;
+3. keep the TV on automatic DHCP/IP and automatic DNS;
+4. ensure the TV is using the intended Windows routed path/hotspot/ICS;
+5. enter the TV IPv4 in Full Network Capture;
+6. press `Arm / Start capture`;
+7. first verify Sidee reaches `CAPTURING` and the report has a non-null `startedAt`;
+8. on the TV open YouTube and play normal HTTPS video traffic for about 15–20 seconds;
+9. press `Stop & analyze capture`;
+10. inspect `fullNetworkCapture.summary` plus ETL/PCAPNG/TXT byte sizes.
+
+Decision tree:
+- if ETL/PCAPNG/TXT have data but `packetRecords = 0`, investigate/fix the Sidee text parser;
+- if capture starts but no TV HTTPS is visible, then perform targeted pktmon ICS/NAT/component research and consider bounded topology discovery / `--comp all`;
+- only after normal TV HTTPS is reliably visible should the Store/Duplecast download capture be repeated.
+

@@ -339,6 +339,78 @@ class StoreCatalogTraceTests(unittest.TestCase):
         self.assertEqual(summary["topPeers"][0]["ip"], "203.0.113.10")
         self.assertEqual(summary["topPeers"][0]["ports"]["443"], 5)
 
+    def test_network_capture_preflight_stops_sidee_filter_without_english_status(self):
+        calls = []
+
+        def command(args, timeout=20):
+            calls.append(tuple(args))
+            if args == ["filter", "list"]:
+                seen = sum(1 for item in calls if item == ("filter", "list"))
+                return (0, "1 Sidee-TV IPv4") if seen == 1 else (0, "")
+            if args == ["status"]:
+                return 0, "Parametri logger:\nFile di log: C:\\Temp\\legacy.etl"
+            if args == ["stop"]:
+                return 0, "Arresto raccolta dati completato."
+            if args == ["filter", "remove"]:
+                return 0, ""
+            raise AssertionError(args)
+
+        with mock.patch.object(sidee.os, "name", "nt"), \
+             mock.patch.object(sidee.shutil, "which", return_value="pktmon.exe"), \
+             mock.patch.object(sidee, "_network_capture_cmd", side_effect=command):
+            result = sidee._network_capture_preflight()
+
+        self.assertTrue(result["staleSideeCaptureStopped"])
+        self.assertTrue(result["staleSideeFilterCleared"])
+        self.assertLess(calls.index(("stop",)), calls.index(("filter", "remove")))
+
+    def test_network_capture_preflight_recovers_orphaned_sidee_etl_without_filter(self):
+        calls = []
+
+        def command(args, timeout=20):
+            calls.append(tuple(args))
+            if args == ["filter", "list"]:
+                return 0, ""
+            if args == ["status"]:
+                return (
+                    0,
+                    "Parametri logger:\n"
+                    "File di log: C:\\work\\Sidee\\captures\\"
+                    "sidee-net-20260929-164556\\sidee-net-20260929-164556.etl",
+                )
+            if args == ["stop"]:
+                return 0, "Arrestato."
+            raise AssertionError(args)
+
+        with mock.patch.object(sidee.os, "name", "nt"), \
+             mock.patch.object(sidee.shutil, "which", return_value="pktmon.exe"), \
+             mock.patch.object(sidee, "_network_capture_cmd", side_effect=command):
+            result = sidee._network_capture_preflight()
+
+        self.assertTrue(result["sideeOwnedEtlDetected"])
+        self.assertTrue(result["staleSideeCaptureStopped"])
+        self.assertIn(("stop",), calls)
+
+    def test_network_capture_preflight_preserves_unrelated_active_etl(self):
+        calls = []
+
+        def command(args, timeout=20):
+            calls.append(tuple(args))
+            if args == ["filter", "list"]:
+                return 0, ""
+            if args == ["status"]:
+                return 0, "Log file: C:\\captures\\other-tool.etl"
+            raise AssertionError(args)
+
+        with mock.patch.object(sidee.os, "name", "nt"), \
+             mock.patch.object(sidee.shutil, "which", return_value="pktmon.exe"), \
+             mock.patch.object(sidee, "_network_capture_cmd", side_effect=command):
+            with self.assertRaisesRegex(RuntimeError, "not owned by Sidee"):
+                sidee._network_capture_preflight()
+
+        self.assertNotIn(("stop",), calls)
+        self.assertNotIn(("filter", "remove"), calls)
+
     def test_network_capture_public_state_hides_tv_ip(self):
         previous = dict(sidee.NETWORK_CAPTURE_STATE)
         try:

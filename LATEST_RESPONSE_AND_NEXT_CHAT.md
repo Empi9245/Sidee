@@ -1,39 +1,66 @@
-# Sidee — next test: verify capture topology before Store
+# Sidee — next test: recover pktmon, then prove normal TV HTTPS
 
 Data: 2026-09-29
 
-Latest Store install run:
-- session `sidee-20260929-163507-4a6a`
-- Duplecast was installed successfully
-- `fullNetworkCapture` was missing from the synced report
-- DNS Store timeline was present
+Latest real report:
+- session `sidee-20260929-164523-4fb4`
+- `fullNetworkCapture.status = ERROR`
+- `startedAt = null`
+- no ETL / PCAPNG / TXT paths
+- no capture summary
+- error: `pktmon start failed: Monitoraggio pacchetti già avviato.`
 
-Two separate causes identified:
+## Diagnosis
 
-1. Topology possibility:
-If PC and TV are merely peers on the same hotspot/router, the PC cannot normally see TV -> Internet HTTPS unicast traffic. It may still see DNS packets addressed directly to the PC.
+This run was not an empty capture. **pktmon never started.**
 
-2. Reporting bug:
-Full-network capture state was only synchronized into an already-existing Store report. With TV DNS automatic, a standalone pktmon capture could run without a report object and therefore never appear in GitHub.
+The Sidee preflight was language-dependent: it looked for English words in
+`pktmon status` before deciding to call `pktmon stop`. On Italian Windows an
+old Sidee capture could therefore remain alive after a forced Sidee restart.
+The stale `Sidee-TV` filter could be removed while the pktmon collection itself
+kept running, causing the next start to fail as already active.
 
-Fix:
-- ARM/CAPTURING/ERROR/STOPPED are now published;
-- full capture creates its own report with accessMode `FULL_TV_NETWORK_CAPTURE` when necessary;
-- pktmon status before stop is included in the summary.
+## Fix on main
 
-Do NOT reinstall Duplecast yet.
+The capture preflight now:
+- stops first when the only filter is `Sidee-TV`, without parsing localized prose;
+- also recovers a no-filter orphan when status points to a Sidee ETL under
+  `captures/sidee-net-*`;
+- never stops/removes an unrelated ETL capture or unrelated filters;
+- stores bounded preflight diagnostics in `fullNetworkCapture.preflight`.
 
-Topology smoke test:
-1. git pull
+Do not change `--comp nics` yet. NIC/ICS visibility has not actually been
+tested because the failed run never entered `CAPTURING`.
+
+## Next test — no Duplecast
+
+1. `git pull`
 2. restart Sidee as Administrator
-3. TV IP/DHCP automatic and DNS automatic
-4. note current TV IPv4
-5. enter TV IPv4 in Full Network Capture
-6. press Arm / Start capture
-7. on TV open YouTube and play a video for ~15-20 seconds
-8. press Stop & analyze capture
-9. say `fatto topology`
+3. TV DHCP/IP automatic and DNS automatic
+4. keep the TV on the intended Windows hotspot/ICS/routed path
+5. note the TV IPv4 and enter it in Full Network Capture
+6. press **Arm / Start capture**
+7. verify the UI reaches **CAPTURING**
+8. open YouTube on the TV and play a video for about 15–20 seconds
+9. press **Stop & analyze capture**
+10. say `fatto topology`
+
+What to inspect next:
+- `startedAt` must be non-null;
+- ETL / PCAPNG / TXT sizes;
+- `packetRecords`;
+- `httpsPacketRecords`;
+- `topologyClassification`;
+- `preflight`.
 
 Interpretation:
-- `FULL_PATH_VISIBLE` + HTTPS packet records > 0 => PC can see TV internet traffic; proceed to Store reinstall/download experiment.
-- `DNS_OR_LOCAL_ONLY_LIKELY` or zero packet records => PC is not on the TV's gateway path; same-network pktmon cannot capture the install traffic.
+- files > 0 but `packetRecords = 0` -> parser problem;
+- capture really starts but normal TV HTTPS is absent -> then research
+  pktmon + Windows ICS/NAT components and test a bounded topology-discovery
+  capture, likely including components beyond `nics`;
+- normal HTTPS visible -> only then repeat an official Store download/install
+  capture.
+
+The latest Store/DNS report contains no new `nativeInstallApiSurface` evidence.
+Keep the prior `vowOS.store/pkgmgr` conclusions; do not repeat those probes
+without new evidence.
