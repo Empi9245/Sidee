@@ -1,63 +1,51 @@
-# Sidee — risultato install Duplecast e prossimo controllo
+# Sidee — prossimo passo: trovare l'API install Store
 
 Data: 2026-09-29
 
-## Sessione install catturata
+Il baseline appena fatto NON è una nuova sessione: `reports/latest.json` è ancora `sidee-20260929-145316-dec1`, quindi non usarlo come confronto A/B separato.
 
-`sidee-20260929-145316-dec1`
+## Nuova direzione
 
-Build match: true.
+È stato aggiunto uno `Store Static API Mapper` che gira dal PC e tenta di ricavare i path/API reali direttamente dagli asset pubblici dello Store VIDAA.
 
-Il probe automatico ha funzionato e ha registrato la timeline DNS mentre veniva eseguito il flusso Store/Duplecast.
+Non usa il MITM della TV.
 
-## Cosa abbiamo escluso
+Usa:
+- TLS ufficiale VIDAA;
+- GET read-only;
+- allowlist fissa degli host Store reali osservati;
+- nessun cookie/token/credential della TV;
+- limiti stretti su byte e numero di asset.
 
-Questi host NON sono specifici dell'installazione perché comparivano già nelle sessioni Store passive precedenti:
+Cerca:
+- `/api/...`
+- `installApplication`
+- `installApp`
+- `download`
+- `package`
+- `pkgmgr`
+- `configUrlDownload`
+- `productCode`
+- `appBundle`
+- `appContentId`
+- `signatureServer`
 
-- `appstore-vidaa.vidaahub.com`
-- `partner.vidaahub.com`
-- `detail-ui-eu.vidaahub.com`
-- `layout-ui-eu.vidaahub.com`
-- `home-ui-eu.vidaahub.com`
-- `recommend-ui-eu.vidaahub.com`
-- `search-ui-eu.vidaahub.com`
-- `tvmodules-vidaa.vidaahub.com`
+Il risultato viene salvato nel report come:
+`storeStaticMap`
 
-## Host nuovi nella sessione install
+## Cosa fare
 
-Tra gli host VIDAA non presenti nei baseline precedenti sono comparsi:
+1. `git pull`
+2. riavvia Sidee
+3. apri il dashboard Sidee sul PC
+4. premi **Run Store API mapper**
+5. quando finisce, dì **fatto API**
 
-- `geo-bas-eu.vidaahub.com`
-- `abtest-tv.vidaahub.com`
-- `archive-mmb-eu.vidaahub.com`
-- `upgrade-plc-tv-eu.vidaahub.com`
-- `sttc-bas.vidaahub.com`
-- `member-ui-eu.vidaahub.com`
-- `file-dl.vidaahub.com`
-- `policy-jrnl-eu.vidaahub.com`
-- `ota-tv.vidaahub.com` più tardi
+Non serve fare nulla sulla TV per questo test.
 
-`file-dl.vidaahub.com` è interessante, ma è comparso molto presto e fonti pubbliche mostrano che viene usato anche per file VIDAA generici/e-manual. Non considerarlo ancora il package host.
-
-`vidaa.duplecast.com` NON è stato risolto durante la cattura (`targetDomainHit=false`).
-
-## Prossimo test
-
-Serve un solo controllo A/B, senza installare:
-
-1. riavvia Sidee per ottenere una nuova sessione;
-2. lascia DNS TV -> PC;
-3. apri Store ufficiale;
-4. cerca Duplecast;
-5. apri la stessa detail page;
-6. NON premere Install/Download;
-7. resta sulla detail per circa 60-90 secondi;
-8. poi dì `fatto baseline`.
-
-Non serve aprire Sidee sulla TV e non serve nessun marker.
-
-Poi confrontare la nuova RUN_BASELINE con:
-`sidee-20260929-145316-dec1` (RUN_INSTALL).
-
-Obiettivo:
-trovare host/ordine/query presenti soltanto durante la vera installazione. Questo è molto più affidabile del dedurre il download dal nome del dominio.
+Poi controllare:
+- `storeStaticMap.apiPaths`
+- `storeStaticMap.interestingUrls`
+- `storeStaticMap.keywordSummary`
+- `storeStaticMap.resources[*].keywordHits`
+- eventuali errori/redirect.
