@@ -4,7 +4,7 @@
   "serverBuildId": "app-e59b512a9ef8",
   "buildMatch": true,
   "startedAt": "2026-09-29T16:40:53Z",
-  "updatedAt": "2026-09-29T16:48:25Z",
+  "updatedAt": "2026-09-29T16:48:31Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,7 +18,7 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 312,
+    "totalQueries": 320,
     "hostCount": 19,
     "hosts": [
       {
@@ -73,8 +73,8 @@
       {
         "host": "vidaa-base-auth-eu.vidaahub.com",
         "firstSeen": "2026-09-29T16:41:27Z",
-        "lastSeen": "2026-09-29T16:48:25Z",
-        "queryCount": 32,
+        "lastSeen": "2026-09-29T16:48:31Z",
+        "queryCount": 34,
         "qtypes": [
           "A",
           "AAAA"
@@ -92,8 +92,8 @@
       {
         "host": "tvmodules-vidaa.vidaahub.com",
         "firstSeen": "2026-09-29T16:41:36Z",
-        "lastSeen": "2026-09-29T16:48:24Z",
-        "queryCount": 41,
+        "lastSeen": "2026-09-29T16:48:30Z",
+        "queryCount": 43,
         "qtypes": [
           "A"
         ]
@@ -147,8 +147,8 @@
       {
         "host": "partner.vidaahub.com",
         "firstSeen": "2026-09-29T16:42:37Z",
-        "lastSeen": "2026-09-29T16:48:25Z",
-        "queryCount": 11,
+        "lastSeen": "2026-09-29T16:48:30Z",
+        "queryCount": 12,
         "qtypes": [
           "A"
         ]
@@ -165,8 +165,8 @@
       {
         "host": "abtest-tv.vidaahub.com",
         "firstSeen": "2026-09-29T16:45:35Z",
-        "lastSeen": "2026-09-29T16:48:02Z",
-        "queryCount": 12,
+        "lastSeen": "2026-09-29T16:48:27Z",
+        "queryCount": 13,
         "qtypes": [
           "A"
         ]
@@ -192,8 +192,8 @@
       {
         "host": "upgrade-plc-tv-eu.vidaahub.com",
         "firstSeen": "2026-09-29T16:46:06Z",
-        "lastSeen": "2026-09-29T16:47:00Z",
-        "queryCount": 6,
+        "lastSeen": "2026-09-29T16:48:31Z",
+        "queryCount": 8,
         "qtypes": [
           "A"
         ]
