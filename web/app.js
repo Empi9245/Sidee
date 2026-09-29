@@ -52,7 +52,7 @@
     try{ const a=new Uint8Array(2); crypto.getRandomValues(a); tail=Array.from(a).map(x=>x.toString(16).padStart(2,"0")).join(""); }catch(e){}
     const id="sidee-"+stamp+"-"+tail; try{sessionStorage.setItem("sidee.sessionId",id);}catch(e){} return id;
   }
-  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,accessContext:pageContext(),accessMode:accessMode(),serverAccess:null,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},contextIdentityFingerprint:null,clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,identityOverrideLab:null,identityWriteGateLab:null,candidatePermissionTest:null,directAppInfoWriteLab:null,legacyHspdkWriteLab:null,storeWorkflowProbe:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",contextFingerprint:"NOT_RUN",permissionGate:"UNKNOWN",appInfoWrite:"NOT_RUN"}}; }
+  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,accessContext:pageContext(),accessMode:accessMode(),serverAccess:null,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},contextIdentityFingerprint:null,clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,identityOverrideLab:null,identityWriteGateLab:null,candidatePermissionTest:null,directAppInfoWriteLab:null,legacyHspdkWriteLab:null,storeWorkflowProbe:null,launcherBridgeProbe:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",contextFingerprint:"NOT_RUN",permissionGate:"UNKNOWN",appInfoWrite:"NOT_RUN"}}; }
   state.report=newReport();
 
   function meaningful(v){
@@ -1989,6 +1989,75 @@
     finally{state.running=false;}
   }
 
+  function safeSurfaceNames(root){
+    const out=[],seen={};let cur=root;
+    for(let depth=0;cur&&depth<5;depth++){
+      let names=[];
+      try{names=Object.getOwnPropertyNames(cur);}catch(e){}
+      names.forEach(name=>{
+        if(seen[name]||out.length>=160)return;
+        seen[name]=true;
+        let type="unknown",length=null,sourceKind=null;
+        try{
+          const value=root[name];
+          type=value===null?"null":typeof value;
+          if(typeof value==="function"){
+            length=value.length;
+            let src="";try{src=Function.prototype.toString.call(value);}catch(e){}
+            sourceKind=/\[native code\]/.test(src)?"native":"javascript";
+          }
+        }catch(e){type="read-error";}
+        out.push({name:name,ownerDepth:depth,type:type,length:length,sourceKind:sourceKind});
+      });
+      try{cur=Object.getPrototypeOf(cur);}catch(e){break;}
+    }
+    return out;
+  }
+
+  async function inspectLauncherBridge(){
+    const started=new Date().toISOString();
+    const result={
+      timestamp:started,
+      context:pageContext(),
+      omiPlatform:{available:false,type:"missing",methods:[],error:null},
+      operaOmi:{available:false,type:"missing",methods:[],error:null},
+      candidateGlobals:[],
+      notes:[
+        "Read-only surface enumeration; no platform message is sent.",
+        "Looking for a launcher/runtime bridge that can start a hosted URL as an app context rather than normal browser."
+      ]
+    };
+    [["omiPlatform","omi_platform"],["operaOmi","opera_omi"]].forEach(pair=>{
+      const key=pair[0],name=pair[1];let obj=null;
+      try{obj=window[name];}catch(e){result[key].error=err(e);return;}
+      result[key].type=obj===null?"null":typeof obj;
+      result[key].available=!!obj;
+      if(obj)result[key].methods=safeSurfaceNames(obj);
+    });
+    let globals=[];
+    try{globals=Object.getOwnPropertyNames(window);}catch(e){}
+    const re=/(^Hisense_.*(?:start|launch|open|browser|app)|(?:start|launch|open).*(?:app|browser)|(?:app|browser).*(?:start|launch|open))/i;
+    result.candidateGlobals=globals.filter(name=>re.test(name)).slice(0,120).map(name=>{
+      let type="unknown",length=null,sourceKind=null;
+      try{
+        const v=window[name];type=v===null?"null":typeof v;
+        if(typeof v==="function"){length=v.length;let src="";try{src=Function.prototype.toString.call(v);}catch(e){}sourceKind=/\[native code\]/.test(src)?"native":"javascript";}
+      }catch(e){type="read-error";}
+      return {name:name,type:type,length:length,sourceKind:sourceKind};
+    });
+    state.report.launcherBridgeProbe=result;
+    const allMethods=result.omiPlatform.methods.concat(result.operaOmi.methods).map(x=>x.name);
+    const interesting=allMethods.filter(n=>/(start|launch|open|app|browser|message)/i.test(n));
+    set("launcherBridgeState",
+      "omi "+(result.omiPlatform.available?"YES":"NO")+
+      " · opera_omi "+(result.operaOmi.available?"YES":"NO")+
+      " · interesting methods "+(interesting.length?interesting.join(", "):"none")+
+      " · candidate globals "+result.candidateGlobals.length
+    );
+    log("Launcher bridge read-only probe",result);
+    await save("launcher-bridge-probe");
+  }
+
   function syncTarget(){state.report.target=compact(target());}
   async function saveTarget(){syncTarget();try{const r=await fetch("/api/config",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({nuvio:target()})}),d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||"Could not save target");state.config.nuvio=d.nuvio;set("targetState","Target saved.");await save("target");}catch(e){set("targetState","Save failed: "+err(e));}}
   async function watchReportSync(sessionId){
@@ -2330,6 +2399,7 @@
   $("fullNetworkCaptureStopBtn").addEventListener("click",()=>fullNetworkCaptureAction("STOP"));
   $("fullNetworkCaptureReanalyzeBtn").addEventListener("click",()=>fullNetworkCaptureAction("REANALYZE_LATEST"));
   $("storeStaticMapBtn").addEventListener("click",runStoreStaticMap);
+  $("launcherBridgeProbeBtn").addEventListener("click",inspectLauncherBridge);
   $("nativeInstallApiBtn").addEventListener("click",inspectNativeInstallApiSurface);
   $("storeInstallProbeStartBtn").addEventListener("click",()=>storeInstallProbeAction("START"));
   $("storeInstallProbeDetailBtn").addEventListener("click",()=>storeInstallProbeAction("DETAIL_OPEN"));
