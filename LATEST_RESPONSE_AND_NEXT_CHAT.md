@@ -1,61 +1,53 @@
-# Sidee — prossimo test: Full TV Network Capture
+# Sidee — full capture senza Hotspot mobile
 
 Data: 2026-09-29
 
-## Cosa è stato aggiunto
+L'utente non può usare Windows Mobile Hotspot.
 
-Sidee può ora usare Windows `pktmon` per catturare l'intero traffico della TV durante l'installazione Duplecast.
+## Configurazione consigliata
 
-Dashboard:
-- **Arm / Start capture**
-- **Stop & analyze capture**
+Usare il PC come gateway via Ethernet:
 
-Il capture:
-- si filtra sull'IPv4 della TV;
-- registra pacchetto intero;
-- salva ETL + PCAPNG + TXT in `captures/<captureId>/`;
-- i file restano SOLO sul PC e `captures/` è gitignored;
-- GitHub riceve soltanto il riepilogo `fullNetworkCapture`.
+Internet del PC
+→ Windows Internet Connection Sharing (ICS)
+→ adattatore Ethernet del PC
+→ cavo Ethernet
+→ TV Hisense
 
-## IMPORTANTE — topologia
+Se il PC non ha Ethernet, usare un adattatore USB-Ethernet.
 
-Con il setup vecchio, PC = solo DNS, la cattura NON può vedere normalmente HTTPS TV -> Internet.
+Una normale situazione PC + TV entrambi collegati allo stesso router NON basta per vedere tutto il traffico HTTPS della TV, perché la rete switched non inoltra quei pacchetti al PC.
 
-Per il test completo la TV deve usare il PC come gateway.
+Alternative valide:
+- router/switch con port mirroring verso il PC;
+- secondo adattatore/rete in cui il PC faccia realmente da router/gateway.
 
-Percorso consigliato:
-1. attiva **Hotspot mobile di Windows** sul PC condividendo la connessione Internet;
-2. collega la Hisense alla rete Wi-Fi dell'hotspot del PC;
-3. fai in modo che il DNS della TV punti al PC/hotspot così Sidee continua a vedere le query DNS;
-4. avvia Sidee come amministratore.
+## Modifica Sidee
 
-## Test
+La card Full Network Capture ora ha un campo:
+
+`TV IPv4 (optional)`
+
+Quindi il full capture può partire direttamente dall'IP TV e non dipende dal DNS auto-detect.
+
+Workflow Ethernet ICS:
 
 1. `git pull`
-2. riavvia Sidee come amministratore
-3. TV collegata all'hotspot Windows del PC
-4. apri Sidee sul PC
-5. premi **Arm / Start capture**
-6. sulla TV apri Store -> Duplecast
-7. premi **Install/Download**
-8. resta nello Store fino alla fine/errore
-9. sul PC premi **Stop & analyze capture**
-10. dì `fatto full capture`
+2. collega TV alla porta Ethernet del PC;
+3. in Windows abilita Internet Connection Sharing sulla connessione che porta Internet e condividila verso l'adattatore Ethernet collegato alla TV;
+4. sulla TV usa rete cablata/DHCP;
+5. trova l'IPv4 assegnato alla TV (pagina rete TV oppure `arp -a` sul PC);
+6. avvia Sidee come amministratore;
+7. nel campo Full Network Capture inserisci l'IPv4 TV;
+8. premi `Arm / Start capture`;
+9. sulla TV: Store -> Duplecast -> Install/Download;
+10. al termine premi `Stop & analyze capture`;
+11. dire `fatto full capture`.
 
-Se all'arm Sidee non conosce ancora l'IP TV, resta ARMED e parte automaticamente alla prima query Store della TV.
+Se Windows ICS occupa o interferisce con DNS/53, il full packet capture può comunque essere eseguito grazie all'IP manuale; il DNS Sidee non è necessario per avviare pktmon in questa modalità.
 
-## Dopo il test
+Output prioritario:
+`fullNetworkCapture.summary.topologyClassification`
 
-Leggere `reports/latest.json -> fullNetworkCapture`.
-
-Campi prioritari:
-- `status`
-- `summary.topologyClassification`
-- `summary.httpsPacketRecords`
-- `summary.originalBytes`
-- `summary.topPeers`
-- dimensione PCAPNG.
-
-Se `topologyClassification = FULL_PATH_VISIBLE`, il setup è corretto e possiamo correlare i grossi trasferimenti con DNS/Store.
-
-Se `DNS_OR_LOCAL_ONLY_LIKELY`, la TV non sta realmente attraversando il PC come gateway.
+- `FULL_PATH_VISIBLE`: setup corretto;
+- `DNS_OR_LOCAL_ONLY_LIKELY`: traffico TV non sta attraversando davvero il PC.
