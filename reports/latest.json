@@ -4,7 +4,7 @@
   "serverBuildId": "app-9cc325c439b6",
   "buildMatch": true,
   "startedAt": "2026-09-29T15:39:11Z",
-  "updatedAt": "2026-09-29T15:39:57Z",
+  "updatedAt": "2026-09-29T15:40:03Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,8 +18,8 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 19,
-    "hostCount": 12,
+    "totalQueries": 20,
+    "hostCount": 13,
     "hosts": [
       {
         "host": "iot-voice-eu.vidaahub.com",
@@ -132,6 +132,15 @@
         "qtypes": [
           "A",
           "AAAA"
+        ]
+      },
+      {
+        "host": "recommend-ui-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T15:40:03Z",
+        "lastSeen": "2026-09-29T15:40:03Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
         ]
       }
     ]
@@ -304,6 +313,13 @@
         "host": "detail-ui-eu.vidaahub.com",
         "qtype": "AAAA",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T15:40:03Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "recommend-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
       }
     ],
     "allDnsHosts": [
@@ -431,9 +447,20 @@
           "AAAA"
         ],
         "vendorScoped": true
+      },
+      {
+        "host": "recommend-ui-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T15:40:03Z",
+        "lastSeen": "2026-09-29T15:40:03Z",
+        "firstSeenIndex": 18,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
       }
     ],
-    "allDnsQueryCount": 17,
+    "allDnsQueryCount": 18,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
