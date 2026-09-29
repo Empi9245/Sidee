@@ -211,6 +211,17 @@ def _network_capture_set(**values):
         return dict(NETWORK_CAPTURE_STATE)
 
 
+def _network_capture_publish(reason=None):
+    public = _network_capture_public_state()
+    try:
+        _network_capture_sync_report(public)
+    except Exception as exc:
+        print(f"[NETCAP] publish error: {exc}")
+    if reason:
+        print(f"[NETCAP] {reason} · {public.get('status')}")
+    return public
+
+
 def _network_capture_cmd(args, timeout=20):
     executable = shutil.which("pktmon")
     if not executable:
@@ -357,9 +368,11 @@ def _network_capture_start_for_ip(tv_ip, trigger_host=None):
             txtFile=str(paths["txt"].relative_to(ROOT)),
             pktmonOutput=start_output[:1000],
         )
+        _network_capture_publish("capture started")
         print(f"[NETCAP] CAPTURING {capture_id} for TV client")
     except Exception as exc:
         _network_capture_set(status="ERROR", error=str(exc)[:1000])
+        _network_capture_publish("capture start failed")
         print(f"[NETCAP] start error: {exc}")
     return _network_capture_public_state()
 
@@ -399,6 +412,7 @@ def _network_capture_arm(manual_tv_ip=None):
         error=None,
         pktmonOutput=None,
     )
+    _network_capture_publish("capture armed")
     client_ip = str(manual_tv_ip or STORE_INSTALL_PROBE_CLIENT or "").strip()
     if client_ip:
         _network_capture_set(status="STARTING")
@@ -497,6 +511,7 @@ def _network_capture_stop():
     if state.get("status") not in ("CAPTURING", "STARTING"):
         raise RuntimeError("No active Sidee full-network capture")
 
+    status_code, status_before = _network_capture_cmd(["status"], timeout=10)
     code, stop_output = _network_capture_cmd(["stop"], timeout=20)
     tv_ip = state.get("tvIp")
     paths = _network_capture_paths(state.get("captureId"))
@@ -528,19 +543,22 @@ def _network_capture_stop():
     summary["pcapngBytes"] = paths["pcapng"].stat().st_size if paths["pcapng"].is_file() else 0
     summary["textBytes"] = paths["txt"].stat().st_size if paths["txt"].is_file() else 0
     summary["conversion"] = conversion
+    summary["pktmonStatusBeforeStop"] = {
+        "exitCode": status_code,
+        "output": status_before[:1500],
+    }
     summary["note"] = (
         "PCAPNG contains full captured packet bytes for the filtered TV IP. "
         "HTTPS payload/path remains encrypted unless the protocol itself exposes metadata such as SNI."
     )
-    public = _network_capture_set(
+    _network_capture_set(
         status="STOPPED",
         stoppedAt=_utc_timestamp(),
         summary=summary,
         error=None if code == 0 else ("pktmon stop returned " + str(code)),
         pktmonOutput=stop_output[:1000],
     )
-    public.pop("tvIp", None)
-    _network_capture_sync_report(public)
+    public = _network_capture_publish("capture stopped")
     print(f"[NETCAP] STOPPED {state.get('captureId')} · {summary.get('topologyClassification')}")
     return public
 
