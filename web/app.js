@@ -52,7 +52,7 @@
     try{ const a=new Uint8Array(2); crypto.getRandomValues(a); tail=Array.from(a).map(x=>x.toString(16).padStart(2,"0")).join(""); }catch(e){}
     const id="sidee-"+stamp+"-"+tail; try{sessionStorage.setItem("sidee.sessionId",id);}catch(e){} return id;
   }
-  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,accessContext:pageContext(),accessMode:accessMode(),serverAccess:null,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},contextIdentityFingerprint:null,clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,identityOverrideLab:null,identityWriteGateLab:null,candidatePermissionTest:null,directAppInfoWriteLab:null,legacyHspdkWriteLab:null,storeWorkflowProbe:null,launcherBridgeProbe:null,summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",contextFingerprint:"NOT_RUN",permissionGate:"UNKNOWN",appInfoWrite:"NOT_RUN"}}; }
+  function newReport(){ const now=new Date().toISOString(); return {sessionId:sessionId(),clientBuildId:CLIENT_BUILD_ID,serverBuildId:null,buildMatch:null,startedAt:now,updatedAt:now,accessContext:pageContext(),accessMode:accessMode(),serverAccess:null,device:{},baseline:null,contextInit:{status:"NOT_RUN",available:false,before:null,after:null,diff:null},contextIdentityFingerprint:null,clientInformation:null,serviceTrace:[],permissionSourceTrace:null,installTest:null,verification:null,installedAppMetadata:null,target:{},temporaryIdentifierTest:null,identityOverrideLab:null,identityWriteGateLab:null,candidatePermissionTest:null,directAppInfoWriteLab:null,legacyHspdkWriteLab:null,storeWorkflowProbe:null,launcherBridgeProbe:null,runtimeSurfaceAutoProbe:null,remoteInputProbe:{events:[],lastEventAt:null},summary:{runtimeIdentity:"MISSING",contextInit:"NOT_RUN",contextFingerprint:"NOT_RUN",permissionGate:"UNKNOWN",appInfoWrite:"NOT_RUN"}}; }
   state.report=newReport();
 
   function meaningful(v){
@@ -2390,6 +2390,116 @@
     }
   }
 
+  function runtimeSurfaceSnapshot(){
+    const pickCall=name=>{
+      try{
+        const fn=window[name];
+        if(typeof fn!=="function")return {available:false,value:null};
+        return {available:true,value:compact(fn.call(window))};
+      }catch(e){return {available:true,value:null,error:err(e)};}
+    };
+    let identifier=null,identifierError=null;
+    try{
+      const svc=window.vowOS&&window.vowOS.service;
+      if(svc&&typeof svc.getIdentifier==="function")identifier=compact(svc.getIdentifier());
+    }catch(e){identifierError=err(e);}
+    const bridgeMethods=obj=>{
+      if(!obj)return [];
+      const names=[],seen={};let cur=obj;
+      for(let depth=0;cur&&depth<4;depth++){
+        let own=[];try{own=Object.getOwnPropertyNames(cur);}catch(e){}
+        own.forEach(name=>{if(!seen[name]&&names.length<120){seen[name]=true;names.push(name);}});
+        try{cur=Object.getPrototypeOf(cur);}catch(e){break;}
+      }
+      return names;
+    };
+    return {
+      timestamp:new Date().toISOString(),
+      href:location.href,
+      hostname:location.hostname,
+      userAgent:navigator.userAgent,
+      activeElement:document.activeElement?{
+        tag:document.activeElement.tagName||null,
+        id:document.activeElement.id||null,
+        className:String(document.activeElement.className||"").slice(0,180)
+      }:null,
+      currentBrowser:pickCall("Hisense_GetCurrentBrowser"),
+      firmware:pickCall("Hisense_GetFirmWareVersion"),
+      os:pickCall("Hisense_GetOSVersion"),
+      appConfigSupport:pickCall("Hisense_SupportAppConfig"),
+      installLegacyAvailable:typeof window.Hisense_installApp==="function",
+      installV2Available:typeof window.Hisense_installApp_V2==="function",
+      exitAvailable:typeof window.Hisense_Exit==="function",
+      closeAppAvailable:typeof window.Hisense_CloseApp==="function",
+      omiPlatformAvailable:!!window.omi_platform,
+      operaOmiAvailable:!!window.opera_omi,
+      omiPlatformMethods:bridgeMethods(window.omi_platform),
+      operaOmiMethods:bridgeMethods(window.opera_omi),
+      vowOsAvailable:!!window.vowOS,
+      vowOsContextAvailable:!!window.vowOSContext,
+      serviceIdentifier:identifier,
+      serviceIdentifierError:identifierError,
+      clientInformation:clientInfo()
+    };
+  }
+
+  let remoteInputSaveTimer=0;
+  let remoteInputEventSeq=0;
+  let lastTvKeyDown={code:0,at:0};
+  function compactInputEvent(e){
+    const target=e&&e.target;
+    return {
+      seq:++remoteInputEventSeq,
+      timestamp:new Date().toISOString(),
+      type:String(e&&e.type||""),
+      key:String(e&&e.key||""),
+      code:String(e&&e.code||""),
+      keyName:String(e&&e.keyName||e&&e.detail&&e.detail.keyName||""),
+      keyIdentifier:String(e&&e.keyIdentifier||""),
+      keyCode:Number(e&&e.keyCode||0),
+      which:Number(e&&e.which||0),
+      charCode:Number(e&&e.charCode||0),
+      repeat:!!(e&&e.repeat),
+      defaultPrevented:!!(e&&e.defaultPrevented),
+      target:target?{
+        tag:String(target.tagName||""),
+        id:String(target.id||""),
+        className:String(target.className||"").slice(0,160)
+      }:null,
+      activeElement:document.activeElement?{
+        tag:String(document.activeElement.tagName||""),
+        id:String(document.activeElement.id||""),
+        className:String(document.activeElement.className||"").slice(0,160)
+      }:null
+    };
+  }
+  function scheduleRemoteInputSave(){
+    if(remoteInputSaveTimer)clearTimeout(remoteInputSaveTimer);
+    remoteInputSaveTimer=setTimeout(()=>{
+      remoteInputSaveTimer=0;
+      state.report.remoteInputProbe=state.report.remoteInputProbe||{events:[],lastEventAt:null};
+      state.report.remoteInputProbe.lastSnapshot=runtimeSurfaceSnapshot();
+      save("remote-input-auto-probe");
+    },650);
+  }
+  function recordRemoteInput(e){
+    state.report.remoteInputProbe=state.report.remoteInputProbe||{events:[],lastEventAt:null};
+    const rec=compactInputEvent(e);
+    state.report.remoteInputProbe.events.push(rec);
+    if(state.report.remoteInputProbe.events.length>40)state.report.remoteInputProbe.events.splice(0,state.report.remoteInputProbe.events.length-40);
+    state.report.remoteInputProbe.lastEventAt=rec.timestamp;
+    set("remoteInputState",
+      (rec.type||"event")+" · key="+(rec.key||"—")+
+      " · keyCode="+(rec.keyCode||rec.which||0)+
+      " · active="+(rec.activeElement&&rec.activeElement.id?rec.activeElement.id:(rec.activeElement&&rec.activeElement.tag)||"—")
+    );
+    scheduleRemoteInputSave();
+  }
+  ["keydown","keyup","keypress"].forEach(type=>{
+    window.addEventListener(type,recordRemoteInput,true);
+    document.addEventListener(type,recordRemoteInput,true);
+  });
+
   function controls(){return Array.prototype.slice.call(document.querySelectorAll("button,input,summary")).filter(el=>{if(!el||el.disabled||el.hidden)return false;const s=getComputedStyle(el);return s.display!=="none"&&s.visibility!=="hidden"&&el.getClientRects().length>0;});}
   function center(el){const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};}
   function nextControl(cur,key,list){const from=center(cur);let best=null,score=Infinity;list.forEach(el=>{if(el===cur)return;const to=center(el),dx=to.x-from.x,dy=to.y-from.y;let p=null,c=0;if(key==="ArrowUp"&&dy<-4){p=-dy;c=Math.abs(dx);}if(key==="ArrowDown"&&dy>4){p=dy;c=Math.abs(dx);}if(key==="ArrowLeft"&&dx<-4){p=-dx;c=Math.abs(dy);}if(key==="ArrowRight"&&dx>4){p=dx;c=Math.abs(dy);}if(p===null)return;const s=p*10+c;if(s<score){score=s;best=el;}});return best;}
@@ -2408,26 +2518,37 @@
     for(const name of names){if(named[name])return named[name];}
     return ({13:"Enter",23:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[code])||rawKey;
   }
-  window.addEventListener("keydown",e=>{
-    const key=normalizeTvKey(e),active=document.activeElement,list=controls();
-    if(!list.length)return;
-    const hasActive=list.indexOf(active)>=0;
-    if((key==="Enter"||key==="OK")){
+  function handleTvNavEvent(e,{fromKeyUp=false}={}){
+    const key=normalizeTvKey(e),code=Number(e&&e.keyCode||e&&e.which||0);
+    if(!["Enter","OK","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(key))return false;
+    const now=Date.now();
+    if(!fromKeyUp){
+      lastTvKeyDown={code:code,at:now};
+    }else if(lastTvKeyDown.code===code&&now-lastTvKeyDown.at<450){
+      return false;
+    }
+    const list=controls();
+    if(!list.length)return false;
+    const active=document.activeElement,hasActive=list.indexOf(active)>=0;
+    if(key==="Enter"||key==="OK"){
       if(hasActive&&(active.tagName==="BUTTON"||active.tagName==="SUMMARY")){
-        e.preventDefault();active.click();return;
+        e.preventDefault?.();active.click();return true;
       }
       if(!hasActive){
-        list[0].focus();e.preventDefault();return;
+        list[0].focus();e.preventDefault?.();return true;
       }
+      return false;
     }
-    if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(key)<0)return;
-    if(active&&active.tagName==="INPUT"&&(key==="ArrowLeft"||key==="ArrowRight"))return;
+    if(active&&active.tagName==="INPUT"&&(key==="ArrowLeft"||key==="ArrowRight"))return false;
     if(!hasActive){
-      list[0].focus();e.preventDefault();return;
+      list[0].focus();e.preventDefault?.();return true;
     }
     const to=nextControl(active,key,list);
-    if(to){to.focus();e.preventDefault();}
-  });
+    if(to){to.focus();e.preventDefault?.();return true;}
+    return false;
+  }
+  window.addEventListener("keydown",e=>handleTvNavEvent(e),false);
+  window.addEventListener("keyup",e=>handleTvNavEvent(e,{fromKeyUp:true}),false);
 
   $("fullNetworkCaptureArmBtn").addEventListener("click",()=>fullNetworkCaptureAction("ARM"));
   $("fullNetworkCaptureStopBtn").addEventListener("click",()=>fullNetworkCaptureAction("STOP"));
@@ -2465,5 +2586,9 @@
     startFullNetworkCapturePolling();
     await refreshStoreStaticMap();
     startRemoteDiagnosticPolling();
+    state.report.runtimeSurfaceAutoProbe=runtimeSurfaceSnapshot();
+    set("remoteInputState","AUTO PROBE · press arrows and OK on the remote");
+    await save("runtime-surface-auto-probe");
+    try{await inspectLauncherBridge();}catch(e){log("Automatic launcher bridge probe failed",err(e));}
   }).catch(e=>log("Config load failed",err(e)));
 })();
