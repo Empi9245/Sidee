@@ -1,10 +1,10 @@
 {
   "sessionId": "sidee-20260929-191916-046b",
-  "clientBuildId": "app-929d4c414c2a",
-  "serverBuildId": "app-929d4c414c2a",
+  "clientBuildId": "app-5dbeec3fbd21",
+  "serverBuildId": "app-5dbeec3fbd21",
   "buildMatch": true,
-  "startedAt": "2026-09-29T17:36:22.995Z",
-  "updatedAt": "2026-09-29T17:36:26.333Z",
+  "startedAt": "2026-09-29T17:42:46.755Z",
+  "updatedAt": "2026-09-29T17:42:49.105Z",
   "accessContext": {
     "href": "http://192.168.1.5:8080/",
     "origin": "http://192.168.1.5:8080",
@@ -52,7 +52,7 @@
   "legacyHspdkWriteLab": null,
   "storeWorkflowProbe": null,
   "launcherBridgeProbe": {
-    "timestamp": "2026-09-29T17:36:26.098Z",
+    "timestamp": "2026-09-29T17:42:48.824Z",
     "context": {
       "href": "http://192.168.1.5:8080/",
       "origin": "http://192.168.1.5:8080",
@@ -137,7 +137,7 @@
     ]
   },
   "runtimeSurfaceAutoProbe": {
-    "timestamp": "2026-09-29T17:36:25.202Z",
+    "timestamp": "2026-09-29T17:42:48.211Z",
     "href": "http://192.168.1.5:8080/",
     "hostname": "192.168.1.5",
     "userAgent": "Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 WebNavigator/7.0.0 Safari/537.36",
@@ -176,12 +176,14 @@
       "addPlatformEventListener",
       "sendPlatformMessage"
     ],
+    "hiWebOsFrameAvailable": false,
+    "keyboardAvailable": false,
     "vowOsAvailable": true,
     "vowOsContextAvailable": true,
     "serviceIdentifier": "",
     "serviceIdentifierError": null,
     "clientInformation": {
-      "timestamp": "2026-09-29T17:36:25.256Z",
+      "timestamp": "2026-09-29T17:42:48.284Z",
       "descriptor": {
         "found": true,
         "ownerDepth": 0,
@@ -207,11 +209,11 @@
     "lastEventAt": null
   },
   "automaticRuntimeInstallProbe": {
-    "timestamp": "2026-09-29T17:36:26.311Z",
+    "timestamp": "2026-09-29T17:42:49.083Z",
     "status": "SKIPPED",
     "reason": "INSTALL_API_UNAVAILABLE",
     "runtime": {
-      "timestamp": "2026-09-29T17:36:26.311Z",
+      "timestamp": "2026-09-29T17:42:49.083Z",
       "href": "http://192.168.1.5:8080/",
       "hostname": "192.168.1.5",
       "userAgent": "Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 WebNavigator/7.0.0 Safari/537.36",
@@ -250,12 +252,14 @@
         "addPlatformEventListener",
         "sendPlatformMessage"
       ],
+      "hiWebOsFrameAvailable": false,
+      "keyboardAvailable": false,
       "vowOsAvailable": true,
       "vowOsContextAvailable": true,
       "serviceIdentifier": "",
       "serviceIdentifierError": null,
       "clientInformation": {
-        "timestamp": "2026-09-29T17:36:26.332Z",
+        "timestamp": "2026-09-29T17:42:49.104Z",
         "descriptor": {
           "found": true,
           "ownerDepth": 0,
@@ -276,6 +280,17 @@
         "sameAsNavigator": true
       }
     }
+  },
+  "nativeKeyRoutingProbe": {
+    "timestamp": "2026-09-29T17:42:48.284Z",
+    "hiWebOsFrameAvailable": false,
+    "hiWebOsFrameMethods": [],
+    "keyboardAvailable": false,
+    "keyboardMethods": [],
+    "routeAttempted": false,
+    "routeMethod": null,
+    "success": false,
+    "error": null
   },
   "summary": {
     "runtimeIdentity": "MISSING",

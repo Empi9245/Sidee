@@ -1,48 +1,302 @@
 {
-  "sessionId": "sidee-20260929-194224-f686",
+  "sessionId": "sidee-20260929-191916-046b",
   "clientBuildId": "app-5dbeec3fbd21",
   "serverBuildId": "app-5dbeec3fbd21",
   "buildMatch": true,
-  "startedAt": "2026-09-29T17:42:24Z",
-  "updatedAt": "2026-09-29T17:42:36Z",
-  "accessMode": "VIDAA_STORE_DOMAIN_DISCOVERY",
-  "storeDomainDiscovery": {
-    "passiveDnsOnly": true,
-    "responsesModified": false,
-    "queryValuesPersisted": false,
-    "scope": [
-      "*.vidaahub.com",
-      "api-launcher-*.hismarttv.com",
-      "auth-launcher-*.hismarttv.com",
-      "app-appstore.hismarttv.com",
-      "unified-ter-*.hismarttv.com"
-    ],
-    "status": "QUERIES_CAPTURED",
-    "totalQueries": 6,
-    "hostCount": 2,
-    "hosts": [
+  "startedAt": "2026-09-29T17:42:46.755Z",
+  "updatedAt": "2026-09-29T17:42:49.105Z",
+  "accessContext": {
+    "href": "http://192.168.1.5:8080/",
+    "origin": "http://192.168.1.5:8080",
+    "protocol": "http:",
+    "hostname": "192.168.1.5",
+    "port": "8080",
+    "host": "192.168.1.5:8080",
+    "secureContext": false,
+    "accessMode": "RAW_IP_BROWSER_CONTEXT"
+  },
+  "accessMode": "RAW_IP_BROWSER_CONTEXT",
+  "serverAccess": {
+    "host": "192.168.1.5:8080",
+    "requestScheme": "http",
+    "requestPort": 8080
+  },
+  "device": {},
+  "baseline": null,
+  "contextInit": {
+    "status": "NOT_RUN",
+    "available": false,
+    "before": null,
+    "after": null,
+    "diff": null
+  },
+  "contextIdentityFingerprint": null,
+  "clientInformation": null,
+  "serviceTrace": [],
+  "permissionSourceTrace": null,
+  "installTest": null,
+  "verification": null,
+  "installedAppMetadata": null,
+  "target": {
+    "app_id": "nuviodebug",
+    "app_name": "Nuvio TV",
+    "app_url": "http://192.168.1.5:4173/?wrapper=vidaa",
+    "icon_url": "http://192.168.1.5:4173/assets/images/icon.png",
+    "store_type": "store"
+  },
+  "temporaryIdentifierTest": null,
+  "identityOverrideLab": null,
+  "identityWriteGateLab": null,
+  "candidatePermissionTest": null,
+  "directAppInfoWriteLab": null,
+  "legacyHspdkWriteLab": null,
+  "storeWorkflowProbe": null,
+  "launcherBridgeProbe": {
+    "timestamp": "2026-09-29T17:42:48.824Z",
+    "context": {
+      "href": "http://192.168.1.5:8080/",
+      "origin": "http://192.168.1.5:8080",
+      "protocol": "http:",
+      "hostname": "192.168.1.5",
+      "port": "8080",
+      "host": "192.168.1.5:8080",
+      "secureContext": false,
+      "accessMode": "RAW_IP_BROWSER_CONTEXT"
+    },
+    "omiPlatform": {
+      "available": true,
+      "type": "object",
+      "methods": [
+        {
+          "name": "addPlatformEventListener",
+          "ownerDepth": 0,
+          "type": "function",
+          "length": 0,
+          "sourceKind": "native"
+        },
+        {
+          "name": "sendPlatformMessage",
+          "ownerDepth": 0,
+          "type": "function",
+          "length": 0,
+          "sourceKind": "native"
+        }
+      ],
+      "error": null
+    },
+    "operaOmi": {
+      "available": true,
+      "type": "object",
+      "methods": [
+        {
+          "name": "addPlatformEventListener",
+          "ownerDepth": 0,
+          "type": "function",
+          "length": 0,
+          "sourceKind": "native"
+        },
+        {
+          "name": "sendPlatformMessage",
+          "ownerDepth": 0,
+          "type": "function",
+          "length": 0,
+          "sourceKind": "native"
+        }
+      ],
+      "error": null
+    },
+    "candidateGlobals": [
       {
-        "host": "iot-voice-eu.vidaahub.com",
-        "firstSeen": "2026-09-29T17:42:24Z",
-        "lastSeen": "2026-09-29T17:42:35Z",
-        "queryCount": 4,
-        "qtypes": [
-          "A"
-        ]
+        "name": "Hisense_GetCurrentBrowser",
+        "type": "function",
+        "length": 0,
+        "sourceKind": "javascript"
       },
       {
-        "host": "ter-jrnl-eu.vidaahub.com",
-        "firstSeen": "2026-09-29T17:42:36Z",
-        "lastSeen": "2026-09-29T17:42:36Z",
-        "queryCount": 2,
-        "qtypes": [
-          "A",
-          "AAAA"
-        ]
+        "name": "Hisense_GetBlockStartTime",
+        "type": "function",
+        "length": 0,
+        "sourceKind": "javascript"
+      },
+      {
+        "name": "Hisense_setStartBandwidth",
+        "type": "function",
+        "length": 1,
+        "sourceKind": "javascript"
+      },
+      {
+        "name": "Hisense_SupportAppConfig",
+        "type": "function",
+        "length": 0,
+        "sourceKind": "javascript"
       }
+    ],
+    "notes": [
+      "Read-only surface enumeration; no platform message is sent.",
+      "Looking for a launcher/runtime bridge that can start a hosted URL as an app context rather than normal browser."
     ]
   },
+  "runtimeSurfaceAutoProbe": {
+    "timestamp": "2026-09-29T17:42:48.211Z",
+    "href": "http://192.168.1.5:8080/",
+    "hostname": "192.168.1.5",
+    "userAgent": "Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 WebNavigator/7.0.0 Safari/537.36",
+    "activeElement": {
+      "tag": "BODY",
+      "id": null,
+      "className": ""
+    },
+    "currentBrowser": {
+      "available": true,
+      "value": "odin"
+    },
+    "firmware": {
+      "available": true,
+      "value": "V0000.09.60A.Q0707"
+    },
+    "os": {
+      "available": true,
+      "value": "U09.60"
+    },
+    "appConfigSupport": {
+      "available": true,
+      "value": true
+    },
+    "installLegacyAvailable": false,
+    "installV2Available": false,
+    "exitAvailable": false,
+    "closeAppAvailable": false,
+    "omiPlatformAvailable": true,
+    "operaOmiAvailable": true,
+    "omiPlatformMethods": [
+      "addPlatformEventListener",
+      "sendPlatformMessage"
+    ],
+    "operaOmiMethods": [
+      "addPlatformEventListener",
+      "sendPlatformMessage"
+    ],
+    "hiWebOsFrameAvailable": false,
+    "keyboardAvailable": false,
+    "vowOsAvailable": true,
+    "vowOsContextAvailable": true,
+    "serviceIdentifier": "",
+    "serviceIdentifierError": null,
+    "clientInformation": {
+      "timestamp": "2026-09-29T17:42:48.284Z",
+      "descriptor": {
+        "found": true,
+        "ownerDepth": 0,
+        "enumerable": true,
+        "configurable": true,
+        "writable": null,
+        "hasGetter": true,
+        "hasSetter": true
+      },
+      "status": "RETURNED",
+      "type": "object",
+      "value": {
+        "type": "[object Navigator]",
+        "sameAsNavigator": true
+      },
+      "error": null,
+      "setterUsed": false,
+      "sameAsNavigator": true
+    }
+  },
+  "remoteInputProbe": {
+    "events": [],
+    "lastEventAt": null
+  },
+  "automaticRuntimeInstallProbe": {
+    "timestamp": "2026-09-29T17:42:49.083Z",
+    "status": "SKIPPED",
+    "reason": "INSTALL_API_UNAVAILABLE",
+    "runtime": {
+      "timestamp": "2026-09-29T17:42:49.083Z",
+      "href": "http://192.168.1.5:8080/",
+      "hostname": "192.168.1.5",
+      "userAgent": "Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 WebNavigator/7.0.0 Safari/537.36",
+      "activeElement": {
+        "tag": "BUTTON",
+        "id": "remoteDiagnosticArmBtn",
+        "className": "secondary"
+      },
+      "currentBrowser": {
+        "available": true,
+        "value": "odin"
+      },
+      "firmware": {
+        "available": true,
+        "value": "V0000.09.60A.Q0707"
+      },
+      "os": {
+        "available": true,
+        "value": "U09.60"
+      },
+      "appConfigSupport": {
+        "available": true,
+        "value": true
+      },
+      "installLegacyAvailable": false,
+      "installV2Available": false,
+      "exitAvailable": false,
+      "closeAppAvailable": false,
+      "omiPlatformAvailable": true,
+      "operaOmiAvailable": true,
+      "omiPlatformMethods": [
+        "addPlatformEventListener",
+        "sendPlatformMessage"
+      ],
+      "operaOmiMethods": [
+        "addPlatformEventListener",
+        "sendPlatformMessage"
+      ],
+      "hiWebOsFrameAvailable": false,
+      "keyboardAvailable": false,
+      "vowOsAvailable": true,
+      "vowOsContextAvailable": true,
+      "serviceIdentifier": "",
+      "serviceIdentifierError": null,
+      "clientInformation": {
+        "timestamp": "2026-09-29T17:42:49.104Z",
+        "descriptor": {
+          "found": true,
+          "ownerDepth": 0,
+          "enumerable": true,
+          "configurable": true,
+          "writable": null,
+          "hasGetter": true,
+          "hasSetter": true
+        },
+        "status": "RETURNED",
+        "type": "object",
+        "value": {
+          "type": "[object Navigator]",
+          "sameAsNavigator": true
+        },
+        "error": null,
+        "setterUsed": false,
+        "sameAsNavigator": true
+      }
+    }
+  },
+  "nativeKeyRoutingProbe": {
+    "timestamp": "2026-09-29T17:42:48.284Z",
+    "hiWebOsFrameAvailable": false,
+    "hiWebOsFrameMethods": [],
+    "keyboardAvailable": false,
+    "keyboardMethods": [],
+    "routeAttempted": false,
+    "routeMethod": null,
+    "success": false,
+    "error": null
+  },
   "summary": {
-    "storeDomainDiscovery": "QUERIES_CAPTURED"
+    "runtimeIdentity": "MISSING",
+    "contextInit": "NOT_RUN",
+    "contextFingerprint": "NOT_RUN",
+    "permissionGate": "UNKNOWN",
+    "appInfoWrite": "NOT_RUN"
   }
 }
