@@ -76,6 +76,25 @@
       <div id="storeInstallProbeState" class="state">IDLE · Automatic capture starts from the Store flow; manual markers are optional.</div>
     </section>
 
+    <section class="card" aria-live="polite">
+      <div class="cardHead">
+        <div>
+          <p class="kicker">STORE API MAP · PC DIRECT</p>
+          <h2>Map public Store API paths</h2>
+        </div>
+        <button id="storeStaticMapBtn" class="secondary">Run Store API mapper</button>
+      </div>
+      <p>Runs from the PC against a fixed allowlist of observed VIDAA Store hosts using their official TLS certificates. It performs only bounded GET requests, sends no TV credentials/cookies, follows only allowlisted Store assets, and stores only API paths, URLs and keyword excerpts relevant to install/download/package handling.</p>
+      <div class="identityGrid">
+        <div><span>Status</span><b id="storeStaticMapStatus" class="summaryValue">NOT_RUN</b></div>
+        <div><span>Resources</span><b id="storeStaticMapResources" class="summaryValue">0</b></div>
+        <div><span>API paths</span><b id="storeStaticMapApiCount" class="summaryValue">0</b></div>
+        <div><span>Install/download hits</span><b id="storeStaticMapKeywordCount" class="summaryValue">0</b></div>
+        <div><span>Interesting paths</span><b id="storeStaticMapPaths" class="summaryValue">—</b></div>
+      </div>
+      <div id="storeStaticMapState" class="state">Not run yet.</div>
+    </section>
+
     <section class="grid workflow">
       <article class="card primary">
         <div class="cardHead">
