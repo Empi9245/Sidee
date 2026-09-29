@@ -4,7 +4,7 @@
   "serverBuildId": "app-5c990281e635",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:35:07Z",
-  "updatedAt": "2026-09-29T14:36:26Z",
+  "updatedAt": "2026-09-29T14:37:35Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,14 +18,14 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 75,
-    "hostCount": 19,
+    "totalQueries": 100,
+    "hostCount": 23,
     "hosts": [
       {
         "host": "recommend-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:35:07Z",
-        "lastSeen": "2026-09-29T14:35:44Z",
-        "queryCount": 10,
+        "lastSeen": "2026-09-29T14:36:42Z",
+        "queryCount": 11,
         "qtypes": [
           "A",
           "AAAA"
@@ -34,10 +34,11 @@
       {
         "host": "img.vidaahub.com",
         "firstSeen": "2026-09-29T14:35:07Z",
-        "lastSeen": "2026-09-29T14:35:22Z",
-        "queryCount": 4,
+        "lastSeen": "2026-09-29T14:36:35Z",
+        "queryCount": 7,
         "qtypes": [
-          "A"
+          "A",
+          "AAAA"
         ]
       },
       {
@@ -103,8 +104,8 @@
       {
         "host": "static-ui.vidaahub.com",
         "firstSeen": "2026-09-29T14:35:37Z",
-        "lastSeen": "2026-09-29T14:35:38Z",
-        "queryCount": 6,
+        "lastSeen": "2026-09-29T14:36:31Z",
+        "queryCount": 7,
         "qtypes": [
           "A",
           "AAAA"
@@ -123,8 +124,8 @@
       {
         "host": "rsc-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T14:35:37Z",
-        "lastSeen": "2026-09-29T14:35:37Z",
-        "queryCount": 2,
+        "lastSeen": "2026-09-29T14:36:31Z",
+        "queryCount": 3,
         "qtypes": [
           "A",
           "AAAA"
@@ -133,8 +134,8 @@
       {
         "host": "detail-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:35:38Z",
-        "lastSeen": "2026-09-29T14:35:38Z",
-        "queryCount": 2,
+        "lastSeen": "2026-09-29T14:36:31Z",
+        "queryCount": 3,
         "qtypes": [
           "A",
           "AAAA"
@@ -143,8 +144,8 @@
       {
         "host": "rpt-mntz-azure.vidaahub.com",
         "firstSeen": "2026-09-29T14:35:39Z",
-        "lastSeen": "2026-09-29T14:35:39Z",
-        "queryCount": 2,
+        "lastSeen": "2026-09-29T14:36:33Z",
+        "queryCount": 3,
         "qtypes": [
           "A",
           "AAAA"
@@ -153,8 +154,8 @@
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:35:40Z",
-        "lastSeen": "2026-09-29T14:36:05Z",
-        "queryCount": 6,
+        "lastSeen": "2026-09-29T14:37:35Z",
+        "queryCount": 12,
         "qtypes": [
           "A",
           "AAAA"
@@ -163,8 +164,8 @@
       {
         "host": "exc-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:35:40Z",
-        "lastSeen": "2026-09-29T14:36:06Z",
-        "queryCount": 4,
+        "lastSeen": "2026-09-29T14:37:05Z",
+        "queryCount": 8,
         "qtypes": [
           "A",
           "AAAA"
@@ -193,8 +194,8 @@
       {
         "host": "tvmodules-vidaa.vidaahub.com",
         "firstSeen": "2026-09-29T14:36:01Z",
-        "lastSeen": "2026-09-29T14:36:01Z",
-        "queryCount": 2,
+        "lastSeen": "2026-09-29T14:36:27Z",
+        "queryCount": 3,
         "qtypes": [
           "A",
           "AAAA"
@@ -207,6 +208,44 @@
         "queryCount": 1,
         "qtypes": [
           "A"
+        ]
+      },
+      {
+        "host": "home-ui-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T14:36:31Z",
+        "lastSeen": "2026-09-29T14:36:31Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "partner.vidaahub.com",
+        "firstSeen": "2026-09-29T14:36:31Z",
+        "lastSeen": "2026-09-29T14:36:31Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ]
+      },
+      {
+        "host": "crtv-mntz.vidaahub.com",
+        "firstSeen": "2026-09-29T14:36:33Z",
+        "lastSeen": "2026-09-29T14:36:33Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "search-ui-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T14:36:35Z",
+        "lastSeen": "2026-09-29T14:36:35Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
         ]
       }
     ]
