@@ -339,6 +339,39 @@ class StoreCatalogTraceTests(unittest.TestCase):
         self.assertEqual(summary["topPeers"][0]["ip"], "203.0.113.10")
         self.assertEqual(summary["topPeers"][0]["ports"]["443"], 5)
 
+    def test_network_capture_text_summary_handles_brief_packet_lines_without_original_size(self):
+        sample = """
+12:00:00.000 192.168.137.22.51000 > 203.0.113.10.443: Flags [S], length 0
+12:00:00.100 203.0.113.10.443 > 192.168.137.22.51000: Flags [.], length 1448
+12:00:00.200 192.168.137.22.51000 > 203.0.113.10.443: Flags [.], length 1348
+12:00:00.300 203.0.113.10.443 > 192.168.137.22.51000: Flags [.], length 1348
+12:00:00.400 203.0.113.10.443 > 192.168.137.22.51000: Flags [.], length 1348
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / "capture.txt"
+            path.write_text(sample, encoding="utf-8")
+            summary = sidee._network_capture_parse_text(path, "192.168.137.22")
+
+        self.assertEqual(summary["packetRecords"], 5)
+        self.assertEqual(summary["parsedIpPacketLines"], 5)
+        self.assertEqual(summary["tvMatchedPacketRecords"], 5)
+        self.assertEqual(summary["httpsPacketRecords"], 5)
+        self.assertEqual(summary["topologyClassification"], "FULL_PATH_VISIBLE")
+
+    def test_network_capture_text_summary_distinguishes_wrong_tv_ip(self):
+        sample = """
+12:00:00.000 192.168.137.1.51000 > 203.0.113.10.443: Flags [S], length 0
+12:00:00.100 203.0.113.10.443 > 192.168.137.1.51000: Flags [.], length 1448
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / "capture.txt"
+            path.write_text(sample, encoding="utf-8")
+            summary = sidee._network_capture_parse_text(path, "192.168.137.22")
+
+        self.assertEqual(summary["packetRecords"], 2)
+        self.assertEqual(summary["tvMatchedPacketRecords"], 0)
+        self.assertEqual(summary["topologyClassification"], "CAPTURED_BUT_TV_IP_NOT_VISIBLE")
+
     def test_network_capture_preflight_stops_sidee_filter_without_english_status(self):
         calls = []
 
