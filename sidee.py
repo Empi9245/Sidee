@@ -2497,6 +2497,12 @@ def _app_context_bootstrap_html(host):
     app_json = json.dumps(app, ensure_ascii=False)
     hspdk_source = (WEB_DIR / "hspdk-context.js").read_text(encoding="utf-8")
     build_json = json.dumps(client_build_id())
+    cfg = load_config()
+    handoff_url = "http://{}:{}/app-runtime-handoff".format(
+        get_local_ip(),
+        int(cfg.get("http_port", 8080)),
+    )
+    handoff_json = json.dumps(handoff_url)
     return f"""<!doctype html>
 <html>
 <head>
@@ -2669,8 +2675,12 @@ pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-w
     }});
   }}
   postJson("/api/app-context-bootstrap",payload).then(function(saved){{
-    state.textContent="Saved HSPDK context: "+payload.legacyHspdkContext.status+". Report queued for sync.";
+    state.textContent="Saved app identity. Testing runtime handoff…";
     state.className="ok";
+    var next={handoff_json}+"?sourceSession="+encodeURIComponent(saved&&saved.sessionId||"")+
+      "&sourceHost="+encodeURIComponent(location.hostname)+
+      "&sourceAppId="+encodeURIComponent(expected.id||"");
+    setTimeout(function(){{ location.replace(next); }},700);
   }}).catch(function(e){{
     state.textContent="Captured locally in the page; server sync failed: "+String(e&&e.message||e);
   }});
@@ -2678,6 +2688,197 @@ pre{{white-space:pre-wrap;background:#191919;padding:2vw;border-radius:1vw;max-w
 </script>
 </body>
 </html>"""
+
+
+def _app_runtime_handoff_html(query):
+    source_session = str((query.get("sourceSession") or [""])[0])[:120]
+    source_host = str((query.get("sourceHost") or [""])[0])[:255]
+    source_app_id = str((query.get("sourceAppId") or [""])[0])[:80]
+    build_json = json.dumps(client_build_id())
+    source_session_json = json.dumps(source_session)
+    source_host_json = json.dumps(source_host)
+    source_app_id_json = json.dumps(source_app_id)
+    return f"""<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,height=device-height,initial-scale=1">
+<title>Sidee App Runtime Handoff</title>
+<style>
+html,body{{margin:0;background:#0d0d0d;color:#fff;font-family:Arial,sans-serif}}
+main{{box-sizing:border-box;min-height:100vh;padding:7vh 6vw}}
+h1{{font-size:4vw;margin:0 0 2vh}}
+p,pre{{font-size:2vw;line-height:1.45}}
+pre{{white-space:pre-wrap;background:#171717;padding:2vw;border-radius:1vw;max-width:90vw}}
+.focus{{outline:6px solid #fff;outline-offset:8px}}
+</style>
+</head>
+<body tabindex="-1">
+<main>
+<h1>Sidee · app runtime handoff</h1>
+<p id="state">Checking whether VIDAA kept the installed-app runtime after navigation…</p>
+<pre id="out">Starting…</pre>
+</main>
+<script>
+(function(){{
+  "use strict";
+  var CLIENT_BUILD_ID={build_json};
+  var sourceSession={source_session_json};
+  var sourceHost={source_host_json};
+  var sourceAppId={source_app_id_json};
+  var events=[];
+
+  function safe(v){{
+    if(v===undefined)return "[undefined]";
+    if(v===null||typeof v==="string"||typeof v==="number"||typeof v==="boolean")return v;
+    try{{return JSON.parse(JSON.stringify(v));}}catch(e){{return Object.prototype.toString.call(v);}}
+  }}
+  function call(root,name){{
+    try{{
+      if(!root||typeof root[name]!=="function")return {{status:"UNAVAILABLE",value:null}};
+      return {{status:"RETURNED",value:safe(root[name].call(root))}};
+    }}catch(e){{return {{status:"ERROR",value:null,error:String(e&&e.message||e)}};}}
+  }}
+  function prop(root,name){{
+    try{{return {{status:"RETURNED",value:safe(root&&root[name])}};}}
+    catch(e){{return {{status:"ERROR",value:null,error:String(e&&e.message||e)}};}}
+  }}
+  function snapshot(){{
+    var svc=null,ctx=null;
+    try{{svc=window.vowOS&&window.vowOS.service;}}catch(e){{}}
+    try{{ctx=window.vowOSContext;}}catch(e){{}}
+    return {{
+      timestamp:new Date().toISOString(),
+      sourceSession:sourceSession,
+      sourceHost:sourceHost,
+      sourceAppId:sourceAppId,
+      clientBuildId:CLIENT_BUILD_ID,
+      href:location.href,
+      origin:location.origin,
+      hostname:location.hostname,
+      userAgent:navigator.userAgent,
+      identity:{{
+        navigatorAppIdentifier:prop(navigator,"appIdentifier"),
+        serviceIdentifier:call(svc,"getIdentifier"),
+        appIdentifier:call(ctx,"getAppIdentifier"),
+        appId:call(ctx,"getAppId"),
+        supportAppConfig:call(window,"Hisense_SupportAppConfig")
+      }},
+      capabilities:{{
+        hiUtils:typeof window.HiUtils_createRequest==="function",
+        installLegacy:typeof window.Hisense_installApp==="function",
+        installV2:typeof window.Hisense_installApp_V2==="function",
+        omiPlatform:!!window.omi_platform,
+        operaOmi:!!window.opera_omi,
+        vowService:!!svc,
+        vowContext:!!ctx
+      }},
+      remoteEvents:events.slice(-30)
+    }};
+  }}
+  function post(payload){{
+    try{{
+      var xhr=new XMLHttpRequest();
+      xhr.open("POST","/api/app-runtime-handoff",true);
+      xhr.setRequestHeader("Content-Type","application/json");
+      xhr.send(JSON.stringify(payload));
+    }}catch(e){{}}
+  }}
+  function renderAndPost(){{
+    var p=snapshot();
+    document.getElementById("out").textContent=JSON.stringify(p,null,2);
+    var appId=p.identity&&p.identity.appId&&p.identity.appId.value;
+    var ident=p.identity&&p.identity.serviceIdentifier&&p.identity.serviceIdentifier.value;
+    var preserved=String(appId||"")===String(sourceAppId||"") && !!String(ident||"").trim();
+    document.getElementById("state").textContent=preserved
+      ?"APP RUNTIME PRESERVED · press arrows / OK now"
+      :"APP RUNTIME NOT PRESERVED · press arrows / OK for input check";
+    post(p);
+  }}
+
+  ["keydown","keyup","keypress"].forEach(function(type){{
+    window.addEventListener(type,function(e){{
+      events.push({{
+        timestamp:new Date().toISOString(),
+        type:type,
+        key:String(e&&e.key||""),
+        code:String(e&&e.code||""),
+        keyCode:Number(e&&e.keyCode||0),
+        which:Number(e&&e.which||0)
+      }});
+      renderAndPost();
+    }},true);
+  }});
+
+  try{{document.body.focus();}}catch(e){{}}
+  renderAndPost();
+  setTimeout(renderAndPost,1200);
+  setTimeout(renderAndPost,3500);
+}})();
+</script>
+</body>
+</html>"""
+
+
+def _save_app_runtime_handoff(data, client_ip):
+    if not isinstance(data, dict):
+        raise ValueError("Expected JSON object")
+    source_session = str(data.get("sourceSession") or "").strip()
+    if not source_session or not SESSION_ID_RE.fullmatch(source_session):
+        raise ValueError("Invalid sourceSession")
+    path = session_report_path(source_session)
+    if not path.is_file():
+        raise ValueError("Source session report not found")
+    with path.open("r", encoding="utf-8") as f:
+        report = json.load(f)
+    if not isinstance(report, dict) or report.get("sessionId") != source_session:
+        raise ValueError("Invalid source session report")
+    identity = data.get("identity") if isinstance(data.get("identity"), dict) else {}
+    source_app_id = str(data.get("sourceAppId") or "")
+    app_id = ""
+    service_identifier = ""
+    try:
+        app_id = str((identity.get("appId") or {}).get("value") or "")
+    except Exception:
+        app_id = ""
+    try:
+        service_identifier = str((identity.get("serviceIdentifier") or {}).get("value") or "")
+    except Exception:
+        service_identifier = ""
+    preserved = bool(source_app_id and app_id == source_app_id and service_identifier.strip())
+    remote_events = data.get("remoteEvents") if isinstance(data.get("remoteEvents"), list) else []
+    report["updatedAt"] = _utc_timestamp()
+    report["appRuntimeHandoffProbe"] = {
+        "timestamp": str(data.get("timestamp") or report["updatedAt"])[:80],
+        "sourceSession": source_session,
+        "sourceHost": str(data.get("sourceHost") or "")[:255],
+        "sourceAppId": source_app_id[:80],
+        "target": {
+            "href": str(data.get("href") or "")[:1000],
+            "origin": str(data.get("origin") or "")[:500],
+            "hostname": str(data.get("hostname") or "")[:255],
+        },
+        "identity": identity,
+        "capabilities": data.get("capabilities") if isinstance(data.get("capabilities"), dict) else {},
+        "remoteEvents": remote_events[-30:],
+        "runtimePreserved": preserved,
+        "inputReachedPage": bool(remote_events),
+        "serverObserved": {"clientIp": str(client_ip or "")[:80]},
+        "classification": (
+            "APP_RUNTIME_PRESERVED_AFTER_CROSS_ORIGIN_HANDOFF"
+            if preserved else
+            "APP_RUNTIME_LOST_AFTER_CROSS_ORIGIN_HANDOFF"
+        ),
+    }
+    report.setdefault("summary", {})["appRuntimeHandoff"] = (
+        "PRESERVED" if preserved else "LOST"
+    )
+    report["summary"]["handoffInput"] = (
+        "EVENTS_CAPTURED" if remote_events else "NO_EVENTS"
+    )
+    write_session_report(source_session, report)
+    queue_report_sync(source_session, report, "app-runtime-handoff")
+    return report
 
 
 def _save_app_context_bootstrap(data, server_host, client_ip):
@@ -3709,6 +3910,19 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(data)
             return
 
+        if path == "/app-runtime-handoff":
+            query = urllib.parse.parse_qs(parsed.query)
+            data = _app_runtime_handoff_html(query).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
+            self.end_headers()
+            self.wfile.write(data)
+            return
+
         if path == "/api/dns-health":
             return self._send_json({
                 "ok": True,
@@ -3891,6 +4105,22 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
                 "sessionId": report.get("sessionId"),
                 "storeInstallProbe": probe,
                 "storeDomainDiscovery": report.get("storeDomainDiscovery", {}),
+            })
+
+        if path == "/api/app-runtime-handoff":
+            try:
+                report = _save_app_runtime_handoff(data, self.client_address[0])
+            except ValueError as exc:
+                return self._send_json({"ok": False, "error": str(exc)}, 400)
+            except OSError as exc:
+                return self._send_json({"ok": False, "error": f"Could not save app runtime handoff: {exc}"}, 500)
+            probe = report.get("appRuntimeHandoffProbe", {})
+            return self._send_json({
+                "ok": True,
+                "sessionId": report["sessionId"],
+                "runtimePreserved": probe.get("runtimePreserved"),
+                "inputReachedPage": probe.get("inputReachedPage"),
+                "classification": probe.get("classification"),
             })
 
         if path == "/api/app-context-bootstrap":
