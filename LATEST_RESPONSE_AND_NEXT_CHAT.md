@@ -1,73 +1,92 @@
-# Sidee — dashboard input failure + no-pointer permission test
+# Sidee — no-pointer diagnosis + app-context conclusion
 
 Date: 2026-09-29
 
-Observed after user's latest TV test:
-- browser chrome can still be controlled;
-- Sidee dashboard itself cannot be controlled;
-- pointer is absent;
-- no `runtimeSurfaceAutoProbe`, `remoteInputProbe` or `launcherBridgeProbe` appeared in the synced session reports.
+## Current raw-IP dashboard result
 
-Latest synced session at ~19:05 local:
-- `sidee-20260929-190401-363a`
-- only Store DNS discovery data was present;
-- there was no browser-side auto telemetry.
+Latest browser-side session:
+`sidee-20260929-185551-a556`
 
-Important interpretation:
-- pointer absence alone does NOT prove Sidee is running as a registered VIDAA app;
-- however, if the page context really changed, its native identifier/AppConfig authorization could differ, so a fresh install-gate test in that exact context is worth doing;
-- the lack of browser-side report strongly suggests the dashboard JS is not reaching its startup section.
+Runtime:
+- URL: `http://192.168.1.5:8080/`
+- access context: RAW_IP_BROWSER_CONTEXT
+- browser: `odin`
+- firmware: `V0000.09.60A.Q0707`
+- OS: `U09.60`
+- `Hisense_SupportAppConfig() = true`
+- `serviceIdentifier = ""`
+- `Hisense_installApp = unavailable`
+- `Hisense_installApp_V2 = unavailable`
+- `omi_platform = available`
+- `opera_omi = available`
+- both expose native:
+  - `addPlatformEventListener`
+  - `sendPlatformMessage`
 
-Likely failure mode found:
-- VIDAA may be serving a stale `index.html` together with a newer `app.js`;
-- the newer JS previously bound listeners with direct calls such as `$("launcherBridgeProbeBtn").addEventListener(...)`;
-- if the cached HTML did not contain that newly-added element, JS execution stopped before startup, explaining:
-  - no initial focus,
-  - no input telemetry,
-  - no runtime snapshot,
-  - no automatic reports,
-  - apparently dead dashboard controls.
+Remote input telemetry:
+- `remoteInputProbe.events = []`
+- no keydown/keyup/keypress reached the page.
 
-Fixes on main:
-- `43808eeb1d9bbbe575f16ffa939f41fe254eb95b`
-  - all dashboard event binding now tolerates missing/stale HTML elements;
-  - mixed cached HTML/JS can no longer abort the entire script.
-- `150d6015940dea8b7e7334df13e5b273462163c7`
-  - when the new client actually starts, Sidee automatically snapshots the current VIDAA runtime and runs one install-permission attempt for the configured Nuvio target;
-  - no dashboard click is required;
-  - result is saved as `automaticRuntimeInstallProbe`.
-- prior commits:
-  - `e8a15598...` automatic runtime + raw remote input telemetry
-  - `49302086...` initial focus seeding
+Interpretation:
+- the briefly visible focus on the first Sidee button is programmatic `focus()`, not proof that the D-pad is reaching the DOM;
+- when OK is pressed, VIDAA/browser consumes the key outside the page and DOM focus is lost;
+- further keydown mapping fixes are not useful in this context.
 
-Current configured Nuvio target is still:
-`http://192.168.1.5:4173/?wrapper=vidaa`
+## Does no-pointer / app context grant install permission?
 
-This is suitable only as a permission/runtime experiment; it is not the desired permanent PC-free final URL. The user's Vercel project was previously paused and no exact active public Vercel URL is currently available.
+No evidence for that, and prior real app-context captures directly argue against it.
 
-## Next action
+Previously captured actual installed-app contexts:
 
-Update the local Sidee checkout to current main and restart the process so the TV cannot keep executing the broken mixed dashboard:
+Duplecast:
+- accessMode `DUPLECAST_APP_CONTEXT`
+- appId `1876`
+- navigator app identifier contains appid 1876
+- non-empty service/app identifier
+- `Hisense_SupportAppConfig() = true`
+- `installLegacy = false`
+- `installV2 = false`
+- later permission/write result: rejected / WRITE_DENIED
 
-`git pull --ff-only origin main`
+Smartone:
+- accessMode `SMARTONE_APP_CONTEXT`
+- appId `1470`
+- navigator app identifier contains appid 1470
+- non-empty service/app identifier
+- `Hisense_SupportAppConfig() = true`
+- `installLegacy = false`
+- `installV2 = false`
+- later permission/write result: rejected / WRITE_DENIED
 
-Then fully stop the old Sidee process and start it again as Administrator.
+Conclusion:
+A real VIDAA hosted-app context changes identity and runtime behavior, but does NOT automatically expose the browser install APIs or AppInfo write permission. App runtime and app-install authorization are separate gates.
 
-On the TV:
-- close the Sidee/browser page completely;
-- reopen Sidee;
-- no button interaction is required;
-- leave the page open for several seconds.
+## Launcher bridge research
 
-Then reply `fatto auto`.
+The current raw browser exposes `omi_platform.sendPlatformMessage`.
 
-Inspect newest session files for:
-- `runtimeSurfaceAutoProbe`
-- `launcherBridgeProbe`
-- `automaticRuntimeInstallProbe`
-- `remoteInputProbe`
+Public VIDAA installer examples use:
+- type: `APPMessage`
+- MsgType: `appControl`
+- action: `updateAppState`
+- source: `browser`
+- startAppType: `0x2`
+- event: `AllAppsUpdate`
 
-Decision:
-- if automaticRuntimeInstallProbe is `INSTALLED/PASSED`, the no-pointer context has materially different install permission and we can proceed to register a permanent hosted Nuvio URL;
-- if it still returns 503 AppConfig, no-pointer mode did not change install authorization;
-- if no browser-side fields appear again, the TV is still not executing the new client and the next step is to move the auto-probe into an inline bootstrap served directly by index.html (before app.js), removing app.js startup as a dependency.
+That known message only asks the launcher to refresh its application list after an install. No verified public `start arbitrary URL as app` APPMessage action has been found yet. Do not invent launcher messages.
+
+## Better next route
+
+Instead of trying to make the raw-IP dashboard respond to D-pad, test **app-context handoff**:
+
+1. enter Sidee through a real installed app container (Duplecast or Smartone), where VIDAA already assigns app identity;
+2. from that container, navigate/handoff to a controlled Nuvio-compatible page;
+3. automatically measure after the navigation:
+   - whether navigator.appIdentifier/appId stays 1876/1470;
+   - whether serviceIdentifier remains non-empty;
+   - whether D-pad events reach the page;
+   - whether browser chrome/pointer stays absent;
+4. if cross-origin navigation preserves app runtime, Nuvio can remain publicly hosted and use an installed app as the runtime shell;
+5. if cross-origin loses the app context, test same-origin proxy/service-worker shell next.
+
+This route targets the user's actual goal (Nuvio behaving as a VIDAA app) without relying on unavailable browser install APIs.
