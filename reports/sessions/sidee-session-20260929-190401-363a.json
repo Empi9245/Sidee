@@ -4,7 +4,7 @@
   "serverBuildId": "app-b431d96138fb",
   "buildMatch": true,
   "startedAt": "2026-09-29T17:04:01Z",
-  "updatedAt": "2026-09-29T17:08:20Z",
+  "updatedAt": "2026-09-29T17:10:01Z",
   "accessMode": "VIDAA_STORE_DOMAIN_DISCOVERY",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,14 +18,14 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 60,
-    "hostCount": 3,
+    "totalQueries": 68,
+    "hostCount": 4,
     "hosts": [
       {
         "host": "vidaa-base-auth-eu.vidaahub.com",
         "firstSeen": "2026-09-29T17:04:01Z",
-        "lastSeen": "2026-09-29T17:08:20Z",
-        "queryCount": 40,
+        "lastSeen": "2026-09-29T17:09:56Z",
+        "queryCount": 47,
         "qtypes": [
           "A"
         ]
@@ -47,6 +47,15 @@
         "qtypes": [
           "A",
           "AAAA"
+        ]
+      },
+      {
+        "host": "params-msg-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T17:10:01Z",
+        "lastSeen": "2026-09-29T17:10:01Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
         ]
       }
     ]
