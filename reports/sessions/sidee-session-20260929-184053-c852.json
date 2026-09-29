@@ -4,7 +4,7 @@
   "serverBuildId": "app-e59b512a9ef8",
   "buildMatch": true,
   "startedAt": "2026-09-29T16:40:53Z",
-  "updatedAt": "2026-09-29T16:42:00Z",
+  "updatedAt": "2026-09-29T16:42:06Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,7 +18,7 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 52,
+    "totalQueries": 60,
     "hostCount": 13,
     "hosts": [
       {
@@ -54,8 +54,8 @@
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T16:41:05Z",
-        "lastSeen": "2026-09-29T16:41:44Z",
-        "queryCount": 9,
+        "lastSeen": "2026-09-29T16:42:06Z",
+        "queryCount": 11,
         "qtypes": [
           "A",
           "AAAA"
@@ -82,8 +82,8 @@
       {
         "host": "sttc-iot.vidaahub.com",
         "firstSeen": "2026-09-29T16:41:27Z",
-        "lastSeen": "2026-09-29T16:41:57Z",
-        "queryCount": 7,
+        "lastSeen": "2026-09-29T16:42:02Z",
+        "queryCount": 8,
         "qtypes": [
           "A"
         ]
@@ -100,8 +100,8 @@
       {
         "host": "rsc-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T16:41:37Z",
-        "lastSeen": "2026-09-29T16:41:57Z",
-        "queryCount": 6,
+        "lastSeen": "2026-09-29T16:42:02Z",
+        "queryCount": 8,
         "qtypes": [
           "A"
         ]
@@ -128,8 +128,8 @@
       {
         "host": "vidaahub.com",
         "firstSeen": "2026-09-29T16:41:56Z",
-        "lastSeen": "2026-09-29T16:41:56Z",
-        "queryCount": 1,
+        "lastSeen": "2026-09-29T16:42:02Z",
+        "queryCount": 3,
         "qtypes": [
           "A"
         ]
@@ -137,8 +137,8 @@
       {
         "host": "params-msg-eu.vidaahub.com",
         "firstSeen": "2026-09-29T16:42:00Z",
-        "lastSeen": "2026-09-29T16:42:00Z",
-        "queryCount": 1,
+        "lastSeen": "2026-09-29T16:42:05Z",
+        "queryCount": 2,
         "qtypes": [
           "A"
         ]
