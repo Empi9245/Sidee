@@ -1,7 +1,5 @@
 {
   "spoof_domains": [
-    "vidaahub.com",
-    "www.vidaahub.com",
     "vidaa.smartone-iptv.com"
   ],
   "dns_port": 53,
