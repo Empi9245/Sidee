@@ -4,7 +4,7 @@
   "serverBuildId": "app-c947484c30df",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:19:59Z",
-  "updatedAt": "2026-09-29T14:20:39Z",
+  "updatedAt": "2026-09-29T14:20:56Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,8 +18,8 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 63,
-    "hostCount": 11,
+    "totalQueries": 72,
+    "hostCount": 13,
     "hosts": [
       {
         "host": "appstore-vidaa.vidaahub.com",
@@ -33,8 +33,8 @@
       {
         "host": "tvmodules-vidaa.vidaahub.com",
         "firstSeen": "2026-09-29T14:20:00Z",
-        "lastSeen": "2026-09-29T14:20:36Z",
-        "queryCount": 6,
+        "lastSeen": "2026-09-29T14:20:51Z",
+        "queryCount": 7,
         "qtypes": [
           "A"
         ]
@@ -98,8 +98,8 @@
       {
         "host": "recommend-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:20:28Z",
-        "lastSeen": "2026-09-29T14:20:33Z",
-        "queryCount": 2,
+        "lastSeen": "2026-09-29T14:20:53Z",
+        "queryCount": 4,
         "qtypes": [
           "A"
         ]
@@ -107,8 +107,8 @@
       {
         "host": "geo-bas-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:20:32Z",
-        "lastSeen": "2026-09-29T14:20:37Z",
-        "queryCount": 2,
+        "lastSeen": "2026-09-29T14:20:52Z",
+        "queryCount": 3,
         "qtypes": [
           "A"
         ]
@@ -116,8 +116,26 @@
       {
         "host": "layout-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:20:38Z",
-        "lastSeen": "2026-09-29T14:20:38Z",
-        "queryCount": 1,
+        "lastSeen": "2026-09-29T14:20:43Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "abtest-tv.vidaahub.com",
+        "firstSeen": "2026-09-29T14:20:41Z",
+        "lastSeen": "2026-09-29T14:20:46Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "archive-mmb-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T14:20:42Z",
+        "lastSeen": "2026-09-29T14:20:47Z",
+        "queryCount": 2,
         "qtypes": [
           "A"
         ]
@@ -651,6 +669,202 @@
         "host": "hbbtv.mediaset.net",
         "qtype": "A",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:39Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hbbtv.mediaset.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:40Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:41Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "acr.unruly.co",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:41Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "acr.unruly.co",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:41Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "abtest-tv.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:20:42Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:42Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "archive-mmb-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:20:43Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "layout-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:20:44Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hbbtv.mediaset.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:44Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hbbtv.mediaset.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:44Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "threeplr-a2ehk4y01zqss3-0.zaz.api.amazonvideo.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:45Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hbbtv.mediaset.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:45Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hbbtv.mediaset.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:45Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "mediaservices.cdn-apple.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:46Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "mediaservices.cdn-apple.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:46Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "abtest-tv.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:20:47Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "archive-mmb-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:20:48Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "recommend-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:20:49Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "threeplr-a2ehk4y01zqss3-0.zaz.api.amazonvideo.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:50Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hbbtv.mediaset.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:50Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hbbtv.mediaset.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:50Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "mediaservices.cdn-apple.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:51Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "mediaservices.cdn-apple.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:51Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:20:52Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "geo-bas-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:20:53Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "recommend-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:20:54Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "threeplr-a2ehk4y01zqss3-0.zaz.api.amazonvideo.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:20:56Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
       }
     ],
     "allDnsHosts": [
@@ -668,9 +882,9 @@
       {
         "host": "tvmodules-vidaa.vidaahub.com",
         "firstSeen": "2026-09-29T14:20:00Z",
-        "lastSeen": "2026-09-29T14:20:36Z",
+        "lastSeen": "2026-09-29T14:20:56Z",
         "firstSeenIndex": 2,
-        "queryCount": 6,
+        "queryCount": 8,
         "qtypes": [
           "A"
         ],
@@ -747,9 +961,9 @@
       {
         "host": "recommend-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:20:28Z",
-        "lastSeen": "2026-09-29T14:20:33Z",
+        "lastSeen": "2026-09-29T14:20:53Z",
         "firstSeenIndex": 50,
-        "queryCount": 2,
+        "queryCount": 4,
         "qtypes": [
           "A"
         ],
@@ -758,9 +972,9 @@
       {
         "host": "acr.unruly.co",
         "firstSeen": "2026-09-29T14:20:31Z",
-        "lastSeen": "2026-09-29T14:20:36Z",
+        "lastSeen": "2026-09-29T14:20:41Z",
         "firstSeenIndex": 51,
-        "queryCount": 4,
+        "queryCount": 6,
         "qtypes": [
           "A",
           "AAAA"
@@ -770,9 +984,9 @@
       {
         "host": "geo-bas-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:20:32Z",
-        "lastSeen": "2026-09-29T14:20:37Z",
+        "lastSeen": "2026-09-29T14:20:52Z",
         "firstSeenIndex": 55,
-        "queryCount": 2,
+        "queryCount": 3,
         "qtypes": [
           "A"
         ],
@@ -781,9 +995,9 @@
       {
         "host": "threeplr-a2ehk4y01zqss3-0.zaz.api.amazonvideo.com",
         "firstSeen": "2026-09-29T14:20:33Z",
-        "lastSeen": "2026-09-29T14:20:38Z",
+        "lastSeen": "2026-09-29T14:20:54Z",
         "firstSeenIndex": 57,
-        "queryCount": 2,
+        "queryCount": 5,
         "qtypes": [
           "A"
         ],
@@ -792,9 +1006,9 @@
       {
         "host": "spectrum.s3.amazonaws.com",
         "firstSeen": "2026-09-29T14:20:38Z",
-        "lastSeen": "2026-09-29T14:20:38Z",
+        "lastSeen": "2026-09-29T14:20:42Z",
         "firstSeenIndex": 68,
-        "queryCount": 2,
+        "queryCount": 4,
         "qtypes": [
           "A",
           "AAAA"
@@ -804,9 +1018,9 @@
       {
         "host": "layout-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:20:38Z",
-        "lastSeen": "2026-09-29T14:20:38Z",
+        "lastSeen": "2026-09-29T14:20:43Z",
         "firstSeenIndex": 71,
-        "queryCount": 1,
+        "queryCount": 2,
         "qtypes": [
           "A"
         ],
@@ -815,16 +1029,50 @@
       {
         "host": "hbbtv.mediaset.net",
         "firstSeen": "2026-09-29T14:20:39Z",
-        "lastSeen": "2026-09-29T14:20:39Z",
+        "lastSeen": "2026-09-29T14:20:50Z",
         "firstSeenIndex": 72,
-        "queryCount": 1,
+        "queryCount": 8,
         "qtypes": [
           "A"
         ],
         "vendorScoped": false
+      },
+      {
+        "host": "abtest-tv.vidaahub.com",
+        "firstSeen": "2026-09-29T14:20:41Z",
+        "lastSeen": "2026-09-29T14:20:46Z",
+        "firstSeenIndex": 77,
+        "queryCount": 2,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
+      },
+      {
+        "host": "archive-mmb-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T14:20:42Z",
+        "lastSeen": "2026-09-29T14:20:47Z",
+        "firstSeenIndex": 79,
+        "queryCount": 2,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
+      },
+      {
+        "host": "mediaservices.cdn-apple.com",
+        "firstSeen": "2026-09-29T14:20:45Z",
+        "lastSeen": "2026-09-29T14:20:51Z",
+        "firstSeenIndex": 86,
+        "queryCount": 4,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 72,
+    "allDnsQueryCount": 100,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
