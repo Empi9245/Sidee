@@ -4510,3 +4510,48 @@ Poi analizzare soprattutto:
 - eventuali CDN esterni;
 - `targetDomainHit`;
 - `storeDomainDiscovery` per i soli host VIDAA/Hisense.
+
+
+## RISULTATO — Duplecast install automatic DNS timeline — 2026-09-29
+
+Sessione install:
+- sessionId `sidee-20260929-145316-dec1`;
+- build `app-af26ee1875eb`;
+- buildMatch `true`;
+- accessMode `VIDAA_STORE_INSTALL_DNS_PROBE_AUTO`;
+- triggerHost `tvmodules-vidaa.vidaahub.com`;
+- 221+ DNS query nella prima cattura analizzata;
+- Store HTTPS non intercettato;
+- `targetDomainHit = false`: `vidaa.duplecast.com` non è stato risolto durante la finestra osservata.
+
+Confronto con tre sessioni Store passive precedenti:
+- `appstore-vidaa.vidaahub.com` NON è install-specific: era già presente nei baseline;
+- `partner.vidaahub.com` NON è install-specific: era già presente nei baseline;
+- `detail-ui-eu`, `layout-ui-eu`, `home-ui-eu`, `recommend-ui-eu`, `search-ui-eu`, `tvmodules-vidaa` erano già osservati in navigazione normale.
+
+Host VIDAA nuovi rispetto all'unione dei baseline precedenti:
+- `geo-bas-eu.vidaahub.com`;
+- `abtest-tv.vidaahub.com`;
+- `archive-mmb-eu.vidaahub.com`;
+- `upgrade-plc-tv-eu.vidaahub.com`;
+- `sttc-bas.vidaahub.com`;
+- `member-ui-eu.vidaahub.com`;
+- `file-dl.vidaahub.com`;
+- `policy-jrnl-eu.vidaahub.com`;
+- successivamente `ota-tv.vidaahub.com`.
+
+Osservazione importante:
+- `file-dl.vidaahub.com` è il nome più interessante semanticamente, ma è comparso molto presto (circa 4 secondi dopo l'auto-start), prima della comparsa tardiva di `appstore-vidaa`; inoltre fonti pubbliche mostrano che `file-dl` è usato anche per file generici VIDAA come e-manual, quindi NON è ancora prova del package Duplecast.
+- `spectrum.s3.amazonaws.com` è comparso molto tardi ma fonti pubbliche lo associano a servizi Amazon/Fire TV/connessione e non è un candidato forte per il package VIDAA.
+- `ota-tv.vidaahub.com` è plausibilmente OTA/update di sistema; non attribuirlo al download app senza confronto controllato.
+
+Conclusione:
+la singola timeline install è rumorosa perché cattura anche traffico di background TV/HbbTV/Amazon/Netflix/Mediaset. Senza timestamp esplicito del click Install non è corretto classificare uno degli host come package CDN.
+
+Prossimo test più informativo:
+- conservare questa sessione come RUN_INSTALL;
+- creare una nuova sessione con lo stesso percorso Store -> Duplecast detail ma SENZA premere Install;
+- lasciare la detail aperta circa lo stesso intervallo;
+- confrontare host, firstSeen/order e query count tra RUN_BASELINE e RUN_INSTALL.
+
+Se `file-dl` o un altro host compare solo nella RUN_INSTALL e non nella baseline equivalente, diventa un candidato molto più forte.
