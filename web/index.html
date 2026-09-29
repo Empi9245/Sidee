@@ -52,6 +52,29 @@
       <div id="remoteDiagnosticState" class="state">DISARMED</div>
     </section>
 
+    <section class="card" aria-live="polite">
+      <div class="cardHead">
+        <div>
+          <p class="kicker">FULL TV TRAFFIC · WINDOWS PKTMON</p>
+          <h2>Duplecast Full Network Capture</h2>
+        </div>
+        <button id="fullNetworkCaptureArmBtn">Arm / Start capture</button>
+      </div>
+      <p>This captures the TV's full packet flow on the PC during the official Store install. For HTTPS traffic to be visible, the TV must route through this PC as its gateway (recommended: connect the TV to Windows Mobile Hotspot). If the PC is only the DNS server on the same normal LAN/Wi-Fi, Sidee will usually see DNS but not the TV's HTTPS packets.</p>
+      <div class="identityGrid">
+        <div><span>Status</span><b id="fullNetworkCaptureStatus" class="summaryValue">IDLE</b></div>
+        <div><span>TV bound</span><b id="fullNetworkCaptureBound" class="summaryValue">NO</b></div>
+        <div><span>HTTPS packets</span><b id="fullNetworkCaptureHttps" class="summaryValue">0</b></div>
+        <div><span>Captured bytes</span><b id="fullNetworkCaptureBytes" class="summaryValue">0</b></div>
+        <div><span>Topology</span><b id="fullNetworkCaptureTopology" class="summaryValue">UNKNOWN</b></div>
+        <div><span>PCAPNG</span><b id="fullNetworkCapturePcap" class="summaryValue">—</b></div>
+      </div>
+      <div class="row runtimeActions">
+        <button id="fullNetworkCaptureStopBtn" class="secondary">Stop & analyze capture</button>
+      </div>
+      <div id="fullNetworkCaptureState" class="state">IDLE · Connect the TV through the PC hotspot, then arm before pressing Install.</div>
+    </section>
+
     <section class="card storeInstallProbeCard" aria-live="polite">
       <div class="cardHead">
         <div>
