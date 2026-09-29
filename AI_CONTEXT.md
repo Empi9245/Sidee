@@ -4723,3 +4723,32 @@ Riferimento Microsoft verificato:
 - `--pkt-size 0` registra pacchetto intero;
 - `etl2pcap` converte in pcapng;
 - `etl2txt` produce testo analizzabile.
+
+
+## FIX — Store spinner / impossibile caricare contenuto — 2026-09-29
+
+Symptom:
+- official Store home partially opens;
+- spinner remains;
+- then "impossibile caricare contenuto".
+
+Fresh report:
+- `sidee-20260929-160134-368c`;
+- repeated DNS queries to Store/UI hosts;
+- no evidence that pktmon full capture itself is active or modifying traffic;
+- Store TLS interception remains disabled.
+
+Config review found root VIDAA domains still spoofed:
+- `vidaahub.com`
+- `www.vidaahub.com`
+
+These are no longer required for the current Store analysis and are broader than the exact Store subdomains. They have now been removed from `spoof_domains`.
+
+Current intended spoof list:
+- `vidaa.smartone-iptv.com` only.
+
+Reason:
+keep the official Store and all VIDAA base/UI services completely direct while retaining the separate Smartone app-context test path.
+
+Next diagnostic:
+pull/restart Sidee and reopen Store. If failure persists, inspect the new report and focus on DNS forwarding/network path rather than TLS/MITM.
