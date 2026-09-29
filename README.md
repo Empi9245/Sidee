@@ -601,3 +601,19 @@ extracts API paths plus install/download/package-related string references.
 
 Use the **Run Store API mapper** button in the dashboard. Results are mirrored
 into the current report under `storeStaticMap`.
+
+
+## Full TV Network Capture
+
+On Windows, Sidee can arm a bounded full-packet capture using the built-in
+`pktmon.exe`. The TV is filtered by IP, packets are logged with full packet
+length, and the ETL is converted locally to PCAPNG and text after stopping.
+
+For this to see the TV's Internet HTTPS traffic, the TV must route through the PC
+as a gateway; connecting the TV to Windows Mobile Hotspot is the recommended
+test topology. A PC that is only the TV's DNS server cannot normally observe
+unicast HTTPS traffic between the TV and the router.
+
+Capture binaries remain under `captures/` and are gitignored. Reports only
+contain bounded summary metadata such as byte counts, ports, top peers and a
+topology classification.
