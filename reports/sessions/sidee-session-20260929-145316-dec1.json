@@ -4,7 +4,7 @@
   "serverBuildId": "app-af26ee1875eb",
   "buildMatch": true,
   "startedAt": "2026-09-29T12:53:16Z",
-  "updatedAt": "2026-09-29T12:53:41Z",
+  "updatedAt": "2026-09-29T12:53:49Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,14 +18,14 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 105,
+    "totalQueries": 125,
     "hostCount": 24,
     "hosts": [
       {
         "host": "exc-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T12:53:16Z",
-        "lastSeen": "2026-09-29T12:53:40Z",
-        "queryCount": 42,
+        "lastSeen": "2026-09-29T12:53:43Z",
+        "queryCount": 46,
         "qtypes": [
           "A",
           "AAAA"
@@ -34,8 +34,8 @@
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T12:53:18Z",
-        "lastSeen": "2026-09-29T12:53:40Z",
-        "queryCount": 40,
+        "lastSeen": "2026-09-29T12:53:49Z",
+        "queryCount": 56,
         "qtypes": [
           "A",
           "AAAA"
@@ -860,6 +860,209 @@
         "host": "feed.entertainment.tv.theplatform.eu",
         "qtype": "A",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T12:53:41Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:41Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:42Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:42Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:42Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:42Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:43Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:43Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:43Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "mediasetplay.api-graph.mediaset.it",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T12:53:43Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "static-api.mediaset.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T12:53:44Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "a-fds.youborafds01.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T12:53:44Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "vod08.msf.cdn.mediaset.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T12:53:45Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "static1.mediasetplay.mediaset.it",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T12:53:45Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:45Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:45Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "enabler.datalake.mediaset.it",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T12:53:45Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:45Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:46Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "mediaservices.cdn-apple.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T12:53:46Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "mediaservices.cdn-apple.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T12:53:47Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:47Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:47Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:47Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:48Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:48Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:49Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:49Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T12:53:49Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "sb.scorecardresearch.com",
+        "qtype": "A",
+        "vendorScoped": false
       }
     ],
     "allDnsHosts": [
@@ -877,9 +1080,9 @@
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T12:53:27Z",
-        "lastSeen": "2026-09-29T12:53:40Z",
+        "lastSeen": "2026-09-29T12:53:49Z",
         "firstSeenIndex": 2,
-        "queryCount": 24,
+        "queryCount": 40,
         "qtypes": [
           "A",
           "AAAA"
@@ -988,9 +1191,9 @@
       {
         "host": "exc-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T12:53:27Z",
-        "lastSeen": "2026-09-29T12:53:40Z",
+        "lastSeen": "2026-09-29T12:53:43Z",
         "firstSeenIndex": 13,
-        "queryCount": 24,
+        "queryCount": 28,
         "qtypes": [
           "A",
           "AAAA"
@@ -1272,9 +1475,98 @@
           "A"
         ],
         "vendorScoped": false
+      },
+      {
+        "host": "mediasetplay.api-graph.mediaset.it",
+        "firstSeen": "2026-09-29T12:53:43Z",
+        "lastSeen": "2026-09-29T12:53:43Z",
+        "firstSeenIndex": 94,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "static-api.mediaset.net",
+        "firstSeen": "2026-09-29T12:53:43Z",
+        "lastSeen": "2026-09-29T12:53:43Z",
+        "firstSeenIndex": 95,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "a-fds.youborafds01.com",
+        "firstSeen": "2026-09-29T12:53:44Z",
+        "lastSeen": "2026-09-29T12:53:44Z",
+        "firstSeenIndex": 96,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "vod08.msf.cdn.mediaset.net",
+        "firstSeen": "2026-09-29T12:53:44Z",
+        "lastSeen": "2026-09-29T12:53:44Z",
+        "firstSeenIndex": 97,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "static1.mediasetplay.mediaset.it",
+        "firstSeen": "2026-09-29T12:53:45Z",
+        "lastSeen": "2026-09-29T12:53:45Z",
+        "firstSeenIndex": 98,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "enabler.datalake.mediaset.it",
+        "firstSeen": "2026-09-29T12:53:45Z",
+        "lastSeen": "2026-09-29T12:53:45Z",
+        "firstSeenIndex": 101,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "mediaservices.cdn-apple.com",
+        "firstSeen": "2026-09-29T12:53:46Z",
+        "lastSeen": "2026-09-29T12:53:46Z",
+        "firstSeenIndex": 104,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "sb.scorecardresearch.com",
+        "firstSeen": "2026-09-29T12:53:49Z",
+        "lastSeen": "2026-09-29T12:53:49Z",
+        "firstSeenIndex": 114,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 85,
+    "allDnsQueryCount": 114,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
