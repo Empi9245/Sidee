@@ -112,6 +112,315 @@ STORE_INSTALL_AUTO_TRIGGER_HOSTS = {
     "tvmodules-vidaa.vidaahub.com",
 }
 
+STORE_STATIC_MAP_LOCK = threading.Lock()
+STORE_STATIC_MAP_LAST = None
+STORE_STATIC_MAP_HOSTS = (
+    "home-ui-eu.vidaahub.com",
+    "layout-ui-eu.vidaahub.com",
+    "detail-ui-eu.vidaahub.com",
+    "category-ui-eu.vidaahub.com",
+    "search-ui-eu.vidaahub.com",
+    "recommend-ui-eu.vidaahub.com",
+    "appstore-vidaa.vidaahub.com",
+    "static-ui.vidaahub.com",
+    "tvmodules-vidaa.vidaahub.com",
+)
+STORE_STATIC_MAP_HOST_SET = set(STORE_STATIC_MAP_HOSTS)
+STORE_STATIC_MAP_MAX_BYTES = 1024 * 1024
+STORE_STATIC_MAP_MAX_ASSETS = 28
+STORE_STATIC_MAP_KEYWORDS = (
+    "installApplication",
+    "Hisense_installApp",
+    "installApp",
+    "download",
+    "package",
+    "pkgmgr",
+    "configUrlDownload",
+    "productCode",
+    "appBundle",
+    "appContentId",
+    "signatureServer",
+)
+STORE_STATIC_API_RE = re.compile(
+    r"(/api/[A-Za-z0-9._~!STORE_INSTALL_AUTO_TRIGGER_HOSTS = {
+    "category-ui-eu.vidaahub.com",
+    "layout-ui-eu.vidaahub.com",
+    "home-ui-eu.vidaahub.com",
+    "detail-ui-eu.vidaahub.com",
+    "recommend-ui-eu.vidaahub.com",
+    "search-ui-eu.vidaahub.com",
+    "appstore-vidaa.vidaahub.com",
+    "tvmodules-vidaa.vidaahub.com",
+}
+'()*+,;=:@%/?#\\-]{3,220})",
+    re.IGNORECASE,
+)
+STORE_STATIC_URL_RE = re.compile(
+    r"(https?://[A-Za-z0-9._~:%\\-]+(?:/[A-Za-z0-9._~!STORE_INSTALL_AUTO_TRIGGER_HOSTS = {
+    "category-ui-eu.vidaahub.com",
+    "layout-ui-eu.vidaahub.com",
+    "home-ui-eu.vidaahub.com",
+    "detail-ui-eu.vidaahub.com",
+    "recommend-ui-eu.vidaahub.com",
+    "search-ui-eu.vidaahub.com",
+    "appstore-vidaa.vidaahub.com",
+    "tvmodules-vidaa.vidaahub.com",
+}
+'()*+,;=:@%/?#\\-]*)?)",
+    re.IGNORECASE,
+)
+STORE_STATIC_SCRIPT_RE = re.compile(
+    r"<(?:script|link)\\b[^>]+?(?:src|href)\\s*=\\s*[\"']([^\"'#]+)[\"']",
+    re.IGNORECASE,
+)
+STORE_STATIC_SENSITIVE_RE = re.compile(
+    r"(authorization|cookie|token|secret|password|credential|api[-_]?key|access[-_]?key|client[-_]?secret)",
+    re.IGNORECASE,
+)
+
+
+
+def _store_static_fetch(host, path):
+    host = _normalized_host(host)
+    if host not in STORE_STATIC_MAP_HOST_SET:
+        raise ValueError("Store static host not allowed")
+    if not isinstance(path, str) or not path.startswith("/"):
+        raise ValueError("Store static path must be absolute")
+
+    conn = http.client.HTTPSConnection(
+        host,
+        443,
+        timeout=8,
+        context=ssl.create_default_context(),
+    )
+    try:
+        conn.request(
+            "GET",
+            path,
+            headers={
+                "User-Agent": "Sidee-Store-Static-Mapper/1.0",
+                "Accept": "text/html,application/javascript,text/javascript,*/*;q=0.5",
+                "Accept-Encoding": "identity",
+                "Connection": "close",
+            },
+        )
+        response = conn.getresponse()
+        raw = response.read(STORE_STATIC_MAP_MAX_BYTES + 1)
+        truncated = len(raw) > STORE_STATIC_MAP_MAX_BYTES
+        if truncated:
+            raw = raw[:STORE_STATIC_MAP_MAX_BYTES]
+        ctype = response.getheader("Content-Type") or ""
+        location = response.getheader("Location")
+        text = None
+        if (
+            "text/" in ctype.lower()
+            or "javascript" in ctype.lower()
+            or "json" in ctype.lower()
+            or path.lower().endswith((".js", ".mjs", ".html", ".htm", ".json"))
+        ):
+            text = raw.decode("utf-8", "replace")
+        return {
+            "host": host,
+            "path": path,
+            "status": int(response.status),
+            "contentType": ctype[:160],
+            "bytes": len(raw),
+            "truncated": truncated,
+            "location": location[:500] if isinstance(location, str) else None,
+            "sha256": hashlib.sha256(raw).hexdigest(),
+            "text": text,
+        }
+    finally:
+        conn.close()
+
+
+def _store_static_extract(fetch):
+    text = fetch.get("text")
+    out = {
+        "host": fetch.get("host"),
+        "path": fetch.get("path"),
+        "status": fetch.get("status"),
+        "contentType": fetch.get("contentType"),
+        "bytes": fetch.get("bytes"),
+        "truncated": fetch.get("truncated"),
+        "sha256": fetch.get("sha256"),
+        "location": fetch.get("location"),
+        "apiPaths": [],
+        "urls": [],
+        "keywordHits": [],
+        "assetRefs": [],
+    }
+    if not isinstance(text, str) or not text:
+        return out
+
+    api_paths = []
+    for match in STORE_STATIC_API_RE.finditer(text):
+        value = match.group(1).rstrip("\\"');,}]")
+        if value not in api_paths and not STORE_STATIC_SENSITIVE_RE.search(value):
+            api_paths.append(value[:240])
+        if len(api_paths) >= 80:
+            break
+    out["apiPaths"] = api_paths
+
+    urls = []
+    for match in STORE_STATIC_URL_RE.finditer(text):
+        value = match.group(1).rstrip("\\"');,}]")
+        if STORE_STATIC_SENSITIVE_RE.search(value):
+            continue
+        if value not in urls:
+            urls.append(value[:500])
+        if len(urls) >= 80:
+            break
+    out["urls"] = urls
+
+    hits = []
+    lower = text.lower()
+    for keyword in STORE_STATIC_MAP_KEYWORDS:
+        start = 0
+        found = 0
+        key_lower = keyword.lower()
+        while found < 5:
+            idx = lower.find(key_lower, start)
+            if idx < 0:
+                break
+            excerpt = text[max(0, idx - 180):min(len(text), idx + 420)]
+            excerpt = re.sub(r"\\s+", " ", excerpt)
+            if not STORE_STATIC_SENSITIVE_RE.search(excerpt):
+                hits.append({
+                    "keyword": keyword,
+                    "excerpt": excerpt[:700],
+                })
+            start = idx + len(keyword)
+            found += 1
+            if len(hits) >= 60:
+                break
+        if len(hits) >= 60:
+            break
+    out["keywordHits"] = hits
+
+    refs = []
+    if "html" in str(fetch.get("contentType") or "").lower() or "<script" in lower:
+        base = "https://" + str(fetch.get("host")) + str(fetch.get("path") or "/")
+        for match in STORE_STATIC_SCRIPT_RE.finditer(text):
+            ref = urllib.parse.urljoin(base, match.group(1))
+            parsed = urllib.parse.urlsplit(ref)
+            ref_host = _normalized_host(parsed.hostname or "")
+            if ref_host not in STORE_STATIC_MAP_HOST_SET:
+                continue
+            if not parsed.path.lower().endswith((".js", ".mjs")):
+                continue
+            safe = "https://" + ref_host + (parsed.path or "/")
+            if parsed.query:
+                safe += "?" + parsed.query
+            if safe not in refs:
+                refs.append(safe)
+            if len(refs) >= STORE_STATIC_MAP_MAX_ASSETS:
+                break
+    out["assetRefs"] = refs
+    return out
+
+
+def _run_store_static_api_map():
+    started = _utc_timestamp()
+    queue = []
+    seen = set()
+    results = []
+    errors = []
+
+    for host in STORE_STATIC_MAP_HOSTS:
+        queue.append((host, "/"))
+        queue.append((host, "/index.html"))
+
+    while queue and len(results) < STORE_STATIC_MAP_MAX_ASSETS:
+        host, path = queue.pop(0)
+        key = (host, path)
+        if key in seen:
+            continue
+        seen.add(key)
+        try:
+            fetched = _store_static_fetch(host, path)
+            item = _store_static_extract(fetched)
+            results.append(item)
+
+            location = fetched.get("location")
+            if isinstance(location, str) and location:
+                absolute = urllib.parse.urljoin("https://" + host + path, location)
+                parsed = urllib.parse.urlsplit(absolute)
+                redirect_host = _normalized_host(parsed.hostname or "")
+                if redirect_host in STORE_STATIC_MAP_HOST_SET:
+                    redirect_path = parsed.path or "/"
+                    if parsed.query:
+                        redirect_path += "?" + parsed.query
+                    queue.append((redirect_host, redirect_path))
+
+            for ref in item.get("assetRefs", []):
+                parsed = urllib.parse.urlsplit(ref)
+                asset_host = _normalized_host(parsed.hostname or "")
+                asset_path = parsed.path or "/"
+                if parsed.query:
+                    asset_path += "?" + parsed.query
+                if asset_host in STORE_STATIC_MAP_HOST_SET:
+                    queue.append((asset_host, asset_path))
+        except Exception as exc:
+            errors.append({
+                "host": host,
+                "path": path,
+                "error": str(exc)[:500],
+            })
+            if len(errors) >= 40:
+                break
+
+    api_paths = []
+    keyword_summary = {}
+    interesting_urls = []
+    for item in results:
+        for api_path in item.get("apiPaths", []):
+            if api_path not in api_paths:
+                api_paths.append(api_path)
+        for hit in item.get("keywordHits", []):
+            keyword = hit.get("keyword")
+            keyword_summary[keyword] = keyword_summary.get(keyword, 0) + 1
+        for url in item.get("urls", []):
+            if any(k in url.lower() for k in (
+                "install", "download", "package", "appstore", "configurl", "bundle"
+            )):
+                if url not in interesting_urls:
+                    interesting_urls.append(url)
+
+    report = {
+        "startedAt": started,
+        "finishedAt": _utc_timestamp(),
+        "readOnly": True,
+        "usesOfficialTls": True,
+        "credentialsSent": False,
+        "cookiesSent": False,
+        "hostAllowlist": list(STORE_STATIC_MAP_HOSTS),
+        "status": "COMPLETED" if results else "NO_RESULTS",
+        "fetchCount": len(results),
+        "errorCount": len(errors),
+        "apiPaths": api_paths[:160],
+        "interestingUrls": interesting_urls[:120],
+        "keywordSummary": keyword_summary,
+        "resources": results,
+        "errors": errors,
+    }
+    global STORE_STATIC_MAP_LAST
+    with STORE_STATIC_MAP_LOCK:
+        STORE_STATIC_MAP_LAST = report
+    return json.loads(json.dumps(report))
+
+
+def _store_static_api_map_snapshot():
+    with STORE_STATIC_MAP_LOCK:
+        if STORE_STATIC_MAP_LAST is None:
+            return {
+                "status": "NOT_RUN",
+                "readOnly": True,
+                "usesOfficialTls": True,
+                "hostAllowlist": list(STORE_STATIC_MAP_HOSTS),
+            }
+        return json.loads(json.dumps(STORE_STATIC_MAP_LAST))
+
 
 def client_build_id():
     """Bind the UI, shared context probe and inline bootstrap to one build."""
@@ -2408,10 +2717,29 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
         if path == "/api/store-catalog-trace":
             return self._send_json({"ok": True, "storeCatalogTrace": _store_trace_snapshot()})
 
+        if path == "/api/store-static-map":
+            try:
+                result = _run_store_static_api_map()
+            except Exception as exc:
+                return self._send_json({
+                    "ok": False,
+                    "error": ("Store static map failed: " + str(exc))[:1000],
+                }, 500)
+            return self._send_json({
+                "ok": True,
+                "storeStaticMap": result,
+            })
+
         if path == "/api/store-install-probe":
             return self._send_json({
                 "ok": True,
                 "storeInstallProbe": _store_install_probe_snapshot(),
+            })
+
+        if path == "/api/store-static-map":
+            return self._send_json({
+                "ok": True,
+                "storeStaticMap": _store_static_api_map_snapshot(),
             })
 
         if path == "/api/remote-diagnostic/request":
