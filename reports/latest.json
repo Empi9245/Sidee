@@ -4,7 +4,7 @@
   "serverBuildId": "app-9cc325c439b6",
   "buildMatch": true,
   "startedAt": "2026-09-29T15:39:11Z",
-  "updatedAt": "2026-09-29T15:40:58Z",
+  "updatedAt": "2026-09-29T15:42:05Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -413,6 +413,13 @@
         "host": "spectrum.s3.amazonaws.com",
         "qtype": "AAAA",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:42:05Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
       }
     ],
     "allDnsHosts": [
@@ -555,9 +562,9 @@
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T15:40:05Z",
-        "lastSeen": "2026-09-29T15:40:05Z",
+        "lastSeen": "2026-09-29T15:42:05Z",
         "firstSeenIndex": 19,
-        "queryCount": 2,
+        "queryCount": 3,
         "qtypes": [
           "A",
           "AAAA"
@@ -589,7 +596,7 @@
         "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 24,
+    "allDnsQueryCount": 25,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
