@@ -4,7 +4,7 @@
   "serverBuildId": "app-c947484c30df",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:21:20Z",
-  "updatedAt": "2026-09-29T14:23:22Z",
+  "updatedAt": "2026-09-29T14:23:26Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,7 +18,7 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 105,
+    "totalQueries": 107,
     "hostCount": 14,
     "hosts": [
       {
@@ -107,8 +107,8 @@
       {
         "host": "recommend-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:12Z",
-        "lastSeen": "2026-09-29T14:23:19Z",
-        "queryCount": 7,
+        "lastSeen": "2026-09-29T14:23:24Z",
+        "queryCount": 8,
         "qtypes": [
           "A"
         ]
@@ -116,8 +116,8 @@
       {
         "host": "tvmodules-vidaa.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:18Z",
-        "lastSeen": "2026-09-29T14:22:57Z",
-        "queryCount": 14,
+        "lastSeen": "2026-09-29T14:23:22Z",
+        "queryCount": 15,
         "qtypes": [
           "A"
         ]
@@ -2106,6 +2106,48 @@
         "host": "cella.home.hedbor.org",
         "qtype": "A",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:22Z",
+        "phase": "NAVIGATION",
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:22Z",
+        "phase": "NAVIGATION",
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:24Z",
+        "phase": "NAVIGATION",
+        "host": "recommend-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:24Z",
+        "phase": "NAVIGATION",
+        "host": "recommend-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:26Z",
+        "phase": "NAVIGATION",
+        "host": "http",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:26Z",
+        "phase": "NAVIGATION",
+        "host": "layout-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
       }
     ],
     "hostSnapshotAtDetail": [],
@@ -2122,6 +2164,7 @@
         "archive-mmb-eu.vidaahub.com",
         "captive.apple.com",
         "captive.g.aaplimg.com",
+        "cella.home.hedbor.org",
         "exc-jrnl-eu.vidaahub.com",
         "hbbtv.mediaset.net",
         "hisense-0ba453d1.prod.partner.netflix.net",
@@ -2169,7 +2212,7 @@
       "vidaahub.com"
     ],
     "note": "Passive DNS differential only. Arm immediately before pressing Install/Download on the TV. HTTPS content is not intercepted.",
-    "allDnsQueryCount": 171,
+    "allDnsQueryCount": 175,
     "allDnsHosts": [
       {
         "host": "threeplr-a2ehk4y01zqss3-0.api.amazonvideo.com",
@@ -2341,9 +2384,9 @@
       {
         "host": "recommend-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:12Z",
-        "lastSeen": "2026-09-29T14:23:19Z",
+        "lastSeen": "2026-09-29T14:23:24Z",
         "firstSeenIndex": 64,
-        "queryCount": 7,
+        "queryCount": 8,
         "qtypes": [
           "A"
         ],
@@ -2352,9 +2395,9 @@
       {
         "host": "tvmodules-vidaa.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:18Z",
-        "lastSeen": "2026-09-29T14:22:57Z",
+        "lastSeen": "2026-09-29T14:23:22Z",
         "firstSeenIndex": 73,
-        "queryCount": 14,
+        "queryCount": 15,
         "qtypes": [
           "A"
         ],
@@ -2363,9 +2406,9 @@
       {
         "host": "layout-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:18Z",
-        "lastSeen": "2026-09-29T14:23:21Z",
+        "lastSeen": "2026-09-29T14:23:26Z",
         "firstSeenIndex": 74,
-        "queryCount": 7,
+        "queryCount": 8,
         "qtypes": [
           "A"
         ],
@@ -2559,6 +2602,17 @@
         "firstSeen": "2026-09-29T14:23:22Z",
         "lastSeen": "2026-09-29T14:23:22Z",
         "firstSeenIndex": 171,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "http",
+        "firstSeen": "2026-09-29T14:23:26Z",
+        "lastSeen": "2026-09-29T14:23:26Z",
+        "firstSeenIndex": 174,
         "queryCount": 1,
         "qtypes": [
           "A"
