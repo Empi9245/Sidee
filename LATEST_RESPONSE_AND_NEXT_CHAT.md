@@ -1,51 +1,61 @@
-# Sidee — prossimo passo: trovare l'API install Store
+# Sidee — prossimo test: Native Install API Surface
 
 Data: 2026-09-29
 
-Il baseline appena fatto NON è una nuova sessione: `reports/latest.json` è ancora `sidee-20260929-145316-dec1`, quindi non usarlo come confronto A/B separato.
+## Risultato Store Static API Mapper
 
-## Nuova direzione
+Sessione:
+`sidee-20260929-151455-56a1`
 
-È stato aggiunto uno `Store Static API Mapper` che gira dal PC e tenta di ricavare i path/API reali direttamente dagli asset pubblici dello Store VIDAA.
+Risultato:
+- 18 fetch;
+- 0 errori;
+- 0 path `/api/...` ricavati;
+- 0 URL install/download;
+- gli host UI moderni rispondono HTTP 401 con `no signature found`;
+- `appstore-vidaa` e `tvmodules-vidaa` rispondono 403.
 
-Non usa il MITM della TV.
+Quindi il frontend/API Store è request-signed e non è leggibile anonimamente dal PC.
 
-Usa:
-- TLS ufficiale VIDAA;
-- GET read-only;
-- allowlist fissa degli host Store reali osservati;
-- nessun cookie/token/credential della TV;
-- limiti stretti su byte e numero di asset.
+## Cosa sappiamo già
 
-Cerca:
-- `/api/...`
-- `installApplication`
-- `installApp`
-- `download`
-- `package`
-- `pkgmgr`
-- `configUrlDownload`
-- `productCode`
-- `appBundle`
-- `appContentId`
-- `signatureServer`
+La pipeline browser classica è:
 
-Il risultato viene salvato nel report come:
-`storeStaticMap`
+`Hisense_installApp / Hisense_installApp_V2`
+→ `HiUtils_createRequest("installApplication", ...)`
+→ gate AppConfig
+→ Q0707: 503 permission check error.
 
-## Cosa fare
+Questo però non dimostra che lo Store ufficiale usi esattamente la stessa superficie privilegiata.
+
+## Nuovo probe
+
+Aggiunto pulsante:
+
+**Map native install APIs (read-only)**
+
+Legge solo function source/descriptors già disponibili nel runtime TV per:
+- `Hisense_installApp`
+- `Hisense_installApp_V2`
+- `HiUtils_createRequest`
+- funzioni `vowOS.store` con nomi/install references
+- inventory pkgmgr
+
+Non invoca nessuna funzione di install/download/write.
+
+## Test
 
 1. `git pull`
 2. riavvia Sidee
-3. apri il dashboard Sidee sul PC
-4. premi **Run Store API mapper**
-5. quando finisce, dì **fatto API**
+3. apri Sidee dal browser della TV
+4. premi **Map native install APIs (read-only)**
+5. attendi il salvataggio/sync
+6. dì `fatto native API`
 
-Non serve fare nulla sulla TV per questo test.
+Poi leggere:
+- `nativeInstallApiSurface.conclusionHint`
+- `nativeInstallApiSurface.exact`
+- `nativeInstallApiSurface.vowStore.functions`
+- `nativeInstallApiSurface.sourceInventory.matches`
 
-Poi controllare:
-- `storeStaticMap.apiPaths`
-- `storeStaticMap.interestingUrls`
-- `storeStaticMap.keywordSummary`
-- `storeStaticMap.resources[*].keywordHits`
-- eventuali errori/redirect.
+Se emergono `installApplication`, `installPackage`, `downloadPackage` o un'altra API concreta, quella diventa il prossimo target di analisi.
