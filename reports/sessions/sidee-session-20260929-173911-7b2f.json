@@ -4,7 +4,7 @@
   "serverBuildId": "app-9cc325c439b6",
   "buildMatch": true,
   "startedAt": "2026-09-29T15:39:11Z",
-  "updatedAt": "2026-09-29T16:07:33Z",
+  "updatedAt": "2026-09-29T16:15:31Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -644,6 +644,34 @@
         "host": "spectrum.s3.amazonaws.com",
         "qtype": "A",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:11:00Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:11:00Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:15:31Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "api.amazon.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:15:31Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "api.amazon.com",
+        "qtype": "A",
+        "vendorScoped": false
       }
     ],
     "allDnsHosts": [
@@ -810,9 +838,21 @@
       {
         "host": "spectrum.s3.amazonaws.com",
         "firstSeen": "2026-09-29T15:40:58Z",
-        "lastSeen": "2026-09-29T16:06:00Z",
+        "lastSeen": "2026-09-29T16:11:00Z",
         "firstSeenIndex": 23,
-        "queryCount": 12,
+        "queryCount": 14,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "api.amazon.com",
+        "firstSeen": "2026-09-29T16:15:31Z",
+        "lastSeen": "2026-09-29T16:15:31Z",
+        "firstSeenIndex": 39,
+        "queryCount": 2,
         "qtypes": [
           "A",
           "AAAA"
@@ -820,7 +860,7 @@
         "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 36,
+    "allDnsQueryCount": 40,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
