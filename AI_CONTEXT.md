@@ -4911,3 +4911,39 @@ Decision tree:
 - if capture starts but no TV HTTPS is visible, then perform targeted pktmon ICS/NAT/component research and consider bounded topology discovery / `--comp all`;
 - only after normal TV HTTPS is reliably visible should the Store/Duplecast download capture be repeated.
 
+## FIX — pktmon captured packets were real; parser/TV binding correction — 2026-09-29
+
+Latest completed capture:
+- session `sidee-20260929-172209-014d`
+- capture `sidee-net-20260929-172248`
+- `pktmon stop` exit code 0
+- ETL: 62,270 bytes
+- PCAPNG: 72,912 bytes
+- TXT: 425,292 bytes
+- `etl2pcap` reported 340 total packets / 340 formatted packets / 0 missed
+- previous Sidee parser nevertheless reported `packetRecords=0` and `NO_PACKET_RECORDS`
+
+Diagnosis:
+- this is NOT an empty capture and does not yet prove an ICS/NAT component-visibility failure;
+- Sidee was converting with `etl2txt --brief --timestamp-only` while the parser depended on `OriginalSize` packet metadata;
+- Microsoft documents `--brief` as an abbreviated packet format and the normal packet output as packet-instance metadata followed by parsed packet lines;
+- the capture filter was also `192.168.137.1`. In an ICS/hotspot setup this may be the host/private-gateway address rather than the TV client, so manual entry is error-prone.
+
+Fixes on main:
+- commit `7ed8f45319f041226e6688312acc878f4dedd2e7`: remove `--brief` from ETL->TXT conversion and make parser fall back to parsed IPv4 packet lines/lengths when `OriginalSize` is absent; add `parsedIpPacketLines` and `tvMatchedPacketRecords`; distinguish `CAPTURED_BUT_TV_IP_NOT_VISIBLE` from true `NO_PACKET_RECORDS`.
+- commit `511731b61aa308f8569a2d5693776f13eaac980d`: regression coverage for brief-style packet lines and wrong-TV-IP classification.
+- commit `7f1f76eea4aeb204dad544d3603d8d92abbe14e2`: UI now recommends leaving TV IPv4 blank on Windows hotspot/ICS so Sidee binds to the client IP observed from the TV's Store DNS request.
+
+Latest Duplecast install DNS sequence captured:
+`appstore-vidaa.vidaahub.com -> tvmodules-vidaa.vidaahub.com -> detail-ui-eu.vidaahub.com -> vidaa.duplecast.com -> files.duplecast.com`.
+`targetDomainHit=true`.
+
+Next test:
+1. pull/restart Sidee as Administrator;
+2. leave Full Network Capture TV IPv4 field EMPTY;
+3. press Arm;
+4. open VIDAA Store on TV; the first Store-family DNS query should bind capture to the observed TV client;
+5. once CAPTURING, play YouTube for 15-20 seconds;
+6. Stop & analyze;
+7. inspect `packetRecords`, `parsedIpPacketLines`, `tvMatchedPacketRecords`, HTTPS count and topology classification.
+Do NOT reinstall Duplecast for this validation. Reinstall only after normal TV HTTPS is confirmed visible.
