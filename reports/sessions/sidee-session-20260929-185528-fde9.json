@@ -4,8 +4,8 @@
   "serverBuildId": "app-f44d5fed09b5",
   "buildMatch": true,
   "startedAt": "2026-09-29T16:55:28Z",
-  "updatedAt": "2026-09-29T16:55:28Z",
-  "accessMode": "VIDAA_STORE_DOMAIN_DISCOVERY",
+  "updatedAt": "2026-09-29T16:55:35Z",
+  "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
     "responsesModified": false,
@@ -18,13 +18,50 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 1,
-    "hostCount": 1,
+    "totalQueries": 7,
+    "hostCount": 5,
     "hosts": [
       {
         "host": "iot-voice-eu.vidaahub.com",
         "firstSeen": "2026-09-29T16:55:28Z",
-        "lastSeen": "2026-09-29T16:55:28Z",
+        "lastSeen": "2026-09-29T16:55:33Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "home-ui-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T16:55:30Z",
+        "lastSeen": "2026-09-29T16:55:30Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "bas-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T16:55:30Z",
+        "lastSeen": "2026-09-29T16:55:30Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T16:55:35Z",
+        "lastSeen": "2026-09-29T16:55:35Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ]
+      },
+      {
+        "host": "upgrade-plc-tv.vidaahub.com",
+        "firstSeen": "2026-09-29T16:55:35Z",
+        "lastSeen": "2026-09-29T16:55:35Z",
         "queryCount": 1,
         "qtypes": [
           "A"
@@ -33,6 +70,133 @@
     ]
   },
   "summary": {
-    "storeDomainDiscovery": "QUERIES_CAPTURED"
+    "storeDomainDiscovery": "QUERIES_CAPTURED",
+    "storeInstallProbe": "AUTO_CAPTURING"
+  },
+  "storeInstallProbe": {
+    "passiveDnsOnly": true,
+    "tlsIntercepted": false,
+    "captureMode": "AUTO_TV_DNS_TIMELINE",
+    "target": {
+      "name": "Duplecast",
+      "appId": "1876",
+      "host": "vidaa.duplecast.com"
+    },
+    "status": "AUTO_CAPTURING",
+    "startedAt": "2026-09-29T16:55:30Z",
+    "triggerHost": "home-ui-eu.vidaahub.com",
+    "markers": [
+      {
+        "type": "AUTO_START",
+        "timestamp": "2026-09-29T16:55:30Z",
+        "host": "home-ui-eu.vidaahub.com"
+      }
+    ],
+    "dnsEvents": [
+      {
+        "timestamp": "2026-09-29T16:55:30Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "home-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:55:30Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "bas-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:55:33Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:55:35Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:55:35Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:55:35Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "upgrade-plc-tv.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      }
+    ],
+    "allDnsHosts": [
+      {
+        "host": "home-ui-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T16:55:30Z",
+        "lastSeen": "2026-09-29T16:55:30Z",
+        "firstSeenIndex": 1,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
+      },
+      {
+        "host": "bas-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T16:55:30Z",
+        "lastSeen": "2026-09-29T16:55:30Z",
+        "firstSeenIndex": 2,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
+      },
+      {
+        "host": "iot-voice-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T16:55:33Z",
+        "lastSeen": "2026-09-29T16:55:33Z",
+        "firstSeenIndex": 3,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
+      },
+      {
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T16:55:35Z",
+        "lastSeen": "2026-09-29T16:55:35Z",
+        "firstSeenIndex": 4,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": true
+      },
+      {
+        "host": "upgrade-plc-tv.vidaahub.com",
+        "firstSeen": "2026-09-29T16:55:35Z",
+        "lastSeen": "2026-09-29T16:55:35Z",
+        "firstSeenIndex": 6,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
+      }
+    ],
+    "allDnsQueryCount": 6,
+    "targetDomainHit": false,
+    "targetDomainFirstSeenAt": null,
+    "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
   }
 }
