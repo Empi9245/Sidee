@@ -553,6 +553,269 @@ def _network_capture_parse_text(txt_path, tv_ip):
         summary["topologyClassification"] = "NO_PACKET_RECORDS"
     return summary
 
+
+def _network_capture_decode_ipv4_packet(packet, linktype):
+    if not isinstance(packet, (bytes, bytearray)):
+        return None
+    data = bytes(packet)
+    candidates = []
+
+    if linktype == 1 and len(data) >= 14:
+        offset = 14
+        ether_type = int.from_bytes(data[12:14], "big")
+        vlan_depth = 0
+        while ether_type in (0x8100, 0x88A8, 0x9100) and vlan_depth < 2 and len(data) >= offset + 4:
+            ether_type = int.from_bytes(data[offset + 2:offset + 4], "big")
+            offset += 4
+            vlan_depth += 1
+        if ether_type == 0x0800:
+            candidates.append(offset)
+    elif linktype in (101, 228):
+        candidates.append(0)
+    elif linktype == 0:
+        candidates.append(4)
+
+    for offset in (0, 4, 14, 18, 22):
+        if offset not in candidates:
+            candidates.append(offset)
+
+    for offset in candidates:
+        if len(data) < offset + 20:
+            continue
+        first = data[offset]
+        version = first >> 4
+        ihl = (first & 0x0F) * 4
+        if version != 4 or ihl < 20 or len(data) < offset + ihl:
+            continue
+        total_length = int.from_bytes(data[offset + 2:offset + 4], "big")
+        if total_length and total_length < ihl:
+            continue
+        proto = data[offset + 9]
+        src = socket.inet_ntoa(data[offset + 12:offset + 16])
+        dst = socket.inet_ntoa(data[offset + 16:offset + 20])
+        sport = dport = None
+        l4 = offset + ihl
+        if proto in (6, 17) and len(data) >= l4 + 4:
+            sport = int.from_bytes(data[l4:l4 + 2], "big")
+            dport = int.from_bytes(data[l4 + 2:l4 + 4], "big")
+        return {
+            "src": src,
+            "dst": dst,
+            "sport": sport,
+            "dport": dport,
+            "protocol": proto,
+            "ipOffset": offset,
+        }
+    return None
+
+
+def _network_capture_parse_pcapng(pcapng_path, tv_ip):
+    summary = {
+        "analysisSource": "PCAPNG",
+        "packetRecords": 0,
+        "originalBytes": 0,
+        "pcapPacketBlocks": 0,
+        "pcapIpv4Packets": 0,
+        "tvMatchedPacketRecords": 0,
+        "httpsPacketRecords": 0,
+        "httpPacketRecords": 0,
+        "dnsPacketRecords": 0,
+        "topPeers": [],
+        "topologyClassification": "UNKNOWN",
+    }
+    if not pcapng_path.is_file():
+        return summary
+
+    raw = pcapng_path.read_bytes()
+    pos = 0
+    endian = "<"
+    interfaces = []
+    peers = {}
+
+    while pos + 12 <= len(raw):
+        block_type_bytes = raw[pos:pos + 4]
+        if block_type_bytes == b"\x0a\x0d\x0d\x0a":
+            if pos + 12 > len(raw):
+                break
+            bom = raw[pos + 8:pos + 12]
+            if bom == b"\x4d\x3c\x2b\x1a":
+                endian = "<"
+            elif bom == b"\x1a\x2b\x3c\x4d":
+                endian = ">"
+            else:
+                break
+            block_type = 0x0A0D0D0A
+        else:
+            block_type = struct.unpack_from(endian + "I", raw, pos)[0]
+
+        block_len = struct.unpack_from(endian + "I", raw, pos + 4)[0]
+        if block_len < 12 or pos + block_len > len(raw):
+            break
+
+        if block_type == 0x0A0D0D0A:
+            interfaces = []
+        elif block_type == 0x00000001 and block_len >= 20:
+            linktype = struct.unpack_from(endian + "H", raw, pos + 8)[0]
+            interfaces.append(linktype)
+        elif block_type == 0x00000006 and block_len >= 32:
+            interface_id = struct.unpack_from(endian + "I", raw, pos + 8)[0]
+            captured_len = struct.unpack_from(endian + "I", raw, pos + 20)[0]
+            packet_len = struct.unpack_from(endian + "I", raw, pos + 24)[0]
+            data_start = pos + 28
+            data_end = min(data_start + captured_len, pos + block_len - 4)
+            packet = raw[data_start:data_end]
+            linktype = interfaces[interface_id] if interface_id < len(interfaces) else None
+            summary["pcapPacketBlocks"] += 1
+            parsed = _network_capture_decode_ipv4_packet(packet, linktype)
+            if parsed:
+                summary["pcapIpv4Packets"] += 1
+                summary["packetRecords"] += 1
+                summary["originalBytes"] += int(packet_len or captured_len)
+                src = parsed["src"]
+                dst = parsed["dst"]
+                sport = parsed["sport"]
+                dport = parsed["dport"]
+                if src == tv_ip:
+                    peer, peer_port = dst, dport
+                elif dst == tv_ip:
+                    peer, peer_port = src, sport
+                else:
+                    pos += block_len
+                    continue
+                summary["tvMatchedPacketRecords"] += 1
+                rec = peers.setdefault(peer, {"ip": peer, "packetRecords": 0, "bytes": 0, "ports": {}})
+                rec["packetRecords"] += 1
+                rec["bytes"] += int(packet_len or captured_len)
+                if peer_port is not None:
+                    key = str(peer_port)
+                    rec["ports"][key] = int(rec["ports"].get(key, 0)) + 1
+                    if peer_port == 443:
+                        summary["httpsPacketRecords"] += 1
+                    elif peer_port == 80:
+                        summary["httpPacketRecords"] += 1
+                    elif peer_port == 53:
+                        summary["dnsPacketRecords"] += 1
+        elif block_type == 0x00000003 and block_len >= 16:
+            packet_len = struct.unpack_from(endian + "I", raw, pos + 8)[0]
+            data_start = pos + 12
+            data_end = min(data_start + packet_len, pos + block_len - 4)
+            packet = raw[data_start:data_end]
+            linktype = interfaces[0] if interfaces else None
+            summary["pcapPacketBlocks"] += 1
+            parsed = _network_capture_decode_ipv4_packet(packet, linktype)
+            if parsed:
+                summary["pcapIpv4Packets"] += 1
+                summary["packetRecords"] += 1
+                summary["originalBytes"] += int(packet_len)
+                src = parsed["src"]
+                dst = parsed["dst"]
+                sport = parsed["sport"]
+                dport = parsed["dport"]
+                if src == tv_ip:
+                    peer, peer_port = dst, dport
+                elif dst == tv_ip:
+                    peer, peer_port = src, sport
+                else:
+                    pos += block_len
+                    continue
+                summary["tvMatchedPacketRecords"] += 1
+                rec = peers.setdefault(peer, {"ip": peer, "packetRecords": 0, "bytes": 0, "ports": {}})
+                rec["packetRecords"] += 1
+                rec["bytes"] += int(packet_len)
+                if peer_port is not None:
+                    key = str(peer_port)
+                    rec["ports"][key] = int(rec["ports"].get(key, 0)) + 1
+                    if peer_port == 443:
+                        summary["httpsPacketRecords"] += 1
+                    elif peer_port == 80:
+                        summary["httpPacketRecords"] += 1
+                    elif peer_port == 53:
+                        summary["dnsPacketRecords"] += 1
+
+        pos += block_len
+
+    ordered = sorted(peers.values(), key=lambda x: (x["bytes"], x["packetRecords"]), reverse=True)
+    summary["topPeers"] = ordered[:30]
+    if summary["httpsPacketRecords"] >= 5:
+        summary["topologyClassification"] = "FULL_PATH_VISIBLE"
+    elif summary["tvMatchedPacketRecords"] > 0:
+        summary["topologyClassification"] = "DNS_OR_LOCAL_ONLY_LIKELY"
+    elif summary["packetRecords"] > 0:
+        summary["topologyClassification"] = "CAPTURED_BUT_TV_IP_NOT_VISIBLE"
+    elif summary["pcapPacketBlocks"] > 0:
+        summary["topologyClassification"] = "PCAP_PACKETS_UNPARSED"
+    else:
+        summary["topologyClassification"] = "NO_PACKET_RECORDS"
+    return summary
+
+
+def _network_capture_latest_saved_report():
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    files = sorted(REPORTS_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+    for report_path in files:
+        try:
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        capture = report.get("fullNetworkCapture")
+        if not isinstance(capture, dict):
+            continue
+        rel = capture.get("pcapngFile")
+        if not rel:
+            continue
+        pcapng_path = ROOT / pathlib.Path(str(rel))
+        if not pcapng_path.is_file():
+            continue
+        return report_path, report, pcapng_path
+    raise RuntimeError("No saved Sidee PCAPNG capture was found")
+
+
+def _network_capture_reanalyze_latest():
+    global STORE_DISCOVERY_REPORT
+    report_path, report, pcapng_path = _network_capture_latest_saved_report()
+    capture = dict(report.get("fullNetworkCapture") or {})
+    previous_summary = dict(capture.get("summary") or {})
+    status_text = str(
+        (previous_summary.get("pktmonStatusBeforeStop") or {}).get("output") or ""
+    )
+    match = re.search(r"Sidee-TV\s+(\d{1,3}(?:\.\d{1,3}){3})", status_text)
+    if not match:
+        raise RuntimeError("Could not recover the TV IPv4 from the saved capture report")
+    tv_ip = str(ipaddress.ip_address(match.group(1)))
+
+    summary = _network_capture_parse_pcapng(pcapng_path, tv_ip)
+    for key in ("etlBytes", "pcapngBytes", "textBytes", "conversion", "pktmonStatusBeforeStop", "note"):
+        if key in previous_summary:
+            summary[key] = previous_summary[key]
+    summary["reanalyzedAt"] = _utc_timestamp()
+    capture["summary"] = summary
+    capture["status"] = "STOPPED"
+    capture["error"] = None
+
+    report["fullNetworkCapture"] = capture
+    report.setdefault("summary", {})["fullNetworkCapture"] = "STOPPED"
+    report["updatedAt"] = _utc_timestamp()
+    session_id = report.get("sessionId")
+    if not session_id or not SESSION_ID_RE.match(str(session_id)):
+        raise RuntimeError("Saved capture report has an invalid sessionId")
+
+    write_session_report(session_id, report)
+    queue_report_sync(session_id, report, "full-network-reanalysis")
+    with STORE_DISCOVERY_LOCK:
+        STORE_DISCOVERY_REPORT = json.loads(json.dumps(report))
+    with NETWORK_CAPTURE_LOCK:
+        NETWORK_CAPTURE_STATE.clear()
+        NETWORK_CAPTURE_STATE.update(json.loads(json.dumps(capture)))
+        NETWORK_CAPTURE_STATE["tvIp"] = tv_ip
+
+    print(
+        f"[NETCAP] REANALYZED {capture.get('captureId')} · "
+        f"{summary.get('topologyClassification')} · "
+        f"{summary.get('httpsPacketRecords')} HTTPS"
+    )
+    return _network_capture_public_state()
+
+
 def _network_capture_sync_report(public_state):
     global STORE_DISCOVERY_REPORT
     try:
@@ -603,7 +866,19 @@ def _network_capture_stop():
         }
 
     _network_capture_cmd(["filter", "remove"], timeout=10)
-    summary = _network_capture_parse_text(paths["txt"], tv_ip) if tv_ip else None
+    summary = None
+    if tv_ip and paths["pcapng"].is_file():
+        try:
+            summary = _network_capture_parse_pcapng(paths["pcapng"], tv_ip)
+        except Exception as exc:
+            print(f"[NETCAP] PCAPNG parse error: {exc}")
+    if not summary or summary.get("packetRecords", 0) == 0:
+        text_summary = _network_capture_parse_text(paths["txt"], tv_ip) if tv_ip else None
+        if text_summary and (
+            not summary
+            or text_summary.get("packetRecords", 0) > summary.get("packetRecords", 0)
+        ):
+            summary = text_summary
     summary = summary or {}
     summary["etlBytes"] = paths["etl"].stat().st_size if paths["etl"].is_file() else 0
     summary["pcapngBytes"] = paths["pcapng"].stat().st_size if paths["pcapng"].is_file() else 0
@@ -3429,10 +3704,12 @@ class SideeHandler(http.server.BaseHTTPRequestHandler):
                     result = _network_capture_arm(data.get("tvIp"))
                 elif action == "STOP":
                     result = _network_capture_stop()
+                elif action == "REANALYZE_LATEST":
+                    result = _network_capture_reanalyze_latest()
                 else:
                     return self._send_json({
                         "ok": False,
-                        "error": "Action must be ARM or STOP",
+                        "error": "Action must be ARM, STOP, or REANALYZE_LATEST",
                     }, 400)
             except Exception as exc:
                 return self._send_json({
