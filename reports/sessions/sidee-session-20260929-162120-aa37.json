@@ -4,7 +4,7 @@
   "serverBuildId": "app-c947484c30df",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:21:20Z",
-  "updatedAt": "2026-09-29T14:21:23Z",
+  "updatedAt": "2026-09-29T14:21:28Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,14 +18,14 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 4,
-    "hostCount": 3,
+    "totalQueries": 9,
+    "hostCount": 4,
     "hosts": [
       {
         "host": "home-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:21Z",
-        "lastSeen": "2026-09-29T14:21:21Z",
-        "queryCount": 1,
+        "lastSeen": "2026-09-29T14:21:26Z",
+        "queryCount": 2,
         "qtypes": [
           "A"
         ]
@@ -33,8 +33,8 @@
       {
         "host": "iot-voice-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:22Z",
-        "lastSeen": "2026-09-29T14:21:22Z",
-        "queryCount": 1,
+        "lastSeen": "2026-09-29T14:21:27Z",
+        "queryCount": 2,
         "qtypes": [
           "A"
         ]
@@ -42,11 +42,20 @@
       {
         "host": "exc-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:23Z",
-        "lastSeen": "2026-09-29T14:21:23Z",
-        "queryCount": 2,
+        "lastSeen": "2026-09-29T14:21:25Z",
+        "queryCount": 4,
         "qtypes": [
           "A",
           "AAAA"
+        ]
+      },
+      {
+        "host": "upgrade-plc-tv-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T14:21:28Z",
+        "lastSeen": "2026-09-29T14:21:28Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
         ]
       }
     ]
@@ -144,6 +153,76 @@
         "host": "hisense-0ba453d1.prod.partner.netflix.net",
         "qtype": "A",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:21:25Z",
+        "phase": "NAVIGATION",
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:25Z",
+        "phase": "NAVIGATION",
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:25Z",
+        "phase": "NAVIGATION",
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:25Z",
+        "phase": "NAVIGATION",
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:26Z",
+        "phase": "NAVIGATION",
+        "host": "home-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:26Z",
+        "phase": "NAVIGATION",
+        "host": "home-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:27Z",
+        "phase": "NAVIGATION",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:27Z",
+        "phase": "NAVIGATION",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:28Z",
+        "phase": "NAVIGATION",
+        "host": "upgrade-plc-tv-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:21:28Z",
+        "phase": "NAVIGATION",
+        "host": "upgrade-plc-tv-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
       }
     ],
     "hostSnapshotAtDetail": [],
@@ -152,9 +231,11 @@
     "phaseHosts": {
       "NAVIGATION": [
         "exc-jrnl-eu.vidaahub.com",
+        "hisense-0ba453d1.prod.partner.netflix.net",
         "home-ui-eu.vidaahub.com",
         "iot-voice-eu.vidaahub.com",
-        "threeplr-a2ehk4y01zqss3-0.api.amazonvideo.com"
+        "threeplr-a2ehk4y01zqss3-0.api.amazonvideo.com",
+        "upgrade-plc-tv-eu.vidaahub.com"
       ]
     },
     "contactedAfterInstallArm": [],
@@ -163,10 +244,11 @@
     "currentHosts": [
       "exc-jrnl-eu.vidaahub.com",
       "home-ui-eu.vidaahub.com",
-      "iot-voice-eu.vidaahub.com"
+      "iot-voice-eu.vidaahub.com",
+      "upgrade-plc-tv-eu.vidaahub.com"
     ],
     "note": "Passive DNS differential only. Arm immediately before pressing Install/Download on the TV. HTTPS content is not intercepted.",
-    "allDnsQueryCount": 6,
+    "allDnsQueryCount": 11,
     "allDnsHosts": [
       {
         "host": "threeplr-a2ehk4y01zqss3-0.api.amazonvideo.com",
@@ -182,9 +264,9 @@
       {
         "host": "home-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:21Z",
-        "lastSeen": "2026-09-29T14:21:21Z",
+        "lastSeen": "2026-09-29T14:21:26Z",
         "firstSeenIndex": 2,
-        "queryCount": 1,
+        "queryCount": 2,
         "qtypes": [
           "A"
         ],
@@ -193,9 +275,9 @@
       {
         "host": "iot-voice-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:22Z",
-        "lastSeen": "2026-09-29T14:21:22Z",
+        "lastSeen": "2026-09-29T14:21:27Z",
         "firstSeenIndex": 3,
-        "queryCount": 1,
+        "queryCount": 2,
         "qtypes": [
           "A"
         ],
@@ -204,9 +286,9 @@
       {
         "host": "exc-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:23Z",
-        "lastSeen": "2026-09-29T14:21:23Z",
+        "lastSeen": "2026-09-29T14:21:25Z",
         "firstSeenIndex": 4,
-        "queryCount": 2,
+        "queryCount": 4,
         "qtypes": [
           "A",
           "AAAA"
@@ -223,6 +305,17 @@
           "A"
         ],
         "vendorScoped": false
+      },
+      {
+        "host": "upgrade-plc-tv-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T14:21:28Z",
+        "lastSeen": "2026-09-29T14:21:28Z",
+        "firstSeenIndex": 11,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
       }
     ]
   }
