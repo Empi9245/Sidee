@@ -2588,6 +2588,13 @@
     startRemoteDiagnosticPolling();
     state.report.runtimeSurfaceAutoProbe=runtimeSurfaceSnapshot();
     set("remoteInputState","AUTO PROBE · press arrows and OK on the remote");
+    try{
+      const firstControl=controls()[0];
+      const active=document.activeElement;
+      if(firstControl&&(!active||active===document.body||active===document.documentElement)){
+        firstControl.focus();
+      }
+    }catch(e){}
     await save("runtime-surface-auto-probe");
     try{await inspectLauncherBridge();}catch(e){log("Automatic launcher bridge probe failed",err(e));}
   }).catch(e=>log("Config load failed",err(e)));
