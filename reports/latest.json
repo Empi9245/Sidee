@@ -4,7 +4,7 @@
   "serverBuildId": "app-e59b512a9ef8",
   "buildMatch": true,
   "startedAt": "2026-09-29T16:40:53Z",
-  "updatedAt": "2026-09-29T16:41:15Z",
+  "updatedAt": "2026-09-29T16:41:19Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -303,6 +303,13 @@
         "host": "enabler.datalake.mediaset.it",
         "qtype": "A",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:19Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "sb.scorecardresearch.com",
+        "qtype": "A",
+        "vendorScoped": false
       }
     ],
     "allDnsHosts": [
@@ -565,9 +572,20 @@
           "A"
         ],
         "vendorScoped": false
+      },
+      {
+        "host": "sb.scorecardresearch.com",
+        "firstSeen": "2026-09-29T16:41:19Z",
+        "lastSeen": "2026-09-29T16:41:19Z",
+        "firstSeenIndex": 32,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 31,
+    "allDnsQueryCount": 32,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
