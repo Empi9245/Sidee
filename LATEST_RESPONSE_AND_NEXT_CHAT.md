@@ -1,43 +1,63 @@
-# Sidee — test attuale: installazione Duplecast automatica
+# Sidee — risultato install Duplecast e prossimo controllo
 
-Data: 2026-09-26
+Data: 2026-09-29
 
-Non servono più marker dalla TV o dal browser Sidee.
+## Sessione install catturata
 
-## Preparazione già fatta
+`sidee-20260929-145316-dec1`
 
-- Store HTTPS resta diretto, senza MITM.
-- `vidaa.duplecast.com` NON è più spoofato verso Sidee.
-- Il dominio Duplecast reale viene risolto normalmente.
-- Sidee avvia automaticamente la cattura quando vede il primo host Store/UI noto.
-- Dopo l'avvio della cattura registra una timeline DNS bounded dello stesso client TV, compresi eventuali CDN esterni.
-- L'IP TV serve solo in memoria per separare il client e non viene scritto nel report.
+Build match: true.
 
-## Cosa deve fare l'utente
+Il probe automatico ha funzionato e ha registrato la timeline DNS mentre veniva eseguito il flusso Store/Duplecast.
 
-1. `git pull`
-2. riavviare Sidee
-3. lasciare DNS TV puntato al PC
-4. aprire lo Store ufficiale sulla TV
-5. cercare/aprire Duplecast
-6. premere normalmente Install/Download
-7. NON uscire dallo Store durante la prova
-8. attendere il risultato dell'installazione
-9. dire `fatto`
+## Cosa abbiamo escluso
 
-Non serve aprire Sidee nel browser della TV e non serve premere i marker manuali del dashboard.
+Questi host NON sono specifici dell'installazione perché comparivano già nelle sessioni Store passive precedenti:
 
-## Cosa leggere dopo
+- `appstore-vidaa.vidaahub.com`
+- `partner.vidaahub.com`
+- `detail-ui-eu.vidaahub.com`
+- `layout-ui-eu.vidaahub.com`
+- `home-ui-eu.vidaahub.com`
+- `recommend-ui-eu.vidaahub.com`
+- `search-ui-eu.vidaahub.com`
+- `tvmodules-vidaa.vidaahub.com`
 
-`reports/latest.json`:
+## Host nuovi nella sessione install
 
-- `storeInstallProbe.status` dovrebbe essere `AUTO_CAPTURING`;
-- `storeInstallProbe.triggerHost`;
-- `storeInstallProbe.dnsEvents`;
-- `storeInstallProbe.allDnsHosts`;
-- `storeInstallProbe.allDnsQueryCount`;
-- `storeInstallProbe.targetDomainHit`;
-- `storeInstallProbe.targetDomainFirstSeenAt`;
-- `storeDomainDiscovery`.
+Tra gli host VIDAA non presenti nei baseline precedenti sono comparsi:
 
-Ordinare mentalmente gli host per `firstSeenIndex`: quelli comparsi verso la parte finale, in coincidenza con Install/Download, sono i candidati più interessanti per package/CDN/auth/install.
+- `geo-bas-eu.vidaahub.com`
+- `abtest-tv.vidaahub.com`
+- `archive-mmb-eu.vidaahub.com`
+- `upgrade-plc-tv-eu.vidaahub.com`
+- `sttc-bas.vidaahub.com`
+- `member-ui-eu.vidaahub.com`
+- `file-dl.vidaahub.com`
+- `policy-jrnl-eu.vidaahub.com`
+- `ota-tv.vidaahub.com` più tardi
+
+`file-dl.vidaahub.com` è interessante, ma è comparso molto presto e fonti pubbliche mostrano che viene usato anche per file VIDAA generici/e-manual. Non considerarlo ancora il package host.
+
+`vidaa.duplecast.com` NON è stato risolto durante la cattura (`targetDomainHit=false`).
+
+## Prossimo test
+
+Serve un solo controllo A/B, senza installare:
+
+1. riavvia Sidee per ottenere una nuova sessione;
+2. lascia DNS TV -> PC;
+3. apri Store ufficiale;
+4. cerca Duplecast;
+5. apri la stessa detail page;
+6. NON premere Install/Download;
+7. resta sulla detail per circa 60-90 secondi;
+8. poi dì `fatto baseline`.
+
+Non serve aprire Sidee sulla TV e non serve nessun marker.
+
+Poi confrontare la nuova RUN_BASELINE con:
+`sidee-20260929-145316-dec1` (RUN_INSTALL).
+
+Obiettivo:
+trovare host/ordine/query presenti soltanto durante la vera installazione. Questo è molto più affidabile del dedurre il download dal nome del dominio.
