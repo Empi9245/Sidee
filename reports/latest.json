@@ -4,7 +4,7 @@
   "serverBuildId": "app-c947484c30df",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:21:20Z",
-  "updatedAt": "2026-09-29T14:23:12Z",
+  "updatedAt": "2026-09-29T14:23:22Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,7 +18,7 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 100,
+    "totalQueries": 105,
     "hostCount": 14,
     "hosts": [
       {
@@ -61,8 +61,8 @@
       {
         "host": "abtest-tv.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:31Z",
-        "lastSeen": "2026-09-29T14:23:12Z",
-        "queryCount": 5,
+        "lastSeen": "2026-09-29T14:23:17Z",
+        "queryCount": 6,
         "qtypes": [
           "A"
         ]
@@ -70,8 +70,8 @@
       {
         "host": "archive-mmb-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:32Z",
-        "lastSeen": "2026-09-29T14:23:09Z",
-        "queryCount": 5,
+        "lastSeen": "2026-09-29T14:23:14Z",
+        "queryCount": 6,
         "qtypes": [
           "A"
         ]
@@ -107,8 +107,8 @@
       {
         "host": "recommend-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:12Z",
-        "lastSeen": "2026-09-29T14:22:47Z",
-        "queryCount": 6,
+        "lastSeen": "2026-09-29T14:23:19Z",
+        "queryCount": 7,
         "qtypes": [
           "A"
         ]
@@ -125,8 +125,8 @@
       {
         "host": "layout-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:18Z",
-        "lastSeen": "2026-09-29T14:22:56Z",
-        "queryCount": 6,
+        "lastSeen": "2026-09-29T14:23:21Z",
+        "queryCount": 7,
         "qtypes": [
           "A"
         ]
@@ -143,8 +143,8 @@
       {
         "host": "img.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:48Z",
-        "lastSeen": "2026-09-29T14:23:11Z",
-        "queryCount": 5,
+        "lastSeen": "2026-09-29T14:23:16Z",
+        "queryCount": 6,
         "qtypes": [
           "A"
         ]
@@ -1868,6 +1868,244 @@
         "host": "abtest-tv.vidaahub.com",
         "qtype": "A",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:13Z",
+        "phase": "NAVIGATION",
+        "host": "www.google.it",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:14Z",
+        "phase": "NAVIGATION",
+        "host": "archive-mmb-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:14Z",
+        "phase": "NAVIGATION",
+        "host": "archive-mmb-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:16Z",
+        "phase": "NAVIGATION",
+        "host": "img.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:16Z",
+        "phase": "NAVIGATION",
+        "host": "img.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:17Z",
+        "phase": "NAVIGATION",
+        "host": "abtest-tv.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:17Z",
+        "phase": "NAVIGATION",
+        "host": "abtest-tv.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:18Z",
+        "phase": "NAVIGATION",
+        "host": "www.google.it",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:19Z",
+        "phase": "NAVIGATION",
+        "host": "recommend-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:19Z",
+        "phase": "NAVIGATION",
+        "host": "recommend-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "_dns.resolver.arpa",
+        "qtype": "64",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "lfl45c-cd7yq0vl7clzp.hdzss5crg9ndk4f2syy.com",
+        "qtype": "HTTPS",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "lfl45c-cd7yq0vl7clzp.hdzss5crg9ndk4f2syy.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "app-analytics-services.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "abuijx.skadsdkless.appsflyersdk.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "api.polargrizzly.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "mask.icloud.com",
+        "qtype": "HTTPS",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "sd3n0344di.execute-api.eu-west-3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "abuijx.skadsdkless.appsflyersdk.com",
+        "qtype": "HTTPS",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "api.polargrizzly.com",
+        "qtype": "HTTPS",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "captive.apple.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "captive.apple.com",
+        "qtype": "HTTPS",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "sd3n0344di.execute-api.eu-west-3.amazonaws.com",
+        "qtype": "HTTPS",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "_dns.resolver.arpa",
+        "qtype": "64",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "mask.icloud.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "mask.apple-dns.net",
+        "qtype": "HTTPS",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "captive.g.aaplimg.com",
+        "qtype": "HTTPS",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:20Z",
+        "phase": "NAVIGATION",
+        "host": "netcts.cdn-apple.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:21Z",
+        "phase": "NAVIGATION",
+        "host": "netcts.cdn-apple.com",
+        "qtype": "HTTPS",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:21Z",
+        "phase": "NAVIGATION",
+        "host": "a1744.dscw154.akamai.net",
+        "qtype": "HTTPS",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:21Z",
+        "phase": "NAVIGATION",
+        "host": "layout-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:21Z",
+        "phase": "NAVIGATION",
+        "host": "layout-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:23:22Z",
+        "phase": "NAVIGATION",
+        "host": "www.google.it",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:23:22Z",
+        "phase": "NAVIGATION",
+        "host": "cella.home.hedbor.org",
+        "qtype": "A",
+        "vendorScoped": false
       }
     ],
     "hostSnapshotAtDetail": [],
@@ -1875,8 +2113,15 @@
     "hostSnapshotAtFinish": [],
     "phaseHosts": {
       "NAVIGATION": [
+        "_dns.resolver.arpa",
+        "a1744.dscw154.akamai.net",
         "abtest-tv.vidaahub.com",
+        "abuijx.skadsdkless.appsflyersdk.com",
+        "api.polargrizzly.com",
+        "app-analytics-services.com",
         "archive-mmb-eu.vidaahub.com",
+        "captive.apple.com",
+        "captive.g.aaplimg.com",
         "exc-jrnl-eu.vidaahub.com",
         "hbbtv.mediaset.net",
         "hisense-0ba453d1.prod.partner.netflix.net",
@@ -1885,8 +2130,13 @@
         "img.vidaahub.com",
         "iot-voice-eu.vidaahub.com",
         "layout-ui-eu.vidaahub.com",
+        "lfl45c-cd7yq0vl7clzp.hdzss5crg9ndk4f2syy.com",
+        "mask.apple-dns.net",
+        "mask.icloud.com",
+        "netcts.cdn-apple.com",
         "recommend-ui-eu.vidaahub.com",
         "rsc-mntz.vidaahub.com",
+        "sd3n0344di.execute-api.eu-west-3.amazonaws.com",
         "ter-jrnl-eu.vidaahub.com",
         "threeplr-a2ehk4y01zqss3-0.api.amazonvideo.com",
         "tvmodules-vidaa.vidaahub.com",
@@ -1919,7 +2169,7 @@
       "vidaahub.com"
     ],
     "note": "Passive DNS differential only. Arm immediately before pressing Install/Download on the TV. HTTPS content is not intercepted.",
-    "allDnsQueryCount": 142,
+    "allDnsQueryCount": 171,
     "allDnsHosts": [
       {
         "host": "threeplr-a2ehk4y01zqss3-0.api.amazonvideo.com",
@@ -1991,9 +2241,9 @@
       {
         "host": "abtest-tv.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:31Z",
-        "lastSeen": "2026-09-29T14:23:12Z",
+        "lastSeen": "2026-09-29T14:23:17Z",
         "firstSeenIndex": 12,
-        "queryCount": 5,
+        "queryCount": 6,
         "qtypes": [
           "A"
         ],
@@ -2002,9 +2252,9 @@
       {
         "host": "archive-mmb-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:21:32Z",
-        "lastSeen": "2026-09-29T14:23:08Z",
+        "lastSeen": "2026-09-29T14:23:14Z",
         "firstSeenIndex": 13,
-        "queryCount": 5,
+        "queryCount": 6,
         "qtypes": [
           "A"
         ],
@@ -2091,9 +2341,9 @@
       {
         "host": "recommend-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:12Z",
-        "lastSeen": "2026-09-29T14:22:47Z",
+        "lastSeen": "2026-09-29T14:23:19Z",
         "firstSeenIndex": 64,
-        "queryCount": 6,
+        "queryCount": 7,
         "qtypes": [
           "A"
         ],
@@ -2113,9 +2363,9 @@
       {
         "host": "layout-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:18Z",
-        "lastSeen": "2026-09-29T14:22:56Z",
+        "lastSeen": "2026-09-29T14:23:21Z",
         "firstSeenIndex": 74,
-        "queryCount": 6,
+        "queryCount": 7,
         "qtypes": [
           "A"
         ],
@@ -2146,9 +2396,9 @@
       {
         "host": "img.vidaahub.com",
         "firstSeen": "2026-09-29T14:22:48Z",
-        "lastSeen": "2026-09-29T14:23:11Z",
+        "lastSeen": "2026-09-29T14:23:16Z",
         "firstSeenIndex": 116,
-        "queryCount": 5,
+        "queryCount": 6,
         "qtypes": [
           "A"
         ],
@@ -2157,9 +2407,159 @@
       {
         "host": "www.google.it",
         "firstSeen": "2026-09-29T14:22:56Z",
-        "lastSeen": "2026-09-29T14:23:12Z",
+        "lastSeen": "2026-09-29T14:23:22Z",
         "firstSeenIndex": 122,
-        "queryCount": 6,
+        "queryCount": 9,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "_dns.resolver.arpa",
+        "firstSeen": "2026-09-29T14:23:20Z",
+        "lastSeen": "2026-09-29T14:23:20Z",
+        "firstSeenIndex": 149,
+        "queryCount": 2,
+        "qtypes": [
+          "64"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "lfl45c-cd7yq0vl7clzp.hdzss5crg9ndk4f2syy.com",
+        "firstSeen": "2026-09-29T14:23:20Z",
+        "lastSeen": "2026-09-29T14:23:20Z",
+        "firstSeenIndex": 150,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "HTTPS"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "app-analytics-services.com",
+        "firstSeen": "2026-09-29T14:23:20Z",
+        "lastSeen": "2026-09-29T14:23:20Z",
+        "firstSeenIndex": 152,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "abuijx.skadsdkless.appsflyersdk.com",
+        "firstSeen": "2026-09-29T14:23:20Z",
+        "lastSeen": "2026-09-29T14:23:20Z",
+        "firstSeenIndex": 153,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "HTTPS"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "api.polargrizzly.com",
+        "firstSeen": "2026-09-29T14:23:20Z",
+        "lastSeen": "2026-09-29T14:23:20Z",
+        "firstSeenIndex": 154,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "HTTPS"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "mask.icloud.com",
+        "firstSeen": "2026-09-29T14:23:20Z",
+        "lastSeen": "2026-09-29T14:23:20Z",
+        "firstSeenIndex": 155,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "HTTPS"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "sd3n0344di.execute-api.eu-west-3.amazonaws.com",
+        "firstSeen": "2026-09-29T14:23:20Z",
+        "lastSeen": "2026-09-29T14:23:20Z",
+        "firstSeenIndex": 156,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "HTTPS"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "captive.apple.com",
+        "firstSeen": "2026-09-29T14:23:20Z",
+        "lastSeen": "2026-09-29T14:23:20Z",
+        "firstSeenIndex": 159,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "HTTPS"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "mask.apple-dns.net",
+        "firstSeen": "2026-09-29T14:23:20Z",
+        "lastSeen": "2026-09-29T14:23:20Z",
+        "firstSeenIndex": 164,
+        "queryCount": 1,
+        "qtypes": [
+          "HTTPS"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "captive.g.aaplimg.com",
+        "firstSeen": "2026-09-29T14:23:20Z",
+        "lastSeen": "2026-09-29T14:23:20Z",
+        "firstSeenIndex": 165,
+        "queryCount": 1,
+        "qtypes": [
+          "HTTPS"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "netcts.cdn-apple.com",
+        "firstSeen": "2026-09-29T14:23:20Z",
+        "lastSeen": "2026-09-29T14:23:21Z",
+        "firstSeenIndex": 166,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "HTTPS"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "a1744.dscw154.akamai.net",
+        "firstSeen": "2026-09-29T14:23:21Z",
+        "lastSeen": "2026-09-29T14:23:21Z",
+        "firstSeenIndex": 168,
+        "queryCount": 1,
+        "qtypes": [
+          "HTTPS"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "cella.home.hedbor.org",
+        "firstSeen": "2026-09-29T14:23:22Z",
+        "lastSeen": "2026-09-29T14:23:22Z",
+        "firstSeenIndex": 171,
+        "queryCount": 1,
         "qtypes": [
           "A"
         ],
