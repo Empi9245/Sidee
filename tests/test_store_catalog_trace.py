@@ -372,6 +372,28 @@ class StoreCatalogTraceTests(unittest.TestCase):
         self.assertEqual(summary["tvMatchedPacketRecords"], 0)
         self.assertEqual(summary["topologyClassification"], "CAPTURED_BUT_TV_IP_NOT_VISIBLE")
 
+    def test_network_capture_tls_sni_extracts_duplecast_hostname(self):
+        host = b"files.duplecast.com"
+        name = b"\x00" + len(host).to_bytes(2, "big") + host
+        sni_data = len(name).to_bytes(2, "big") + name
+        extension = b"\x00\x00" + len(sni_data).to_bytes(2, "big") + sni_data
+        body = (
+            b"\x03\x03"
+            + b"\x00" * 32
+            + b"\x00"
+            + b"\x00\x02\x13\x01"
+            + b"\x01\x00"
+            + len(extension).to_bytes(2, "big")
+            + extension
+        )
+        handshake = b"\x01" + len(body).to_bytes(3, "big") + body
+        record = b"\x16\x03\x01" + len(handshake).to_bytes(2, "big") + handshake
+
+        self.assertEqual(
+            sidee._network_capture_tls_sni(record),
+            "files.duplecast.com",
+        )
+
     def test_network_capture_pcapng_summary_detects_tv_https(self):
         def block(block_type, body):
             total = 12 + len(body)
