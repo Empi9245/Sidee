@@ -4615,3 +4615,47 @@ Prossimo test:
 4. premi `Run Store API mapper`;
 5. attendi esito;
 6. poi leggere `reports/latest.json -> storeStaticMap`.
+
+
+## RISULTATO — Store Static API Mapper — 2026-09-29
+
+Sessione:
+- `sidee-20260929-151455-56a1`
+- `storeStaticMap.status = COMPLETED`
+- 18 fetch
+- 0 errori
+- 0 `apiPaths`
+- 0 `interestingUrls`
+- unico keyword family: `signatureServer` (12 hit)
+
+Risposte:
+- `home-ui-eu`, `layout-ui-eu`, `detail-ui-eu`, `category-ui-eu`,
+  `search-ui-eu`, `recommend-ui-eu`:
+  HTTP 401 JSON con `errorDesc = "no signature found."`;
+- `appstore-vidaa` e `tvmodules-vidaa`: HTTP 403;
+- `static-ui`: 404 su root/index.
+
+Conclusione:
+gli host UI moderni non espongono anonimamente il frontend/API shape: già le richieste root richiedono una firma lato client/request. Il mapper PC senza credenziali/firma non può ricavare i path interni da HTML/JS.
+
+NON usare il valore `signatureServer` restituito dall'errore come credenziale o chiave. È solo evidenza del gate di firma.
+
+Distinzione importante:
+- API browser/native già osservata: `Hisense_installApp` / `_V2` -> `HiUtils_createRequest("installApplication", ...)`;
+- questa è la pipeline locale del browser e sulla Q0707 finisce nel gate AppConfig 503;
+- lo Store ufficiale può usare API rete firmate per metadata/download e poi una superficie nativa privilegiata diversa o più autorizzata.
+
+Nuovo probe:
+`Map native install APIs (read-only)`
+
+Legge solo descriptor/source già presenti nel runtime TV per:
+- `Hisense_installApp`;
+- `Hisense_installApp_V2`;
+- `HiUtils_createRequest`;
+- funzioni `vowOS.store` con nomi install/download/pkg/package/store/bundle/archive/staging;
+- inventory pkgmgr già esistente.
+
+Non invoca install/download/package calls e salva:
+`nativeInstallApiSurface`.
+
+Questo è ora il test prioritario per identificare il nome reale della superficie nativa usata dal firmware.
