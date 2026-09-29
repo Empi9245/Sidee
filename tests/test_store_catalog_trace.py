@@ -2,6 +2,7 @@ import importlib.util
 import io
 import json
 import pathlib
+import tempfile
 import unittest
 from unittest import mock
 
@@ -313,6 +314,45 @@ class StoreCatalogTraceTests(unittest.TestCase):
         finally:
             sidee.STORE_TRACE_REPORT = previous_trace
             sidee.STORE_DISCOVERY_REPORT = previous_discovery
+
+    def test_network_capture_text_summary_detects_https_full_path(self):
+        sample = """
+12:00:00.000 PktGroupId 1, OriginalSize 120, LoggedSize 120
+        192.168.137.22.51000 > 203.0.113.10.443: Flags [S], length 0
+12:00:00.100 PktGroupId 2, OriginalSize 1500, LoggedSize 1500
+        203.0.113.10.443 > 192.168.137.22.51000: Flags [.], length 1448
+12:00:00.200 PktGroupId 3, OriginalSize 1400, LoggedSize 1400
+        192.168.137.22.51000 > 203.0.113.10.443: Flags [.], length 1348
+12:00:00.300 PktGroupId 4, OriginalSize 1400, LoggedSize 1400
+        203.0.113.10.443 > 192.168.137.22.51000: Flags [.], length 1348
+12:00:00.400 PktGroupId 5, OriginalSize 1400, LoggedSize 1400
+        203.0.113.10.443 > 192.168.137.22.51000: Flags [.], length 1348
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / "capture.txt"
+            path.write_text(sample, encoding="utf-8")
+            summary = sidee._network_capture_parse_text(path, "192.168.137.22")
+
+        self.assertEqual(summary["packetRecords"], 5)
+        self.assertEqual(summary["httpsPacketRecords"], 5)
+        self.assertEqual(summary["topologyClassification"], "FULL_PATH_VISIBLE")
+        self.assertEqual(summary["topPeers"][0]["ip"], "203.0.113.10")
+        self.assertEqual(summary["topPeers"][0]["ports"]["443"], 5)
+
+    def test_network_capture_public_state_hides_tv_ip(self):
+        previous = dict(sidee.NETWORK_CAPTURE_STATE)
+        try:
+            sidee.NETWORK_CAPTURE_STATE.update({
+                "status": "CAPTURING",
+                "tvIp": "192.168.137.22",
+                "tvClientBound": True,
+            })
+            public = sidee._network_capture_public_state()
+            self.assertNotIn("tvIp", public)
+            self.assertTrue(public["tvClientBound"])
+        finally:
+            sidee.NETWORK_CAPTURE_STATE.clear()
+            sidee.NETWORK_CAPTURE_STATE.update(previous)
 
     def test_store_static_extract_finds_api_paths_and_install_metadata(self):
         html = """
