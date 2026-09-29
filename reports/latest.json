@@ -4,8 +4,8 @@
   "serverBuildId": "app-2613fcc7d404",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:45:23Z",
-  "updatedAt": "2026-09-29T14:45:23Z",
-  "accessMode": "FULL_TV_NETWORK_CAPTURE",
+  "updatedAt": "2026-09-29T14:45:42Z",
+  "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
     "responsesModified": false,
@@ -17,14 +17,44 @@
       "app-appstore.hismarttv.com",
       "unified-ter-*.hismarttv.com"
     ],
-    "status": "IDLE",
-    "totalQueries": 0,
-    "hostCount": 0,
-    "hosts": []
+    "status": "QUERIES_CAPTURED",
+    "totalQueries": 4,
+    "hostCount": 3,
+    "hosts": [
+      {
+        "host": "iot-voice-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T14:45:38Z",
+        "lastSeen": "2026-09-29T14:45:38Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ]
+      },
+      {
+        "host": "appstore-vidaa.vidaahub.com",
+        "firstSeen": "2026-09-29T14:45:41Z",
+        "lastSeen": "2026-09-29T14:45:41Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "firstSeen": "2026-09-29T14:45:42Z",
+        "lastSeen": "2026-09-29T14:45:42Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ]
+      }
+    ]
   },
   "summary": {
-    "storeDomainDiscovery": "IDLE",
-    "fullNetworkCapture": "ERROR"
+    "storeDomainDiscovery": "QUERIES_CAPTURED",
+    "fullNetworkCapture": "ERROR",
+    "storeInstallProbe": "AUTO_CAPTURING"
   },
   "fullNetworkCapture": {
     "status": "ERROR",
@@ -40,5 +70,69 @@
     "summary": null,
     "error": "pktmon start failed: Monitoraggio pacchetti giÃ  avviato.",
     "pktmonOutput": null
+  },
+  "storeInstallProbe": {
+    "passiveDnsOnly": true,
+    "tlsIntercepted": false,
+    "captureMode": "AUTO_TV_DNS_TIMELINE",
+    "target": {
+      "name": "Duplecast",
+      "appId": "1876",
+      "host": "vidaa.duplecast.com"
+    },
+    "status": "AUTO_CAPTURING",
+    "startedAt": "2026-09-29T14:45:41Z",
+    "triggerHost": "appstore-vidaa.vidaahub.com",
+    "markers": [
+      {
+        "type": "AUTO_START",
+        "timestamp": "2026-09-29T14:45:41Z",
+        "host": "appstore-vidaa.vidaahub.com"
+      }
+    ],
+    "dnsEvents": [
+      {
+        "timestamp": "2026-09-29T14:45:41Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "appstore-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:45:42Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      }
+    ],
+    "allDnsHosts": [
+      {
+        "host": "appstore-vidaa.vidaahub.com",
+        "firstSeen": "2026-09-29T14:45:41Z",
+        "lastSeen": "2026-09-29T14:45:41Z",
+        "firstSeenIndex": 1,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
+      },
+      {
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "firstSeen": "2026-09-29T14:45:42Z",
+        "lastSeen": "2026-09-29T14:45:42Z",
+        "firstSeenIndex": 2,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
+      }
+    ],
+    "allDnsQueryCount": 2,
+    "targetDomainHit": false,
+    "targetDomainFirstSeenAt": null,
+    "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
   }
 }
