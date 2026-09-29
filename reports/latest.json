@@ -4,7 +4,7 @@
   "serverBuildId": "app-f44d5fed09b5",
   "buildMatch": true,
   "startedAt": "2026-09-29T16:55:28Z",
-  "updatedAt": "2026-09-29T17:01:17Z",
+  "updatedAt": "2026-09-29T17:01:28Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,8 +18,8 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 80,
-    "hostCount": 10,
+    "totalQueries": 81,
+    "hostCount": 11,
     "hosts": [
       {
         "host": "iot-voice-eu.vidaahub.com",
@@ -108,6 +108,15 @@
         "firstSeen": "2026-09-29T16:58:56Z",
         "lastSeen": "2026-09-29T16:59:11Z",
         "queryCount": 4,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "params-msg-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T17:01:28Z",
+        "lastSeen": "2026-09-29T17:01:28Z",
+        "queryCount": 1,
         "qtypes": [
           "A"
         ]
@@ -746,6 +755,34 @@
         "host": "vidaa-base-auth-eu.vidaahub.com",
         "qtype": "A",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T17:01:20Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T17:01:20Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T17:01:22Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T17:01:28Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "params-msg-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
       }
     ],
     "allDnsHosts": [
@@ -841,9 +878,9 @@
       {
         "host": "spectrum.s3.amazonaws.com",
         "firstSeen": "2026-09-29T16:56:17Z",
-        "lastSeen": "2026-09-29T16:56:19Z",
+        "lastSeen": "2026-09-29T17:01:22Z",
         "firstSeenIndex": 50,
-        "queryCount": 4,
+        "queryCount": 7,
         "qtypes": [
           "A",
           "AAAA"
@@ -882,9 +919,20 @@
           "A"
         ],
         "vendorScoped": true
+      },
+      {
+        "host": "params-msg-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T17:01:28Z",
+        "lastSeen": "2026-09-29T17:01:28Z",
+        "firstSeenIndex": 91,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
       }
     ],
-    "allDnsQueryCount": 87,
+    "allDnsQueryCount": 91,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
