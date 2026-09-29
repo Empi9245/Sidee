@@ -4,7 +4,7 @@
   "serverBuildId": "app-f3065f7c7e3c",
   "buildMatch": true,
   "startedAt": "2026-09-29T15:22:09Z",
-  "updatedAt": "2026-09-29T15:23:41Z",
+  "updatedAt": "2026-09-29T15:23:59Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,8 +18,8 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 31,
-    "hostCount": 14,
+    "totalQueries": 36,
+    "hostCount": 16,
     "hosts": [
       {
         "host": "rsc-mntz.vidaahub.com",
@@ -120,7 +120,7 @@
         "host": "crtv-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T15:23:15Z",
         "lastSeen": "2026-09-29T15:23:41Z",
-        "queryCount": 2,
+        "queryCount": 3,
         "qtypes": [
           "A",
           "AAAA"
@@ -150,6 +150,26 @@
         "host": "layout-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T15:23:17Z",
         "lastSeen": "2026-09-29T15:23:17Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ]
+      },
+      {
+        "host": "recommend-ui-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T15:23:59Z",
+        "lastSeen": "2026-09-29T15:23:59Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ]
+      },
+      {
+        "host": "sttc-az-recommend-ui.vidaahub.com",
+        "firstSeen": "2026-09-29T15:23:59Z",
+        "lastSeen": "2026-09-29T15:23:59Z",
         "queryCount": 2,
         "qtypes": [
           "A",
@@ -438,6 +458,41 @@
         "host": "crtv-mntz.vidaahub.com",
         "qtype": "AAAA",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T15:23:41Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "crtv-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T15:23:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "recommend-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T15:23:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "recommend-ui-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T15:23:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "sttc-az-recommend-ui.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T15:23:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "sttc-az-recommend-ui.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
       }
     ],
     "allDnsHosts": [
@@ -524,7 +579,7 @@
         "firstSeen": "2026-09-29T15:23:15Z",
         "lastSeen": "2026-09-29T15:23:41Z",
         "firstSeenIndex": 8,
-        "queryCount": 2,
+        "queryCount": 3,
         "qtypes": [
           "A",
           "AAAA"
@@ -690,9 +745,33 @@
           "AAAA"
         ],
         "vendorScoped": true
+      },
+      {
+        "host": "recommend-ui-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T15:23:59Z",
+        "lastSeen": "2026-09-29T15:23:59Z",
+        "firstSeenIndex": 35,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": true
+      },
+      {
+        "host": "sttc-az-recommend-ui.vidaahub.com",
+        "firstSeen": "2026-09-29T15:23:59Z",
+        "lastSeen": "2026-09-29T15:23:59Z",
+        "firstSeenIndex": 37,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": true
       }
     ],
-    "allDnsQueryCount": 33,
+    "allDnsQueryCount": 38,
     "targetDomainHit": true,
     "targetDomainFirstSeenAt": "2026-09-29T15:23:21Z",
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
