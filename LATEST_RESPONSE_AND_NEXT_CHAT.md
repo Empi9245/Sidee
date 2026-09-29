@@ -1,38 +1,62 @@
-# Sidee — native VIDAA key routing test
+# Sidee — automatic installed-app runtime handoff test
 
 Date: 2026-09-29
 
-Current confirmed behavior:
-- Sidee raw-IP page receives no DOM key events at all;
-- programmatic focus briefly appears, but OK is consumed outside the page and focus disappears;
-- therefore normal JS keydown fixes cannot solve dashboard navigation.
+## Why dashboard D-pad work is stopped
 
-Research result:
-Historical Hisense launcher code explicitly switches key ownership when opening apps/web-apps:
-- `hiWebOsFrame.registerKeyCodesForAppExcludeKey()`
-- internally uses `keyboard.registerKeyCodes(...)`
-- then `keyboard.setWantGroup(0)`
+Latest raw-IP session:
+- client/server build match: `app-5dbeec3fbd21`
+- `remoteInputProbe.events = []`
+- `hiWebOsFrameAvailable = false`
+- `keyboardAvailable = false`
+- `Hisense_installApp = false`
+- `Hisense_installApp_V2 = false`
+- context remains `RAW_IP_BROWSER_CONTEXT`
 
-This routing keeps system keys with the launcher while allowing normal app keys (D-pad/Enter) to reach the app/web runtime.
+Therefore the raw dashboard cannot claim D-pad/OK ownership with the browser-exposed surfaces currently available. More DOM key mapping changes are not useful.
 
-Implemented:
-- commit `f5b5a9b8d593081487793e2020e122887c7e386b`
-- automatic `nativeKeyRoutingProbe` on Sidee page load
-- if `hiWebOsFrame.registerKeyCodesForAppExcludeKey` is exposed, Sidee invokes that exact launcher routine
-- otherwise, if the lower-level `keyboard` bridge and enough known VK constants are exposed, Sidee reproduces the same launcher routing using `registerKeyCodes` + `setWantGroup(0)`
-- no click is required
-- result is saved in `nativeKeyRoutingProbe`
+## New test: real installed-app runtime -> cross-origin handoff
 
-Next:
+Implemented in:
+- `b8b8dfb489ebfd38b83631bb5f2371507d14593e`
+
+Flow:
+1. Launch a real installed app context intercepted by Sidee (current config spoofs Smartone: `vidaa.smartone-iptv.com`).
+2. Sidee bootstrap captures the real installed-app identity as before.
+3. After the bootstrap report is successfully saved, the page automatically navigates to:
+   `http://<PC-IP>:8080/app-runtime-handoff`
+4. The handoff page automatically captures:
+   - navigator.appIdentifier
+   - vowOS serviceIdentifier
+   - vowOSContext appIdentifier/appId
+   - Hisense_SupportAppConfig
+   - install API availability
+   - omi_platform/opera_omi availability
+   - raw remote key events
+5. It updates the *same* app-context session report under:
+   - `appRuntimeHandoffProbe.runtimePreserved`
+   - `appRuntimeHandoffProbe.inputReachedPage`
+   - `summary.appRuntimeHandoff`
+   - `summary.handoffInput`
+
+Classifications:
+- `APP_RUNTIME_PRESERVED_AFTER_CROSS_ORIGIN_HANDOFF`
+- `APP_RUNTIME_LOST_AFTER_CROSS_ORIGIN_HANDOFF`
+
+## Next user test
+
 1. `git pull --ff-only origin main`
 2. fully restart Sidee as Administrator
-3. close and reopen the TV page
-4. try arrows + OK
-5. reply `fatto keys`
+3. keep the TV DNS pointed to the Sidee PC
+4. launch **Smartone IPTV from the VIDAA launcher**, not the normal browser
+5. do not touch the Sidee dashboard
+6. Smartone should first show the Sidee app-context page briefly, then automatically switch to **Sidee · app runtime handoff**
+7. once the handoff page is visible, press arrows + OK a few times
+8. reply `fatto handoff`
 
-Then inspect:
-- `nativeKeyRoutingProbe`
-- `remoteInputProbe.events`
+Then inspect the newest `SMARTONE_APP_CONTEXT` session containing `appRuntimeHandoffProbe`.
 
-If success=true and raw key events appear, Sidee dashboard can be made fully D-pad navigable.
-If both native bridges are unavailable, raw browser context cannot claim D-pad ownership and future tests should be run automatically or from a true app container.
+Decision:
+- if runtime is PRESERVED and input events are captured: hosted Nuvio can potentially be launched from an installed app shell while retaining real VIDAA app behavior; next step is handoff to Nuvio itself.
+- if runtime is PRESERVED but input is not captured: app identity survives, but key routing is separately controlled; test same-origin shell/proxy.
+- if runtime is LOST: cross-origin top-level navigation drops app identity; next step is a same-origin Nuvio shell/proxy under the installed app host.
