@@ -1,48 +1,51 @@
-# Sidee — target true VIDAA app runtime, not Browser shortcut
+# Sidee — determine whether current no-pointer mode changed runtime permissions
 
 Date: 2026-09-29
 
-User requirement clarified:
-- a Home/browser shortcut is NOT acceptable if it retains the VIDAA browser pointer;
-- Nuvio must be launched in the TV's app runtime / launcher context, chromeless and remote-first.
+User observation:
+- pointer is now absent inside the TV page;
+- VIDAA browser chrome itself remains controllable;
+- Sidee dashboard controls are still not selectable.
 
-Research result:
-- VIDAA officially supports hosted web apps: the app is still a remote URL, but the Launcher/App Store starts it as an application context.
-- Historical Hisense launcher source shows a distinct internal page/runtime named `app_lau_browser`.
-- When the launcher handles a URL with browser-app command type, it calls `asyncStartApp("app_lau_browser", command, ...)`.
-- `asyncStartApp` treats that page as module `app`, sets window size to 1920x1080, pauses TV/HbbTV state, opens the app page, closes the launcher and uses app-specific key handling.
-- This is materially different from `app_hi_browser`, the normal browser.
-- Therefore hiding the cursor with CSS or pinning a browser shortcut is not the final solution.
+Do NOT infer from pointer absence alone that Sidee is running as a registered VIDAA app. Pointer mode and app runtime are separate questions.
 
-Current blockers already known:
-- direct AppInfo.json registration is permission-gated on this VIDAA U9 firmware;
-- Hisense_installApp/installApplication reaches AppConfig 503;
-- official Store APIs use signed/authenticated requests.
-
-New remaining technical route:
-Find whether VIDAA U9 still exposes a bridge from the normal browser to the launcher/app-runtime start path, potentially through `omi_platform`, `opera_omi`, or a Hisense start/launch browser API. If yes, a public hosted launcher page could immediately hand off the Nuvio URL into the real app context without requiring a permanent PC.
+Important possibility:
+- if the page really moved from normal browser context into a hosted-app/launcher context, the native identity/identifier presented to VIDAA services could change;
+- because the existing install failure is an AppConfig/permission check, a changed native identity would be worth testing;
+- however the current report cannot establish this because latest.json is currently being overwritten by the Store DNS/install probe session.
 
 Implemented on Sidee main:
-- `315d35e9a0e41da067a77957febceb0e194604ee`: read-only launcher bridge probe in web/app.js.
-- `e4e0850b10bde656772b8b40a2fbc1f3b16c0a06`: UI card/button "Inspect launcher bridge".
-
-The probe:
-- enumerates methods/properties on `omi_platform` and `opera_omi`;
-- searches window globals for Hisense/start/launch/open/app/browser candidates;
-- invokes NOTHING;
-- saves results into `launcherBridgeProbe` in the normal session report.
+- `e8a15598b00f2c7421bb7e4af2e2bfabff924b31`
+  - automatic runtime surface snapshot on page load;
+  - records Hisense current browser, firmware/OS, AppConfig support, install API availability, vowOS/vowOSContext, service identifier, clientInformation, omi_platform/opera_omi methods;
+  - captures raw keydown/keyup/keypress events without requiring a click;
+  - autosaves remote input telemetry after remote activity;
+  - adds keyup fallback when VIDAA suppresses/changes keydown behavior.
+- `1ab3c0271f97469b46667f75e1af6d44e5754431`
+  - visible automatic remote telemetry state card.
+- `49302086d9554f6dbd4b07887bd189df493c0553`
+  - seeds initial DOM focus on the first visible dashboard control at load.
 
 ## Next test
 
 1. `git pull`
 2. restart Sidee
-3. open Sidee in the TV browser in the same context where Hisense APIs are available
-4. press **Inspect launcher bridge**
-5. reply `fatto bridge`
+3. open Sidee on TV in the current no-pointer mode
+4. do NOT click anything
+5. press: Right, Down, OK, Left, Up, OK
+6. wait a few seconds for autosave
+7. reply `fatto input`
 
-Then inspect `reports/latest.json` -> `launcherBridgeProbe`.
+Then inspect the newest session report (not only reports/latest.json) for:
+- runtimeSurfaceAutoProbe
+- remoteInputProbe.events
+- launcherBridgeProbe
+- serviceIdentifier
+- clientInformation
+- currentBrowser
+- install API availability
 
 Decision:
-- if a start/launch/browser/app bridge exists: implement a bounded Nuvio app-runtime launch experiment;
-- if only `sendPlatformMessage` exists: research the specific non-destructive launcher message schema before sending anything;
-- if no bridge exists: the only true app-context routes left are successful launcher registration (currently permission-gated) or official VIDAA partner/store distribution.
+- if runtime identity/identifier differs from prior vidaahub browser context, run ONE explicit install permission test in this exact context;
+- if identity is unchanged, no-pointer mode did not grant install permission and the dashboard issue is purely input/focus;
+- if no raw key events arrive at all, the browser/OS is consuming D-pad before the page and Sidee must use a native/launcher input bridge rather than DOM keyboard handlers.
