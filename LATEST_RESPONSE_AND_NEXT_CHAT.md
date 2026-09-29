@@ -1,41 +1,48 @@
-# Sidee — full capture now starts; UI polling fixed
+# Sidee — pktmon packets exist; validate parser + automatic TV binding
 
 Data: 2026-09-29
 
-Latest real report on `sidee-reports`:
-- session `sidee-20260929-171309-a335`
-- `fullNetworkCapture.status = CAPTURING`
-- `startedAt = 2026-09-29T15:14:58Z`
-- ETL / PCAPNG / TXT paths were created
-- `error = null`
-- preflight is clean
-- pktmon reports active capture on network adapters
-- current Sidee-TV filter shown by pktmon is `192.168.137.1`
+Latest completed capture is NOT empty:
+- session `sidee-20260929-172209-014d`
+- capture `sidee-net-20260929-172248`
+- ETL 62,270 bytes
+- PCAPNG 72,912 bytes
+- TXT 425,292 bytes
+- pktmon conversion: 340 total packets, 340 formatted, 0 missed
+- old Sidee result: `packetRecords=0` / `NO_PACKET_RECORDS`
 
-## Diagnosis
+Cause:
+1. Sidee used `etl2txt --brief` but the parser depended on `OriginalSize`;
+2. the filter used `192.168.137.1`, which may be the Windows ICS/hotspot host/gateway rather than the TV.
 
-The user's UI appeared stuck on `STARTING`, but the backend had already transitioned to `CAPTURING`.
+Fixes now on main:
+- full/non-brief pktmon text conversion;
+- fallback parsing of IPv4 packet lines when `OriginalSize` is absent;
+- separate `parsedIpPacketLines` and `tvMatchedPacketRecords`;
+- new `CAPTURED_BUT_TV_IP_NOT_VISIBLE` classification;
+- UI recommends blank TV IPv4 for automatic binding to the actual DNS client observed from the TV.
 
-Cause: the web UI refreshed Full Network Capture once after the ARM request and once on page load, but did not poll the capture endpoint afterward. If the asynchronous backend thread moved from STARTING to CAPTURING after the ARM response, the page stayed visually stale.
+Duplecast install DNS sequence already captured:
+`appstore-vidaa.vidaahub.com -> tvmodules-vidaa.vidaahub.com -> detail-ui-eu.vidaahub.com -> vidaa.duplecast.com -> files.duplecast.com`
+with `targetDomainHit=true`.
 
-## Fix on main
+## Next test — do NOT reinstall Duplecast yet
 
-Commit `a190ad64d4957d84a6bad709ec0413b98c342818`:
-- Full Network Capture now polls `/api/full-network-capture` every ~1.2 s.
-- STARTING / CAPTURING / ERROR transitions become visible without reloading.
+1. `git pull`
+2. restart Sidee as Administrator
+3. leave TV IPv4 EMPTY
+4. press Arm
+5. open VIDAA Store on TV to trigger automatic client binding
+6. confirm CAPTURING
+7. play YouTube 15-20 seconds
+8. Stop & analyze
+9. reply `fatto parser`
 
-## Important next check
+Next inspection:
+- packetRecords
+- parsedIpPacketLines
+- tvMatchedPacketRecords
+- httpsPacketRecords
+- topologyClassification
 
-The latest capture is using filter IP `192.168.137.1`.
-
-Do not yet assume this is the TV client. On the next clean test, use the IPv4 address shown in the TV's own network settings in the Full Network Capture input. If the TV IP is different from `192.168.137.1`, enter the TV IP explicitly.
-
-Then:
-1. pull/restart Sidee as Administrator;
-2. arm capture with the TV IPv4 explicitly entered;
-3. confirm UI reaches CAPTURING;
-4. play YouTube for ~15-20 seconds;
-5. stop/analyze;
-6. inspect ETL/PCAPNG/TXT size, packetRecords, httpsPacketRecords and topologyClassification.
-
-Do not reinstall Duplecast until normal TV HTTPS is confirmed visible in the full capture.
+Only after normal TV HTTPS is visible should Duplecast be reinstalled/captured again.
