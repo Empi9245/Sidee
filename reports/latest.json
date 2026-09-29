@@ -4,7 +4,7 @@
   "serverBuildId": "app-29a68e832ad6",
   "buildMatch": true,
   "startedAt": "2026-09-29T15:13:09Z",
-  "updatedAt": "2026-09-29T15:13:42Z",
+  "updatedAt": "2026-09-29T15:14:01Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -120,6 +120,244 @@
         "host": "sttc-az-recommend-ui.vidaahub.com",
         "qtype": "AAAA",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T15:13:47Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:47Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:49Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "www.youtube.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:49Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "www.youtube.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:49Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "www.gstatic.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:49Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "www.gstatic.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:50Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "yt3.ggpht.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:50Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "yt3.ggpht.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:51Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "i.ytimg.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:51Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "i.ytimg.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:52Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ad.doubleclick.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:52Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ad.doubleclick.net",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:52Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "eligibility-panelresearch.googlevideo.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:52Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "eligibility-panelresearch.googlevideo.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:53Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "redirector.googlevideo.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:53Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "redirector.googlevideo.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:54Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "static.doubleclick.net",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:54Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "r4---sn-8vq54voxpu-4jvz.googlevideo.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:54Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "static.doubleclick.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:54Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "r4---sn-8vq54voxpu-4jvz.googlevideo.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:54Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "www.google.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:54Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "www.google.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:57Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "rr3---sn-8vq54voxpu-4jvz.googlevideo.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:57Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "rr3---sn-8vq54voxpu-4jvz.googlevideo.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:58Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "tpc.googlesyndication.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:58Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "tpc.googlesyndication.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "clients1.google.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "clients1.google.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "rr4---sn-8vq54voxpu-4jvz.googlevideo.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:13:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "rr4---sn-8vq54voxpu-4jvz.googlevideo.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:14:01Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "pagead2.googlesyndication.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:14:01Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "pagead2.googlesyndication.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:14:01Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "lh5.googleusercontent.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T15:14:01Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "lh5.googleusercontent.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
       }
     ],
     "allDnsHosts": [
@@ -146,9 +384,213 @@
           "AAAA"
         ],
         "vendorScoped": true
+      },
+      {
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "firstSeen": "2026-09-29T15:13:47Z",
+        "lastSeen": "2026-09-29T15:13:47Z",
+        "firstSeenIndex": 5,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "www.youtube.com",
+        "firstSeen": "2026-09-29T15:13:49Z",
+        "lastSeen": "2026-09-29T15:13:49Z",
+        "firstSeenIndex": 7,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "www.gstatic.com",
+        "firstSeen": "2026-09-29T15:13:49Z",
+        "lastSeen": "2026-09-29T15:13:49Z",
+        "firstSeenIndex": 9,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "yt3.ggpht.com",
+        "firstSeen": "2026-09-29T15:13:50Z",
+        "lastSeen": "2026-09-29T15:13:50Z",
+        "firstSeenIndex": 11,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "i.ytimg.com",
+        "firstSeen": "2026-09-29T15:13:51Z",
+        "lastSeen": "2026-09-29T15:13:51Z",
+        "firstSeenIndex": 13,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "ad.doubleclick.net",
+        "firstSeen": "2026-09-29T15:13:52Z",
+        "lastSeen": "2026-09-29T15:13:52Z",
+        "firstSeenIndex": 15,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "eligibility-panelresearch.googlevideo.com",
+        "firstSeen": "2026-09-29T15:13:52Z",
+        "lastSeen": "2026-09-29T15:13:52Z",
+        "firstSeenIndex": 17,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "redirector.googlevideo.com",
+        "firstSeen": "2026-09-29T15:13:53Z",
+        "lastSeen": "2026-09-29T15:13:53Z",
+        "firstSeenIndex": 19,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "static.doubleclick.net",
+        "firstSeen": "2026-09-29T15:13:54Z",
+        "lastSeen": "2026-09-29T15:13:54Z",
+        "firstSeenIndex": 21,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "r4---sn-8vq54voxpu-4jvz.googlevideo.com",
+        "firstSeen": "2026-09-29T15:13:54Z",
+        "lastSeen": "2026-09-29T15:13:54Z",
+        "firstSeenIndex": 22,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "www.google.com",
+        "firstSeen": "2026-09-29T15:13:54Z",
+        "lastSeen": "2026-09-29T15:13:54Z",
+        "firstSeenIndex": 25,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "rr3---sn-8vq54voxpu-4jvz.googlevideo.com",
+        "firstSeen": "2026-09-29T15:13:57Z",
+        "lastSeen": "2026-09-29T15:13:57Z",
+        "firstSeenIndex": 27,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "tpc.googlesyndication.com",
+        "firstSeen": "2026-09-29T15:13:58Z",
+        "lastSeen": "2026-09-29T15:13:58Z",
+        "firstSeenIndex": 29,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "clients1.google.com",
+        "firstSeen": "2026-09-29T15:13:59Z",
+        "lastSeen": "2026-09-29T15:13:59Z",
+        "firstSeenIndex": 31,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "rr4---sn-8vq54voxpu-4jvz.googlevideo.com",
+        "firstSeen": "2026-09-29T15:13:59Z",
+        "lastSeen": "2026-09-29T15:13:59Z",
+        "firstSeenIndex": 33,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "pagead2.googlesyndication.com",
+        "firstSeen": "2026-09-29T15:14:01Z",
+        "lastSeen": "2026-09-29T15:14:01Z",
+        "firstSeenIndex": 35,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "lh5.googleusercontent.com",
+        "firstSeen": "2026-09-29T15:14:01Z",
+        "lastSeen": "2026-09-29T15:14:01Z",
+        "firstSeenIndex": 37,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 4,
+    "allDnsQueryCount": 38,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
