@@ -4,7 +4,7 @@
   "serverBuildId": "app-33eb1d4a987a",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:10:57Z",
-  "updatedAt": "2026-09-29T14:11:13Z",
+  "updatedAt": "2026-09-29T14:11:20Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,7 +18,7 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 10,
+    "totalQueries": 24,
     "hostCount": 7,
     "hosts": [
       {
@@ -33,8 +33,8 @@
       {
         "host": "rsc-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T14:11:06Z",
-        "lastSeen": "2026-09-29T14:11:12Z",
-        "queryCount": 3,
+        "lastSeen": "2026-09-29T14:11:19Z",
+        "queryCount": 7,
         "qtypes": [
           "A"
         ]
@@ -42,8 +42,8 @@
       {
         "host": "iot-voice-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:11:07Z",
-        "lastSeen": "2026-09-29T14:11:12Z",
-        "queryCount": 2,
+        "lastSeen": "2026-09-29T14:11:16Z",
+        "queryCount": 3,
         "qtypes": [
           "A"
         ]
@@ -51,8 +51,8 @@
       {
         "host": "appstore-vidaa.vidaahub.com",
         "firstSeen": "2026-09-29T14:11:09Z",
-        "lastSeen": "2026-09-29T14:11:09Z",
-        "queryCount": 1,
+        "lastSeen": "2026-09-29T14:11:20Z",
+        "queryCount": 4,
         "qtypes": [
           "A"
         ]
@@ -60,8 +60,8 @@
       {
         "host": "tvmodules-vidaa.vidaahub.com",
         "firstSeen": "2026-09-29T14:11:09Z",
-        "lastSeen": "2026-09-29T14:11:09Z",
-        "queryCount": 1,
+        "lastSeen": "2026-09-29T14:11:15Z",
+        "queryCount": 3,
         "qtypes": [
           "A"
         ]
@@ -69,8 +69,8 @@
       {
         "host": "img.vidaahub.com",
         "firstSeen": "2026-09-29T14:11:13Z",
-        "lastSeen": "2026-09-29T14:11:13Z",
-        "queryCount": 1,
+        "lastSeen": "2026-09-29T14:11:19Z",
+        "queryCount": 3,
         "qtypes": [
           "A"
         ]
@@ -78,8 +78,8 @@
       {
         "host": "home-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:11:13Z",
-        "lastSeen": "2026-09-29T14:11:13Z",
-        "queryCount": 1,
+        "lastSeen": "2026-09-29T14:11:19Z",
+        "queryCount": 3,
         "qtypes": [
           "A"
         ]
@@ -179,6 +179,111 @@
         "host": "home-ui-eu.vidaahub.com",
         "qtype": "A",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:11:13Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:11:14Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "appstore-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:11:14Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:11:15Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "appstore-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:11:15Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:11:16Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:11:17Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:11:18Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "img.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:11:18Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "home-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:11:18Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:11:19Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "img.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:11:19Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "home-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:11:19Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:11:20Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "appstore-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:11:20Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
       }
     ],
     "allDnsHosts": [
@@ -196,9 +301,9 @@
       {
         "host": "rsc-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T14:11:06Z",
-        "lastSeen": "2026-09-29T14:11:12Z",
+        "lastSeen": "2026-09-29T14:11:19Z",
         "firstSeenIndex": 2,
-        "queryCount": 3,
+        "queryCount": 7,
         "qtypes": [
           "A"
         ],
@@ -207,9 +312,9 @@
       {
         "host": "iot-voice-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:11:07Z",
-        "lastSeen": "2026-09-29T14:11:12Z",
+        "lastSeen": "2026-09-29T14:11:16Z",
         "firstSeenIndex": 3,
-        "queryCount": 2,
+        "queryCount": 3,
         "qtypes": [
           "A"
         ],
@@ -218,9 +323,9 @@
       {
         "host": "appstore-vidaa.vidaahub.com",
         "firstSeen": "2026-09-29T14:11:09Z",
-        "lastSeen": "2026-09-29T14:11:09Z",
+        "lastSeen": "2026-09-29T14:11:20Z",
         "firstSeenIndex": 4,
-        "queryCount": 1,
+        "queryCount": 4,
         "qtypes": [
           "A"
         ],
@@ -229,9 +334,9 @@
       {
         "host": "tvmodules-vidaa.vidaahub.com",
         "firstSeen": "2026-09-29T14:11:09Z",
-        "lastSeen": "2026-09-29T14:11:09Z",
+        "lastSeen": "2026-09-29T14:11:20Z",
         "firstSeenIndex": 5,
-        "queryCount": 1,
+        "queryCount": 4,
         "qtypes": [
           "A"
         ],
@@ -240,9 +345,9 @@
       {
         "host": "img.vidaahub.com",
         "firstSeen": "2026-09-29T14:11:13Z",
-        "lastSeen": "2026-09-29T14:11:13Z",
+        "lastSeen": "2026-09-29T14:11:19Z",
         "firstSeenIndex": 9,
-        "queryCount": 1,
+        "queryCount": 3,
         "qtypes": [
           "A"
         ],
@@ -251,16 +356,16 @@
       {
         "host": "home-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:11:13Z",
-        "lastSeen": "2026-09-29T14:11:13Z",
+        "lastSeen": "2026-09-29T14:11:19Z",
         "firstSeenIndex": 10,
-        "queryCount": 1,
+        "queryCount": 3,
         "qtypes": [
           "A"
         ],
         "vendorScoped": true
       }
     ],
-    "allDnsQueryCount": 10,
+    "allDnsQueryCount": 25,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
