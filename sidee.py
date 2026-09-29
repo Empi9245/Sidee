@@ -107,6 +107,10 @@ DNS_FORWARD_STATS = {
     "maxLatencyMs": 0.0,
     "lastFailureHost": None,
 }
+DNS_REQUEST_SEMAPHORE = threading.BoundedSemaphore(32)
+DNS_REQUEST_THREADS_LOCK = threading.Lock()
+DNS_REQUEST_THREADS_ACTIVE = 0
+DNS_REQUEST_THREADS_PEAK = 0
 STORE_INSTALL_PROBE_MAX_EVENTS = 320
 STORE_INSTALL_PROBE_MAX_HOSTS = 140
 STORE_INSTALL_PROBE_TARGET = {
@@ -2889,6 +2893,9 @@ def empty_dns_answer(data):
 def _dns_forward_stats_snapshot():
     with DNS_FORWARD_STATS_LOCK:
         out = dict(DNS_FORWARD_STATS)
+    with DNS_REQUEST_THREADS_LOCK:
+        out["requestWorkersActive"] = DNS_REQUEST_THREADS_ACTIVE
+        out["requestWorkersPeak"] = DNS_REQUEST_THREADS_PEAK
     with DNS_OBSERVATION_DROP_LOCK:
         out["observationQueueDropped"] = DNS_OBSERVATION_DROPPED
     out["observationQueueDepth"] = DNS_OBSERVATION_QUEUE.qsize()
@@ -3027,6 +3034,54 @@ def forward_dns(data, upstreams):
     return None
 
 
+def _handle_dns_request(data, client, server_sock, domains, upstreams, local_ip):
+    global DNS_REQUEST_THREADS_ACTIVE, DNS_REQUEST_THREADS_PEAK
+    acquired = DNS_REQUEST_SEMAPHORE.acquire(timeout=0.25)
+    if not acquired:
+        print(f"[DNS] worker saturation; dropping query from {client[0]}")
+        return
+    try:
+        with DNS_REQUEST_THREADS_LOCK:
+            DNS_REQUEST_THREADS_ACTIVE += 1
+            DNS_REQUEST_THREADS_PEAK = max(
+                DNS_REQUEST_THREADS_PEAK,
+                DNS_REQUEST_THREADS_ACTIVE,
+            )
+
+        host, qtype, _ = parse_dns_question(data)
+        spoofed = host in domains
+        response = None
+
+        if spoofed and qtype == 1:
+            response = dns_answer(data, local_ip)
+        elif spoofed and qtype == 28:
+            response = empty_dns_answer(data)
+        else:
+            started = time.perf_counter()
+            response = forward_dns(data, upstreams)
+            latency_ms = (time.perf_counter() - started) * 1000.0
+            _dns_forward_stats_record(host, response is not None, latency_ms)
+
+        if response:
+            try:
+                server_sock.sendto(response, client)
+            except OSError:
+                return
+        else:
+            print(f"[DNS] upstream failure for {client[0]} {host} type={_dns_qtype_name(qtype)}")
+
+        if spoofed and qtype in (1, 28):
+            print(f"[DNS] {client[0]} {host} -> {'local IPv4' if qtype == 1 else 'empty AAAA'}")
+
+        _queue_dns_observation(host, qtype, client[0], spoofed)
+    except Exception as exc:
+        print(f"[DNS] request error: {type(exc).__name__}: {exc}")
+    finally:
+        with DNS_REQUEST_THREADS_LOCK:
+            DNS_REQUEST_THREADS_ACTIVE = max(0, DNS_REQUEST_THREADS_ACTIVE - 1)
+        DNS_REQUEST_SEMAPHORE.release()
+
+
 def run_dns(config, local_ip):
     domains = {d.lower().rstrip(".") for d in config.get("spoof_domains", ["vidaahub.com"])}
     port = int(config.get("dns_port", 53))
@@ -3056,33 +3111,13 @@ def run_dns(config, local_ip):
         except OSError:
             break
 
-        try:
-            host, qtype, _ = parse_dns_question(data)
-            spoofed = host in domains
-            response = None
-
-            if spoofed and qtype == 1:
-                response = dns_answer(data, local_ip)
-            elif spoofed and qtype == 28:
-                response = empty_dns_answer(data)
-            else:
-                started = time.perf_counter()
-                response = forward_dns(data, upstreams)
-                latency_ms = (time.perf_counter() - started) * 1000.0
-                _dns_forward_stats_record(host, response is not None, latency_ms)
-
-            if response:
-                server_sock.sendto(response, client)
-            else:
-                print(f"[DNS] upstream failure for {client[0]} {host} type={_dns_qtype_name(qtype)}")
-
-            if spoofed and qtype in (1, 28):
-                print(f"[DNS] {client[0]} {host} -> {'local IPv4' if qtype == 1 else 'empty AAAA'}")
-
-            _queue_dns_observation(host, qtype, client[0], spoofed)
-        except Exception as exc:
-            print(f"[DNS] request error: {type(exc).__name__}: {exc}")
-            continue
+        thread = threading.Thread(
+            target=_handle_dns_request,
+            args=(data, client, server_sock, domains, upstreams, local_ip),
+            name="sidee-dns-request",
+            daemon=True,
+        )
+        thread.start()
 
     server_sock.close()
 
