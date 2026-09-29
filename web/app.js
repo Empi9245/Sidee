@@ -2393,7 +2393,41 @@
   function controls(){return Array.prototype.slice.call(document.querySelectorAll("button,input,summary")).filter(el=>{if(!el||el.disabled||el.hidden)return false;const s=getComputedStyle(el);return s.display!=="none"&&s.visibility!=="hidden"&&el.getClientRects().length>0;});}
   function center(el){const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};}
   function nextControl(cur,key,list){const from=center(cur);let best=null,score=Infinity;list.forEach(el=>{if(el===cur)return;const to=center(el),dx=to.x-from.x,dy=to.y-from.y;let p=null,c=0;if(key==="ArrowUp"&&dy<-4){p=-dy;c=Math.abs(dx);}if(key==="ArrowDown"&&dy>4){p=dy;c=Math.abs(dx);}if(key==="ArrowLeft"&&dx<-4){p=-dx;c=Math.abs(dy);}if(key==="ArrowRight"&&dx>4){p=dx;c=Math.abs(dy);}if(p===null)return;const s=p*10+c;if(s<score){score=s;best=el;}});return best;}
-  window.addEventListener("keydown",e=>{const key=e.key||({13:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[e.keyCode]),active=document.activeElement;if((key==="Enter"||key==="OK")&&active&&(active.tagName==="BUTTON"||active.tagName==="SUMMARY")){e.preventDefault();active.click();return;}if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(key)<0)return;if(active&&active.tagName==="INPUT"&&(key==="ArrowLeft"||key==="ArrowRight"))return;const list=controls();if(!list.length)return;const cur=list.indexOf(active)>=0?active:list[0],to=nextControl(cur,key,list);if(to){to.focus();e.preventDefault();}else if(list.indexOf(active)<0){cur.focus();e.preventDefault();}});
+  function normalizeTvKey(e){
+    const rawKey=String(e&&e.key||"");
+    const rawName=String(e&&e.keyName||e&&e.detail&&e.detail.keyName||"");
+    const code=Number(e&&e.keyCode||e&&e.which||0);
+    const names=[rawKey,rawName,String(e&&e.code||"")].map(v=>v.toLowerCase());
+    const named={
+      arrowleft:"ArrowLeft",left:"ArrowLeft",dpadleft:"ArrowLeft",dpad_left:"ArrowLeft",
+      arrowright:"ArrowRight",right:"ArrowRight",dpadright:"ArrowRight",dpad_right:"ArrowRight",
+      arrowup:"ArrowUp",up:"ArrowUp",dpadup:"ArrowUp",dpad_up:"ArrowUp",
+      arrowdown:"ArrowDown",down:"ArrowDown",dpaddown:"ArrowDown",dpad_down:"ArrowDown",
+      enter:"Enter",ok:"Enter",select:"Enter",return:"Enter",dpadcenter:"Enter",dpad_center:"Enter"
+    };
+    for(const name of names){if(named[name])return named[name];}
+    return ({13:"Enter",23:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[code])||rawKey;
+  }
+  window.addEventListener("keydown",e=>{
+    const key=normalizeTvKey(e),active=document.activeElement,list=controls();
+    if(!list.length)return;
+    const hasActive=list.indexOf(active)>=0;
+    if((key==="Enter"||key==="OK")){
+      if(hasActive&&(active.tagName==="BUTTON"||active.tagName==="SUMMARY")){
+        e.preventDefault();active.click();return;
+      }
+      if(!hasActive){
+        list[0].focus();e.preventDefault();return;
+      }
+    }
+    if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(key)<0)return;
+    if(active&&active.tagName==="INPUT"&&(key==="ArrowLeft"||key==="ArrowRight"))return;
+    if(!hasActive){
+      list[0].focus();e.preventDefault();return;
+    }
+    const to=nextControl(active,key,list);
+    if(to){to.focus();e.preventDefault();}
+  });
 
   $("fullNetworkCaptureArmBtn").addEventListener("click",()=>fullNetworkCaptureAction("ARM"));
   $("fullNetworkCaptureStopBtn").addEventListener("click",()=>fullNetworkCaptureAction("STOP"));
