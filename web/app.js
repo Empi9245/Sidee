@@ -2159,6 +2159,56 @@
     state.remoteDiagnosticTimer=setInterval(pollRemoteDiagnostic,1500);
   }
 
+  function formatBytes(value){
+    const n=Number(value)||0;
+    if(n<1024)return n+" B";
+    if(n<1024*1024)return (n/1024).toFixed(1)+" KB";
+    if(n<1024*1024*1024)return (n/(1024*1024)).toFixed(1)+" MB";
+    return (n/(1024*1024*1024)).toFixed(2)+" GB";
+  }
+  function renderFullNetworkCapture(capture){
+    capture=capture||{};
+    const summary=capture.summary||{};
+    set("fullNetworkCaptureStatus",capture.status||"IDLE");
+    set("fullNetworkCaptureBound",capture.tvClientBound?"YES":"NO");
+    set("fullNetworkCaptureHttps",summary.httpsPacketRecords==null?0:summary.httpsPacketRecords);
+    set("fullNetworkCaptureBytes",formatBytes(summary.originalBytes||summary.pcapngBytes||0));
+    set("fullNetworkCaptureTopology",summary.topologyClassification||"UNKNOWN");
+    set("fullNetworkCapturePcap",capture.pcapngFile||"—");
+    const top=(summary.topPeers||[]).slice(0,4).map(x=>x.ip+" · "+formatBytes(x.bytes||0)).join(" | ");
+    set("fullNetworkCaptureState",(capture.status||"IDLE")+
+      (capture.error?" · "+capture.error:"")+
+      (summary.topologyClassification?" · "+summary.topologyClassification:"")+
+      (top?" · top peers: "+top:""));
+  }
+  async function refreshFullNetworkCapture(){
+    try{
+      const response=await fetch("/api/full-network-capture?cb="+Date.now(),{cache:"no-store"});
+      const data=await response.json();
+      if(response.ok&&data.ok)renderFullNetworkCapture(data.fullNetworkCapture);
+    }catch(e){}
+  }
+  async function fullNetworkCaptureAction(action){
+    const stateEl=$("fullNetworkCaptureState");
+    if(stateEl)stateEl.textContent=action==="ARM"?"Arming Windows packet capture…":"Stopping and converting capture…";
+    try{
+      const response=await fetch("/api/full-network-capture",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({action:action})
+      });
+      const data=await response.json();
+      if(!response.ok||!data.ok)throw new Error(data.error||"Full network capture failed");
+      renderFullNetworkCapture(data.fullNetworkCapture);
+      log("Full TV network capture "+action,data.fullNetworkCapture);
+      return data.fullNetworkCapture;
+    }catch(e){
+      if(stateEl)stateEl.textContent="Capture error · "+err(e);
+      log("Full TV network capture failed",err(e));
+      return null;
+    }
+  }
+
   function renderStoreInstallProbe(probe,sessionId){
     probe=probe||{};
     const target=probe.target||{name:"Duplecast",appId:"1876"};
@@ -2261,6 +2311,8 @@
   function nextControl(cur,key,list){const from=center(cur);let best=null,score=Infinity;list.forEach(el=>{if(el===cur)return;const to=center(el),dx=to.x-from.x,dy=to.y-from.y;let p=null,c=0;if(key==="ArrowUp"&&dy<-4){p=-dy;c=Math.abs(dx);}if(key==="ArrowDown"&&dy>4){p=dy;c=Math.abs(dx);}if(key==="ArrowLeft"&&dx<-4){p=-dx;c=Math.abs(dy);}if(key==="ArrowRight"&&dx>4){p=dx;c=Math.abs(dy);}if(p===null)return;const s=p*10+c;if(s<score){score=s;best=el;}});return best;}
   window.addEventListener("keydown",e=>{const key=e.key||({13:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[e.keyCode]),active=document.activeElement;if((key==="Enter"||key==="OK")&&active&&(active.tagName==="BUTTON"||active.tagName==="SUMMARY")){e.preventDefault();active.click();return;}if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(key)<0)return;if(active&&active.tagName==="INPUT"&&(key==="ArrowLeft"||key==="ArrowRight"))return;const list=controls();if(!list.length)return;const cur=list.indexOf(active)>=0?active:list[0],to=nextControl(cur,key,list);if(to){to.focus();e.preventDefault();}else if(list.indexOf(active)<0){cur.focus();e.preventDefault();}});
 
+  $("fullNetworkCaptureArmBtn").addEventListener("click",()=>fullNetworkCaptureAction("ARM"));
+  $("fullNetworkCaptureStopBtn").addEventListener("click",()=>fullNetworkCaptureAction("STOP"));
   $("storeStaticMapBtn").addEventListener("click",runStoreStaticMap);
   $("nativeInstallApiBtn").addEventListener("click",inspectNativeInstallApiSurface);
   $("storeInstallProbeStartBtn").addEventListener("click",()=>storeInstallProbeAction("START"));
@@ -2289,6 +2341,7 @@
     if(expectedInstalledAppContext())await contextIdentityFingerprint({automatic:true});
     log("pkgmgr/tvbrowser and pkgmgr↔AppInfo auto-probes are disabled for this phase; use their explicit buttons only if the runtime context changes.");
     await refreshStoreInstallProbe();
+    await refreshFullNetworkCapture();
     await refreshStoreStaticMap();
     startRemoteDiagnosticPolling();
   }).catch(e=>log("Config load failed",err(e)));
