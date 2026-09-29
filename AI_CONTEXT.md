@@ -4555,3 +4555,63 @@ Prossimo test più informativo:
 - confrontare host, firstSeen/order e query count tra RUN_BASELINE e RUN_INSTALL.
 
 Se `file-dl` o un altro host compare solo nella RUN_INSTALL e non nella baseline equivalente, diventa un candidato molto più forte.
+
+
+## IMPLEMENTAZIONE — Store Static API Mapper — 2026-09-29
+
+Obiettivo: arrivare ai path/API reali usati dal frontend Store senza MITM TLS della TV.
+
+Approccio:
+- il mapper gira sul PC;
+- usa HTTPS diretto con certificati ufficiali VIDAA;
+- GET read-only;
+- host allowlist fissa:
+  - home-ui-eu.vidaahub.com
+  - layout-ui-eu.vidaahub.com
+  - detail-ui-eu.vidaahub.com
+  - category-ui-eu.vidaahub.com
+  - search-ui-eu.vidaahub.com
+  - recommend-ui-eu.vidaahub.com
+  - appstore-vidaa.vidaahub.com
+  - static-ui.vidaahub.com
+  - tvmodules-vidaa.vidaahub.com
+- massimo 1 MiB per risposta;
+- massimo 28 risorse;
+- nessun cookie/credential/token della TV inviato;
+- segue solo redirect/script JS che restano nella stessa allowlist.
+
+Estrazione:
+- path `/api/...`;
+- URL interessanti;
+- keyword/excerpt bounded per:
+  `installApplication`, `Hisense_installApp`, `installApp`, `download`,
+  `package`, `pkgmgr`, `configUrlDownload`, `productCode`,
+  `appBundle`, `appContentId`, `signatureServer`.
+- filtri su token/secret/password/authorization/cookie/api key/client secret.
+
+API Sidee:
+- GET `/api/store-static-map` -> stato;
+- POST `/api/store-static-map` -> esegue mapper.
+
+Il risultato viene anche copiato in `storeStaticMap` del report corrente e sincronizzato su `sidee-reports`.
+
+UI:
+- card `Map public Store API paths`;
+- pulsante `Run Store API mapper`.
+
+Nota sul baseline 2026-09-29:
+il presunto baseline non ha creato una nuova sessione; `reports/latest.json` è rimasto `sidee-20260929-145316-dec1` ed è stato solo aggiornato più tardi. Non usarlo come A/B separato.
+
+Ricerca pubblica:
+- progetti storici confermano `Hisense_installApp(...)` come API JS;
+- `trialuser/vidaa-appstore` mostra parametri appId/name/icons/appUrl/storeType/callback;
+- `weinzii/vidaa-edge` distingue legacy `Hisense_installApp` e direct Appinfo write;
+- nessuno dei sorgenti pubblici trovati espone ancora il backend/path moderno usato dallo Store Q0707 per l'installazione ufficiale.
+
+Prossimo test:
+1. git pull;
+2. riavvia Sidee;
+3. apri dashboard Sidee dal PC;
+4. premi `Run Store API mapper`;
+5. attendi esito;
+6. poi leggere `reports/latest.json -> storeStaticMap`.
