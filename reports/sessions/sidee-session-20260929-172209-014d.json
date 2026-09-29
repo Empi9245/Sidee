@@ -4,8 +4,8 @@
   "serverBuildId": "app-f3065f7c7e3c",
   "buildMatch": true,
   "startedAt": "2026-09-29T15:22:09Z",
-  "updatedAt": "2026-09-29T15:22:48Z",
-  "accessMode": "VIDAA_STORE_DOMAIN_DISCOVERY",
+  "updatedAt": "2026-09-29T15:23:09Z",
+  "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
     "responsesModified": false,
@@ -18,8 +18,8 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 3,
-    "hostCount": 2,
+    "totalQueries": 11,
+    "hostCount": 6,
     "hosts": [
       {
         "host": "rsc-mntz.vidaahub.com",
@@ -34,7 +34,46 @@
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T15:22:11Z",
-        "lastSeen": "2026-09-29T15:22:11Z",
+        "lastSeen": "2026-09-29T15:23:05Z",
+        "queryCount": 3,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ]
+      },
+      {
+        "host": "iot-voice-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T15:23:02Z",
+        "lastSeen": "2026-09-29T15:23:02Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ]
+      },
+      {
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T15:23:05Z",
+        "lastSeen": "2026-09-29T15:23:05Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ]
+      },
+      {
+        "host": "appstore-vidaa.vidaahub.com",
+        "firstSeen": "2026-09-29T15:23:08Z",
+        "lastSeen": "2026-09-29T15:23:08Z",
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ]
+      },
+      {
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "firstSeen": "2026-09-29T15:23:09Z",
+        "lastSeen": "2026-09-29T15:23:09Z",
         "queryCount": 1,
         "qtypes": [
           "A"
@@ -44,7 +83,8 @@
   },
   "summary": {
     "storeDomainDiscovery": "QUERIES_CAPTURED",
-    "fullNetworkCapture": "CAPTURING"
+    "fullNetworkCapture": "CAPTURING",
+    "storeInstallProbe": "AUTO_CAPTURING"
   },
   "fullNetworkCapture": {
     "status": "CAPTURING",
@@ -70,5 +110,69 @@
       "staleSideeCaptureStopExitCode": null,
       "staleSideeFilterCleared": false
     }
+  },
+  "storeInstallProbe": {
+    "passiveDnsOnly": true,
+    "tlsIntercepted": false,
+    "captureMode": "AUTO_TV_DNS_TIMELINE",
+    "target": {
+      "name": "Duplecast",
+      "appId": "1876",
+      "host": "vidaa.duplecast.com"
+    },
+    "status": "AUTO_CAPTURING",
+    "startedAt": "2026-09-29T15:23:08Z",
+    "triggerHost": "appstore-vidaa.vidaahub.com",
+    "markers": [
+      {
+        "type": "AUTO_START",
+        "timestamp": "2026-09-29T15:23:08Z",
+        "host": "appstore-vidaa.vidaahub.com"
+      }
+    ],
+    "dnsEvents": [
+      {
+        "timestamp": "2026-09-29T15:23:08Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "appstore-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T15:23:09Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      }
+    ],
+    "allDnsHosts": [
+      {
+        "host": "appstore-vidaa.vidaahub.com",
+        "firstSeen": "2026-09-29T15:23:08Z",
+        "lastSeen": "2026-09-29T15:23:08Z",
+        "firstSeenIndex": 1,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
+      },
+      {
+        "host": "tvmodules-vidaa.vidaahub.com",
+        "firstSeen": "2026-09-29T15:23:09Z",
+        "lastSeen": "2026-09-29T15:23:09Z",
+        "firstSeenIndex": 2,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": true
+      }
+    ],
+    "allDnsQueryCount": 2,
+    "targetDomainHit": false,
+    "targetDomainFirstSeenAt": null,
+    "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
   }
 }
