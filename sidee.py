@@ -542,10 +542,6 @@ def _network_capture_parse_text(txt_path, tv_ip):
     summary["packetRecords"] = header_records or parsed_ip_lines
     summary["originalBytes"] = header_bytes or parsed_ip_bytes
 
-    summary["tlsServerNames"] = [
-        {"host": host, "count": count}
-        for host, count in sorted(sni_counts.items(), key=lambda item: (-item[1], item[0]))[:40]
-    ]
     ordered = sorted(peers.values(), key=lambda x: (x["bytes"], x["packetRecords"]), reverse=True)
     summary["topPeers"] = ordered[:30]
     if summary["httpsPacketRecords"] >= 5:
@@ -627,7 +623,7 @@ def _network_capture_tls_sni(payload):
     if len(data) < 9 or data[0] != 0x16:
         return None
     record_len = int.from_bytes(data[3:5], "big")
-    if record_len < 4 or len(data) < 5 + min(record_len, len(data) - 5):
+    if record_len < 4:
         return None
     if data[5] != 0x01:
         return None
@@ -696,6 +692,7 @@ def _network_capture_parse_pcapng(pcapng_path, tv_ip):
         "httpsPacketRecords": 0,
         "httpPacketRecords": 0,
         "dnsPacketRecords": 0,
+        "tlsServerNames": [],
         "topPeers": [],
         "topologyClassification": "UNKNOWN",
     }
@@ -817,6 +814,10 @@ def _network_capture_parse_pcapng(pcapng_path, tv_ip):
 
         pos += block_len
 
+    summary["tlsServerNames"] = [
+        {"host": host, "count": count}
+        for host, count in sorted(sni_counts.items(), key=lambda item: (-item[1], item[0]))[:40]
+    ]
     ordered = sorted(peers.values(), key=lambda x: (x["bytes"], x["packetRecords"]), reverse=True)
     summary["topPeers"] = ordered[:30]
     if summary["httpsPacketRecords"] >= 5:
