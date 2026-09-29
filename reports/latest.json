@@ -4,7 +4,7 @@
   "serverBuildId": "app-5dbeec3fbd21",
   "buildMatch": true,
   "startedAt": "2026-09-29T17:42:24Z",
-  "updatedAt": "2026-09-29T18:56:14Z",
+  "updatedAt": "2026-09-29T18:56:17Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -787,6 +787,13 @@
         "host": "nrdp25.prod.cloud.netflix.com",
         "qtype": "A",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:56:17Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
       }
     ],
     "allDnsHosts": [
@@ -889,9 +896,20 @@
           "A"
         ],
         "vendorScoped": false
+      },
+      {
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "firstSeen": "2026-09-29T18:56:17Z",
+        "lastSeen": "2026-09-29T18:56:17Z",
+        "firstSeenIndex": 95,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 94,
+    "allDnsQueryCount": 95,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
