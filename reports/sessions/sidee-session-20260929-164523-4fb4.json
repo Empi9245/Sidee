@@ -4,7 +4,7 @@
   "serverBuildId": "app-2613fcc7d404",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:45:23Z",
-  "updatedAt": "2026-09-29T14:46:35Z",
+  "updatedAt": "2026-09-29T14:46:59Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,7 +18,7 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 31,
+    "totalQueries": 36,
     "hostCount": 16,
     "hosts": [
       {
@@ -119,8 +119,8 @@
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:46:05Z",
-        "lastSeen": "2026-09-29T14:46:05Z",
-        "queryCount": 2,
+        "lastSeen": "2026-09-29T14:46:35Z",
+        "queryCount": 4,
         "qtypes": [
           "A",
           "AAAA"
@@ -129,8 +129,8 @@
       {
         "host": "exc-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:46:05Z",
-        "lastSeen": "2026-09-29T14:46:05Z",
-        "queryCount": 2,
+        "lastSeen": "2026-09-29T14:46:36Z",
+        "queryCount": 4,
         "qtypes": [
           "A",
           "AAAA"
@@ -159,8 +159,8 @@
       {
         "host": "recommend-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:46:34Z",
-        "lastSeen": "2026-09-29T14:46:34Z",
-        "queryCount": 2,
+        "lastSeen": "2026-09-29T14:46:55Z",
+        "queryCount": 3,
         "qtypes": [
           "A",
           "AAAA"
@@ -511,6 +511,55 @@
         "host": "crtv-mntz.vidaahub.com",
         "qtype": "AAAA",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:46:35Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:46:35Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:46:36Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:46:36Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "exc-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:46:55Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "recommend-ui-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:46:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "albedo.be.kidoodle.tv",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:46:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "albedo.be.kidoodle.tv",
+        "qtype": "AAAA",
+        "vendorScoped": false
       }
     ],
     "allDnsHosts": [
@@ -632,9 +681,9 @@
       {
         "host": "ter-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:46:05Z",
-        "lastSeen": "2026-09-29T14:46:05Z",
+        "lastSeen": "2026-09-29T14:46:35Z",
         "firstSeenIndex": 12,
-        "queryCount": 2,
+        "queryCount": 4,
         "qtypes": [
           "A",
           "AAAA"
@@ -644,9 +693,9 @@
       {
         "host": "exc-jrnl-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:46:05Z",
-        "lastSeen": "2026-09-29T14:46:05Z",
+        "lastSeen": "2026-09-29T14:46:36Z",
         "firstSeenIndex": 14,
-        "queryCount": 2,
+        "queryCount": 4,
         "qtypes": [
           "A",
           "AAAA"
@@ -791,9 +840,9 @@
       {
         "host": "recommend-ui-eu.vidaahub.com",
         "firstSeen": "2026-09-29T14:46:34Z",
-        "lastSeen": "2026-09-29T14:46:34Z",
+        "lastSeen": "2026-09-29T14:46:55Z",
         "firstSeenIndex": 37,
-        "queryCount": 2,
+        "queryCount": 3,
         "qtypes": [
           "A",
           "AAAA"
@@ -811,9 +860,21 @@
           "AAAA"
         ],
         "vendorScoped": true
+      },
+      {
+        "host": "albedo.be.kidoodle.tv",
+        "firstSeen": "2026-09-29T14:46:59Z",
+        "lastSeen": "2026-09-29T14:46:59Z",
+        "firstSeenIndex": 48,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 42,
+    "allDnsQueryCount": 49,
     "targetDomainHit": true,
     "targetDomainFirstSeenAt": "2026-09-29T14:46:14Z",
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
