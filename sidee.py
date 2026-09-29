@@ -236,13 +236,48 @@ def _network_capture_preflight():
     code, filters = _network_capture_cmd(["filter", "list"], timeout=10)
     if code != 0:
         raise RuntimeError("Could not inspect pktmon filters: " + filters[:400])
-    numbered_filter = re.search(r"(?m)^\s*\d+\s+\S+", filters or "")
-    if numbered_filter:
-        raise RuntimeError(
-            "pktmon already has active filters. Remove or finish the other capture first; "
-            "Sidee will not overwrite unrelated pktmon filters."
+
+    filter_lines = re.findall(r"(?m)^\s*\d+\s+.*$", filters or "")
+    if filter_lines:
+        own_filter_only = (
+            len(filter_lines) == 1
+            and NETWORK_CAPTURE_FILTER_NAME.lower() in filter_lines[0].lower()
         )
-    return {"pktmon": True, "preexistingFilters": False}
+        if own_filter_only:
+            status_code, status_output = _network_capture_cmd(["status"], timeout=10)
+            status_text = (status_output or "").lower()
+            if status_code == 0 and any(word in status_text for word in (
+                "running", "capturing", "collection is active", "capture is active"
+            )):
+                _network_capture_cmd(["stop"], timeout=20)
+            remove_code, remove_output = _network_capture_cmd(["filter", "remove"], timeout=10)
+            if remove_code != 0:
+                raise RuntimeError(
+                    "Found stale Sidee-TV pktmon filter but could not remove it: "
+                    + remove_output[:400]
+                )
+            code, filters = _network_capture_cmd(["filter", "list"], timeout=10)
+            filter_lines = re.findall(r"(?m)^\s*\d+\s+.*$", filters or "")
+            if filter_lines:
+                raise RuntimeError(
+                    "Sidee cleared its stale filter but pktmon still reports active filters."
+                )
+            return {
+                "pktmon": True,
+                "preexistingFilters": False,
+                "staleSideeFilterCleared": True,
+            }
+
+        raise RuntimeError(
+            "pktmon already has active filters not owned exclusively by Sidee. "
+            "Sidee will not remove unrelated pktmon filters."
+        )
+
+    return {
+        "pktmon": True,
+        "preexistingFilters": False,
+        "staleSideeFilterCleared": False,
+    }
 
 
 def _network_capture_id():
