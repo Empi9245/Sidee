@@ -1,81 +1,48 @@
-# Sidee — strategic pivot: install Nuvio as a VIDAA U9 Home Shortcut first
+# Sidee — target true VIDAA app runtime, not Browser shortcut
 
 Date: 2026-09-29
 
-## What changed
+User requirement clarified:
+- a Home/browser shortcut is NOT acceptable if it retains the VIDAA browser pointer;
+- Nuvio must be launched in the TV's app runtime / launcher context, chromeless and remote-first.
 
-The packet-capture work proved the TV Store path is observable, but it also clarified that continuing to hunt for a "Duplecast package replacement" is not the best route to the actual goal.
+Research result:
+- VIDAA officially supports hosted web apps: the app is still a remote URL, but the Launcher/App Store starts it as an application context.
+- Historical Hisense launcher source shows a distinct internal page/runtime named `app_lau_browser`.
+- When the launcher handles a URL with browser-app command type, it calls `asyncStartApp("app_lau_browser", command, ...)`.
+- `asyncStartApp` treats that page as module `app`, sets window size to 1920x1080, pauses TV/HbbTV state, opens the app page, closes the launcher and uses app-specific key handling.
+- This is materially different from `app_hi_browser`, the normal browser.
+- Therefore hiding the cursor with CSS or pinning a browser shortcut is not the final solution.
 
-Known facts on this TV:
-- VIDAA U09.60 / MTK9603;
-- Hisense_installApp / installApplication reaches the AppConfig permission gate and returns 503;
-- direct websdk/Appinfo.json writes are permission-gated;
-- official Store traffic is signed/authenticated and HTTPS;
-- pktmon can see the real Store HTTPS flow through Windows ICS/NAT;
-- older/custom VIDAA installers register HTML5 apps primarily as launcher entries pointing to a URL, not necessarily as a native binary package.
+Current blockers already known:
+- direct AppInfo.json registration is permission-gated on this VIDAA U9 firmware;
+- Hisense_installApp/installApplication reaches AppConfig 503;
+- official Store APIs use signed/authenticated requests.
 
-## Better route found
+New remaining technical route:
+Find whether VIDAA U9 still exposes a bridge from the normal browser to the launcher/app-runtime start path, potentially through `omi_platform`, `opera_omi`, or a Hisense start/launch browser API. If yes, a public hosted launcher page could immediately hand off the Nuvio URL into the real app context without requiring a permanent PC.
 
-Hisense documentation for MT9603 + VIDAA U9 explicitly documents:
-- Browser -> visit a webpage;
-- use Add to Home;
-- the webpage appears persistently in Home -> Shortcuts.
+Implemented on Sidee main:
+- `315d35e9a0e41da067a77957febceb0e194604ee`: read-only launcher bridge probe in web/app.js.
+- `e4e0850b10bde656772b8b40a2fbc1f3b16c0a06`: UI card/button "Inspect launcher bridge".
 
-That gives a supported, persistent launcher entry with:
-- no devkit;
-- no permanent PC/server;
-- no DNS override after setup;
-- no AppConfig bypass;
-- no Store signature bypass.
-
-For Nuvio this is functionally close to the desired install because Nuvio is already a VIDAA-targeted HTML5 web app.
-
-## Nuvio changes already made
-
-Repo: Empi9245/nuviotvsmart main
-
-- commit 218d4fd7b24bcdb395828c2f99ebb8ef503e6f3e
-  - application-name, theme-color, favicon and touch icon metadata
-- commit a5dc9c172f43df1c43e5f75238875dea77c41188
-  - manifest id/scope and VIDAA-forced start_url:
-    ./?platform=vidaa&source=home-shortcut
-- commit af3b704c6a9dbacc56de4df559b1cf49a4af3365
-  - service worker cache bump
-
-Nuvio already had:
-- VIDAA detection;
-- 1920x1080 logical viewport;
-- D-pad/remote support;
-- VIDAA PWA manifest;
-- service worker;
-- fullscreen display request.
-
-## Practical target
-
-First goal: get Nuvio pinned to VIDAA Home Shortcuts from the TV Browser and verify that launching from Home:
-1. opens the Nuvio TV build directly;
-2. preserves VIDAA mode;
-3. is usable without a PC or custom DNS;
-4. survives TV restart;
-5. has acceptable browser chrome/fullscreen behavior.
-
-If that works, the user's practical installation goal is solved.
-
-## True Store/My Apps route
-
-A real Store app is a separate track. Public VIDAA documentation exposes a partner/developer portal and official App Store distribution is partner-controlled. Current firmware evidence does not support a safe unauthorised local replacement of signed Store metadata.
-
-If a true Store listing is required, prepare Nuvio as the HTML5 VIDAA partner app and pursue VIDAA Partner onboarding rather than trying to bypass Store signatures.
+The probe:
+- enumerates methods/properties on `omi_platform` and `opera_omi`;
+- searches window globals for Hisense/start/launch/open/app/browser candidates;
+- invokes NOTHING;
+- saves results into `launcherBridgeProbe` in the normal session report.
 
 ## Next test
 
-Use the deployed public Nuvio URL on the TV Browser with:
-?platform=vidaa&source=home-shortcut
+1. `git pull`
+2. restart Sidee
+3. open Sidee in the TV browser in the same context where Hisense APIs are available
+4. press **Inspect launcher bridge**
+5. reply `fatto bridge`
 
-Then use VIDAA U9 Browser -> Add to Home.
+Then inspect `reports/latest.json` -> `launcherBridgeProbe`.
 
-After adding:
-- return to Home;
-- launch the Nuvio shortcut;
-- restart TV and launch again;
-- report whether browser chrome is visible, whether pointer appears, and whether D-pad/back/player behavior matches the existing VIDAA build.
+Decision:
+- if a start/launch/browser/app bridge exists: implement a bounded Nuvio app-runtime launch experiment;
+- if only `sendPlatformMessage` exists: research the specific non-destructive launcher message schema before sending anything;
+- if no bridge exists: the only true app-context routes left are successful launcher registration (currently permission-gated) or official VIDAA partner/store distribution.
