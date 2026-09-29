@@ -4,7 +4,7 @@
   "serverBuildId": "app-2613fcc7d404",
   "buildMatch": true,
   "startedAt": "2026-09-29T14:45:23Z",
-  "updatedAt": "2026-09-29T14:45:48Z",
+  "updatedAt": "2026-09-29T14:45:56Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -121,8 +121,8 @@
   },
   "fullNetworkCapture": {
     "status": "ERROR",
-    "captureId": "sidee-net-20260929-164523",
-    "armedAt": "2026-09-29T14:45:23Z",
+    "captureId": "sidee-net-20260929-164556",
+    "armedAt": "2026-09-29T14:45:56Z",
     "startedAt": null,
     "stoppedAt": null,
     "triggerHost": "known-store-client",
@@ -216,6 +216,20 @@
         "host": "rpt-mntz-azure.vidaahub.com",
         "qtype": "A",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T14:45:52Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T14:45:52Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
       }
     ],
     "allDnsHosts": [
@@ -317,9 +331,21 @@
           "A"
         ],
         "vendorScoped": true
+      },
+      {
+        "host": "spectrum.s3.amazonaws.com",
+        "firstSeen": "2026-09-29T14:45:52Z",
+        "lastSeen": "2026-09-29T14:45:52Z",
+        "firstSeenIndex": 10,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 9,
+    "allDnsQueryCount": 11,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
