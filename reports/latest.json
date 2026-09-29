@@ -4,7 +4,7 @@
   "serverBuildId": "app-e59b512a9ef8",
   "buildMatch": true,
   "startedAt": "2026-09-29T16:40:53Z",
-  "updatedAt": "2026-09-29T16:40:54Z",
+  "updatedAt": "2026-09-29T16:41:08Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,8 +18,8 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 4,
-    "hostCount": 2,
+    "totalQueries": 8,
+    "hostCount": 4,
     "hosts": [
       {
         "host": "recommend-ui-eu.vidaahub.com",
@@ -35,6 +35,26 @@
         "host": "sttc-az-recommend-ui.vidaahub.com",
         "firstSeen": "2026-09-29T16:40:53Z",
         "lastSeen": "2026-09-29T16:40:53Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ]
+      },
+      {
+        "host": "iot-voice-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T16:41:04Z",
+        "lastSeen": "2026-09-29T16:41:04Z",
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ]
+      },
+      {
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T16:41:05Z",
+        "lastSeen": "2026-09-29T16:41:05Z",
         "queryCount": 2,
         "qtypes": [
           "A",
@@ -108,6 +128,104 @@
         "host": "prod-be-kidoodle-legacy-image.gcdn.co",
         "qtype": "AAAA",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:03Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:03Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:04Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:41:04Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "iot-voice-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:41:05Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:41:05Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "qtype": "AAAA",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T16:41:07Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hbbtv.mediaset.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:07Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hbbtv.mediaset.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:08Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "static1.mediasetplay.mediaset.it",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:08Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "static-cloud.mediaset.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:08Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "static3.mediasetplay.mediaset.it",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:08Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "imasdk.googleapis.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:08Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "js.sentry-cdn.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T16:41:08Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "cdn.consentmanager.net",
+        "qtype": "A",
+        "vendorScoped": false
       }
     ],
     "allDnsHosts": [
@@ -146,9 +264,122 @@
           "AAAA"
         ],
         "vendorScoped": false
+      },
+      {
+        "host": "spectrum.s3.amazonaws.com",
+        "firstSeen": "2026-09-29T16:41:03Z",
+        "lastSeen": "2026-09-29T16:41:03Z",
+        "firstSeenIndex": 7,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "iot-voice-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T16:41:04Z",
+        "lastSeen": "2026-09-29T16:41:04Z",
+        "firstSeenIndex": 9,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": true
+      },
+      {
+        "host": "ter-jrnl-eu.vidaahub.com",
+        "firstSeen": "2026-09-29T16:41:05Z",
+        "lastSeen": "2026-09-29T16:41:05Z",
+        "firstSeenIndex": 11,
+        "queryCount": 2,
+        "qtypes": [
+          "A",
+          "AAAA"
+        ],
+        "vendorScoped": true
+      },
+      {
+        "host": "hbbtv.mediaset.net",
+        "firstSeen": "2026-09-29T16:41:07Z",
+        "lastSeen": "2026-09-29T16:41:07Z",
+        "firstSeenIndex": 13,
+        "queryCount": 2,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "static1.mediasetplay.mediaset.it",
+        "firstSeen": "2026-09-29T16:41:08Z",
+        "lastSeen": "2026-09-29T16:41:08Z",
+        "firstSeenIndex": 15,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "static-cloud.mediaset.net",
+        "firstSeen": "2026-09-29T16:41:08Z",
+        "lastSeen": "2026-09-29T16:41:08Z",
+        "firstSeenIndex": 16,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "static3.mediasetplay.mediaset.it",
+        "firstSeen": "2026-09-29T16:41:08Z",
+        "lastSeen": "2026-09-29T16:41:08Z",
+        "firstSeenIndex": 17,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "imasdk.googleapis.com",
+        "firstSeen": "2026-09-29T16:41:08Z",
+        "lastSeen": "2026-09-29T16:41:08Z",
+        "firstSeenIndex": 18,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "js.sentry-cdn.com",
+        "firstSeen": "2026-09-29T16:41:08Z",
+        "lastSeen": "2026-09-29T16:41:08Z",
+        "firstSeenIndex": 19,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "cdn.consentmanager.net",
+        "firstSeen": "2026-09-29T16:41:08Z",
+        "lastSeen": "2026-09-29T16:41:08Z",
+        "firstSeenIndex": 20,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 6,
+    "allDnsQueryCount": 20,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
