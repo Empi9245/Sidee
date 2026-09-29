@@ -4982,3 +4982,45 @@ Next action:
 4. click **Re-analyze latest capture**;
 5. wait for STOPPED / classification;
 6. inspect report fields: `analysisSource=PCAPNG`, `pcapPacketBlocks`, `pcapIpv4Packets`, `tvMatchedPacketRecords`, `httpsPacketRecords`, `tlsServerNames`, `topPeers`, `topologyClassification`.
+
+## RESULT — PCAPNG readable; ICS/NAT hides pre-NAT TV IP — 2026-09-29 18:00
+
+Re-analysis of session `sidee-20260929-173911-7b2f` succeeded:
+- `analysisSource=PCAPNG`
+- 1,328 PCAP packet blocks
+- 384 decoded IPv4 packets
+- 89,666 decoded IPv4 bytes
+- `tvMatchedPacketRecords=0`
+- TLS SNI successfully extracted from the capture:
+  - `rsc-mntz.vidaahub.com`
+  - `appstore-vidaa.vidaahub.com`
+  - `crtv-mntz.vidaahub.com`
+  - `exc-jrnl-eu.vidaahub.com`
+  - `home-ui-eu.vidaahub.com`
+  - `img.vidaahub.com`
+  - `rpt-mntz-azure.vidaahub.com`
+  - `search-ui-eu.vidaahub.com`
+  - `static-ui.vidaahub.com`
+  - `ter-jrnl-eu.vidaahub.com`
+  - `tvmodules-vidaa.vidaahub.com`
+
+Interpretation:
+- the PCAPNG definitely contains the TV's filtered Store traffic;
+- the Sidee-TV pktmon filter was bound to `192.168.137.158`, but that private client address does not appear in decoded NIC-level packets;
+- on Windows ICS/NAT the flow is being selected using the pre-/internal-flow identity while the captured NIC packet bytes can already contain translated addresses;
+- therefore literal `tv_ip` matching is not a valid requirement for NIC-level filtered captures.
+
+Fix:
+- commit `aaaee33db770b1acb38441ed84cd8962923aca95`: count ports/peers across every IPv4 packet in the already TV-filtered PCAP and retain literal TV-IP matches only as a diagnostic; introduce `filterScopedPacketRecords` and topology `FILTERED_FLOW_VISIBLE_AFTER_NAT`.
+- commit `37938067eca05b4e848ff2976d9698f234e543d0`: regression coverage for an ICS/NAT-style packet whose recorded source differs from the filtered TV IP.
+
+Important install observation:
+- this capture contains Store TLS hosts but no `vidaa.duplecast.com` or `files.duplecast.com` SNI.
+- This does NOT prove Duplecast was absent from the install workflow: DNS/TLS connection reuse and caching may suppress a fresh hostname event. It only means those hostnames are not visible in this specific capture.
+- A previous install-window DNS trace did observe `vidaa.duplecast.com` followed by `files.duplecast.com`.
+
+Next step:
+- pull latest main;
+- restart Sidee;
+- press **Re-analyze latest capture** once more;
+- inspect HTTPS count, filterScopedPacketRecords and topPeers from the same existing PCAP; no reinstall required.
