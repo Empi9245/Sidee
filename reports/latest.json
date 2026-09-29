@@ -4,7 +4,7 @@
   "serverBuildId": "app-5dbeec3fbd21",
   "buildMatch": true,
   "startedAt": "2026-09-29T17:42:24Z",
-  "updatedAt": "2026-09-29T18:52:54Z",
+  "updatedAt": "2026-09-29T18:56:14Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,7 +18,7 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 191,
+    "totalQueries": 197,
     "hostCount": 9,
     "hosts": [
       {
@@ -43,8 +43,8 @@
       {
         "host": "rsc-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T17:43:06Z",
-        "lastSeen": "2026-09-29T18:49:01Z",
-        "queryCount": 64,
+        "lastSeen": "2026-09-29T18:54:01Z",
+        "queryCount": 68,
         "qtypes": [
           "A"
         ]
@@ -52,8 +52,8 @@
       {
         "host": "params-msg-eu.vidaahub.com",
         "firstSeen": "2026-09-29T17:43:28Z",
-        "lastSeen": "2026-09-29T18:41:01Z",
-        "queryCount": 14,
+        "lastSeen": "2026-09-29T18:52:59Z",
+        "queryCount": 16,
         "qtypes": [
           "A"
         ]
@@ -724,6 +724,69 @@
         "host": "params-msg-eu.vidaahub.com",
         "qtype": "A",
         "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:52:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "params-msg-eu.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:53:50Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:53:55Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:53:56Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:54:01Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:56:12Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "nrdp25.appboot.netflix.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:56:12Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "nrdp25.appboot.netflix.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:56:13Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "secure.netflix.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:56:14Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "nrdp25.prod.cloud.netflix.com",
+        "qtype": "A",
+        "vendorScoped": false
       }
     ],
     "allDnsHosts": [
@@ -775,9 +838,9 @@
       {
         "host": "rsc-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T18:48:50Z",
-        "lastSeen": "2026-09-29T18:49:01Z",
+        "lastSeen": "2026-09-29T18:54:01Z",
         "firstSeenIndex": 65,
-        "queryCount": 4,
+        "queryCount": 8,
         "qtypes": [
           "A"
         ],
@@ -786,16 +849,49 @@
       {
         "host": "params-msg-eu.vidaahub.com",
         "firstSeen": "2026-09-29T18:52:54Z",
-        "lastSeen": "2026-09-29T18:52:54Z",
+        "lastSeen": "2026-09-29T18:52:59Z",
         "firstSeenIndex": 85,
-        "queryCount": 1,
+        "queryCount": 2,
         "qtypes": [
           "A"
         ],
         "vendorScoped": true
+      },
+      {
+        "host": "nrdp25.appboot.netflix.com",
+        "firstSeen": "2026-09-29T18:56:12Z",
+        "lastSeen": "2026-09-29T18:56:12Z",
+        "firstSeenIndex": 91,
+        "queryCount": 2,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "secure.netflix.com",
+        "firstSeen": "2026-09-29T18:56:13Z",
+        "lastSeen": "2026-09-29T18:56:13Z",
+        "firstSeenIndex": 93,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
+      },
+      {
+        "host": "nrdp25.prod.cloud.netflix.com",
+        "firstSeen": "2026-09-29T18:56:14Z",
+        "lastSeen": "2026-09-29T18:56:14Z",
+        "firstSeenIndex": 94,
+        "queryCount": 1,
+        "qtypes": [
+          "A"
+        ],
+        "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 85,
+    "allDnsQueryCount": 94,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
