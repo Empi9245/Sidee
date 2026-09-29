@@ -4659,3 +4659,67 @@ Non invoca install/download/package calls e salva:
 `nativeInstallApiSurface`.
 
 Questo è ora il test prioritario per identificare il nome reale della superficie nativa usata dal firmware.
+
+
+## IMPLEMENTAZIONE — Full TV Network Capture via pktmon — 2026-09-29
+
+Obiettivo: osservare il traffico completo generato dalla TV durante Store -> Duplecast -> Install/Download, non solo le query DNS.
+
+Vincolo di rete:
+- se il PC è soltanto DNS su una normale LAN/Wi-Fi switched, NON vede il traffico HTTPS unicast TV -> Internet;
+- per la cattura completa, il traffico TV deve attraversare il PC come gateway;
+- percorso consigliato per questo test: TV collegata a Windows Mobile Hotspot del PC.
+
+Implementazione Windows:
+- usa `pktmon.exe` in-box;
+- filtro per IPv4 TV con `pktmon filter add Sidee-TV -i <tv-ip>`;
+- acquisizione NIC-only;
+- `--type flow`;
+- `--pkt-size 0` per conservare il pacchetto intero;
+- file circolare max 512 MB;
+- stop -> ETL;
+- conversione automatica:
+  - `pktmon etl2pcap ... --out ...pcapng`;
+  - `pktmon etl2txt ... --out ...txt --brief --timestamp-only`.
+
+Sicurezza/isolamento:
+- Sidee controlla se esistono già filtri pktmon; se ne trova, rifiuta di partire invece di rimuoverli;
+- solo se il preflight è pulito aggiunge il proprio filtro;
+- a fine cattura rimuove i filtri perché sa che la sessione era iniziata senza filtri preesistenti;
+- IP TV usato in memoria per filtro/parser, non incluso nello stato pubblico/report;
+- `captures/` è gitignored;
+- ETL/PCAPNG/TXT non vengono inviati a GitHub.
+
+Workflow:
+- dashboard: `Arm / Start capture`;
+- se Sidee conosce già il client TV Store, parte subito;
+- altrimenti resta `ARMED` e parte alla prima query DNS verso un host Store/UI noto;
+- dopo install: `Stop & analyze capture`.
+
+Output sincronizzato nel report:
+`fullNetworkCapture`
+con:
+- status/captureId/timestamp;
+- tvClientBound;
+- path relativi locali dei file;
+- packetRecords;
+- originalBytes;
+- httpsPacketRecords;
+- httpPacketRecords;
+- dnsPacketRecords;
+- topPeers con IP/bytes/ports;
+- topologyClassification.
+
+Classificazione:
+- `FULL_PATH_VISIBLE`: >=5 record verso porta 443, quindi il traffico internet della TV sta realmente attraversando il PC;
+- `DNS_OR_LOCAL_ONLY_LIKELY`: cattura presente ma nessuna visibilità HTTPS sufficiente; probabile PC usato solo come DNS/non-gateway;
+- `NO_PACKET_RECORDS`: nessun pacchetto utile.
+
+Limite:
+anche con PCAP completo, TLS cifra path/header/body HTTPS. La cattura mostra comunque peer, porte, volumi, timing e può contenere SNI/handshake metadata. Per il path HTTPS serve una fonte applicativa/runtime o traffico non cifrato.
+
+Riferimento Microsoft verificato:
+- pktmon supporta filtro IP;
+- `--pkt-size 0` registra pacchetto intero;
+- `etl2pcap` converte in pcapng;
+- `etl2txt` produce testo analizzabile.
