@@ -44,6 +44,7 @@
     if(logBox.textContent.length>12000)logBox.textContent=logBox.textContent.slice(0,12000);
   }
   function set(id,v){ const el=$(id); if(el)el.textContent=v==null?"—":String(v); }
+  function on(id,type,handler){ const el=$(id); if(el&&typeof el.addEventListener==="function")el.addEventListener(type,handler); }
   function pad(n){ return String(n).padStart(2,"0"); }
   function sessionId(){
     try{ const old=sessionStorage.getItem("sidee.sessionId"); if(old&&SESSION_RE.test(old))return old; }catch(e){}
@@ -2615,17 +2616,39 @@
   window.addEventListener("keydown",e=>handleTvNavEvent(e),false);
   window.addEventListener("keyup",e=>handleTvNavEvent(e,{fromKeyUp:true}),false);
 
-  $("fullNetworkCaptureArmBtn").addEventListener("click",()=>fullNetworkCaptureAction("ARM"));
-  $("fullNetworkCaptureStopBtn").addEventListener("click",()=>fullNetworkCaptureAction("STOP"));
-  $("fullNetworkCaptureReanalyzeBtn").addEventListener("click",()=>fullNetworkCaptureAction("REANALYZE_LATEST"));
-  $("storeStaticMapBtn").addEventListener("click",runStoreStaticMap);
-  $("launcherBridgeProbeBtn").addEventListener("click",inspectLauncherBridge);
-  $("nativeInstallApiBtn").addEventListener("click",inspectNativeInstallApiSurface);
-  $("storeInstallProbeStartBtn").addEventListener("click",()=>storeInstallProbeAction("START"));
-  $("storeInstallProbeDetailBtn").addEventListener("click",()=>storeInstallProbeAction("DETAIL_OPEN"));
-  $("storeInstallProbeArmBtn").addEventListener("click",()=>storeInstallProbeAction("ARM_INSTALL"));
-  $("storeInstallProbeFinishBtn").addEventListener("click",()=>storeInstallProbeAction("FINISH"));
-  $("remoteDiagnosticArmBtn").addEventListener("click",toggleRemoteDiagnostics);   $("baselineBtn").addEventListener("click",baseline); $("contextIdentityFingerprintBtn").addEventListener("click",()=>contextIdentityFingerprint()); $("runtimeContextInitBtn").addEventListener("click",initContext); $("clientInformationBtn").addEventListener("click",readClient); $("serviceTraceBtn").addEventListener("click",readTrace); $("directAppInfoWriteBtn").addEventListener("click",()=>directAppInfoWriteLab()); $("legacyHspdkWriteBtn").addEventListener("click",()=>legacyHspdkWriteLab()); $("addNuvioHspdkBtn").addEventListener("click",addNuvioHspdk); $("restoreHspdkBackupBtn").addEventListener("click",restoreHspdkBackup); $("addNuvioDirectBtn").addEventListener("click",addNuvioDirect); $("restoreAppInfoBackupBtn").addEventListener("click",restoreAppInfoBackup); $("identityOverrideLabBtn").addEventListener("click",()=>identityWriteGateLab()); $("candidatePermissionBtn").addEventListener("click",candidatePermissionGateTest); $("permissionSourceTraceBtn").addEventListener("click",permissionSourceTrace); $("installedMetadataBtn").addEventListener("click",inspectInstalledMetadata); $("installDiagnosticBtn").addEventListener("click",()=>installTest()); $("installLegacyBtn").addEventListener("click",()=>installTest("legacy")); $("installV2Btn").addEventListener("click",()=>installTest("v2")); $("temporaryIdentifierBtn").addEventListener("click",tempIdentifier); $("saveBtn").addEventListener("click",saveTarget); $("verifyBtn").addEventListener("click",async()=>{const r=await verify();log("Verification",r);await save("verification");}); $("reportBtn").addEventListener("click",()=>save("export"));
+  on("fullNetworkCaptureArmBtn","click",()=>fullNetworkCaptureAction("ARM"));
+  on("fullNetworkCaptureStopBtn","click",()=>fullNetworkCaptureAction("STOP"));
+  on("fullNetworkCaptureReanalyzeBtn","click",()=>fullNetworkCaptureAction("REANALYZE_LATEST"));
+  on("storeStaticMapBtn","click",runStoreStaticMap);
+  on("launcherBridgeProbeBtn","click",inspectLauncherBridge);
+  on("nativeInstallApiBtn","click",inspectNativeInstallApiSurface);
+  on("storeInstallProbeStartBtn","click",()=>storeInstallProbeAction("START"));
+  on("storeInstallProbeDetailBtn","click",()=>storeInstallProbeAction("DETAIL_OPEN"));
+  on("storeInstallProbeArmBtn","click",()=>storeInstallProbeAction("ARM_INSTALL"));
+  on("storeInstallProbeFinishBtn","click",()=>storeInstallProbeAction("FINISH"));
+  on("remoteDiagnosticArmBtn","click",toggleRemoteDiagnostics);
+  on("baselineBtn","click",baseline);
+  on("contextIdentityFingerprintBtn","click",()=>contextIdentityFingerprint());
+  on("runtimeContextInitBtn","click",initContext);
+  on("clientInformationBtn","click",readClient);
+  on("serviceTraceBtn","click",readTrace);
+  on("directAppInfoWriteBtn","click",()=>directAppInfoWriteLab());
+  on("legacyHspdkWriteBtn","click",()=>legacyHspdkWriteLab());
+  on("addNuvioHspdkBtn","click",addNuvioHspdk);
+  on("restoreHspdkBackupBtn","click",restoreHspdkBackup);
+  on("addNuvioDirectBtn","click",addNuvioDirect);
+  on("restoreAppInfoBackupBtn","click",restoreAppInfoBackup);
+  on("identityOverrideLabBtn","click",()=>identityWriteGateLab());
+  on("candidatePermissionBtn","click",candidatePermissionGateTest);
+  on("permissionSourceTraceBtn","click",permissionSourceTrace);
+  on("installedMetadataBtn","click",inspectInstalledMetadata);
+  on("installDiagnosticBtn","click",()=>installTest());
+  on("installLegacyBtn","click",()=>installTest("legacy"));
+  on("installV2Btn","click",()=>installTest("v2"));
+  on("temporaryIdentifierBtn","click",tempIdentifier);
+  on("saveBtn","click",saveTarget);
+  on("verifyBtn","click",async()=>{const r=await verify();log("Verification",r);await save("verification");});
+  on("reportBtn","click",()=>save("export"));
   async function autoRunPkgmgrPackageProbeOnce(){
     try{
       const key="sidee.pkgmgrPackageProbe."+CLIENT_BUILD_ID;
