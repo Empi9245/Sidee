@@ -1,66 +1,41 @@
-# Sidee — next test: recover pktmon, then prove normal TV HTTPS
+# Sidee — full capture now starts; UI polling fixed
 
 Data: 2026-09-29
 
-Latest real report:
-- session `sidee-20260929-164523-4fb4`
-- `fullNetworkCapture.status = ERROR`
-- `startedAt = null`
-- no ETL / PCAPNG / TXT paths
-- no capture summary
-- error: `pktmon start failed: Monitoraggio pacchetti già avviato.`
+Latest real report on `sidee-reports`:
+- session `sidee-20260929-171309-a335`
+- `fullNetworkCapture.status = CAPTURING`
+- `startedAt = 2026-09-29T15:14:58Z`
+- ETL / PCAPNG / TXT paths were created
+- `error = null`
+- preflight is clean
+- pktmon reports active capture on network adapters
+- current Sidee-TV filter shown by pktmon is `192.168.137.1`
 
 ## Diagnosis
 
-This run was not an empty capture. **pktmon never started.**
+The user's UI appeared stuck on `STARTING`, but the backend had already transitioned to `CAPTURING`.
 
-The Sidee preflight was language-dependent: it looked for English words in
-`pktmon status` before deciding to call `pktmon stop`. On Italian Windows an
-old Sidee capture could therefore remain alive after a forced Sidee restart.
-The stale `Sidee-TV` filter could be removed while the pktmon collection itself
-kept running, causing the next start to fail as already active.
+Cause: the web UI refreshed Full Network Capture once after the ARM request and once on page load, but did not poll the capture endpoint afterward. If the asynchronous backend thread moved from STARTING to CAPTURING after the ARM response, the page stayed visually stale.
 
 ## Fix on main
 
-The capture preflight now:
-- stops first when the only filter is `Sidee-TV`, without parsing localized prose;
-- also recovers a no-filter orphan when status points to a Sidee ETL under
-  `captures/sidee-net-*`;
-- never stops/removes an unrelated ETL capture or unrelated filters;
-- stores bounded preflight diagnostics in `fullNetworkCapture.preflight`.
+Commit `a190ad64d4957d84a6bad709ec0413b98c342818`:
+- Full Network Capture now polls `/api/full-network-capture` every ~1.2 s.
+- STARTING / CAPTURING / ERROR transitions become visible without reloading.
 
-Do not change `--comp nics` yet. NIC/ICS visibility has not actually been
-tested because the failed run never entered `CAPTURING`.
+## Important next check
 
-## Next test — no Duplecast
+The latest capture is using filter IP `192.168.137.1`.
 
-1. `git pull`
-2. restart Sidee as Administrator
-3. TV DHCP/IP automatic and DNS automatic
-4. keep the TV on the intended Windows hotspot/ICS/routed path
-5. note the TV IPv4 and enter it in Full Network Capture
-6. press **Arm / Start capture**
-7. verify the UI reaches **CAPTURING**
-8. open YouTube on the TV and play a video for about 15–20 seconds
-9. press **Stop & analyze capture**
-10. say `fatto topology`
+Do not yet assume this is the TV client. On the next clean test, use the IPv4 address shown in the TV's own network settings in the Full Network Capture input. If the TV IP is different from `192.168.137.1`, enter the TV IP explicitly.
 
-What to inspect next:
-- `startedAt` must be non-null;
-- ETL / PCAPNG / TXT sizes;
-- `packetRecords`;
-- `httpsPacketRecords`;
-- `topologyClassification`;
-- `preflight`.
+Then:
+1. pull/restart Sidee as Administrator;
+2. arm capture with the TV IPv4 explicitly entered;
+3. confirm UI reaches CAPTURING;
+4. play YouTube for ~15-20 seconds;
+5. stop/analyze;
+6. inspect ETL/PCAPNG/TXT size, packetRecords, httpsPacketRecords and topologyClassification.
 
-Interpretation:
-- files > 0 but `packetRecords = 0` -> parser problem;
-- capture really starts but normal TV HTTPS is absent -> then research
-  pktmon + Windows ICS/NAT components and test a bounded topology-discovery
-  capture, likely including components beyond `nics`;
-- normal HTTPS visible -> only then repeat an official Store download/install
-  capture.
-
-The latest Store/DNS report contains no new `nativeInstallApiSurface` evidence.
-Keep the prior `vowOS.store/pkgmgr` conclusions; do not repeat those probes
-without new evidence.
+Do not reinstall Duplecast until normal TV HTTPS is confirmed visible in the full capture.
