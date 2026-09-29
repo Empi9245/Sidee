@@ -694,6 +694,7 @@ def _network_capture_parse_pcapng(pcapng_path, tv_ip):
         "httpPacketRecords": 0,
         "dnsPacketRecords": 0,
         "tlsServerNames": [],
+        "tlsHostFlows": [],
         "topPeers": [],
         "topologyClassification": "UNKNOWN",
     }
@@ -706,6 +707,19 @@ def _network_capture_parse_pcapng(pcapng_path, tv_ip):
     interfaces = []
     peers = {}
     sni_counts = {}
+    packet_flows = []
+    flow_to_sni = {}
+
+    def tls_flow_identity(parsed):
+        src = parsed["src"]
+        dst = parsed["dst"]
+        sport = parsed["sport"]
+        dport = parsed["dport"]
+        if dport == 443 and sport is not None:
+            return (dst, int(sport), 443), dst
+        if sport == 443 and dport is not None:
+            return (src, int(dport), 443), src
+        return None, None
 
     def record_filtered_flow(parsed, packet_bytes):
         src = parsed["src"]
@@ -785,8 +799,13 @@ def _network_capture_parse_pcapng(pcapng_path, tv_ip):
                 summary["packetRecords"] += 1
                 summary["originalBytes"] += int(packet_len or captured_len)
                 sni = _network_capture_tls_sni(parsed.get("tcpPayload"))
+                flow_key, flow_peer = tls_flow_identity(parsed)
                 if sni:
                     sni_counts[sni] = int(sni_counts.get(sni, 0)) + 1
+                    if flow_key:
+                        flow_to_sni[flow_key] = sni
+                if flow_key:
+                    packet_flows.append((flow_key, flow_peer, int(packet_len or captured_len)))
                 record_filtered_flow(parsed, packet_len or captured_len)
                 if parsed["src"] == tv_ip or parsed["dst"] == tv_ip:
                     summary["tvMatchedPacketRecords"] += 1
@@ -803,13 +822,51 @@ def _network_capture_parse_pcapng(pcapng_path, tv_ip):
                 summary["packetRecords"] += 1
                 summary["originalBytes"] += int(packet_len)
                 sni = _network_capture_tls_sni(parsed.get("tcpPayload"))
+                flow_key, flow_peer = tls_flow_identity(parsed)
                 if sni:
                     sni_counts[sni] = int(sni_counts.get(sni, 0)) + 1
+                    if flow_key:
+                        flow_to_sni[flow_key] = sni
+                if flow_key:
+                    packet_flows.append((flow_key, flow_peer, int(packet_len)))
                 record_filtered_flow(parsed, packet_len)
                 if parsed["src"] == tv_ip or parsed["dst"] == tv_ip:
                     summary["tvMatchedPacketRecords"] += 1
 
         pos += block_len
+
+    host_flow_stats = {}
+    for flow_key, flow_peer, packet_bytes in packet_flows:
+        host = flow_to_sni.get(flow_key)
+        if not host:
+            continue
+        rec = host_flow_stats.setdefault(
+            host,
+            {"host": host, "packetRecords": 0, "bytes": 0, "peerIps": {}},
+        )
+        rec["packetRecords"] += 1
+        rec["bytes"] += int(packet_bytes or 0)
+        if flow_peer:
+            rec["peerIps"][flow_peer] = int(rec["peerIps"].get(flow_peer, 0)) + 1
+
+    summary["tlsHostFlows"] = []
+    for rec in sorted(
+        host_flow_stats.values(),
+        key=lambda item: (item["bytes"], item["packetRecords"]),
+        reverse=True,
+    )[:40]:
+        summary["tlsHostFlows"].append({
+            "host": rec["host"],
+            "packetRecords": rec["packetRecords"],
+            "bytes": rec["bytes"],
+            "peerIps": [
+                {"ip": ip, "packetRecords": count}
+                for ip, count in sorted(
+                    rec["peerIps"].items(),
+                    key=lambda item: (-item[1], item[0]),
+                )
+            ],
+        })
 
     summary["tlsServerNames"] = [
         {"host": host, "count": count}
