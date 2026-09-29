@@ -4,7 +4,7 @@
   "serverBuildId": "app-5dbeec3fbd21",
   "buildMatch": true,
   "startedAt": "2026-09-29T17:42:24Z",
-  "updatedAt": "2026-09-29T18:56:17Z",
+  "updatedAt": "2026-09-29T18:58:59Z",
   "accessMode": "VIDAA_STORE_INSTALL_DNS_PROBE_AUTO",
   "storeDomainDiscovery": {
     "passiveDnsOnly": true,
@@ -18,7 +18,7 @@
       "unified-ter-*.hismarttv.com"
     ],
     "status": "QUERIES_CAPTURED",
-    "totalQueries": 197,
+    "totalQueries": 200,
     "hostCount": 9,
     "hosts": [
       {
@@ -43,8 +43,8 @@
       {
         "host": "rsc-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T17:43:06Z",
-        "lastSeen": "2026-09-29T18:54:01Z",
-        "queryCount": 68,
+        "lastSeen": "2026-09-29T18:58:56Z",
+        "queryCount": 71,
         "qtypes": [
           "A"
         ]
@@ -794,6 +794,216 @@
         "host": "hisense-0ba453d1.prod.partner.netflix.net",
         "qtype": "A",
         "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:56:22Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:56:23Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:56:28Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:56:28Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:56:33Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:56:34Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:56:35Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "nrdp25.prod.cloud.netflix.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:56:39Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:56:48Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:56:53Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:56:54Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:56:56Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "nrdp25.prod.cloud.netflix.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:56:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:57:07Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "nrdp25.appboot.netflix.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:57:42Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "nrdp25.appboot.netflix.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:57:52Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:57:52Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "AAAA",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:57:53Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "nrdp25.prod.cloud.netflix.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:57:54Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:57:57Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "spectrum.s3.amazonaws.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:58:21Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "nrdp25.prod.cloud.netflix.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:58:38Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:58:42Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "nrdp25.appboot.netflix.com",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:58:43Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:58:44Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:58:49Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "hisense-0ba453d1.prod.partner.netflix.net",
+        "qtype": "A",
+        "vendorScoped": false
+      },
+      {
+        "timestamp": "2026-09-29T18:58:50Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:58:55Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:58:56Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "rsc-mntz.vidaahub.com",
+        "qtype": "A",
+        "vendorScoped": true
+      },
+      {
+        "timestamp": "2026-09-29T18:58:59Z",
+        "phase": "AUTO_TIMELINE",
+        "host": "secure.netflix.com",
+        "qtype": "A",
+        "vendorScoped": false
       }
     ],
     "allDnsHosts": [
@@ -833,9 +1043,9 @@
       {
         "host": "spectrum.s3.amazonaws.com",
         "firstSeen": "2026-09-29T18:47:47Z",
-        "lastSeen": "2026-09-29T18:52:51Z",
+        "lastSeen": "2026-09-29T18:57:57Z",
         "firstSeenIndex": 61,
-        "queryCount": 8,
+        "queryCount": 12,
         "qtypes": [
           "A",
           "AAAA"
@@ -845,9 +1055,9 @@
       {
         "host": "rsc-mntz.vidaahub.com",
         "firstSeen": "2026-09-29T18:48:50Z",
-        "lastSeen": "2026-09-29T18:54:01Z",
+        "lastSeen": "2026-09-29T18:58:56Z",
         "firstSeenIndex": 65,
-        "queryCount": 8,
+        "queryCount": 11,
         "qtypes": [
           "A"
         ],
@@ -867,9 +1077,9 @@
       {
         "host": "nrdp25.appboot.netflix.com",
         "firstSeen": "2026-09-29T18:56:12Z",
-        "lastSeen": "2026-09-29T18:56:12Z",
+        "lastSeen": "2026-09-29T18:58:42Z",
         "firstSeenIndex": 91,
-        "queryCount": 2,
+        "queryCount": 5,
         "qtypes": [
           "A"
         ],
@@ -878,9 +1088,9 @@
       {
         "host": "secure.netflix.com",
         "firstSeen": "2026-09-29T18:56:13Z",
-        "lastSeen": "2026-09-29T18:56:13Z",
+        "lastSeen": "2026-09-29T18:58:59Z",
         "firstSeenIndex": 93,
-        "queryCount": 1,
+        "queryCount": 2,
         "qtypes": [
           "A"
         ],
@@ -889,9 +1099,9 @@
       {
         "host": "nrdp25.prod.cloud.netflix.com",
         "firstSeen": "2026-09-29T18:56:14Z",
-        "lastSeen": "2026-09-29T18:56:14Z",
+        "lastSeen": "2026-09-29T18:58:21Z",
         "firstSeenIndex": 94,
-        "queryCount": 1,
+        "queryCount": 5,
         "qtypes": [
           "A"
         ],
@@ -900,16 +1110,16 @@
       {
         "host": "hisense-0ba453d1.prod.partner.netflix.net",
         "firstSeen": "2026-09-29T18:56:17Z",
-        "lastSeen": "2026-09-29T18:56:17Z",
+        "lastSeen": "2026-09-29T18:58:49Z",
         "firstSeenIndex": 95,
-        "queryCount": 1,
+        "queryCount": 16,
         "qtypes": [
           "A"
         ],
         "vendorScoped": false
       }
     ],
-    "allDnsQueryCount": 95,
+    "allDnsQueryCount": 125,
     "targetDomainHit": false,
     "targetDomainFirstSeenAt": null,
     "note": "Automatic passive DNS timeline. Capture starts on the first VIDAA Store-family DNS query after Sidee restart and then records bounded DNS hostname activity from that same TV client. No HTTPS content is intercepted and the client IP is not persisted."
