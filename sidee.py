@@ -258,7 +258,9 @@ def _network_capture_start_for_ip(tv_ip, trigger_host=None):
 
     with NETWORK_CAPTURE_LOCK:
         if NETWORK_CAPTURE_STATE.get("status") not in ("ARMED", "STARTING"):
-            return _network_capture_public_state()
+            public = dict(NETWORK_CAPTURE_STATE)
+            public.pop("tvIp", None)
+            return json.loads(json.dumps(public))
         capture_id = NETWORK_CAPTURE_STATE.get("captureId") or _network_capture_id()
         NETWORK_CAPTURE_STATE.update({
             "status": "STARTING",
