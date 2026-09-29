@@ -588,3 +588,16 @@ The intended test is now simply:
 The useful fields are `storeInstallProbe.dnsEvents`,
 `storeInstallProbe.allDnsHosts`, `allDnsQueryCount`,
 `targetDomainHit`, and `targetDomainFirstSeenAt`.
+
+
+## Store Static API Mapper
+
+Sidee can inspect public VIDAA Store frontend assets from the PC without
+intercepting TV HTTPS traffic.
+
+The mapper uses official TLS and a fixed allowlist of observed VIDAA Store hosts.
+It performs bounded GET requests only, sends no TV credentials or cookies, and
+extracts API paths plus install/download/package-related string references.
+
+Use the **Run Store API mapper** button in the dashboard. Results are mirrored
+into the current report under `storeStaticMap`.
