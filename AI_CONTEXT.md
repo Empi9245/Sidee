@@ -3,7 +3,13 @@
 > Read this file before doing new VIDAA research or changing the installer.
 > Goal: avoid repeating already completed research, tests, and conclusions.
 
-Last updated: 2026-09-25
+Last updated: 2026-09-30
+
+> CURRENT PRIORITY: read `VIDAA_FEASIBILITY.md` and the 2026-09-30 handoff.
+> No route yet proves a persistent Nuvio app on Q0707 with launcher/remote,
+> local UI server off and no user-managed UI hosting, without devkit.
+> Earlier "next" plans below are historical. HTTPS visibility after NAT is
+> already confirmed; do not resume captures or exhausted probes automatically.
 
 ## Project
 
@@ -5069,3 +5075,87 @@ Next action:
 - click **Re-analyze latest capture** once more;
 - inspect `tlsHostFlows`.
 No new Store install is required.
+
+## VALUTAZIONE ATTUALE — Nuvio persistente senza hosting utente — 2026-09-30
+
+Prima delle modifiche sono stati letti completamente questo file, README e
+LATEST_RESPONSE_AND_NEXT_CHAT, verificati branch/HEAD/modifiche locali,
+controllati report locale/remoto e studiati port, installer e packaging Nuvio.
+La valutazione completa e le fonti precise sono in `VIDAA_FEASIBILITY.md`;
+questa sezione prevale sui piani precedenti.
+
+Sidee iniziale: main `89acbe5`; unico lavoro locale, `control/request.json` già
+in staging con richieste disattivate, preservato. Fetch e fast-forward dei
+cinque commit remoti fino a `7c4700e`; esaminati anche il nuovo handoff e
+l'auto-capture. Nuvio main `1f1ad284`, pulita e invariata. Nessun AGENTS.md
+nelle repo o negli antenati controllati. Nessun devkit o Superdesign usato.
+
+Report più recente locale: `sidee-session-20260929-194224-f686.json`,
+updatedAt `2026-09-29T19:10:18Z` (21:10:18 italiane). Remoto: stessa sessione,
+updatedAt `19:09:35Z`, commit report `f8dee5d5ced6fde8b7d936a92bec45bd423643fb`
+delle 21:09:38 +0200. Solo DNS, targetDomainHit false; nessuna full capture,
+nessuna prova di package/storage Nuvio. Build match true, `app-5dbeec3fbd21`.
+Il report non registra Git HEAD: digest ricostruito sui quattro file di build
+con CRLF Windows, corrisponde a `f5b5a9b` e al commit solo-doc `89acbe5`.
+Non attribuire il report ai più recenti commit auto-capture `c895f314/7c4700e`.
+
+Verificato anche il report browser `sidee-session-20260929-191916-046b.json`: routing
+nativo non tentato perché keyboard/hiWebOsFrame assenti, success false, zero
+eventi; install automatico SKIPPED per INSTALL_API_UNAVAILABLE. Questo chiude
+il vecchio prossimo test tasti in quel contesto, non dimostra tasti Nuvio.
+
+La cattura `sidee-net-20260929-173911` è già utile: 384 IPv4, 382 HTTPS,
+89.666 byte, FILTERED_FLOW_VISIBLE_AFTER_NAT. Nessuna nuova cattura o rianalisi
+necessaria per dimostrare visibilità. SNI/volume TLS non dimostrano il formato
+o la conservazione di un package e non giustificano da soli reinstallazioni.
+
+Fatti distinti:
+- package manager esistente e package web di sistema non equivalgono a un
+  importatore autorizzato di un bundle Nuvio proprio;
+- packaging Nuvio = copia dist/installer + ZIP JSZip, manifest web, senza
+  workflow VIDAA package/sign/install dimostrato;
+- installer Nuvio = Hisense_installApp con URL dell'origin corrente, nessun
+  trasferimento ZIP/risorse; persiste ancora falso messaggio successo per 0;
+- Duplecast originale: URL/StartCommand remoto, packaged 0, appBundle/config
+  vuoti nel deep dump `sidee-session-20260926-153038-1083.json`; classificazione sostenuta
+  app ospitata, cache eventuale non misurata. Nessun inventario storage
+  post-reinstallazione del 29 settembre; non dire che memorizza solo metadata
+  né che scarica certamente un package. Identità nativa non prova Nuvio locale;
+- documentazione vendor Duplecast/SmartOne controllata descrive playlist/player,
+  non importazione persistente di app HTML proprie. MSX documenta server JSON,
+  link e plugin; interaction iframe senza input, disponibilità Q0707 non provata;
+- mapping tasti, localStorage, service worker e dispatch OMI nel port Nuvio
+  non provano input, persistenza risorse, playback o avvio dal launcher.
+
+Esito: nessuna strada oggi dimostrata per tutti i requisiti senza devkit.
+Hosted app con UI gestita dal produttore è una possibilità distinta e
+condizionale, non provata per Nuvio VIDAA; hosting utente non accettabile.
+Non sostituire l'obiettivo con browser fullscreen/PWA/cache o URL sul PC.
+
+Ricerca esterna salvata nella valutazione con URL, fatti e limiti:
+- MDN Service_Worker_API e Cache/addAll: secure context, fallimenti precache;
+  nessuna equivalenza tra cache e installazione persistente;
+- repo ufficiale NuvioMedia/NuvioTVSmart: README Tizen/webOS, nessuna
+  distribuzione VIDAA documentata nella pagina letta;
+- V/VIDAA `https://v-home.com/csp/`: onboarding e hosting/CDN per partner,
+  nessuna importazione locale Q0707 documentata;
+- `https://www.vidaa.com/privacy-policy-2026/`: Partner Portal su invito;
+- Duplecast features/how-it-works e SmartOne homepage: playlist e player;
+- MSX wiki Setup_Precondition, Interaction_Plugin, Actions: capacità note,
+  nessuna dimostrazione storage/input Nuvio locale qui;
+- vecchio PDF VIDAA indicizzato ma 404 in apertura diretta, /partners/ 404;
+  homepage ufficiale rimanda a v-home.com. Non usare il vecchio PDF come
+  procedura sideload corrente. Nessun messaggio inviato a vendor/maintainer.
+
+Modifiche minime: valutazione, README/context/handoff; default spoof_domains
+vuoto e store_download_capture.auto_arm_on_start false. Conservato codice
+storico diagnostico; nessun nuovo probe. Nessun servizio riavviato o test TV
+eseguito in questa fase. Gli automatismi UI esistenti restano nel codice:
+non aprire la pagina TV soltanto per ripetere un report.
+
+Prossimo passo ammesso: prova documentale di distribuzione/importazione
+locale autorizzata per Q0707 senza devkit. Soltanto dopo: app minima con ID
+proprio, provenienza risorse locali, launcher, frecce/OK/Indietro, riavvio,
+Sidee e UI host spenti, UI e playback autorizzato. Nessuno dei cinque criteri
+è oggi verificato per Nuvio in questa configurazione. Se il meccanismo offre
+solo URL/playlist/cache o richiede bypass/firme altrui/devkit, abbandonarlo.

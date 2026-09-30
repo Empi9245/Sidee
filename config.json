@@ -1,7 +1,5 @@
 {
-  "spoof_domains": [
-    "vidaa.smartone-iptv.com"
-  ],
+  "spoof_domains": [],
   "dns_port": 53,
   "https_port": 443,
   "http_port": 8080,
@@ -50,7 +48,7 @@
   },
   "store_download_capture": {
     "enabled": true,
-    "auto_arm_on_start": true,
+    "auto_arm_on_start": false,
     "auto_stop_seconds": 180,
     "target": {
       "name": "Duplecast",

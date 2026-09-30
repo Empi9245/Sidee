@@ -1,76 +1,89 @@
-# Sidee — back to Store download/install path
+# Sidee — Nuvio persistent-app feasibility assessment
 
-Date: 2026-09-29
+Date: 2026-09-30, Europe/Rome.
 
-User explicitly wants the **real VIDAA Store download/install route**, not runtime-container or handoff workarounds.
+Read `VIDAA_FEASIBILITY.md` for evidence, three-route evaluation, dependencies,
+decisive tests, abandonment criteria, acceptance status and source links.
 
-## Important model correction
+## Objective and outcome
 
-VIDAA officially supports hosted web apps. A hosted app is launched from a URL and downloads its resources from the remote server at runtime. Therefore an App Store "install" does not necessarily mean a binary app package is downloaded to the TV; for hosted apps it may primarily create/store launcher metadata, app identity, icon, URL and related Store state.
+User wants Nuvio on Hisense VIDAA Q0707 as an app launched from the TV launcher,
+operated entirely by arrows/OK/Back, persistent after reboot, with Sidee and
+the local UI host off during normal use. Internet content/account services are
+allowed; the user does not want to operate UI hosting. Devkit and Superdesign
+are excluded. Browser fullscreen and service-worker cache are insufficient.
 
-This is especially relevant to Duplecast because the installed app later talks to:
-- `vidaa.duplecast.com`
-- `files.duplecast.com`
+**No evaluated route currently proves all these requirements.** There is no
+demonstrated authorized local Nuvio package/import workflow on this firmware.
+Hosted registration remains dependent on UI hosting. A provider-managed UI
+could remove the user's hosting obligation, but no such VIDAA Nuvio deployment
+was verified; it is a distinct conditional route, not a local-install result.
 
-So the next capture must determine empirically whether the Duplecast Store install does one of these:
-1. downloads a real package/bundle from a download/CDN host; or
-2. performs signed Store/launcher registration of a hosted URL plus metadata/assets.
+## Repo and report state
 
-Do not assume a package exists until traffic proves it.
+- Initial Sidee `main`: `89acbe5ada4ae221773fd426c65918bd786dbe6e`.
+- Fetched and fast-forwarded to `7c4700ea5e239925ad4531191e0de92124cfc09a`
+  before this assessment; read the added runtime handoff and auto-capture work.
+- Existing staged addition `control/request.json` contains disabled requests.
+  Preserve it; do not include it in unrelated commits or run it.
+- Nuvio `main`: `1f1ad284a292c06b0ed6b045dd1e1f3177666d1b`; clean, unchanged.
+- Latest local report: `sidee-session-20260929-194224-f686.json`, updated
+  `2026-09-29T19:10:18Z` (21:10:18 Italian time), build `app-5dbeec3fbd21`,
+  `buildMatch:true`. DNS-only; no package/offline verification.
+- Remote report commit `f8dee5d5ced6fde8b7d936a92bec45bd423643fb`,
+  29 September 21:09:38 +0200; same session, updated `19:09:35Z`.
+- Report does not include Git HEAD. Recomputed build digest with Windows CRLF
+  matches code commits `f5b5a9b` and `89acbe5`; cannot distinguish doc-only commits.
+  Do not assume it ran the newer `c895f314` auto-capture code.
+- Browser report `sidee-session-20260929-191916-046b.json`: no keyboard or
+  hiWebOsFrame bridge, key routing not attempted, zero remote events,
+  automatic install skipped because install APIs were unavailable.
+- Saved capture `sidee-net-20260929-173911`: 384 decoded IPv4, 382 HTTPS
+  records, topology `FILTERED_FLOW_VISIBLE_AFTER_NAT`. HTTPS visibility is
+  solved. TLS does not reveal package bytes/path/storage.
 
-## Previous useful capture
+## Route evidence
 
-Session `sidee-20260929-173911-7b2f` successfully captured Store TLS flows through pktmon:
-- 384 packet records
-- 89,666 bytes
-- 382 HTTPS packet records
-- topology: `FILTERED_FLOW_VISIBLE_AFTER_NAT`
-- SNI included:
-  - `appstore-vidaa.vidaahub.com`
-  - `tvmodules-vidaa.vidaahub.com`
-  - `home-ui-eu.vidaahub.com`
-  - `search-ui-eu.vidaahub.com`
-  - `static-ui.vidaahub.com`
-  - monitoring/journal hosts
+1. **Local package:** real system packages and pkgmgr exist, but no authorized
+   package format/staging/import for a user-owned Nuvio app is known. Nuvio's
+   packager creates a plain JSZip web archive, without a demonstrated VIDAA
+   package/signing/install workflow. Do not invent names or invoke pkgmgr install.
+2. **Hosted launcher registration:** Duplecast's 26 September original registry
+   has remote URL/StartCommand, `packaged:0`, empty appBundle/configUrl. Native
+   Duplecast identity is not proof of local resources. There is no fresh
+   before/after storage inventory proving what the 29 September install retained.
+   Nuvio installer sends a URL, not ZIP/resources, and still has callback-0
+   false-success wording. PC/IP or user-managed public hosting fails the goal.
+3. **Persistent container:** Duplecast/SmartOne documentation describes playlist
+   players, with no local HTML app import in the checked pages. MSX documents
+   hosted JSON/link/plugins; interaction iframes receive no input. MSX is not
+   in the observed 61-app inventory and availability here is unverified.
+   No documented local persistent Nuvio-resource container was found.
 
-That capture did **not** include the actual Duplecast install window, so no conclusion about package delivery was possible.
+## Changes in this delivery
 
-## New implementation
+- Added the feasibility assessment; updated README/context/handoff.
+- Empty default spoof_domains: no automatic SmartOne hostname substitution.
+- `store_download_capture.auto_arm_on_start:false`: no automatic old capture.
+- Preserved diagnostic code and existing staged work; Nuvio code unchanged.
+- No server restart, TV mutation, new probe, capture, install or playback claim.
 
-Commits:
-- `10ae20912f6cbefc6116526ce1c8dcb20710ae29`
-  - adds `store_download_capture` config
-  - enabled by default
-  - auto-arm on Sidee startup
-  - target documented as Duplecast appId 1876
-  - automatic capture window: 180 seconds
-- `c895f314205e3d8752af47333646bafb8dfec3f6`
-  - Sidee automatically arms pktmon after startup
-  - first VIDAA Store DNS activity from the TV starts the TV-IP-filtered full capture
-  - no dashboard click is required
-  - capture automatically stops after 180 seconds and converts to PCAPNG/TXT
-  - report sync happens through the existing `fullNetworkCapture` path
-  - startup instructions now focus on normal Store install, not app-context tests
+The existing Sidee UI startup probes remain in code. Do not open/restart the
+TV page merely to generate another report for this assessment.
 
-## Next test
+## Next discriminating step
 
-1. `git pull --ff-only origin main`
-2. fully restart Sidee as Administrator
-3. TV DNS remains pointed to the Sidee PC
-4. ensure Duplecast is uninstalled
-5. open the **normal VIDAA App Store from the launcher**
-6. search/open Duplecast and install it normally
-7. do not use the Sidee dashboard
-8. leave Store open until the capture has had enough time to include the install flow
-9. reply `fatto download`
+Identify a documented authorized import/distribution path for Q0707 that can
+store a user-owned app locally without devkit. VIDAA's current content-partner
+channel is documented, but package eligibility/import remains unconfirmed.
+Do not send vendor/maintainer messages without human authorization.
 
-Then inspect the newest report/capture for:
-- SNI appearing only during install
-- `file-dl.vidaahub.com`
-- `files.duplecast.com`
-- new CDN/object-storage hosts
-- a high-byte TLS flow coincident with Install
-- absence of large package flow, which would support hosted-app metadata registration instead
+Only if that precondition is satisfied, implement the smallest app with its
+own ID, verify local resource provenance and all five TV acceptance checks,
+then integrate Nuvio and test authorized playback. For a container, require
+documented import/storage/JS/input first. If only URLs/playlists/cache are
+available, abandon the local route under current constraints.
 
-If a package/download host is proven, continue tracing its supported Store flow.
-If no package flow exists and the install is metadata/URL registration, refocus on the exact official launcher-registration request rather than looking for a nonexistent package.
+A further Duplecast experiment must distinguish storage/host dependency with
+documented metadata and a cold-start test. SNI or large/small TLS flows alone
+cannot prove a downloaded package. Do not reinstall Duplecast just for those.

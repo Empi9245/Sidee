@@ -1,27 +1,44 @@
 # Sidee
 
-## Current investigation — legacy writer context (2026-09-26)
+## Current assessment — persistent Nuvio app on Q0707 (2026-09-30)
 
-The latest TV report (`sidee-20260926-172629-e5b8`, build match true) found
-`Hisense` without `File` or `loadLibrary`, and no usable `HiBrowser` surface in
-the vidaahub browser context. No legacy read/write occurred. Do not repeat the
-HiUtils 503, identifier, origin or install tests described in the historical
-sections below. Devkit is outside this investigation.
+Read [VIDAA_FEASIBILITY.md](VIDAA_FEASIBILITY.md) and
+[LATEST_RESPONSE_AND_NEXT_CHAT.md](LATEST_RESPONSE_AND_NEXT_CHAT.md) before
+running any procedure below. **No route currently proves all requested Nuvio
+app requirements without devkit:** launcher launch, full remote navigation,
+reboot persistence, and use with Sidee/local UI host off, without user-managed
+UI hosting. Browser fullscreen and service-worker cache are insufficient.
 
-Use **Inspect HSPDK Context (read-only)** in **Legacy Hisense File Writer**.
-The report's `legacyHspdkContext` records both named roots, descriptor/prototype
-metadata, concrete global objects exposing `File`/`loadLibrary`, and bounded
-function-source matches. It never calls a getter, loader or file operation.
-`FILE_PAIR_OBSERVED_NOT_TESTED` means presence only, not permission.
+The Nuvio fork's VIDAA ZIP is an archive of web files, not a demonstrated
+installable VIDAA package. Its installer registers a URL and still incorrectly
+treats callback 0 as success. Duplecast's observed registry entry has a remote
+StartCommand and `packaged:0`; its native app identity does not prove local
+Nuvio resources. No documented persistent local-app import was found for
+Duplecast/SmartOne in the checked vendor documentation.
 
-After restarting Sidee, the existing Smartone/Duplecast bootstrap captures the
-same HSPDK evidence automatically and queues it for report sync. Its previous
-automatic HiUtils no-op write has been removed. Compare these reports with the
-browser capture to determine whether the legacy surface changes by context.
-No system page exposing HSPDK on the tested firmware has yet been identified.
+The latest report is a DNS-only session, not package-delivery evidence. The
+previous PCAP already confirms 382 HTTPS records after the NAT correction;
+there is no need to repeat visibility tests. The assessment records exact
+report dates, report-branch commit and reconstructed application build.
 
-Local checks: `node tests/hspdk-context.test.js` and
-`python -B tests/test_hspdk_bootstrap.py` (requires Node.js).
+Default `spoof_domains` is now empty and `store_download_capture.auto_arm_on_start`
+is false. Starting Sidee no longer automatically arms the old Store capture or
+redirects SmartOne through custom DNS. Historical tools remain in the code;
+they are not an authorized local-app import mechanism. The TV/browser probe
+code is unchanged and may still run its existing startup diagnostics if opened.
+This assessment does not require opening Sidee on the TV or restarting services.
+
+Proceed only after a documented, authorized package/import path is identified,
+or an explicitly evaluated provider-managed hosted-app distribution exists.
+Do not repeat exhausted permission/identity/HSPDK/pkgmgr probes, replace
+third-party Store packages, or bypass signatures, authentication or AppConfig.
+
+## Historical toolkit reference and procedures
+
+The sections below describe earlier phases and retained capabilities. Their
+"next test", "current priority" and success wording can be obsolete; they do
+not override the current assessment or the user's constraints. In particular,
+the old vidaahub/SmartOne DNS setup is no longer the default configuration.
 
 Sidee is a **standalone local VIDAA research + web-app installer toolkit**. It is not part of Nuvio TV Smart.
 
