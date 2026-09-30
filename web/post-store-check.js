@@ -44,6 +44,12 @@
       /^(1876|1470|2568|nuviodebug)$/.test(String(value)) || /duplecast|smartone|stremio|nuvio/i.test(String(value))));
     return {
       kind: "post-store-inventory-v1", timestamp: new Date().toISOString(), readOnly: true,
+      accessContext: {
+        origin: root.location && root.location.origin || null,
+        protocol: root.location && root.location.protocol || null,
+        hostname: root.location && root.location.hostname || null,
+        secureContext: typeof root.isSecureContext === "boolean" ? root.isSecureContext : null
+      },
       apps: {status: apps.status, code: apps.code || null, count: apps.count ?? null,
         error: apps.error || null, targets},
       packages,
@@ -58,7 +64,7 @@
   }
   const report = snapshot(window);
   const status = document.getElementById("status");
-  document.getElementById("result").textContent = JSON.stringify({apps: report.apps, packages: {
+  document.getElementById("result").textContent = JSON.stringify({origine: report.accessContext.origin, apps: report.apps, packages: {
     status: report.packages.status, count: report.packages.count ?? null}}, null, 2);
   if (report.apps.status === "UNAVAILABLE" && report.packages.status === "UNAVAILABLE") {
     status.textContent = "Questo contesto non espone gli elenchi della TV. Nessun report TV salvato.";

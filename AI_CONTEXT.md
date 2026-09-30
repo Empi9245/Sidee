@@ -5271,3 +5271,15 @@ l'apertura nel Browser della TV: parte una sola lettura automatica. Attendere
 risposta reale; eventuali file reports/post-store-latest.json e history sono
 locali/ignorati, senza sync Git. Se entrambe le API sono assenti, nessun POST.
 Ricontrollare processo/stato prima di proseguire, non affidarsi al vecchio PID.
+
+### Origine della verifica — correzione successiva
+
+L'utente ricorda il vecchio contesto vidaahub.com. Quel contesto è già osservato,
+ma install/write sono rimasti respinti con AppConfig 503; l'origine non dimostra
+permessi di installazione. 192.168.1.5 è il PC LAN, non localhost della TV.
+Nessuna sostituzione DNS/HTTPS del dominio vendor attivata per ottenere privilegi.
+Il nuovo report registra accessContext del browser (origin/protocol/hostname/
+secureContext) e receiverContext (HTTP transport, Host/Origin header). Questi
+sono dati di contesto, non un'autorizzazione. Test JS e HTTP aggiornati passati;
+nessun risultato TV ancora ricevuto al controllo successivo. Ricaricare la pagina
+TV per utilizzare lo script aggiornato. Modalità normale Sidee e config invariate.

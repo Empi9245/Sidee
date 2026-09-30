@@ -4,6 +4,16 @@ Date: 2026-09-30, Europe/Rome.
 
 ## Latest steering and concrete checks
 
+User reminded us of the historical vidaahub.com origin. The previous tested
+origin exposed VIDAA APIs but did not pass the install/write AppConfig 503 gate.
+192.168.1.5 is the LAN PC, not TV localhost. Do not infer authority from hostname.
+No DNS/TLS impersonation of the vendor domain was activated to obtain reserved
+privileges. Added browser accessContext and receiverContext to the isolated
+snapshot instead; Node/HTTP tests passed. Latest real receiver result still null
+at this check, no new TV evidence. Reload the TV page to use the updated script.
+Restarted only the verified isolated receiver; new PID 5676 at restart,
+192.168.1.5:8080/status still latest:null. Recheck state/PID in future.
+
 Latest user instruction: use Sidee and connect to the TV if useful. Checked
 current main c1cb6e6 and preserved staged control/request.json. Sidee was not
 running: both localhost and 192.168.1.5:8080 refused /api/status. Elevated LAN

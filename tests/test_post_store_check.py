@@ -45,6 +45,8 @@ class IsolatedReceiverTest(unittest.TestCase):
                 saved = json.loads((reports / "post-store-latest.json").read_text(encoding="utf-8"))
                 self.assertEqual(saved["receiverMode"], "isolated-post-store-check")
                 self.assertIn("receivedAt", saved)
+                self.assertEqual(saved["receiverContext"]["transport"], "http")
+                self.assertEqual(saved["receiverContext"]["hostHeader"], f"127.0.0.1:{server.server_address[1]}")
                 self.assertEqual(request("GET", "/status")[0], 200)
             finally:
                 server.shutdown()

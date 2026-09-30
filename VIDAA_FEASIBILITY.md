@@ -52,6 +52,12 @@ autonomamente la pagina sulla TV. `/status` mostra l'ultimo risultato; i file
 sono locali in `reports/post-store-latest.json` e history, senza sync Git.
 Se entrambe le API sono indisponibili, la pagina lo mostra senza salvare un
 falso report TV. Nessuna nuova reinstallazione Duplecast è richiesta.
+La successiva richiesta sull'origine ha portato a registrare origin/protocol/
+hostname/secureContext del browser e Host/Origin HTTP del ricevitore. Il server
+rimane sull'IP LAN; nessuna sostituzione DNS/TLS di un dominio VIDAA attivata
+per ottenere privilegi. Il vecchio contesto vidaahub.com esposto nei report
+aveva comunque respinto install/write con AppConfig 503. Origin e disponibilità
+API non equivalgono a permesso di importare un'app.
 
 Ricerca del 30 settembre, Sidee `main` inizialmente `ef25a23`, Nuvio `main`
 `1f1ad284` pulita. Nessuna nuova sessione sulla TV; ultimo report e relativo

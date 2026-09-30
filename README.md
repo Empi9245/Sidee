@@ -70,6 +70,11 @@ Target app metadata and package names/versions/paths are saved locally to
 `reports/post-store-latest.json` and timestamped `reports/post-store-*.json`.
 URL credentials/query strings and unrelated account fields are omitted.
 The receiver `/status` reports whether a result arrived; no automatic Git sync.
+Reports now include the browser-reported origin/protocol/hostname/secure context
+and receiver-observed HTTP Host/Origin headers. These identify the observation
+context; they do not confer installation privileges. `192.168.1.5` is the PC's
+LAN address, not the TV's localhost. Previous vidaahub-origin tests still returned
+AppConfig 503. This isolated mode does not impersonate a VIDAA domain with DNS/TLS.
 If neither inventory API is available, the page displays that limitation and
 does not save a fake TV result. No Nuvio acceptance test is claimed.
 

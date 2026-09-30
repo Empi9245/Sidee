@@ -59,6 +59,11 @@ def make_handler(report_dir: pathlib.Path):
                 return self.reply(400, b'{"error":"Invalid inventory"}')
             data["receivedAt"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
             data["receiverMode"] = "isolated-post-store-check"
+            data["receiverContext"] = {
+                "transport": "http",
+                "hostHeader": self.headers.get("Host", ""),
+                "originHeader": origin,
+            }
             payload = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
             with lock:
                 report_dir.mkdir(parents=True, exist_ok=True)
