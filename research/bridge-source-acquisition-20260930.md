@@ -223,8 +223,24 @@ preserva byte, collectionId e receipt; build differente respinta, server e repor
 restano disponibili. Fixture solo in directory temporanea. Parsing Python e
 diff passati. JavaScript invariato, nessuna nuova operazione TV.
 
-La readiness finale del launcher e i PID/provenienza ripristinati sono nel
+La readiness finale del launcher e i PID/provenienza operativi sono nel
 record locale reports/bridge-domain-readiness.json. Il vecchio ricevitore
-post-Store viene ripristinato senza raccolta nuova; il report del 30 settembre
-rimane quello già acquisito. Non ripetere inventario o cattura per questo fix.
+post-Store è fermo: il tentativo di ripristino è stato respinto dall'auto-review
+per rischio di ripetere inventario/probe già esauriti senza autorizzazione chiara.
+Il comando respinto non è stato eseguito; nessun workaround o nuovo tentativo.
+Chiesta separatamente autorizzazione specifica o scelta di lasciarlo fermo.
+Il collector :80 non dipende da quel processo. Non ripetere inventario o cattura.
 L'azione resta Browser TV → http://vidaahub.com → Raccogli una volta.
+
+Avvio reale del BAT corretto verificato dopo commit 100d4b0: root via dominio
+HTTP200, solo collector, PID2312. Secondo avvio reale con stdin nul riusa
+esattamente PID/collectionId; nessuna chiusura del server o DNS. Collection
+bridge-d424a584b261425db1be7176edd852fd, build bridge-2f188c3d729a2bc3,
+HEAD100d4b0e2f6c00a1df38e070dc4865b755f17c05, collectorDirty false, receipt null.
+Nessun bridge-source-latest.json nuovo. ICS UDP53 PID6844 resta attivo.
+
+Il report post-store-latest già presente non è più la copia delle 14:09:
+timestamp pagina 2026-09-30T16:20:15.65Z, ricevuto 18:20:10.899852 Europe/Rome,
+4281 byte SHA256 0efd7bac0e62b3c19b46141e1844d0127d07d14c086ddc531cd5c30c2370d2ba.
+Questo fix non lo modifica e non ha lanciato quella raccolta. Non attribuire
+questo report al nuovo collector o usare il vecchio hash per la copia latest.

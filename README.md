@@ -7,6 +7,11 @@ receipt. The previous launcher killed all Sidee instances and then collided
 with Windows ICS DNS. Keep ICS running. Current process provenance is in
 http://192.168.1.5/status; older PID references below are historical.
 
+The fixed BAT and a second-launch reuse have been verified on this PC. Current
+collector PID2312, receipt null at verification. Historical :8080 receiver is
+stopped; its restart was blocked by automatic review pending specific user
+approval. It is independent of this collector; old reports remain local.
+
 Current collector entry: **http://vidaahub.com/**, served at `/` on HTTP/80 by
 `python sidee.py --bridge-source-check --check-port 80`. The owner explicitly
 requested this routing correction. Existing Windows ICS DNS now returns the

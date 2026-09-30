@@ -1,5 +1,18 @@
 # Prompt per la prossima chat — 30 settembre 2026
 
+Stato operativo finale del fix launcher: avvio reale del BAT verificato,
+receiver 192.168.1.5:80 PID 2312, collectionId
+bridge-d424a584b261425db1be7176edd852fd, build bridge-2f188c3d729a2bc3,
+runtime HEAD 100d4b0e2f6c00a1df38e070dc4865b755f17c05, collectorDirty false.
+Secondo avvio BAT verificato: stesso PID/collectionId, nessun DNS/stop.
+Root via dominio HTTP 200, receipt null. ICS UDP53 PID 6844 resta attivo.
+:8080 ora fermo: auto-review ha respinto il ripristino del ricevitore storico
+per rischio di ripetere inventario esaurito; domanda specifica inviata all'utente.
+Non riavviarlo senza risposta/autorizzazione. Il collector :80 è indipendente.
+post-store-latest presente di una ricezione precedente alle 18:20:10 Europe/Rome,
+4281 byte SHA256 0efd7bac0e62b3c19b46141e1844d0127d07d14c086ddc531cd5c30c2370d2ba,
+diverso dalla copia 14:09 sotto; file intatto, non una raccolta lanciata ora.
+
 ## Ultimo fix: launcher Windows isolato, nessun DNS o stop globale
 
 L'utente ha aperto start-windows.bat, ancora storico: fermava indistintamente

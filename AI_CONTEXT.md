@@ -5,6 +5,16 @@
 
 Last updated: 2026-09-30
 
+> FINAL LAUNCHER READINESS: actual BAT and second-launch reuse verified; HTTP200
+> via domain, PID2312, collection bridge-d424a584b261425db1be7176edd852fd,
+> build bridge-2f188c3d729a2bc3, runtime HEAD100d4b0, collectorDirty false,
+> receipt null. ICS DNS6844 preserved. :8080 remains stopped: automatic review
+> rejected historical receiver restart as potentially repeating exhausted
+> inventory; specific optional approval requested, no reply yet. :80 independent.
+> Existing post-store latest is a prior 18:20:10 Europe/Rome receipt, bytes4281,
+> SHA2560efd7bac0e62b3c19b46141e1844d0127d07d14c086ddc531cd5c30c2370d2ba,
+> not the earlier14:09 copy. No new inventory during this fix; file untouched.
+
 > NEWEST FIX: user's launch log exposed unchanged start-windows.bat: it killed
 > all sidee.py processes then ran legacy Store/DNS mode; both receivers were
 > absent after that launch. Windows launcher now selects isolated collector :80

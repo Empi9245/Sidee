@@ -1,5 +1,15 @@
 # Sidee / Nuvio — passaggio di consegne corrente
 
+Readiness finale verificata attraverso il BAT e secondo avvio: root HTTP 200,
+PID 2312, collectionId bridge-d424a584b261425db1be7176edd852fd,
+build bridge-2f188c3d729a2bc3, runtime HEAD 100d4b0, collectorDirty false,
+receipt null. DNS ICS PID 6844 attivo. :8080 fermo: ripristino respinto da
+auto-review per rischio di ripetere inventario già esaurito; richiesta specifica
+di approvazione inviata, non riavviare senza risposta. :80 non dipende da :8080.
+Report post-store-latest locale alle 18:20:10 Europe/Rome, 4281 byte, hash
+0efd7bac0e62b3c19b46141e1844d0127d07d14c086ddc531cd5c30c2370d2ba;
+non la copia precedente delle 14:09, non modificato né raccolto durante questo fix.
+
 ## Ultimo fix dell'avvio Windows
 
 Il log utente viene dal launcher storico: chiusura globale sidee.py, vecchio

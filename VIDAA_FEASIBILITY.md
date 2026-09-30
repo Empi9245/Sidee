@@ -10,6 +10,11 @@ Launcher corretto per il solo collector HTTP/80 e riuso del receiver conforme,
 senza DNS/stop processi; ICS preservato. Test riavvio/conservazione ricevuta e
 build estranea passati off-TV. Non cambia la diagnosi AppConfig o i criteri Nuvio.
 
+Verificato anche avvio BAT reale e doppio avvio: receiver :80 PID2312 conservato,
+root HTTP200, receipt null. :8080 fermo, riavvio bloccato dall'auto-review per
+rischio di ripetere inventario esaurito; approvazione specifica chiesta. Questo
+non impedisce la raccolta nuova su :80. Nessuna nuova prova TV del collector.
+
 Aggiornamento successivo alla richiesta esplicita dell'utente: collector ora
 alla radice **http://vidaahub.com/**, HTTP/80. Corretto solo il vecchio mapping
 hosts .8 → .5 con backup. DNS ICS verificato .5 e GET dal PC attraverso il
