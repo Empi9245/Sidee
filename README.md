@@ -1,5 +1,16 @@
 # Sidee
 
+## Current handoff — vidaahub context investigation
+
+Next-chat prompt: [NEXT_CHAT_PROMPT.md](NEXT_CHAT_PROMPT.md). Complete current
+state: [LATEST_RESPONSE_AND_NEXT_CHAT.md](LATEST_RESPONSE_AND_NEXT_CHAT.md).
+The user's latest priority is to investigate whether the documented supported
+context/API/authorization changed from the historical vidaahub.com setup.
+A different permission-granting origin is a hypothesis, not an established
+import path. API availability, installation permission and persisted resources
+are separate questions. Do not replace this question with another LAN snapshot.
+The real inventory response has arrived; earlier pending states are historical.
+
 ## Current assessment — persistent Nuvio app on Q0707 (2026-09-30)
 
 Read [VIDAA_FEASIBILITY.md](VIDAA_FEASIBILITY.md) and
@@ -31,7 +42,7 @@ StartCommand and `packaged:0`; its native app identity does not prove local
 Nuvio resources. No documented persistent local-app import was found for
 Duplecast/SmartOne in the checked vendor documentation.
 
-The latest report is a DNS-only session, not package-delivery evidence. The
+The latest standard report is a DNS-only session, not package-delivery evidence. The
 previous PCAP already confirms 382 HTTPS records after the NAT correction;
 there is no need to repeat visibility tests. The assessment records exact
 report dates, report-branch commit and reconstructed application build.

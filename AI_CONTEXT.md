@@ -17,6 +17,11 @@ Last updated: 2026-09-30
 > Latest authorized action: isolated post-Store inventory mode received a real
 > result: app API unavailable, 18 system packages, no import mechanism. See latest
 > handoff; do not start normal Sidee or old auto-probes to perform this check.
+> Latest user request: prepare the next-chat prompt, with vidaahub.com as the
+> priority research context. See NEXT_CHAT_PROMPT.md and the rewritten current
+> handoff. Investigate documented changes in supported context/API/authorization;
+> a different permission-granting domain remains a hypothesis, not an established
+> route. Do not silently replace that question with another LAN-origin snapshot.
 
 ## Project
 
@@ -49,7 +54,8 @@ Sidee provides:
 Real hardware used for the current research:
 
 - Brand: Hisense
-- Model: `50E70LEVS_0003`
+- Commercial model confirmed by user: `50E77NQ`
+- Internal model reported by historical diagnostics: `50E70LEVS_0003`
 - Firmware: `V0000.09.60A.Q0707`
 - OS: `VIDAA U09.60`
 - VIDAA API version: `3.0.1`
@@ -65,7 +71,9 @@ The Sidee page was successfully executed from:
 - `https://vidaahub.com/`
 - origin: `https://vidaahub.com`
 
-Therefore the DNS/HTTPS setup is confirmed to reach the privileged VIDAA browser context on this TV.
+This historical origin exposed VIDAA APIs on this TV. It did not establish
+authorization to install or write: the saved results still include AppConfig
+503 denials. API exposure and installation permission must remain distinct.
 
 ## Important APIs confirmed on this firmware
 
@@ -5305,3 +5313,40 @@ Nessuna sostituzione DNS/TLS di domini vendor o ricerca di origini privilegiate
 eseguita. I vecchi contesti vidaahub/native avevano respinto install/write 503.
 Il test attuale non è un A/B con stesso codice/contesto nativo: non attribuire
 causalità certa al solo hostname. Tutti i cinque criteri Nuvio non verificati.
+
+## Handoff richiesto dall'utente — priorità vidaahub.com — 30 settembre 2026
+
+L'utente interrompe l'indagine corrente per chiedere prompt e contesto completo
+per la prossima chat. Insiste sul riferimento vidaahub.com e vuole verificare
+se nelle versioni recenti siano cambiati il contesto supportato o i permessi.
+Questa priorità è ora esplicita in NEXT_CHAT_PROMPT.md e nel riepilogo corrente
+LATEST_RESPONSE_AND_NEXT_CHAT.md, riscritto per eliminare attese obsolete.
+Il risultato dell'inventario del 30 settembre è già arrivato: non è pending.
+
+Ipotesi di diverso punto di ingresso/regole runtime ancora non verificata.
+Vecchia disponibilità API, autorizzazione install/write e risorse persistenti
+sono tre domande diverse. Il 503 non prova impossibilità universale; una nuova
+origine non è dimostrata come soluzione. Cercare documentazione primaria e
+procedure autorizzate pertinenti. Non enumerare origini privilegiate, impersonare
+VIDAA/Store tramite DNS/TLS o ripetere bypass/AppInfo/identity/file probe esauriti.
+Non sostituire silenziosamente l'indagine richiesta con un altro test IP LAN.
+
+Ricontrolli di sola lettura in questa consegna:
+- Sidee main 4e14334663b099ad000802736e9b64ae35b6e9e1 prima dei nuovi documenti.
+- A control/request.json già in staging, Git blob aefa724c1725b1ef2178c79fdd8914745bb9065e,
+  SHA256 6d8cd6ec102dd17b4ebd110e443fe6a68d645eee663ed1ce05fc2749699fa9b4.
+  Preservare ed escludere dai commit. Tutti i flag false.
+- Nuvio main 1f1ad284a292c06b0ed6b045dd1e1f3177666d1b, pulita e invariata.
+- Report post-store 4.281 byte, SHA256 nuovamente verificato
+  78b8bc5564464bc9d17b823b482d6b3d94cebfe7d22f31e094da21229841ab4f.
+- Ricevitore Python PID 5676, sidee.py --post-store-check, listener solo
+  192.168.1.5:8080. GET /status su LAN restituisce la risposta già ricevuta;
+  loopback 127.0.0.1 rifiuta correttamente. Non dedurre servizio spento da quello.
+  receivedAt in memoria 2026-09-30T12:09:01.111526+00:00, stesso istante
+  del +02:00 nel file locale. Ricontrollare processo/listener prima di intervenire.
+
+Consegna solo documentale: prompt, riepilogo completo, riferimenti README e
+valutazione, priorità e correzione della vecchia frase sui privilegi nel contesto.
+Nessun nuovo probe TV, installazione, server riavviato o modifica DNS/TLS.
+I test del codice isolato erano già passati; nessun nuovo risultato sui cinque
+criteri Nuvio. Niente devkit/Superdesign/partner/contatto VIDAA/MSX, come richiesto.

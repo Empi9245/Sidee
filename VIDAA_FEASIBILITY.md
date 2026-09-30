@@ -6,6 +6,14 @@ OS `U09.60`, MTK9603, Odin/Chromium 111.
 
 ## Esito
 
+Ultima richiesta: passaggio di consegne con priorità all'ipotesi di cambiamento
+del contesto vidaahub.com. Prompt in [NEXT_CHAT_PROMPT.md](NEXT_CHAT_PROMPT.md),
+stato corrente in [LATEST_RESPONSE_AND_NEXT_CHAT.md](LATEST_RESPONSE_AND_NEXT_CHAT.md).
+Non è una nuova evidenza di autorizzazione o installabilità. La lettura HTTP LAN
+non è un confronto A/B identico con il vecchio contesto; non attribuire al solo
+hostname la differenza di API. Verificare procedure supportate e documentazione
+attuale, senza riproporre la lettura già completata o cercare bypass dei permessi.
+
 **Nessuna delle strade esaminate è attualmente dimostrata capace di soddisfare
 tutti i requisiti senza devkit.** Questo è un limite delle evidenze e dei
 meccanismi disponibili, non una prova che il firmware non possa mai eseguire

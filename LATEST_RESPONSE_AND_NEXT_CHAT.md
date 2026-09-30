@@ -1,193 +1,200 @@
-# Sidee — Nuvio persistent-app feasibility assessment
+# Sidee / Nuvio — passaggio di consegne corrente
 
-Date: 2026-09-30, Europe/Rome.
+Aggiornato: 30 settembre 2026, Europe/Rome. Questo riepilogo sostituisce le vecchie
+indicazioni operative e le attese presenti nella cronologia di AI_CONTEXT.md.
+Prompt pronto da copiare: NEXT_CHAT_PROMPT.md.
 
-## Real TV response received — 30 September, 14:09 Europe/Rome
+## Ultima richiesta dell'utente
 
-User says they completed the check. Receiver result is now present:
-reports/post-store-20260930-120901-112525.json and post-store-latest.json.
-Detailed provenance/limits: research/post-store-result-20260930.md.
-HTTP LAN origin 192.168.1.5:8080; installed-app API UNAVAILABLE, package API
-READ_OK with 18 system components, including tvbrowser type web. No Nuvio or
-Duplecast-named package. Missing app inventory prevents current registry/package
-correlation; no conclusion that Duplecast only stores a URL. Package count and
-families match the documented old baseline; exact version equality not verified.
-No new own-app import mechanism or Nuvio acceptance result.
+L'utente chiede di preparare la prossima chat e salvare tutto il necessario.
+Insiste che l'indagine riparta da **vidaahub.com**, non da localhost/IP LAN come
+soluzione. Vuole verificare se rispetto alle vecchie versioni siano cambiati il
+contesto di esecuzione, l'esposizione delle API o le regole dei permessi; ipotizza
+anche un diverso punto di ingresso attuale. È un'ipotesi da verificare, non un
+fatto già accertato e non un'autorizzazione disponibile per installare Nuvio.
 
-User insists on vidaahub.com and asks how to find other origins giving privileges.
-No vendor-domain DNS/TLS impersonation or privileged-origin search was performed.
-Past vidaahub/native-app contexts still rejected install/write with AppConfig 503.
-The new read is not a controlled same-code A/B: don't prove hostname causation.
-Don't repeat the completed snapshot or exhausted permission/file/source probes.
+Non liquidare la richiesta dicendo che la presenza di AppConfig 503 prova
+impossibilità universale. Non promettere che un dominio diverso la risolva.
+Dare priorità al confronto delle evidenze storiche con documentazione pubblica
+attuale e procedure consentite: capire cosa rendeva disponibile il vecchio
+contesto e quali funzionalità di importazione/distribuzione sono oggi previste.
+Per eventuali altri indirizzi, cercare riferimenti ufficiali/pubblici pertinenti,
+non enumerare host candidati per aggirare controlli. Non preparare sostituzioni
+DNS/TLS di domini VIDAA o di app Store per acquisire privilegi riservati.
 
-## Earlier preparation and origin correction
+Nessuna nuova indagine TV, installazione o modifica operativa in questa consegna.
+Sono stati soltanto ricontrollati repository, integrità del report e ricevitore.
 
-User reminded us of the historical vidaahub.com origin. The previous tested
-origin exposed VIDAA APIs but did not pass the install/write AppConfig 503 gate.
-192.168.1.5 is the LAN PC, not TV localhost. Do not infer authority from hostname.
-No DNS/TLS impersonation of the vendor domain was activated to obtain reserved
-privileges. Added browser accessContext and receiverContext to the isolated
-snapshot instead; Node/HTTP tests passed. Latest real receiver result still null
-at this check, no new TV evidence. Reload the TV page to use the updated script.
-Restarted only the verified isolated receiver; new PID 5676 at restart,
-192.168.1.5:8080/status still latest:null. Recheck state/PID in future.
+## Obiettivo da mantenere
 
-Latest user instruction: use Sidee and connect to the TV if useful. Checked
-current main c1cb6e6 and preserved staged control/request.json. Sidee was not
-running: both localhost and 192.168.1.5:8080 refused /api/status. Elevated LAN
-inventory confirmed this PC is 192.168.1.5, with no Sidee listener on known ports.
+TV **Hisense 50E77NQ**, firmware V0000.09.60A.Q0707, OS VIDAA U09.60,
+MTK9603, Odin/Chromium circa 111. Il modello interno riportato dai vecchi
+report è 50E70LEVS_0003 (non sostituirlo al modello commerciale confermato).
 
-Implemented and started `sidee.py --post-store-check`: isolated inventory-only
-mode, bypassing old startup routines and the historical Sidee handler. One TV
-page calls only exposed Hisense_getInstalledApps/getInstalledPkgs. No arbitrary
-JS control, file access, install/write, origin/identity override, DNS, capture,
-Git workers or vendor contact. The old normal mode remains unchanged.
-New files: post_store_check.py, web/post-store-check.html/js, two focused tests.
-Both Node fixtures and HTTP integration test passed; git diff --check passed.
+Nuvio deve:
+1. aprirsi dal launcher TV;
+2. funzionare con frecce, OK e Indietro senza cursore;
+3. restare utilizzabile dopo chiusura e riavvio reale;
+4. avviare l'interfaccia con Sidee, PC e server locale Nuvio spenti;
+5. caricare l'interfaccia e riprodurre un contenuto di prova autorizzato.
 
-Server running as hidden Python PID 18200 at http://192.168.1.5:8080 when launched.
-Recheck live state instead of trusting the PID later. /status initially latest:null.
-Asked user to open this address in the TV Browser; the read starts automatically.
-Result is pending. Local report path: reports/post-store-latest.json, plus history.
-Those files are ignored and not auto-synced. If both APIs are unavailable, no
-report is posted. Do not treat an off-TV fixture as a real TV result.
+Internet per contenuti/account/servizi è consentito. L'utente non vuole ospitare
+l'interfaccia. Pacchetto locale, sideload o contenitore sono accettabili solo se
+soddisfano i criteri. Browser fullscreen, bookmark, cache o service worker non
+bastano. Una UI ospitata da un fornitore resta una strada distinta, da valutare
+esplicitamente, non da sostituire implicitamente all'installazione locale.
+**Tutti e cinque i criteri sono ancora non verificati.**
 
-This new snapshot is justified by the 29 September Store operation following
-the detailed 26 September Duplecast inventory. It reads lists only, without
-repeating exhausted permission/file-path/source probes. Missing metadata or
-no matching package still cannot prove absence of persisted app resources.
-Analyze the returned targets/package references; no own-app importer or any
-of the five Nuvio acceptance criteria is established by this snapshot alone.
+Esclusi: devkit, Superdesign, contatto con VIDAA, percorso partner, Media Station X.
+MSX è nello Store della TV secondo l'utente, che non vuole usarlo: non chiedergli
+di nuovo e non proporlo. Esclusi anche sostituzioni ingannevoli di pacchetti Store
+e bypass di firme, autenticazione o permessi AppConfig.
 
-The user excludes contacting VIDAA/becoming a partner. They confirmed that
-Media Station X is available in their TV Store, but do not want to use it.
-Exclude it from the solution; do not ask again or treat availability as a test.
+## Letture iniziali obbligatorie nella prossima chat
 
-New work saved in VIDAA_FEASIBILITY.md and research/:
-- Passed an off-TV audit of the reviewed public MSX BlobService. It retains
-  GET/POST responses/object URLs in memory; a fresh JS instance/context cannot
-  recover them. No real transport/storage/TV operations. This does not simulate
-  a firmware reboot or exclude separate storage elsewhere in MSX.
-- Video/Audio Plugin documentation also says its iframe receives no input.
-- Confirmed a real official hosted Nuvio URL via its TizenBrew wrapper, commit
-  f3851d9ff671cca0c6d48bc7bb79b8c7debbddcc: https://web.nuvioapp.space/.
-  Direct HTTPS returned HTTP 522; web reader timed out. Current functionality
-  and VIDAA compatibility unverified, not proof of permanent shutdown.
-- Community nuviovidaa.netlify.app returned 200 but only wraps the same origin
-  in an iframe. It scales/focuses UI and does not contain/import the Nuvio bundle.
-- Read official MT9603/VIDAA U9 NA/SA software E-Manual (58Q6QV). Shortcuts opens
-  browser sites; USB/Media describes media files, no own-app import in those
-  sections. Different model/region from 50E77NQ EU/Q0707: keep the limitation.
-- Rechecked the historical 61-app inventory; no new documented resource
-  importer identified. No new TV reports or acceptance results.
+Leggere completamente AI_CONTEXT.md, questo file, README.md, NEXT_CHAT_PROMPT.md,
+VIDAA_FEASIBILITY.md e research/post-store-result-20260930.md prima di modificare.
+Le sezioni storiche non sono un piano autorizzato da rieseguire automaticamente.
+Ricontrollare branch/HEAD/locali e il report più recente con data e provenienza.
+Esaminare il port VIDAA Nuvio, installer e packaging prima di proporre modifiche.
+Nessun AGENTS.md trovato durante il lavoro precedente; ricontrollare se aggiunto.
 
-Initial Sidee main ef25a23, staged control/request.json preserved. Nuvio main
-1f1ad284 remains clean. No TV/server/DNS changes or Nuvio implementation.
-There is still no supported candidate for the five TV tests under these
-constraints. A future candidate must establish authorized import or an
-accepted hosted launcher path first; do not build another cache/iframe loader.
+## Repository e preservazione del lavoro locale
 
-## Previous assessment context
+- Sidee: C:\Users\empi0\Desktop\Sidee, Empi9245/Sidee, branch main.
+  HEAD prima di questo aggiornamento documentale:
+  4e14334663b099ad000802736e9b64ae35b6e9e1.
+  Il nuovo commit di handoff è successivo e va ricavato dal Git corrente.
+- Unica modifica locale preesistente: **A control/request.json**, già in staging.
+  Preservarla e non includerla nei commit della consegna.
+  Git blob aefa724c1725b1ef2178c79fdd8914745bb9065e;
+  SHA256 6d8cd6ec102dd17b4ebd110e443fe6a68d645eee663ed1ce05fc2749699fa9b4.
+  Tutti i flag sono false. Il file annota i precedenti 503 identici per 1470/1876/2568.
+- Nuvio: D:\nuvio\nuviotvsmart, branch main, HEAD
+  1f1ad284a292c06b0ed6b045dd1e1f3177666d1b, pulita, nessuna modifica/build.
+- Modifiche necessarie direttamente sulle repo; Sidee commit su main; mantenere
+  aggiornati contesto e risultati. Non fare reset/stash del lavoro dell'utente.
 
-Follow-up: the user asked the agent to find a method autonomously and confirmed
-the TV model as Hisense 50E77NQ. Additional public-source research is saved in
-the follow-up section of VIDAA_FEASIBILITY.md. No local import path was found.
-Do not send the user back to research generic sideload instructions already
-examined, or imply an installer exists. No new TV tests have been run.
+Commit utili Sidee: c1cb6e6 (ricerca contenitore/hosting), 670d900 (modalità
+isolata), 5b3ea81 (origine esplicita), 4e14334 (risposta TV reale). I test della
+modalità isolata sono passati; questo aggiornamento modifica solo documenti.
 
-New evidence: current GitHub API says issue #790 not_planned and PR #1007 closed,
-unmerged, head 00cfecaa; cached HTML/search states are stale. Official release
-1.2.1 has Tizen/webOS assets, no VIDAA package. The remote follow-up commit fixes
-the SW asset list but does not establish a local install path; local Nuvio stays
-at 1f1ad284. MSX officially supports VIDAA U6+, yet persistent app import/input
-is still not demonstrated. The model's downloadable PDF guides refer software
-functions to the TV E-Manual. The examined B2B Custom App manual is for Android,
-not this VIDAA TV. Native Linux support exists via the VIDAA partner integration
-process; this is not a public consumer sideload procedure.
+## Report più recente: risposta reale già ricevuta
 
-Read `VIDAA_FEASIBILITY.md` for evidence, three-route evaluation, dependencies,
-decisive tests, abandonment criteria, acceptance status and source links.
+File locale completo: reports/post-store-20260930-120901-112525.json;
+copia reports/post-store-latest.json. 4.281 byte, SHA256 verificato nuovamente:
+78b8bc5564464bc9d17b823b482d6b3d94cebfe7d22f31e094da21229841ab4f.
+File ignorati da Git, non sincronizzati al branch report. Fonte e limiti anche
+nel documento tracciato research/post-store-result-20260930.md.
 
-## Objective and outcome
+- Timestamp pagina: 2026-09-30T12:09:05.471Z (14:09:05.471 Europe/Rome).
+- receivedAt nel file: 2026-09-30T14:09:01.111526+02:00.
+- Origine HTTP LAN http://192.168.1.5:8080, secureContext false.
+- Hisense_getInstalledApps: UNAVAILABLE, numero app sconosciuto.
+- vowOS.store.getInstalledPkgs: READ_OK, 18 componenti di sistema, non troncato.
+- tv.vidaa.app.tvbrowser: type web, versione 9.6.0-r20260706x,
+  percorso APPS:pkgs/tv.vidaa.app.tvbrowser/.
+- Nessun package con nome Nuvio/Duplecast. Questo elenco non è il registro
+  completo delle app Store e non prova che Duplecast conservi soltanto un URL.
+- Conteggio/famiglie coerenti con il vecchio inventario, non un confronto
+  byte-per-byte delle versioni. Nessun byte delle risorse TV è stato letto.
 
-User wants Nuvio on Hisense VIDAA Q0707 as an app launched from the TV launcher,
-operated entirely by arrows/OK/Back, persistent after reboot, with Sidee and
-the local UI host off during normal use. Internet content/account services are
-allowed; the user does not want to operate UI hosting. Devkit and Superdesign
-are excluded. Browser fullscreen and service-worker cache are insufficient.
+Non scrivere ancora “risultato in attesa”. Nessuna nuova lettura richiesta.
+Non è un A/B con identico codice e contesto nativo rispetto ai vecchi report
+vidaahub: la differenza di API non dimostra che sia causata solo dall'hostname.
+La domanda su cosa abbia memorizzato la reinstallazione Duplecast resta aperta.
 
-**No evaluated route currently proves all these requirements.** There is no
-demonstrated authorized local Nuvio package/import workflow on this firmware.
-Hosted registration remains dependent on UI hosting. A provider-managed UI
-could remove the user's hosting obligation, but no such VIDAA Nuvio deployment
-was verified; it is a distinct conditional route, not a local-install result.
+Ultimo report **standard** precedente (non il più recente risultato TV):
+reports/sidee-session-20260929-194224-f686.json, updatedAt
+2026-09-29T19:10:18Z, build app-5dbeec3fbd21, buildMatch true, DNS-only.
+Branch remoto sidee-reports, commit f8dee5d5ced6fde8b7d936a92bec45bd423643fb,
+2026-09-29T19:09:38Z; stesso report aggiornato 43 secondi prima del locale.
+Non contiene Git HEAD. Il digest ricostruito coincide con il codice f5b5a9b/89acbe5;
+non distingue commit di soli documenti e non prova uso del successivo auto-capture.
 
-## Repo and report state
+Cattura già risolta: reports/sidee-session-20260929-173911-7b2f.json,
+captures/sidee-net-20260929-173911: 384 IPv4, 382 HTTPS,
+FILTERED_FLOW_VISIBLE_AFTER_NAT. Non ricominciare dalla visibilità HTTPS.
+SNI e volumi TLS non dimostrano download, formato o persistenza di un pacchetto.
 
-- Initial Sidee `main`: `89acbe5ada4ae221773fd426c65918bd786dbe6e`.
-- Fetched and fast-forwarded to `7c4700ea5e239925ad4531191e0de92124cfc09a`
-  before this assessment; read the added runtime handoff and auto-capture work.
-- Existing staged addition `control/request.json` contains disabled requests.
-  Preserve it; do not include it in unrelated commits or run it.
-- Nuvio `main`: `1f1ad284a292c06b0ed6b045dd1e1f3177666d1b`; clean, unchanged.
-- Latest local report: `sidee-session-20260929-194224-f686.json`, updated
-  `2026-09-29T19:10:18Z` (21:10:18 Italian time), build `app-5dbeec3fbd21`,
-  `buildMatch:true`. DNS-only; no package/offline verification.
-- Remote report commit `f8dee5d5ced6fde8b7d936a92bec45bd423643fb`,
-  29 September 21:09:38 +0200; same session, updated `19:09:35Z`.
-- Report does not include Git HEAD. Recomputed build digest with Windows CRLF
-  matches code commits `f5b5a9b` and `89acbe5`; cannot distinguish doc-only commits.
-  Do not assume it ran the newer `c895f314` auto-capture code.
-- Browser report `sidee-session-20260929-191916-046b.json`: no keyboard or
-  hiWebOsFrame bridge, key routing not attempted, zero remote events,
-  automatic install skipped because install APIs were unavailable.
-- Saved capture `sidee-net-20260929-173911`: 384 decoded IPv4, 382 HTTPS
-  records, topology `FILTERED_FLOW_VISIBLE_AFTER_NAT`. HTTPS visibility is
-  solved. TLS does not reveal package bytes/path/storage.
+## Stato operativo verificato durante questo handoff
 
-## Route evidence
+Ricevitore isolato attivo: Python PID 5676, comando sidee.py --post-store-check,
+listener **192.168.1.5:8080**, non su 127.0.0.1. La mancata risposta al loopback
+non significa che il servizio sia spento. GET http://192.168.1.5:8080/status
+restituisce la risposta reale sopra; receivedAt nello stato in memoria è lo
+stesso istante rappresentato come 2026-09-30T12:09:01.111526+00:00.
+Ricontrollare processo/listener prima di intervenire; non fidarsi del vecchio PID.
 
-1. **Local package:** real system packages and pkgmgr exist, but no authorized
-   package format/staging/import for a user-owned Nuvio app is known. Nuvio's
-   packager creates a plain JSZip web archive, without a demonstrated VIDAA
-   package/signing/install workflow. Do not invent names or invoke pkgmgr install.
-2. **Hosted launcher registration:** Duplecast's 26 September original registry
-   has remote URL/StartCommand, `packaged:0`, empty appBundle/configUrl. Native
-   Duplecast identity is not proof of local resources. There is no fresh
-   before/after storage inventory proving what the 29 September install retained.
-   Nuvio installer sends a URL, not ZIP/resources, and still has callback-0
-   false-success wording. PC/IP or user-managed public hosting fails the goal.
-3. **Persistent container:** Duplecast/SmartOne documentation describes playlist
-   players, with no local HTML app import in the checked pages. MSX documents
-   hosted JSON/link/plugins; interaction iframes receive no input. MSX is not
-   in the observed 61-app inventory and availability here is unverified.
-   No documented local persistent Nuvio-resource container was found.
+La modalità isolata non avvia DNS, TLS, catture, Git workers, controllo remoto,
+install/write o handler storico. Serve solo pagina inventario e ricevitore.
+/api/status qui non esiste: usare /status. Il browser TV va aperto dall'utente;
+Sidee non è un controllo generale che possa aprire qualsiasi pagina autonomamente.
 
-## Changes in this delivery
+Configurazione: spoof_domains [], store_download_capture.auto_arm_on_start false.
+La modalità normale mantiene vecchi probe/automatismi: non avviarla o aprirla
+sulla TV semplicemente per generare un'altra sessione. Nuvio target configurato
+http://192.168.1.5:4173/?wrapper=vidaa è un indirizzo di laboratorio, non una
+soluzione al requisito del PC spento. Nessun servizio operativo riavviato qui.
 
-- Added the feasibility assessment; updated README/context/handoff.
-- Empty default spoof_domains: no automatic SmartOne hostname substitution.
-- `store_download_capture.auto_arm_on_start:false`: no automatic old capture.
-- Preserved diagnostic code and existing staged work; Nuvio code unchanged.
-- No server restart, TV mutation, new probe, capture, install or playback claim.
+## Evidenze consolidate e domande ancora aperte
 
-The existing Sidee UI startup probes remain in code. Do not open/restart the
-TV page merely to generate another report for this assessment.
+**Contesto / permessi.** La vecchia pagina https://vidaahub.com esponeva più API.
+Installazione e scritture restavano negate con AppConfig 503: callback 0 non era
+successo. Identità nativa presente e SupportAppConfig true in Duplecast/SmartOne
+non concedevano permessi. I wrapper JS osservati delegano al bridge nativo;
+la risoluzione dei permessi non è dimostrata dal semplice nome host/app ID.
+Non ripetere override identità, Role/Customer, no-op AppInfo, HSPDK, letture di
+percorsi tvbrowser o enumerazioni globali già esaurite senza una nuova evidenza.
 
-## Next discriminating step
+**Nuvio locale.** scripts/package-vidaa.mjs crea un archivio JSZip di file web:
+nessun formato/importatore VIDAA autorizzato dimostrato. Manifest/appinfo non
+provano installabilità. installer/index.html invia APP_URL a Hisense_installApp,
+non il pacchetto; la frase di successo su callback 0 è ancora fuorviante.
+Il service worker/cache non è una prova di installazione persistente.
 
-Identify a documented authorized import/distribution path for Q0707 that can
-store a user-owned app locally without devkit or partner onboarding, from public
-evidence. The user explicitly excludes contacting VIDAA and using MSX.
-The official hosted URL identified above currently fails the PC fetch and
-does not establish a VIDAA launcher route. Do not send vendor messages.
+**Duplecast.** Report dettagliato del 26 settembre
+sidee-session-20260926-153038-1083.json: app 1876, URL/StartCommand
+http://vidaa.duplecast.com/, packaged 0, appBundle/configUrl vuoti,
+configUrlDownload 0. Precede l'operazione Store del 29 settembre.
+Né identità nativa né nuovo inventario dei 18 componenti bastano a dire cosa
+“Installa” abbia salvato. Servono evidenze di risorse e dipendenze, non supposizioni.
+SmartOne/Duplecast non hanno un importatore HTML locale documentato nelle fonti lette.
 
-Only if that precondition is satisfied, implement the smallest app with its
-own ID, verify local resource provenance and all five TV acceptance checks,
-then integrate Nuvio and test authorized playback. For a container, require
-documented import/storage/JS/input first. If only URLs/playlists/cache are
-available, abandon the local route under current constraints.
+**Fonti pubbliche già esaminate.** Link e dettagli completi in VIDAA_FEASIBILITY.md:
+- Nuvio issue #790 chiusa not_planned; PR #1007 chiusa non unita,
+  head 00cfecaa02e22d903b2d004ced58150527eda39f (solo ulteriore fix SW).
+  Release 1.2.1 del 28 settembre: pacchetti Tizen/webOS, nessun pacchetto VIDAA.
+- Wrapper ufficiale TizenBrew punta a https://web.nuvioapp.space/;
+  fetch del 30 settembre HTTP 522. Non dichiararlo morto per sempre o operativo.
+- https://nuviovidaa.netlify.app/ risponde 200 ma contiene un iframe verso
+  quello stesso servizio; nessun bundle/importazione Nuvio locale dimostrato.
+- E-Manual MT9603/U9 NA/SA per 58Q6QV: USB media e browser shortcut nelle
+  sezioni pertinenti, nessun importatore proprio descritto. Modello/regione
+  diversi: non prova universale di impossibilità sulla 50E77NQ EU.
+- Ricerca MSX e audit BlobService in research/ sono archiviati: non sono
+  prove TV e MSX è comunque escluso. Nessun nuovo test da riproporre su MSX.
+- Documentazione controllo telecomando/launcher non dimostra upload di package.
 
-A further Duplecast experiment must distinguish storage/host dependency with
-documented metadata and a cold-start test. SNI or large/small TLS flows alone
-cannot prove a downloaded package. Do not reinstall Duplecast just for those.
+## Come deve proseguire la prossima chat
+
+1. Ricostruire il confronto storico vidaahub / IP / app nativa dai report già
+   salvati: origine, data, build, API esposte, risposta effettiva. Separare
+   disponibilità del bridge, autorizzazione e memorizzazione dell'app.
+2. Cercare fonti primarie attuali su contesti supportati, requisiti runtime e
+   procedure autorizzate di distribuzione/importazione pertinenti a VIDAA 9.
+   Verificare l'ipotesi di cambiamento senza presumere che un altro hostname
+   sia una chiave. Nessun contatto partner o ricerca operativa di bypass.
+3. Consegnare una valutazione concreta delle tre strade: package locale,
+   launcher di app ospitata, contenitore con risorse locali persistenti.
+   Per ciascuna: evidenze, cosa manca, dipendenze hosting/PC/DNS/cache,
+   prossimo test discriminante e criterio di abbandono. Già in VIDAA_FEASIBILITY;
+   aggiornarla solo con nuova evidenza e dichiarare gli elementi invariati.
+4. Prima di proporre un nuovo probe, dire esattamente quale domanda aperta
+   distingue e perché i test salvati non la risolvono. Se un test necessario
+   sul contesto vidaahub richiede accesso o funzionalità autorizzata non disponibile,
+   dichiarare quel limite: non ripiegare silenziosamente su un altro test IP.
+5. Solo con un candidato sostenuto da evidenze, implementare il minimo e
+   verificare i cinque criteri sulla TV con contenuto autorizzato. Se manca
+   una strada praticabile, dichiarare la mancata dimostrazione con limiti,
+   senza rinominare una web app ospitata come installazione locale riuscita.
