@@ -1,5 +1,12 @@
 # Prompt per la prossima chat — 30 settembre 2026
 
+ULTIMO STATO: l'utente ha risposto «autorizzo il ripristino». Ripristinato soltanto
+receiver post-Store :8080 PID9552, /status mode post-store-check; hash del report
+0efd7bac0e62b3c19b46141e1844d0127d07d14c086ddc531cd5c30c2370d2ba invariato.
+Nessuna pagina post-Store aperta sulla TV o nuova raccolta. Collector :80 PID2312
+e collectionId bridge-d424a584b261425db1be7176edd852fd preservati, receipt null;
+ICS UDP53 PID6844 intatto. La richiesta di approvazione pendente sotto è risolta.
+
 Stato operativo finale del fix launcher: avvio reale del BAT verificato,
 receiver 192.168.1.5:80 PID 2312, collectionId
 bridge-d424a584b261425db1be7176edd852fd, build bridge-2f188c3d729a2bc3,

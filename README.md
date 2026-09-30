@@ -12,6 +12,10 @@ collector PID2312, receipt null at verification. Historical :8080 receiver is
 stopped; its restart was blocked by automatic review pending specific user
 approval. It is independent of this collector; old reports remain local.
 
+Subsequent explicit owner approval received: historical :8080 receiver restored
+as PID9552, existing report unchanged, no new collection. Collector PID2312 and
+ICS remain intact; the earlier approval block is resolved.
+
 Current collector entry: **http://vidaahub.com/**, served at `/` on HTTP/80 by
 `python sidee.py --bridge-source-check --check-port 80`. The owner explicitly
 requested this routing correction. Existing Windows ICS DNS now returns the

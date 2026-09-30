@@ -1,5 +1,11 @@
 # Sidee / Nuvio — passaggio di consegne corrente
 
+Ultimo aggiornamento: autorizzazione esplicita utente ricevuta («autorizzo il
+ripristino»). Solo receiver post-Store :8080 ripristinato PID9552, status verificato,
+hash del report intatto. Nessun inventario o snapshot nuovo. Collector :80 PID2312,
+collectionId bridge-d424a584b261425db1be7176edd852fd e receipt null preservati;
+ICS PID6844 intatto. Il blocco di approvazione descritto sotto è ora risolto.
+
 Readiness finale verificata attraverso il BAT e secondo avvio: root HTTP 200,
 PID 2312, collectionId bridge-d424a584b261425db1be7176edd852fd,
 build bridge-2f188c3d729a2bc3, runtime HEAD 100d4b0, collectorDirty false,

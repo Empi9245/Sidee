@@ -5,6 +5,12 @@
 
 Last updated: 2026-09-30
 
+> LATEST: user explicitly authorized historical receiver restore. Post-Store
+> :8080 PID9552 restored, status verified, existing report hash unchanged. No
+> TV navigation/new inventory/snapshot. Collector :80 PID2312 and collection ID
+> bridge-d424a584b261425db1be7176edd852fd preserved, receipt null; ICS6844 intact.
+> Pending approval/restart block below is resolved by this authorization.
+
 > FINAL LAUNCHER READINESS: actual BAT and second-launch reuse verified; HTTP200
 > via domain, PID2312, collection bridge-d424a584b261425db1be7176edd852fd,
 > build bridge-2f188c3d729a2bc3, runtime HEAD100d4b0, collectorDirty false,

@@ -15,6 +15,9 @@ root HTTP200, receipt null. :8080 fermo, riavvio bloccato dall'auto-review per
 rischio di ripetere inventario esaurito; approvazione specifica chiesta. Questo
 non impedisce la raccolta nuova su :80. Nessuna nuova prova TV del collector.
 
+Autorizzazione specifica ricevuta dopo: receiver :8080 ripristinato PID9552,
+report intatto, nessuna nuova raccolta. Collector :80 e ICS preservati.
+
 Aggiornamento successivo alla richiesta esplicita dell'utente: collector ora
 alla radice **http://vidaahub.com/**, HTTP/80. Corretto solo il vecchio mapping
 hosts .8 → .5 con backup. DNS ICS verificato .5 e GET dal PC attraverso il

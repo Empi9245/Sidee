@@ -244,3 +244,14 @@ timestamp pagina 2026-09-30T16:20:15.65Z, ricevuto 18:20:10.899852 Europe/Rome,
 4281 byte SHA256 0efd7bac0e62b3c19b46141e1844d0127d07d14c086ddc531cd5c30c2370d2ba.
 Questo fix non lo modifica e non ha lanciato quella raccolta. Non attribuire
 questo report al nuovo collector o usare il vecchio hash per la copia latest.
+
+### Ripristino autorizzato del receiver storico
+
+L'utente risponde «autorizzo il ripristino». Nuovo avvio approvato del solo
+sidee.py --post-store-check, nascosto: PID9552 su 192.168.1.5:8080. GET /status
+mode post-store-check verificato; hash post-store-latest invariato
+0efd7bac0e62b3c19b46141e1844d0127d07d14c086ddc531cd5c30c2370d2ba. Nessuna
+navigazione TV verso quel receiver, POST snapshot, inventario, capture o DNS.
+Collector :80 PID2312 e collectionId bridge-d424a584b261425db1be7176edd852fd
+preservati, receipt null; ICS UDP53 PID6844 intatto. Record readiness aggiornato.
+Il precedente diniego auto-review è risolto dall'autorizzazione specifica.
