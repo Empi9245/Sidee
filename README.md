@@ -1,5 +1,13 @@
 # Sidee
 
+LAN DNS diagnostics keep separate target query/reply counters for up to32 clients.
+`repliesSubmitted` means the local socket sent a reply, not that the TV received
+or used it. Only vidaahub target events are recorded; ordinary query names remain
+unlogged. A locked diagnostic file no longer interrupts DNS replies, and rapid
+queries retain both PC and TV client metrics. Tests cover real UDP/TCP delivery
+with a simulated locked status file. Current known TV IP .1.10 and primary DNS
+.1.5 are owner-confirmed. Runtime PID/hash are in the local DNS status file.
+
 The isolated HTTP collector records minimal access diagnostics in `/status`
 (`httpAccess`) and local ignored `reports/bridge-domain-http-status.json`.
 Separate TCP connection/request counts and known-page/script counts distinguish

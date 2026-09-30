@@ -1,8 +1,12 @@
+import json
+import pathlib
 import socket
 import socketserver
 import struct
 import threading
+import tempfile
 import unittest
+from unittest.mock import patch
 
 from lan_dns import LanDNS, exchange, healthy, question, receive_exact, reply, servers
 
@@ -27,6 +31,65 @@ class UpstreamTCP(socketserver.BaseRequestHandler):
 
 
 class LanDNSTest(unittest.TestCase):
+    def test_rapid_target_events_keep_both_clients_and_send_failures(self):
+        with tempfile.TemporaryDirectory(prefix='sidee-dns-status-') as directory:
+            path = pathlib.Path(directory) / 'status.json'
+            dns = LanDNS('192.168.1.5', '192.168.1.0/24', ['192.168.1.1'], path)
+            a = query('vidaahub.com')
+            result = dns.answer(a, '192.168.1.10')
+            dns.note_reply(a, result, '192.168.1.10')
+            dns.answer(a, '192.168.1.5')
+            empty = query('vidaahub.com', 28)
+            result = dns.answer(empty, '192.168.1.10', tcp=True)
+            dns.note_reply(empty, result, '192.168.1.10', tcp=True, submitted=False)
+            saved = json.loads(path.read_text())
+            self.assertEqual(saved['targetQueries'], 3)
+            self.assertEqual(saved['clients']['192.168.1.5']['queries'], 1)
+            tv = saved['clients']['192.168.1.10']
+            self.assertEqual((tv['queries'], tv['repliesSubmitted'], tv['replyErrors']), (2, 1, 1))
+            self.assertEqual((tv['lastReplyType'], tv['lastReplyCode'], tv['lastReplyAnswers']), (28, 0, 0))
+            self.assertEqual(tv['lastReplyTransport'], 'TCP')
+            self.assertFalse(tv['lastReplySubmitted'])
+            # No other-name source or event is saved by this diagnostic.
+            other = query('ordinary.invalid')
+            dns.note_reply(other, reply(other, question(other)), '192.168.1.10')
+            self.assertEqual(json.loads(path.read_text()), saved)
+            self.assertNotIn('ordinary.invalid', path.read_text())
+
+    def test_unwritable_diagnostics_do_not_break_actual_udp_or_tcp(self):
+        with tempfile.TemporaryDirectory(prefix='sidee-dns-write-failure-') as directory:
+            dns = LanDNS('127.0.0.1', '127.0.0.0/8', ['127.0.0.2'], pathlib.Path(directory) / 'status.json')
+            udp, tcp = servers(dns, 0)
+            workers = [threading.Thread(target=server.serve_forever, daemon=True) for server in (udp, tcp)]
+            for worker in workers:
+                worker.start()
+            submitted = threading.Event()
+            note_reply = dns.note_reply
+
+            def observed_reply(*args, **kwargs):
+                note_reply(*args, **kwargs)
+                submitted.set()
+
+            try:
+                with patch.object(pathlib.Path, 'replace', side_effect=PermissionError('fixture file locked')):
+                    with patch.object(dns, 'note_reply', side_effect=observed_reply):
+                        for use_tcp in (False, True):
+                            submitted.clear()
+                            result = exchange(query('vidaahub.com'), '127.0.0.1', udp.server_address[1], tcp=use_tcp)
+                            self.assertEqual(result[-4:], socket.inet_aton('127.0.0.1'))
+                            self.assertTrue(submitted.wait(timeout=3))
+                saved = dns.snapshot()
+                self.assertEqual(saved['statusWriteErrors'], 4)
+                client = saved['clients']['127.0.0.1']
+                self.assertEqual((client['queries'], client['repliesSubmitted'], client['replyErrors']), (2, 2, 0))
+                self.assertEqual((client['lastReplyCode'], client['lastReplyAnswers']), (0, 1))
+            finally:
+                for server in (udp, tcp):
+                    server.shutdown()
+                    server.server_close()
+                for worker in workers:
+                    worker.join(timeout=3)
+
     def test_actual_udp_tcp_route_nodata_and_forwarding(self):
         upstream = socketserver.ThreadingUDPServer(('127.0.0.2', 0), Upstream)
         upstream_tcp = socketserver.ThreadingTCPServer(upstream.server_address, UpstreamTCP)

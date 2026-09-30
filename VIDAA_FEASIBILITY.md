@@ -4,6 +4,12 @@ Verifica: 2026-09-30, Europe/Rome. TV: Hisense **50E77NQ** (modello confermato
 dall'utente durante la ricerca successiva), firmware `V0000.09.60A.Q0707`,
 OS `U09.60`, MTK9603, Odin/Chromium 111.
 
+DNS primario TV .1.5 ora confermato. Corretto in Sidee il registro DNS che,
+se bloccato, impediva risposta; contatori target distinti per client/send ora
+attivi, test UDP/TCP con errore filesystem passati. Nuovo DNS10028, receiver
+intatti. Chiesto riavvio elettrico TV e tentativo vidaahub; nessuna nuova risposta
+TV ancora e nessuna causa cache/file-lock provata. I criteri Nuvio restano aperti.
+
 TV .1.10 ora confermata, ultimo errore «name not resolved». Il tentativo recente
 non produce nuove richieste target registrate dal DNS né accessi HTTP; risposta
 A del DNS Sidee accettata dal resolver Windows senza hosts. DNS primario effettivo

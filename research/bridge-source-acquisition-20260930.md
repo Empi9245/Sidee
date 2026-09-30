@@ -399,3 +399,41 @@ Nessun presupposto che un'opzione preselezionata sia stata confermata.
 Blocco osservabile prima di HTTP; selezione del resolver/cache o diverso nome
 effettivo da distinguere prima di intervenire. Non chiamarlo nuovo rifiuto
 AppConfig/installazione, né difetto certo del router o della risposta DNS.
+
+## DNS primario confermato e correzione della diagnostica
+
+L'utente risponde .1.5 al campo DNS primario, dopo conferma IP TV .1.10.
+Queste impostazioni sono risolte; non ripetere le domande. Nel codice è stato
+individuato un difetto reale: note_target scriveva il file prima di restituire
+la risposta, senza gestire OSError. Un registro bloccato poteva impedire anche
+il send DNS. Nel log storico non c'è un errore che provi questa causa sulla TV.
+
+Corretto: errori di persistenza tollerati e contati; rimosso il throttle che
+non salvava l'ultimo evento di un burst. Status ora separa fino32 client solo
+per vidaahub, con query, repliesSubmitted/replyErrors, tipo, UDP/TCP, timestamp,
+rcode e count risposta. Il send viene registrato dopo sendto/sendall, compresi
+errori di socket. Nessun payload/query/altro nome conservato. Submitted significa
+accettazione del send da parte del socket locale, non risposta ricevuta dalla TV.
+
+Tre test passati: routing/NODATA/forwarding e bind esclusivo già presenti;
+burst TV+PC conservato/esito send negativo/altro nome non registrato;
+registro bloccato con PermissionError durante replace, risposte UDP/TCP reali
+ancora corrette e contatori memoria coerenti (4errori log, 2send riusciti).
+Nessun SDK o API TV chiamato dai test.
+
+Attivazione controllata: vecchio20404 verificato con marker TXT/hash d0616fe...
+ee961, percorso/cmdline Python e ownership del bind .1.5:53. Backup status in
+reports/bridge-domain-dns-before-send-metrics.json ignorato; fermato soltanto
+20404, nuovo10028 nascosto. SourceSHA
+c61f8b01b713153a9ddf8781ce2429fbbca942da6e6be1b6aa97b32689d49231.
+HTTP19752, post-Store9552 e ICS6844 verificati vivi e preservati. Windows resolver
+senza hosts: A .1.5 TTL30 su UDP/TCP, AAAA senza record né errore. --background
+riusa la nuova versione; status iniziale solo PC .1.5, 3query/3submitted/0errori,
+statusWriteErrors0. Nessun cambio regole firewall, router, DoH o IPv6.
+
+Chiesto all'utente riavvio elettrico (staccare corrente30s) e riapertura esplicita
+http://vidaahub.com/ mantenendo DNS .1.5, per osservare un tentativo successivo
+al riavvio del resolver TV. Non assumere in anticipo che la cache sia la causa
+o che il problema sia risolto. Prima della conclusione leggere i nuovi contatori
+TV .1.10, gli accessi HTTP e la ricevuta; usare subito eventuali sorgenti ricevute.
+Nessun nuovo esito installante o criterio Nuvio acquisito alla preparazione.

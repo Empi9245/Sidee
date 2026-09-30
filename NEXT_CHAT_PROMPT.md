@@ -1,5 +1,28 @@
 # Prompt per la prossima chat — 30 settembre 2026
 
+## Stato corrente: IP e DNS confermati, correzione DNS attiva
+
+Utente conferma TV .1.10 e DNS primario .1.5: non richiederli di nuovo.
+Ultimo errore resta «name not resolved». Individuato nel codice lan_dns un
+errore di robustezza: OSError salvando il registro interrompeva anche la risposta.
+Corretto e verificato con file bloccato su UDP/TCP reali; non attribuire senza
+prova a questo difetto il fallimento precedente. Rimossa perdita dell'ultimo
+evento dei burst dovuta al throttle di un secondo. Ora status conserva massimo
+32 client del solo target, richieste e risposte submitted/error, tipo, trasporto,
+rcode e numero risposte. Submitted significa send del socket, NON ricevuta TV.
+Nessun altro nome/query/body/cookie/capture/SDK/native conservato o eseguito.
+Solo DNS20404 sostituito dopo marker/hash, executable/cmdline e ownership bind
+verificati; backup status precedente locale ignorato. Nuovo DNS PID10028,
+SHA256 c61f8b01b713153a9ddf8781ce2429fbbca942da6e6be1b6aa97b32689d49231.
+Collector19752, post-Store9552 e ICS6844 intatti. Tre test DNS passati, resolver
+Windows A .1.5 UDP/TCP e AAAA NODATA; launcher --background riusa il server.
+Primi contatori soltanto PC: tre richieste/tre submitted/zero errori; niente TV.
+Chiesto riavvio elettrico TV (corrente staccata30s) e http://vidaahub.com/ per
+ottenere un tentativo dopo riavvio del resolver. Leggere subito clients['.1.10']
+in reports/bridge-domain-dns-status.json, accessi HTTP e receipt. Non assumere
+cache come causa provata. Nessuna nuova regola firewall o modifica router/IPv6.
+I paragrafi sotto sono cronologia superata dove incompatibili con questo stato.
+
 ## Ultimo dato TV: «name not resolved», IP .1.10 confermato
 
 L'utente conferma IP TV 192.168.1.10. Prima della nuova sonda PC, DNS fermo
@@ -13,7 +36,7 @@ il lastTargetClient .1.5: non scambiarle per TV. Processo/bind DNS20404 conferma
 regole Sidee Private UDP53 Allow hanno Local/Remote/Program Any, sola lettura.
 Il blocco osservato è prima del caricamento HTTP: DNS effettivo/cache Browser
 TV o percorso di risoluzione restano da distinguere, non un nuovo rifiuto AppConfig.
-Domanda pendente ridotta al SOLO valore DNS primario TV; il dato IP è risolto.
+Domanda DNS poi risolta: valore .1.5 confermato, come IP TV .1.10.
 Non ripetere la domanda IP né il tentativo identico senza cambiare/verificare
 quel prerequisito. Nessuna modifica router/IPv6/DoH/firewall o nuovo probe TV.
 
@@ -42,7 +65,7 @@ Errore di scrittura diagnostica non blocca il servizio. Test HTTP reale passato,
 inclusa connessione senza richiesta e query sensibile non conservata.
 Leggere /status per provenienza effettiva dopo l'attivazione; conservare qualsiasi
 ricevuta prima di cambiare un processo. DNS e :8080 non richiedono riavvio.
-Errore risposto «name not resolved» e IP .1.10 confermato; DNS primario pendente.
+Errore «name not resolved», IP .1.10 e DNS primario .1.5 confermati.
 I paragrafi sotto sono cronologia: prevale questo stato e il runtime verificato.
 
 ## Ultima correzione: TV sulla LAN router, DNS dedicato al PC

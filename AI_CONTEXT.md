@@ -5,6 +5,21 @@
 
 Last updated: 2026-09-30
 
+> CURRENT: owner confirms TV .1.10 and primary DNS .1.5. Do not ask again.
+> Fixed lan_dns failure where OSError persisting status prevented DNS reply;
+> removed one-second throttle losing burst tail. Per-target client metrics,
+> maximum32, query/reply-submitted/error and type/transport/rcode/answer count;
+> submitted is only socket send, not TV receipt. No other-name logs or capture.
+> Three tests passed including locked status file with real UDP/TCP. Only old
+> owned DNS20404 replaced after marker/hash/process/listener verification;
+> DNS now10028, sourceSHA c61f8b01b713153a9ddf8781ce2429fbbca942da6e6be1b6aa97b32689d49231.
+> HTTP19752, post-Store9552, ICS6844 preserved. Windows PC AUDP/TCP and AAAA
+> empty checks passed, background launcher reused DNS. Initial metrics PC-only
+> 3queries/3submitted/0errors. Owner asked cold TV restart(unplug30s) then explicit
+> http://vidaahub.com/. Read TV-client metrics/HTTP/receipt next; cache or the
+> fixed write fault is not a proven cause of earlier failure. No FW/router/IPv6
+> changes or new native probe/installation. Older pending DNS question resolved.
+
 > LATEST TV REPLY: owner confirms TV IPv4 .1.10 and "name not resolved".
 > Before PC probe the DNS target status was still9/TV .1.10 at18:27:33Z;
 > check18:50Z found no newer recorded target query. HTTP shows only PC and null

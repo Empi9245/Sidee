@@ -98,26 +98,70 @@ class LanDNS:
         self.marker = f'sidee-lan-dns-v1|{self.bind}|{self.hash}'.encode('ascii')
         self.lock = threading.Lock()
         self.queries = 0
-        self.last_status_write = 0
+        self.clients = {}
+        self.status_errors = 0
+        self.last_target = {}
 
-    def note_target(self, client, qtype):
+    def _status_locked(self):
+        return {'mode': 'isolated-lan-dns', 'pid': os.getpid(), 'bind': self.bind,
+                'target': TARGET, 'targetAddress': self.bind, 'sourceSha256': self.hash,
+                'targetQueries': self.queries, **self.last_target,
+                'clients': {client: dict(item) for client, item in self.clients.items()},
+                'statusWriteErrors': self.status_errors, 'checkedAtUnix': time.time(),
+                'scope': 'target DNS only; submitted means socket send, not TV receipt; no capture, other-query logging, SDK or native API'}
+
+    def snapshot(self):
+        with self.lock:
+            return self._status_locked()
+
+    def _write_status_locked(self):
         if self.status_path is None:
             return
+        try:
+            self.status_path.parent.mkdir(parents=True, exist_ok=True)
+            temporary = self.status_path.with_suffix('.tmp')
+            temporary.write_text(json.dumps(self._status_locked(), indent=2) + '\n', encoding='utf-8')
+            temporary.replace(self.status_path)
+        except OSError:
+            # A locked/unwritable diagnostic file must never prevent a DNS reply.
+            self.status_errors += 1
+
+    def _client_locked(self, client):
+        if client not in self.clients and len(self.clients) >= 32:
+            return None
+        return self.clients.setdefault(client, {'queries': 0, 'repliesSubmitted': 0, 'replyErrors': 0})
+
+    def note_target(self, client, qtype, tcp=False):
         with self.lock:
             self.queries += 1
             now = time.time()
-            if now - self.last_status_write < 1:
+            self.last_target = {'lastTargetClient': client, 'lastTargetType': qtype,
+                                'lastTargetAtUnix': now}
+            item = self._client_locked(client)
+            if item is not None:
+                item['queries'] += 1
+                item.update(lastQueryType=qtype, lastQueryTransport='TCP' if tcp else 'UDP', lastQueryAtUnix=now)
+            # Persist each target event: the old one-second throttle lost the
+            # last query of a burst and could hide the TV behind a PC probe.
+            self._write_status_locked()
+
+    def note_reply(self, packet, result, client, tcp=False, submitted=True):
+        try:
+            _, _, name, qtype, qclass, _ = question(packet)
+        except (ValueError, UnicodeError):
+            return
+        if name != TARGET or qclass != 1 or ipaddress.ip_address(client) not in self.network:
+            return
+        with self.lock:
+            item = self._client_locked(client)
+            if item is None:
                 return
-            self.last_status_write = now
-            status = {'mode': 'isolated-lan-dns', 'pid': os.getpid(), 'bind': self.bind,
-                      'target': TARGET, 'targetAddress': self.bind, 'sourceSha256': self.hash,
-                      'targetQueries': self.queries, 'lastTargetClient': client,
-                      'lastTargetType': qtype, 'checkedAtUnix': now,
-                      'scope': 'explicit LAN client DNS; no capture, other-query logging, SDK or native API'}
-            self.status_path.parent.mkdir(parents=True, exist_ok=True)
-            temporary = self.status_path.with_suffix('.tmp')
-            temporary.write_text(json.dumps(status, indent=2) + '\n', encoding='utf-8')
-            temporary.replace(self.status_path)
+            item['repliesSubmitted' if submitted else 'replyErrors'] += 1
+            _, flags, _, answers, _, _ = struct.unpack('!6H', result[:12])
+            item.update(lastReplyType=qtype, lastReplyCode=flags & 15, lastReplyAnswers=answers,
+                        lastReplyTransport='TCP' if tcp else 'UDP', lastReplyAtUnix=time.time(),
+                        lastReplySubmitted=submitted)
+            self._write_status_locked()
 
     def answer(self, packet, client, tcp=False):
         try:
@@ -128,7 +172,7 @@ class LanDNS:
         if ipaddress.ip_address(client) not in self.network or qclass != 1:
             return reply(packet, parsed, code=5)
         if name == TARGET:
-            self.note_target(client, qtype)
+            self.note_target(client, qtype, tcp)
             # AAAA/HTTPS and other types get NOERROR/NODATA, never NXDOMAIN.
             return reply(packet, parsed, record=socket.inet_aton(self.bind) if qtype == 1 else None)
         if name == HEALTH and qtype == 16:
@@ -180,7 +224,12 @@ class UDPHandler(socketserver.BaseRequestHandler):
         packet, sock = self.request
         result = self.server.dns.answer(packet, self.client_address[0])
         if result:
-            sock.sendto(result, self.client_address)
+            try:
+                sent = sock.sendto(result, self.client_address)
+            except OSError:
+                self.server.dns.note_reply(packet, result, self.client_address[0], submitted=False)
+                return
+            self.server.dns.note_reply(packet, result, self.client_address[0], submitted=sent == len(result))
 
 
 class TCPHandler(socketserver.BaseRequestHandler):
@@ -190,9 +239,15 @@ class TCPHandler(socketserver.BaseRequestHandler):
             size = struct.unpack('!H', receive_exact(self.request, 2))[0]
             if not 12 <= size <= MAX_PACKET:
                 return
-            result = self.server.dns.answer(receive_exact(self.request, size), self.client_address[0], tcp=True)
+            packet = receive_exact(self.request, size)
+            result = self.server.dns.answer(packet, self.client_address[0], tcp=True)
             if result:
-                self.request.sendall(struct.pack('!H', len(result)) + result)
+                try:
+                    self.request.sendall(struct.pack('!H', len(result)) + result)
+                except OSError:
+                    self.server.dns.note_reply(packet, result, self.client_address[0], tcp=True, submitted=False)
+                    return
+                self.server.dns.note_reply(packet, result, self.client_address[0], tcp=True)
         except OSError:
             return
 

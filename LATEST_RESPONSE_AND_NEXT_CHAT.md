@@ -1,5 +1,18 @@
 # Sidee / Nuvio — passaggio di consegne corrente
 
+## Correzione DNS e prossimo tentativo dopo riavvio TV
+
+IP TV .1.10 e DNS primario .1.5 confermati dall'utente. Corretto lan_dns:
+errore nel registro non blocca più risposta; eventi ravvicinati non persi,
+contatori distinti per massimo32 client target con esito send/rcode/answers.
+Submitted non attesta ricezione TV. Tre test passati, anche registro bloccato
+con UDP/TCP reali e burst/client separati. DNS attivo PID10028, SHA c61f8b01...d49231,
+sole sonde PC AUDP/TCP e AAAA NODATA: 3query/3submitted/0errori. DNS20404 sostituito
+dopo identità verificata; HTTP19752/post-Store9552/ICS6844 intatti.
+Chiesto riavvio elettrico TV (staccare corrente30s), poi http://vidaahub.com/.
+Leggere nuovi contatori .1.10, HTTP e receipt prima di concludere. Nessuna nuova
+ricevuta TV, causa cache non ancora provata; nessun cambio firewall/router/IPv6.
+
 ## Ultimo errore confermato: risoluzione nome TV
 
 TV .1.10 confermata dall'utente, errore «name not resolved». Prima della sonda PC
@@ -8,7 +21,7 @@ verifica 20:50 locale. HTTP solo PC, receipt null. Resolver standard Windows,
 forzato .1.5 senza hosts, verifica A .1.5 TTL30, AAAA nessun record senza errore,
 marker TXT proprio conforme. Sonde PC nuove aggiornano status: distinguerle da TV.
 Regole Private UDP53 permissive già presenti, nessun cambio effettuato.
-Domanda ancora necessaria: quale DNS primario è salvato sulla TV. L'IP è risolto.
+Domanda DNS poi risolta dall'utente: .1.5; IP TV .1.10 confermato.
 Problema prima di HTTP, non nuova prova AppConfig; cache/resolver TV ancora da
 distinguere. Nessun riavvio dei processi o probe/installazione eseguiti stavolta.
 
@@ -29,7 +42,7 @@ e bridge-domain-http-status.json locale ignorato; niente query/body/cookie/TLS.
 Test reale: GET script, query non conservata, connessione senza richiesta,
 isolamento e ricevuta singola/riuso passati. Nessun nuovo test VIDAA o Nuvio.
 Per lo stato operativo leggere /status/readiness, non i vecchi PID sotto.
-Errore «name not resolved» e IP .1.10 ricevuti, solo DNS primario ancora richiesto.
+Errore «name not resolved», IP .1.10 e DNS primario .1.5 ricevuti.
 Tutte le indicazioni precedenti sotto sono cronologia superata ove incompatibile.
 
 ## Ultimo setup LAN, superate le indicazioni hotspot
