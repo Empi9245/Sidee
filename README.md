@@ -1,5 +1,11 @@
 # Sidee
 
+Latest TV result: the collector URL on :8082 does not open (user reports
+«impossibile»). Receiver remains active with no receipt. That opening instruction
+is withdrawn because TV domain routing to the receiver was not verified.
+Bare vidaahub.com does not automatically load this local collector. Details in
+[the acquisition record](research/bridge-source-acquisition-20260930.md).
+
 ## Targeted loaded-source acquisition — 30 September 2026
 
 New isolated mode: `python sidee.py --bridge-source-check --check-port 8082`.

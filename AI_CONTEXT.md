@@ -5,6 +5,15 @@
 
 Last updated: 2026-09-30
 
+> LATEST TV RESULT: user reports collector URL :8082 does not open, TV says
+> "impossibile". Receiver remains active, receipt null, no new source report.
+> Withdraw the opening instruction: TV hostname routing to this receiver was
+> never verified. Bare vidaahub.com in WeinzII's toolkit instructions does not
+> automatically serve our collector or select port 8082. Do not retry that URL,
+> recommend the public root as a collector, or infer DNS/AppConfig from this
+> generic navigation error. Exact lower-layer failure remains undetermined.
+> See the final update in research/bridge-source-acquisition-20260930.md.
+
 > CURRENT OPERATIONAL UPDATE: targeted loaded-script collector implemented.
 > Read research/bridge-source-acquisition-20260930.md. New isolated mode
 > --bridge-source-check on :8082, explicit one-shot; script tags + resource timing,

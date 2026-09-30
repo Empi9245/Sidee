@@ -1,5 +1,18 @@
 # Prompt per la prossima chat — 30 settembre 2026
 
+## Ultimo esito TV: pagina collector non aperta
+
+L'utente riferisce che l'URL collector :8082 non si apre e la TV dice
+«impossibile». Al controllo successivo receiver :8082 attivo, receipt null.
+Ritirata l'indicazione di aprire quell'URL: il canale dal nome vidaahub della TV
+al PC non era verificato. Non richiedere di riprovare lo stesso URL o la radice
+come se caricassero automaticamente il collector. Il dominio citato da WeinzII
+è il contesto del toolkit; non instrada da solo una nuova pagina al ricevitore.
+La sola frase «impossibile» non distingue DNS, connessione, porta o protocollo.
+Nessuna nuova misura delle API o dei permessi. Dettagli nell'ultimo aggiornamento
+di research/bridge-source-acquisition-20260930.md. I paragrafi sotto che propongono
+quell'azione fisica sono storici e superati da questa correzione.
+
 ## Aggiornamento operativo successivo: collector implementato
 
 Leggere anche `research/bridge-source-acquisition-20260930.md` integralmente.

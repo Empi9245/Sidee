@@ -111,3 +111,36 @@ cinque prove finali di vera app. Nessuna correzione installante promessa.
 Nuvio: aggiunta solo la nota in VIDAA_STATUS.md. Installer/packager locali e
 dist preservati, nessun build/ZIP/commit. Sidee da committare con percorsi
 espliciti, escludendo control/request.json già in staging; nessun push.
+
+## Esito successivo della navigazione TV e istruzione ritirata
+
+L'utente riferisce: «non apre la pagina su tv, dice impossibile», e chiede se
+WeinzII non indichi soltanto vidaahub.com. L'URL richiesto era
+http://vidaahub.com:8082/bridge-source-check.html. Questo è un tentativo di
+navigazione fallito riferito dall'utente, non una raccolta sorgenti eseguita.
+
+Controllo locale successivo: /status HTTP 200 su 192.168.1.5:8082,
+collectionId bridge-216b0013fee4413595a1951b522aa615, buildId
+bridge-fd277d6df6e660cf, Git HEAD del processo c329e8c50f94a6766894fb76a4c75514b6e26bc4,
+collectorDirty false, receipt null. Nessun bridge-source-latest.json presente.
+Listener :8082 PID 15280 e :8080 PID 5676 preservati. Nessuna modifica hosts,
+config, DNS/TLS, SDK o collector e nessun nuovo probe/installazione TV.
+
+Il receiver disabilita i log ordinari HTTP: receipt null prova che non è stata
+accettata una raccolta, non prova l'assenza di ogni GET o tentativo di connessione.
+Il messaggio generico «impossibile» non distingue risoluzione del nome, rete,
+porta, protocollo o altre condizioni del Browser. Non inventare la causa.
+
+L'indicazione di aprire l'URL è ritirata: l'assistente non aveva verificato il
+prerequisito di instradamento della TV al PC prima di richiedere l'azione.
+La radice vidaahub.com del toolkit e la nostra pagina HTTP su porta 8082 non
+sono lo stesso ingresso. Il nome citato da WeinzII descrive il contesto delle
+API, ma non crea il servizio/routing necessario a ospitare il collector.
+Aprire la sola radice non caricherebbe automaticamente questa implementazione.
+Non richiedere di riprovare i due indirizzi come soluzione già predisposta.
+
+Blocco tecnico attuale: nessun canale verificato per caricare questo collector
+nel Browser TV nel contesto vidaahub; il receiver può solo rispondere a richieste
+che lo raggiungono, non navigare la TV o inserire codice in una pagina diversa.
+Il precedente 503 resta una prova distinta, già raccolta in HTTPS vidaahub.
+Le indicazioni di apertura sopra sono storiche e superate da questo esito.

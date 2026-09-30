@@ -1,5 +1,16 @@
 # Sidee / Nuvio — passaggio di consegne corrente
 
+## Ultimo esito e correzione dell'accesso
+
+La TV non apre l'URL collector :8082; l'utente riferisce «impossibile» e chiede
+se WeinzII non indichi soltanto vidaahub.com. Receiver ancora attivo, receipt
+null, nessun report bridge-source-latest.json. Ritirata l'istruzione di apertura
+non preceduta dalla verifica del canale TV → PC. Il solo nome vidaahub non
+carica il collector locale, e HTTP/8082 non è la radice HTTP/HTTPS ordinaria.
+Non ripetere quell'URL né proporre la radice pubblica come acquisizione già
+preparata. Non attribuire l'errore a DNS o AppConfig senza evidenza aggiuntiva.
+Vedi research/bridge-source-acquisition-20260930.md, aggiornamento finale.
+
 Aggiornato: 30 settembre 2026, Europe/Rome. Questo documento prevale sui piani
 storici in AI_CONTEXT.md. Prompt: [NEXT_CHAT_PROMPT.md](NEXT_CHAT_PROMPT.md).
 Indagine completata: [vidaahub-context-20260930.md](research/vidaahub-context-20260930.md).

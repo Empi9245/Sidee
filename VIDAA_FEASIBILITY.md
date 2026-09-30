@@ -4,6 +4,12 @@ Verifica: 2026-09-30, Europe/Rome. TV: Hisense **50E77NQ** (modello confermato
 dall'utente durante la ricerca successiva), firmware `V0000.09.60A.Q0707`,
 OS `U09.60`, MTK9603, Odin/Chromium 111.
 
+Ultimo esito TV: la pagina collector :8082 non si apre, messaggio riferito
+«impossibile»; receiver attivo e receipt null. Ritirata l'istruzione di apertura
+su un canale TV → PC non verificato. Non è una nuova prova di rifiuto AppConfig;
+il livello preciso dell'errore di navigazione non è determinato. Il dominio
+indicato da WeinzII non rende automaticamente raggiungibile il collector locale.
+
 Aggiornamento operativo: implementato un
 [collector isolato delle sorgenti già caricate](research/bridge-source-acquisition-20260930.md),
 che copre anche resource timing, non registrato dai vecchi collector DOM.
