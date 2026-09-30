@@ -1,5 +1,20 @@
 # Sidee / Nuvio — passaggio di consegne corrente
 
+## Stato più recente: accesso root predisposto su vidaahub.com
+
+L'utente richiede esplicitamente di spostare il collector alla radice del dominio.
+Eseguito: receiver isolato HTTP/80, root `/`, http://vidaahub.com/. Corretto con
+backup soltanto hosts vidaahub da 192.168.1.8 a 192.168.1.5. Il resolver ICS
+192.168.137.1 ora risponde A 192.168.1.5; GET dal PC tramite il nome HTTP 200
+con la pagina collector e senza app.js. Non è ancora una ricevuta TV.
+PID root 14152, collectionId bridge-14ce9d228c2846b9b5b9351dc88de973; collector
+build invariata bridge-fd277d6df6e660cf, runtime HEAD 14bf729. Vecchio :8082 fermato
+dopo verifica assenza dati, post-Store :8080 PID 5676 e Windows ICS preservati.
+Controllare http://192.168.1.5/status e reports/bridge-source-latest.json. La
+richiesta fisica ora è aprire http://vidaahub.com e premere Raccogli una volta.
+Nessun HTTPS/certificato, native API, SDK execution o nuovo test installante.
+Le sezioni seguenti sono precedenti, incluse quelle che ritirano l'accesso root.
+
 ## Ultimo esito e correzione dell'accesso
 
 La TV non apre l'URL collector :8082; l'utente riferisce «impossibile» e chiede

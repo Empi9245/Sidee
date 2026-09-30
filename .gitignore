@@ -3,6 +3,7 @@ reports/*.json
 reports/*.pdf
 reports/nuvio-tv-check*.log
 reports/bridge-source-check*.log
+reports/bridge-domain-*
 tmp/pdfs/
 __pycache__/
 *.pyc

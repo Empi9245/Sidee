@@ -4,6 +4,13 @@ Verifica: 2026-09-30, Europe/Rome. TV: Hisense **50E77NQ** (modello confermato
 dall'utente durante la ricerca successiva), firmware `V0000.09.60A.Q0707`,
 OS `U09.60`, MTK9603, Odin/Chromium 111.
 
+Aggiornamento successivo alla richiesta esplicita dell'utente: collector ora
+alla radice **http://vidaahub.com/**, HTTP/80. Corretto solo il vecchio mapping
+hosts .8 → .5 con backup. DNS ICS verificato .5 e GET dal PC attraverso il
+dominio HTTP 200; apertura/raccolta TV ancora da confermare. Nessuna nuova
+operazione VIDAA né equivalente HTTPS/443; nessun nuovo criterio Nuvio provato.
+Le indicazioni di ritiro dell'accesso sotto sono storiche, superate dal setup.
+
 Ultimo esito TV: la pagina collector :8082 non si apre, messaggio riferito
 «impossibile»; receiver attivo e receipt null. Ritirata l'istruzione di apertura
 su un canale TV → PC non verificato. Non è una nuova prova di rifiuto AppConfig;

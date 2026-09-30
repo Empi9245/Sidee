@@ -5,6 +5,19 @@
 
 Last updated: 2026-09-30
 
+> NEWEST USER STEERING AND ACTION: explicitly move passive collector to bare
+> vidaahub.com. Isolated receiver now HTTP/80 root / (PID 14152), no TLS/native
+> calls/SDK execution. Existing ICS resolver 192.168.137.1 returned stale .8;
+> corrected only hosts mapping to this PC .5 with raw backup and exact-diff check.
+> Resolver now returns .5; PC GET http://vidaahub.com/ returns collector HTTP 200.
+> Old :8082 PID 15280 stopped after identity and no receipt verified; :8080 and
+> ICS preserved. New collectionId bridge-14ce9d228c2846b9b5b9351dc88de973, unchanged
+> collector build bridge-fd277d6df6e660cf, process Git HEAD 14bf729, clean collector.
+> Use http://192.168.1.5/status and actual reports; PC readiness is not a TV result.
+> User instructed to open http://vidaahub.com and click once. Earlier access/root
+> withdrawal and no local-route correction instructions are superseded by this
+> explicit user request. No HTTPS equivalence or install permission is claimed.
+
 > LATEST TV RESULT: user reports collector URL :8082 does not open, TV says
 > "impossibile". Receiver remains active, receipt null, no new source report.
 > Withdraw the opening instruction: TV hostname routing to this receiver was

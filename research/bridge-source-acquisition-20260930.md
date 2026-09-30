@@ -144,3 +144,52 @@ nel Browser TV nel contesto vidaahub; il receiver può solo rispondere a richies
 che lo raggiungono, non navigare la TV o inserire codice in una pagina diversa.
 Il precedente 503 resta una prova distinta, già raccolta in HTTPS vidaahub.
 Le indicazioni di apertura sopra sono storiche e superate da questo esito.
+
+## Richiesta successiva: root vidaahub predisposta sul PC
+
+L'utente richiede esplicitamente di risolvere l'accesso e spostare il collector
+su vidaahub.com, richiamando nuovamente weinzii/vidaa-edge. Questa richiesta
+supera la precedente indicazione di non correggere il routing locale. La
+raccolta rimane passiva: nessun SDK/native call o uso dei metodi negati.
+
+Fatto nuovo verificato: il DNS Windows ICS 192.168.137.1 rispondeva A
+192.168.1.8 per vidaahub.com, mentre ipconfig conferma questo PC Ethernet
+192.168.1.5 e hotspot 192.168.137.1. La risoluzione ICS coincideva con il
+mapping obsoleto hosts. Questo documenta un problema concreto del percorso
+disponibile; non prova quale cache/resolver usasse la TV nel tentativo fallito.
+
+Avviato il solo receiver isolato con --check-port 80: root `/` serve già la
+pagina collector, nessun redirect né vecchio app.js. PID 14152 su 192.168.1.5:80.
+CollectionId bridge-14ce9d228c2846b9b5b9351dc88de973, build invariata
+bridge-fd277d6df6e660cf, Git HEAD del processo
+14bf7298904f2fc1e5e9e42966f7965e50e00028, collectorDirty false.
+
+Il primo tentativo diretto sul file hosts è stato negato da Windows, non
+dall'auto-review. Preparato setup_bridge_domain.ps1, verificata sintassi e
+avviato nascosto con elevazione UAC: successo registrato 2026-09-30T16:46:48Z.
+Helper vincolato al SHA256 completo atteso e alla sola riga .8 vidaahub.com;
+backup byte per byte prima della modifica, confronto successivo conferma che
+non sono cambiati altri byte. Nessun servizio fermato, altri domini modificati
+o policy permanente cambiata. Cache resolver Windows aggiornata.
+
+Backup locale reports/bridge-domain-hosts-before-admin-20260930-184647.bin,
+ignorato da Git insieme a tutti i record bridge-domain. SHA256 hosts prima
+0e3808b0b86f0cdb61e1b6b71b50d9761d1e6f19fc9cc3c31e6fec817043b848,
+dopo 39324dd84e1133b284741d78ad68d38137061aa08008edd71ef292736a0a91a4.
+Non rieseguire il helper su un hosts successivamente modificato.
+
+Verifica: DNS ICS A 192.168.1.5; GET dal PC tramite
+http://vidaahub.com/ HTTP 200, contiene solo script collector. Manifest/status
+disponibili su porta 80, receipt null alla preparazione. Report PC di readiness
+in reports/bridge-domain-readiness.json, non una raccolta TV. Vecchio :8082
+PID 15280 fermato dopo verifica identity e receipt null; post-Store :8080
+PID 5676 e ICS UDP53 PID 6844 preservati. Nessun nuovo test di installazione,
+inventario, capture HTTPS, TLS/certificato o probe nativo.
+
+Azione fisica ora predisposta: **Browser TV → http://vidaahub.com → Raccogli
+una volta**. URL senza porta o percorso. Non chiedere DNS automatico, debug o
+inventario. Se il browser impone HTTPS, questo server HTTP non lo supporta:
+registrare quel fatto senza bypass certificati. Attendere la ricevuta reale
+su http://192.168.1.5/status e leggere subito gli script locali senza eseguirli.
+HTTP/80 è distinto dal vecchio HTTPS/443; nessuna equivalenza di bootstrap,
+permessi o persistenza è promessa. La scrittura 503 resta un dato precedente.

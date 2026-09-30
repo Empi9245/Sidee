@@ -1,5 +1,16 @@
 # Sidee
 
+Current collector entry: **http://vidaahub.com/**, served at `/` on HTTP/80 by
+`python sidee.py --bridge-source-check --check-port 80`. The owner explicitly
+requested this routing correction. Existing Windows ICS DNS now returns the
+current PC IP 192.168.1.5 after repair of the stale hosts entry (raw backup kept
+locally); ICS and post-Store receiver are preserved. PC domain/root HTTP 200
+verified. TV receipt still required: open the URL and click Raccogli una volta.
+Check receiver state at http://192.168.1.5/status. No TLS/native probes or SDK
+execution. `setup_bridge_domain.ps1` is a guarded one-time repair for that exact
+stale hosts entry, using the expected full-file SHA256; do not rerun after repair.
+The previous :8082 receiver and opening instructions below are historical.
+
 Latest TV result: the collector URL on :8082 does not open (user reports
 «impossibile»). Receiver remains active with no receipt. That opening instruction
 is withdrawn because TV domain routing to the receiver was not verified.

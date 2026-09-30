@@ -1,5 +1,24 @@
 # Prompt per la prossima chat — 30 settembre 2026
 
+## Ultima correzione operativa: collector alla radice vidaahub
+
+La richiesta successiva esplicita dell'utente è predisporre il collector perché
+la TV apra soltanto vidaahub.com. Supera il precedente ritiro dell'URL e il
+vincolo di non correggere l'instradamento locale: nessun bypass o probe nativo.
+Receiver isolato spostato su HTTP/80, radice `/`: **http://vidaahub.com/**.
+Il DNS ICS 192.168.137.1 restituiva il vecchio IP 192.168.1.8; dopo la sola
+correzione della riga hosts restituisce 192.168.1.5. Backup byte per byte locale
+ignorato da Git. Collector/root HTTP 200 verificati dal PC tramite il nome;
+non dichiarare apertura TV finché non arriva la ricevuta. Processo :80 PID 14152,
+collectionId bridge-14ce9d228c2846b9b5b9351dc88de973, build bridge-fd277d6df6e660cf,
+Git HEAD del processo 14bf7298904f2fc1e5e9e42966f7965e50e00028, collectorDirty false.
+Vecchio collector :8082 PID 15280 fermato solo dopo identità/ricevuta null
+verificate; :8080 PID 5676 e Windows ICS preservati. Nessun TLS, SDK, invocazione
+native o cattura. Usare ora http://192.168.1.5/status per stato del receiver.
+L'unica azione fisica richiesta: Browser TV → http://vidaahub.com → Raccogli una
+volta. Le istruzioni :8082 sotto sono storiche. Leggere l'aggiornamento finale
+di research/bridge-source-acquisition-20260930.md e l'eventuale report reale.
+
 ## Ultimo esito TV: pagina collector non aperta
 
 L'utente riferisce che l'URL collector :8082 non si apre e la TV dice
