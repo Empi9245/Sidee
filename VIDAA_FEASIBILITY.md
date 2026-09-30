@@ -4,6 +4,12 @@ Verifica: 2026-09-30, Europe/Rome. TV: Hisense **50E77NQ** (modello confermato
 dall'utente durante la ricerca successiva), firmware `V0000.09.60A.Q0707`,
 OS `U09.60`, MTK9603, Odin/Chromium 111.
 
+Ultima navigazione TV: «failed to load page name not resolved». Collector root
+ancora HTTP200 dal PC, receipt null. DNS ICS .137.1 risponde A .1.5, mentre query
+DNS a .1.5 fallisce; per collegamento hotspot TV usare primario 192.168.137.1.
+Setting effettivo TV/rete richiesto, non ancora confermato. AAAA su ICS negativo
+distinto da A riuscito. Nessun nuovo esito API, permesso o installazione.
+
 Ultimo fix operativo: start-windows.bat avviava ancora il flusso storico e
 fermava tutti i processi Sidee. Dopo il log utente :80/:8080 erano assenti.
 Launcher corretto per il solo collector HTTP/80 e riuso del receiver conforme,

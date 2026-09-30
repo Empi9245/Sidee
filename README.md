@@ -7,6 +7,13 @@ receipt. The previous launcher killed all Sidee instances and then collided
 with Windows ICS DNS. Keep ICS running. Current process provenance is in
 http://192.168.1.5/status; older PID references below are historical.
 
+For a TV connected to **this PC's Windows hotspot**, primary DNS is
+**192.168.137.1**, where ICS actually answers vidaahub.com with 192.168.1.5.
+The Ethernet IP 192.168.1.5 serves HTTP but does not answer DNS in this setup.
+After a TV DNS change, close/reopen the Browser and use http://vidaahub.com/.
+This instruction is specific to the hotspot; TV router-network settings are
+not confirmed. A TV "name not resolved" report does not mean the collector ran.
+
 The fixed BAT and a second-launch reuse have been verified on this PC. Current
 collector PID2312, receipt null at verification. Historical :8080 receiver is
 stopped; its restart was blocked by automatic review pending specific user

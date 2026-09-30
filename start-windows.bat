@@ -22,6 +22,7 @@ set SIDEE_PY="%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependen
 
 :launch
 echo Sidee - raccolta isolata
+echo TV sull'hotspot di questo PC: DNS primario 192.168.137.1.
 echo Sulla TV apri http://vidaahub.com e premi Raccogli una volta.
 %SIDEE_PY% sidee.py --bridge-source-check --check-port 80
 pause

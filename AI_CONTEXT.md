@@ -5,6 +5,15 @@
 
 Last updated: 2026-09-30
 
+> LATEST NAVIGATION RESULT: TV says "failed to load page name not resolved".
+> Collector root still HTTP200/receipt null. ICS DNS192.168.137.1 resolves A to
+> .1.5, while DNS query to Ethernet .1.5 fails. For hotspot clients primary DNS
+> is .137.1; old legacy log's .1.5 DNS instruction is inappropriate for ICS.
+> Actual TV network/resolver not confirmed; hotspot/router question pending.
+> ICS AAAA query reports name nonexistent despite successful A; retain this
+> separate result without claiming a unique failure cause. Launcher now prints
+> hotspot-specific DNS. No service/network/IPv6 changes or native probes made.
+
 > LATEST: user explicitly authorized historical receiver restore. Post-Store
 > :8080 PID9552 restored, status verified, existing report hash unchanged. No
 > TV navigation/new inventory/snapshot. Collector :80 PID2312 and collection ID

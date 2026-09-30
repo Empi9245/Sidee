@@ -255,3 +255,26 @@ navigazione TV verso quel receiver, POST snapshot, inventario, capture o DNS.
 Collector :80 PID2312 e collectionId bridge-d424a584b261425db1be7176edd852fd
 preservati, receipt null; ICS UDP53 PID6844 intatto. Record readiness aggiornato.
 Il precedente diniego auto-review è risolto dall'autorizzazione specifica.
+
+## Errore nome TV e verifica DNS delle due interfacce
+
+L'utente riferisce «failed to load page name not resolved». Nessuna nuova
+raccolta: /status via http://vidaahub.com ancora HTTP200, stessa collection/PID2312,
+receipt null. :8080 PID9552 e ICS UDP53 PID6844 ancora attivi.
+
+Query DNS esplicite dal PC, senza cambiare resolver o avviare capture:
+192.168.137.1 per A vidaahub.com risponde 192.168.1.5; query a 192.168.1.5 per
+A termina con connessione interrotta. Il vecchio messaggio DNS TV .1.5 si
+riferiva al server Sidee storico, che qui è disabilitato; ICS serve l'hotspot
+sul suo .137.1. Non attribuire UDP53 wildcard a un servizio DNS funzionante
+su ogni interfaccia. Query AAAA su ICS riporta nome inesistente: conservare
+il negativo distinto dall'A positivo; non dichiarare equivalenza o causa unica.
+
+ipconfig conferma hotspot .137.1/Ethernet .1.5. ARP contiene .137.158 coerente
+con il client TV storico, non prova del resolver scelto oggi. Chiesta rete TV
+hotspot/router tramite domanda specifica; setting effettivo non disponibile.
+Per il collegamento hotspot il passo fisico mirato è DNS primario .137.1,
+chiudere/riaprire Browser, poi http://vidaahub.com. Il launcher ora stampa
+questa istruzione locale specifica. Nessun DNS automatico, debug, inventario,
+IPv6 disabilitato o stop ICS. Se fallisce anche con rete/DNS confermati, il
+negativo AAAA e la cache/resolver Browser restano aspetti da distinguere.

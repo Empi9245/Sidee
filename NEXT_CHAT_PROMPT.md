@@ -1,5 +1,18 @@
 # Prompt per la prossima chat — 30 settembre 2026
 
+ULTIMO ESITO: TV «failed to load page name not resolved», non raccolta eseguita.
+Collector :80 PID2312 attivo, /status tramite dominio HTTP200 e receipt null.
+ICS 192.168.137.1 risponde A vidaahub.com → 192.168.1.5; query DNS allo stesso
+IP Ethernet 192.168.1.5 fallisce (connessione interrotta). Query AAAA su ICS
+riporta nome inesistente; non dedurre che anche A sia assente. Il setting/resolver
+effettivo della TV non è ancora letto. ARP hotspot contiene .137.158 storico TV,
+non attestazione. Domanda specifica inviata: hotspot PC oppure rete router?
+Per TV sull'hotspot usare DNS primario 192.168.137.1, chiudere/riaprire Browser,
+poi http://vidaahub.com. Non indicare .1.5 come DNS di ICS. Launcher aggiornato
+con questo dato specifico della configurazione corrente. Non cambiare servizi,
+IPv6, gateway o connessione TV alla cieca; se il problema persiste con quel DNS
+confermato, va distinto il negativo AAAA dalla cache/resolver della TV.
+
 ULTIMO STATO: l'utente ha risposto «autorizzo il ripristino». Ripristinato soltanto
 receiver post-Store :8080 PID9552, /status mode post-store-check; hash del report
 0efd7bac0e62b3c19b46141e1844d0127d07d14c086ddc531cd5c30c2370d2ba invariato.

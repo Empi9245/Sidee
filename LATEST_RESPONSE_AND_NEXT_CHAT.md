@@ -1,5 +1,15 @@
 # Sidee / Nuvio — passaggio di consegne corrente
 
+Ultimo errore TV: «failed to load page name not resolved». Root collector ancora
+HTTP200, receipt null. DNS ICS risponde su 192.168.137.1 con A 192.168.1.5;
+query verso 192.168.1.5 non risponde correttamente. Per TV sull'hotspot il DNS
+primario è .137.1, non l'IP Ethernet .1.5 del vecchio log; launcher lo indica.
+Chiesta conferma della rete TV (hotspot/router), risposta non ancora ricevuta.
+AAAA su ICS restituisce nome inesistente: dato distinto da A riuscito, non prova
+del resolver effettivamente scelto dalla TV o della causa unica. Chiudere/riaprire
+Browser dopo l'eventuale correzione DNS e aprire http://vidaahub.com. Nessun probe
+native, inventario o capture. :80/:8080 e ICS preservati.
+
 Ultimo aggiornamento: autorizzazione esplicita utente ricevuta («autorizzo il
 ripristino»). Solo receiver post-Store :8080 ripristinato PID9552, status verificato,
 hash del report intatto. Nessun inventario o snapshot nuovo. Collector :80 PID2312,
