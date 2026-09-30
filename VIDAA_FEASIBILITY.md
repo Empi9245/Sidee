@@ -6,13 +6,20 @@ OS `U09.60`, MTK9603, Odin/Chromium 111.
 
 ## Esito
 
-Ultima richiesta: passaggio di consegne con priorità all'ipotesi di cambiamento
-del contesto vidaahub.com. Prompt in [NEXT_CHAT_PROMPT.md](NEXT_CHAT_PROMPT.md),
-stato corrente in [LATEST_RESPONSE_AND_NEXT_CHAT.md](LATEST_RESPONSE_AND_NEXT_CHAT.md).
-Non è una nuova evidenza di autorizzazione o installabilità. La lettura HTTP LAN
-non è un confronto A/B identico con il vecchio contesto; non attribuire al solo
-hostname la differenza di API. Verificare procedure supportate e documentazione
-attuale, senza riproporre la lettura già completata o cercare bypass dei permessi.
+Indagine prioritaria completata:
+[vidaahub-context-20260930.md](research/vidaahub-context-20260930.md),
+[confronto offline dei sei report](research/vidaa-context-comparison-20260930.json).
+Le fonti pubbliche distinguono l'accesso al bridge nelle diverse generazioni;
+non documentano una nuova autorizzazione Q0707 o un'origine sostitutiva per
+importare Nuvio. vidaahub esponeva già install legacy/V2 ma falliva AppConfig 503.
+Non c'è un A/B fra firmware né un confronto che isoli il solo hostname.
+Prompt aggiornato in [NEXT_CHAT_PROMPT.md](NEXT_CHAT_PROMPT.md), stato e modifiche
+locali Nuvio in [LATEST_RESPONSE_AND_NEXT_CHAT.md](LATEST_RESPONSE_AND_NEXT_CHAT.md).
+
+Il PC ha un mapping hosts preesistente vidaahub.com → 192.168.1.8, preservato:
+il suo timeout HTTPS non prova sito pubblico spento. DoH pubblico A/AAAA ha dato
+NODATA al momento della verifica; non NXDOMAIN né prova universale. I sottodomini
+Store già osservati non sono un nuovo ingresso da impersonare.
 
 **Nessuna delle strade esaminate è attualmente dimostrata capace di soddisfare
 tutti i requisiti senza devkit.** Questo è un limite delle evidenze e dei
@@ -32,7 +39,25 @@ partner. Media Station X è disponibile nello Store della sua TV, secondo la
 risposta dell'utente, ma l'utente non vuole usarlo. Escluso dal percorso finale;
 le verifiche sotto rimangono evidenze di ricerca, non una proposta di setup.
 
-## Nuove verifiche concrete — senza partner e senza MSX
+## Matrice aggiornata: evidenza, mancanza e prova decisiva
+
+| Strada | Provato | Manca / dipendenza | Test decisivo | Abbandono |
+| --- | --- | --- | --- | --- |
+| Package/sideload proprio | archivio web Nuvio, non formato VIDAA accettato | import autorizzato Q0707, formato e storage; UI locale | app minima propria, launcher/D-pad, riavvio host spenti, playback autorizzato | bypass, devkit/partner, UI ancora dipendente dal PC |
+| Contenitore persistente | identità native, tvbrowser locale; non file Nuvio | import di risorse proprie e persistenza documentati; MSX escluso | stessa prova, risorse/versione riconoscibili dopo riavvio | solo URL/cache/sessione o percorso escluso |
+| UI del fornitore | registrazione URL pubblicata per altre app, port Nuvio hosted | servizio Nuvio operativo e distribuzione launcher autorizzata; hosting esterno | launcher/D-pad/riavvio PC spento e playback, dipendenza dichiarata | permesso negato, endpoint indisponibile o hosting richiesto all'utente |
+
+**Prerequisito oggi non soddisfatto:** procedura pubblica autorizzata per una
+propria app sul firmware target, con formato/contesto/storage documentati.
+Solo dopo si prepara/importa una app minima con ID proprio e versione riconoscibile
+e si esegue il test reale. Un altro indirizzo o snapshot LAN non lo sostituisce.
+La procedura pubblica TVOЁ ispezionata usa ancora URL + Hisense_installApp e
+callback 0; non prova permessi Nuvio o copia di risorse. L'issue vidaa-edge 30 resta
+aperta; non c'è una correzione corrente documentata che risolva il gate su Q0707.
+Nuvio locale ha ora messaggi installer/packager corretti e VIDAA_STATUS.md;
+verifiche off-TV passate, nessun build/ZIP o nuovo test sulla TV.
+
+## Verifiche precedenti — senza partner e senza MSX
 
 ### Verifica attuale sulla TV — risultato parziale ricevuto
 

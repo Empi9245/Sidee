@@ -1,5 +1,17 @@
 # Verifiche fuori dalla TV — 30 settembre 2026
 
+Indagine corrente prioritaria:
+[vidaahub-context-20260930.md](vidaahub-context-20260930.md).
+[vidaa-context-comparison-20260930.json](vidaa-context-comparison-20260930.json)
+riassume sei report TV già salvati con hash, date, build, API e permessi;
+non è un nuovo report TV. Si rigenera con
+`python research/compare-vidaa-contexts.py` dalla radice Sidee, senza rete o
+scritture. Campi mancanti sono non registrati. Non esporta identificatori nativi
+o credenziali. Rigenerazione e risultati verificati il 30 settembre.
+
+Le fonti pubbliche della ricerca attuale sono state lette, non eseguite sulla TV.
+L'audit seguente è storico e MSX resta escluso: non è una procedura da riproporre.
+
 Questo audit distingue risposte tenute in memoria da risorse applicative
 persistenti. Non modifica Sidee, DNS, Store, TV o Nuvio. Media Station X è
 escluso dal percorso finale per scelta dell'utente; il risultato rimane utile

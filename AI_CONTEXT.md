@@ -17,11 +17,53 @@ Last updated: 2026-09-30
 > Latest authorized action: isolated post-Store inventory mode received a real
 > result: app API unavailable, 18 system packages, no import mechanism. See latest
 > handoff; do not start normal Sidee or old auto-probes to perform this check.
-> Latest user request: prepare the next-chat prompt, with vidaahub.com as the
-> priority research context. See NEXT_CHAT_PROMPT.md and the rewritten current
-> handoff. Investigate documented changes in supported context/API/authorization;
-> a different permission-granting domain remains a hypothesis, not an established
-> route. Do not silently replace that question with another LAN-origin snapshot.
+> Latest work: vidaahub public-source investigation and offline comparison of six
+> saved reports completed. See research/vidaahub-context-20260930.md and its JSON.
+> Published generation-dependent bridge access does not prove Q0707 write rights;
+> no documented replacement origin or own-app import was established. Local
+> vidaahub already exposed install APIs while denying AppConfig. No firmware A/B.
+> PC hosts maps vidaahub.com to 192.168.1.8: preserve; ordinary timeout is not a
+> public-site test. Public DoH A/AAAA returned NODATA at this check, not NXDOMAIN.
+> Nuvio installer/packager claims corrected, local changes preserved; no TV test,
+> bundle/ZIP, Nuvio commit or service changes. Acceptance goals still unverified.
+> A different permission-granting domain remains a hypothesis. Next TV test needs
+> a documented authorized import/context, not another LAN-origin snapshot.
+
+## Current evidence — vidaahub investigation, 30 September 2026
+
+Read [research/vidaahub-context-20260930.md](research/vidaahub-context-20260930.md)
+for primary URLs, response hashes, DNS contamination and the route matrix.
+[Offline comparison](research/vidaa-context-comparison-20260930.json) preserves
+report hashes/dates/builds while omitting credentials and native identifiers.
+Missing capability/build fields are unrecorded, not unavailable. Equal build IDs
+do not establish equal native bootstrap or isolate hostname as the causal factor.
+Historic reports do not record their execution commit; the research checkout
+started at Sidee bdd2c2d91ae1fc1e3cec6186c9b20bc49bff4bca, not that execution commit.
+
+The public TVOЁ procedure distinguishes older generations and VIDAA 5+, but its
+inspected install routine still submits a remote URL through Hisense_installApp
+and trusts callback 0. It does not document an arbitrary local-resource importer.
+vidaa-edge issue 30 remains open (last updated 2026-09-09), default-branch code
+still at 94c3134911cbd4b813eea1f88c56819c0981518b from 2025-12-03. Its maintainer
+reports no DNS rewrite needed on v9; other 09.60 reports still deny AppConfig.
+HomeOS naming continuity does not establish an API/permission migration. No
+public Q0707 release note found that identifies the first restricted firmware
+or grants a new origin install rights. Do not infer an all-VIDAA-9 restriction.
+
+Changes in Nuvio (HEAD unchanged 1f1ad284a292c06b0ed6b045dd1e1f3177666d1b):
+installer warns that callback 0 does not verify registration or copy resources;
+API availability/removal wording corrected; packager output describes a web ZIP
+with no verified VIDAA import format. New VIDAA_STATUS.md preserves limitations.
+Only off-TV syntax and mocked installer checks; no firmware/remote/playback proof.
+Offline six-report comparison reproduced exactly. Sidee runtime unchanged.
+The isolated receiver was still PID 5676 on LAN :8080, /status 200, same inventory.
+User's staged control/request.json remains excluded from agent commits.
+
+Next decisive prerequisite: a public authorized own-app import on Q0707 with
+format, execution context and storage documented, or a working provider-managed
+Nuvio distribution evaluated separately. Then own-ID/versioned minimal app,
+launcher/D-pad, real reboot with PC/Sidee/UI host off and authorized playback.
+No candidate currently clears that prerequisite within the user's exclusions.
 
 ## Project
 

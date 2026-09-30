@@ -1,0 +1,195 @@
+{
+  "kind": "saved-context-comparison-v1",
+  "offline": true,
+  "limits": [
+    "Missing fields mean unrecorded, not unavailable or unauthorized.",
+    "Build equality does not establish identical native context or an origin-only A/B.",
+    "No credentials, native identifiers, raw registry or resource bytes exported.",
+    "No historical firmware update A/B or new TV acceptance test."
+  ],
+  "observations": [
+    {
+      "file": "sidee-session-20260925-195421-ff60.json",
+      "sha256": "ae3eb5fba6cafffe8a14bb3aae7493634b27612b61158bea16dc2ffb073e1fba",
+      "bytes": 739844,
+      "updatedAt": "2026-09-25T18:25:51.974Z",
+      "receivedAt": null,
+      "origin": "https://vidaahub.com",
+      "accessMode": null,
+      "clientBuildId": null,
+      "serverBuildId": null,
+      "buildMatch": null,
+      "apiAvailability": {
+        "installApp": true,
+        "installAppV2": true,
+        "uninstallApp": true,
+        "getInstalledApps": true,
+        "hiUtils": true,
+        "omi": true,
+        "operaOmi": true
+      },
+      "permissionResults": [
+        {
+          "operation": "legacy",
+          "timestamp": "2026-09-25T18:25:36.876Z",
+          "callbackCode": 0,
+          "returnValue": false,
+          "classification": "REJECTED",
+          "ret": false,
+          "code": 503,
+          "appConfigPermissionFailure": true
+        },
+        {
+          "operation": "v2",
+          "timestamp": "2026-09-25T18:25:39.034Z",
+          "callbackCode": 0,
+          "returnValue": false,
+          "classification": "REJECTED",
+          "ret": false,
+          "code": 503,
+          "appConfigPermissionFailure": true
+        }
+      ]
+    },
+    {
+      "file": "sidee-session-20260926-150815-b6a2.json",
+      "sha256": "ae2d30f58af762bc69ee0ed9bd8706020923854875bbe29e6269c30b6053fd53",
+      "bytes": 18916,
+      "updatedAt": "2026-09-26T13:08:52.068Z",
+      "receivedAt": null,
+      "origin": "http://192.168.1.5:8080",
+      "accessMode": "RAW_IP_BROWSER_CONTEXT",
+      "clientBuildId": "app-7c6c95bcb6e0",
+      "serverBuildId": "app-7c6c95bcb6e0",
+      "buildMatch": true,
+      "apiAvailability": {},
+      "permissionResults": [
+        {
+          "operation": "historical-baseline-noop-write",
+          "timestamp": "2026-09-26T13:08:32.010Z",
+          "ret": false,
+          "code": 503,
+          "readbackIdentical": true
+        }
+      ]
+    },
+    {
+      "file": "sidee-session-20260926-153038-1083.json",
+      "sha256": "c97c069ce55634368cfcd06aa43aa54605fea09824cd3c93dc832fddf0642431",
+      "bytes": 178005,
+      "updatedAt": "2026-09-26T13:31:43.260Z",
+      "receivedAt": null,
+      "origin": "https://vidaahub.com",
+      "accessMode": "VIDAAHUB_BROWSER_CONTEXT",
+      "clientBuildId": "app-05842432cb14",
+      "serverBuildId": "app-05842432cb14",
+      "buildMatch": true,
+      "apiAvailability": {},
+      "permissionResults": [
+        {
+          "operation": "historical-noop-write",
+          "timestamp": "2026-09-26T13:30:58.981Z",
+          "classification": "WRITE_DENIED",
+          "ret": false,
+          "code": 503,
+          "readbackIdentical": true
+        },
+        {
+          "operation": "historical-baseline-noop-write",
+          "timestamp": "2026-09-26T13:31:21.111Z",
+          "ret": false,
+          "code": 503,
+          "readbackIdentical": true
+        }
+      ],
+      "historicalDuplecast": {
+        "packaged": 0,
+        "appBundleEmpty": true,
+        "remoteStartCommand": true
+      }
+    },
+    {
+      "file": "sidee-session-20260926-160944-2811.json",
+      "sha256": "8dc926b785ff2d98f24bc134574e1c3e5343771d10ac1a7d4d007e9dac4bda78",
+      "bytes": 6088,
+      "updatedAt": "2026-09-26T14:09:45Z",
+      "receivedAt": null,
+      "origin": "http://vidaa.duplecast.com",
+      "accessMode": "DUPLECAST_APP_CONTEXT",
+      "clientBuildId": "app-05842432cb14",
+      "serverBuildId": "app-05842432cb14",
+      "buildMatch": true,
+      "apiAvailability": {
+        "hiUtils": true,
+        "installLegacy": false,
+        "installV2": false,
+        "fileRead": false,
+        "fileWrite": false,
+        "vowService": true,
+        "vowContext": true
+      },
+      "permissionResults": [
+        {
+          "operation": "historical-native-noop-write",
+          "timestamp": "2026-09-26T14:09:45Z",
+          "classification": "WRITE_DENIED",
+          "ret": false,
+          "code": 503,
+          "readbackIdentical": true
+        }
+      ],
+      "nativeIdentityPresent": true,
+      "supportAppConfig": true
+    },
+    {
+      "file": "sidee-session-20260926-161255-410f.json",
+      "sha256": "707cc50cab7560cabc8ed4887b8e4a215f062c012b41a84698198fef37686e63",
+      "bytes": 6130,
+      "updatedAt": "2026-09-26T14:12:55Z",
+      "receivedAt": null,
+      "origin": "http://vidaa.smartone-iptv.com",
+      "accessMode": "SMARTONE_APP_CONTEXT",
+      "clientBuildId": "app-05842432cb14",
+      "serverBuildId": "app-05842432cb14",
+      "buildMatch": true,
+      "apiAvailability": {
+        "hiUtils": true,
+        "installLegacy": false,
+        "installV2": false,
+        "fileRead": false,
+        "fileWrite": false,
+        "vowService": true,
+        "vowContext": true
+      },
+      "permissionResults": [
+        {
+          "operation": "historical-native-noop-write",
+          "timestamp": "2026-09-26T14:12:55Z",
+          "classification": "WRITE_DENIED",
+          "ret": false,
+          "code": 503,
+          "readbackIdentical": true
+        }
+      ],
+      "nativeIdentityPresent": true,
+      "supportAppConfig": true
+    },
+    {
+      "file": "post-store-20260930-120901-112525.json",
+      "sha256": "78b8bc5564464bc9d17b823b482d6b3d94cebfe7d22f31e094da21229841ab4f",
+      "bytes": 4281,
+      "updatedAt": "2026-09-30T12:09:05.471Z",
+      "receivedAt": "2026-09-30T12:09:01.111526+00:00",
+      "origin": "http://192.168.1.5:8080",
+      "accessMode": null,
+      "clientBuildId": null,
+      "serverBuildId": null,
+      "buildMatch": null,
+      "apiAvailability": {},
+      "permissionResults": [],
+      "appInventoryStatus": "UNAVAILABLE",
+      "packageInventoryStatus": "READ_OK",
+      "packageCount": 18
+    }
+  ]
+}

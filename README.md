@@ -4,8 +4,13 @@
 
 Next-chat prompt: [NEXT_CHAT_PROMPT.md](NEXT_CHAT_PROMPT.md). Complete current
 state: [LATEST_RESPONSE_AND_NEXT_CHAT.md](LATEST_RESPONSE_AND_NEXT_CHAT.md).
-The user's latest priority is to investigate whether the documented supported
-context/API/authorization changed from the historical vidaahub.com setup.
+The priority investigation is now recorded in
+[research/vidaahub-context-20260930.md](research/vidaahub-context-20260930.md), with
+a reproducible [six-report comparison](research/vidaa-context-comparison-20260930.json).
+Published generation-dependent bridge access does not establish Q0707 write
+permission; no documented replacement origin or own-app import was found.
+PC hosts still maps vidaahub.com to a private IP, so its ordinary HTTPS timeout
+is not a public-site test. Public DoH returned NODATA A/AAAA at this check.
 A different permission-granting origin is a hypothesis, not an established
 import path. API availability, installation permission and persisted resources
 are separate questions. Do not replace this question with another LAN snapshot.
@@ -36,8 +41,10 @@ media and browser shortcuts, not an own-app importer in the inspected sections;
 it is for another model/region. No new TV acceptance result or usable candidate.
 
 The Nuvio fork's VIDAA ZIP is an archive of web files, not a demonstrated
-installable VIDAA package. Its installer registers a URL and still incorrectly
-treats callback 0 as success. Duplecast's observed registry entry has a remote
+installable VIDAA package. Its installer requests URL registration; local source
+now treats callback 0 as unverified and explains that no files were copied to
+the TV. Packager promises were corrected; no new bundle/ZIP or TV install.
+See Nuvio's `VIDAA_STATUS.md`. Duplecast's observed registry entry has a remote
 StartCommand and `packaged:0`; its native app identity does not prove local
 Nuvio resources. No documented persistent local-app import was found for
 Duplecast/SmartOne in the checked vendor documentation.
@@ -59,14 +66,15 @@ or an explicitly evaluated provider-managed hosted-app distribution exists.
 Do not repeat exhausted permission/identity/HSPDK/pkgmgr probes, replace
 third-party Store packages, or bypass signatures, authentication or AppConfig.
 
-## Current isolated TV check — after the Store operation
+## Completed isolated TV check — after the Store operation
 
-The user has authorized connecting Sidee to the TV for useful checks. Use
+The result is already received; **do not repeat this inventory**. The instructions
+below describe the completed check, not a next step. Its isolated mode used
 `python sidee.py --post-store-check` to serve only the inventory page on the
 configured PC LAN address and HTTP port (currently `http://192.168.1.5:8080`).
 It does not start the historical dashboard, DNS, TLS interception, Git workers,
-captures or TV install/write probes. Open that address in the TV Browser;
-the page reads only `Hisense_getInstalledApps()` and
+captures or TV install/write probes. When opened for the completed check,
+the page read only `Hisense_getInstalledApps()` and
 `vowOS.store.getInstalledPkgs()` if exposed. No SDK injection, identity/origin
 override, TV file reads or writes. No custom DNS is needed for this check.
 

@@ -1,108 +1,89 @@
 # Prompt per la prossima chat — 30 settembre 2026
 
-Sto continuando il lavoro su `Empi9245/Sidee` in
-`C:\Users\empi0\Desktop\Sidee` e sul port Nuvio in
-`D:\nuvio\nuviotvsmart`. Voglio che svolga tu la ricerca e il lavoro necessario,
-senza rimandarmi a istruzioni generiche già esaminate.
+Continua Sidee in `C:\Users\empi0\Desktop\Sidee` e Nuvio in
+`D:\nuvio\nuviotvsmart`. Svolgi tu il lavoro e preserva le modifiche locali.
+Prima di modificare o eseguire test, leggi **completamente**:
 
-**La priorità è vidaahub.com.** Nelle vecchie versioni quel contesto esponeva
-le API VIDAA. Voglio verificare concretamente se nel firmware attuale siano
-cambiati il contesto richiesto, le API esposte o le regole di autorizzazione,
-e se esista un punto di ingresso attuale documentato. Non sostituire questa
-domanda con un'altra pagina servita da localhost o IP LAN. Un dominio diverso
-che conceda permessi è un'ipotesi, non una conclusione: cerca riferimenti
-pubblici pertinenti e procedure consentite, senza enumerare origini per
-aggirare controlli o impersonare domini VIDAA/Store tramite DNS o TLS.
+1. questo NEXT_CHAT_PROMPT.md;
+2. AI_CONTEXT.md;
+3. LATEST_RESPONSE_AND_NEXT_CHAT.md;
+4. README.md;
+5. VIDAA_FEASIBILITY.md;
+6. research/post-store-result-20260930.md;
+7. research/vidaahub-context-20260930.md;
+8. research/vidaa-context-comparison-20260930.json;
+9. in Nuvio, VIDAA_STATUS.md.
 
-Prima di modificare, leggi completamente nella repo Sidee:
+Il riepilogo corrente prevale sui vecchi piani della cronologia.
 
-1. `AI_CONTEXT.md`;
-2. `LATEST_RESPONSE_AND_NEXT_CHAT.md`;
-3. `README.md`;
-4. questo `NEXT_CHAT_PROMPT.md`;
-5. `VIDAA_FEASIBILITY.md`;
-6. `research/post-store-result-20260930.md`.
+**Priorità vidaahub.com:** l'indagine pubblica del 30 settembre e il confronto
+fra sei report sono ora completati. Verifica eventuali fatti tecnici nuovi sul
+contesto supportato, esposizione API e autorizzazione rispetto alle vecchie
+versioni. Non sostituire questa domanda con localhost/IP LAN, non ripetere le
+stesse fonti senza nuovi elementi. Un diverso dominio autorizzato resta ipotesi:
+servono specifica pertinente e procedura consentita, non enumerazione di origini,
+impersonazione DNS/TLS o aggiramento di privilegi.
 
-Il riepilogo corrente prevale sui vecchi piani nella cronologia. Verifica
-branch, HEAD, modifiche locali e report più recente con data/build/commit;
-esamina il port VIDAA Nuvio, installer e packaging. Preserva il lavoro locale.
+La documentazione di un fornitore distingue vecchie generazioni/VIDAA 5+; il
+maintainer vidaa-edge riferisce API accessibili da v9 senza DNS rewrite. Questi
+fatti non provano autorizzazione. Il codice del fornitore registra ancora un URL
+e considera callback 0 successo. Sulla TV target vidaahub esponeva già le API,
+ma install legacy/V2 erano respinte internamente false/AppConfig 503 anche con
+callback 0. Due app native con identità presente respingevano la scrittura.
+Manca un A/B tra firmware e una specifica Q0707 di nuova autorizzazione/import.
+Non attribuire la differenza di API al solo hostname; non concludere impossibilità
+universale o successo da una nuova origine senza prova.
 
-TV: **Hisense 50E77NQ**, firmware `V0000.09.60A.Q0707`, OS `VIDAA U09.60`,
-MTK9603, Odin/Chromium circa 111. Il modello interno storico `50E70LEVS_0003`
-non sostituisce il modello commerciale confermato.
+**PC hosts contiene `192.168.1.8 vidaahub.com`, preesistente e preservato.**
+Il timeout HTTPS ordinario non riguarda necessariamente Internet. La verifica
+pubblica Google DNS via HTTPS ha restituito NODATA A/AAAA il 30 settembre,
+non NXDOMAIN né prova universale. Radice e sottodomini Store hanno ruoli distinti.
 
-L'obiettivo resta una vera app Nuvio:
+TV: **Hisense 50E77NQ**, `V0000.09.60A.Q0707`, VIDAA U09.60, MTK9603,
+Odin/Chromium 111; modello interno storico 50E70LEVS_0003.
+Voglio una vera app Nuvio: launcher; frecce/OK/Indietro senza cursore;
+persistenza dopo riavvio reale; UI con PC, Sidee e server locale spenti;
+caricamento UI e playback di contenuto autorizzato. Tutti cinque ancora non
+verificati. Internet per contenuti/account è accettabile, hosting dell'UI da
+parte mia no. Package/sideload/contenitore sono accettabili se soddisfano i criteri.
+UI gestita da un fornitore è strada distinta con dipendenze esplicite.
+Fullscreen/bookmark/cache/service worker non dimostrano installazione locale.
 
-- apertura dal launcher TV;
-- frecce, OK e Indietro senza cursore;
-- persistenza dopo chiusura e riavvio reale;
-- interfaccia utilizzabile con Sidee, PC e server locale Nuvio spenti;
-- caricamento dell'interfaccia e riproduzione di un contenuto di prova autorizzato.
+Non usare devkit, Superdesign, Media Station X, contatti/percorso partner VIDAA.
+MSX è disponibile nello Store ma lo rifiuto. Nessuna sostituzione ingannevole di
+package Store o bypass di firme, autenticazione o AppConfig.
 
-Internet per contenuti/account/servizi è accettabile; non voglio ospitare io
-l'interfaccia. Accetto package locale, sideload o contenitore con risorse
-persistenti. Browser fullscreen, segnalibro, cache e service worker da soli
-non dimostrano installazione. Valuta un'eventuale UI gestita da un fornitore
-come strada distinta, dichiarandone dipendenze, senza cambiare implicitamente
-l'obiettivo.
+Stato da preservare:
 
-Non usare devkit o Superdesign. Non contattare VIDAA e non proporre il percorso
-partner. Media Station X è disponibile nel mio Store ma **non voglio usarlo**.
-Non progettare sostituzioni ingannevoli di pacchetti Store né bypass di firme,
-autenticazione o permessi AppConfig.
+- Sidee main: ricerca partita da `bdd2c2d91ae1fc1e3cec6186c9b20bc49bff4bca`;
+  ricava il commit di ricerca corrente da Git. `control/request.json` è già
+  in staging dell'utente: preserva ed escludi dai commit. SHA256
+  `6d8cd6ec102dd17b4ebd110e443fe6a68d645eee663ed1ce05fc2749699fa9b4`.
+- Nuvio main HEAD `1f1ad284a292c06b0ed6b045dd1e1f3177666d1b`; modifiche locali
+  da conservare a installer/index.html, scripts/package-vidaa.mjs e VIDAA_STATUS.md.
+  Corretti falsi successi e promesse di installabilità, nessun build/ZIP o commit
+  Nuvio. Verifiche off-TV passate, non prove di permessi o launcher reali.
+- Sei report confrontati offline con hash/build/date. Commit di esecuzione non
+  registrati: non inventarli. Build uguale non equivale a contesto identico.
+- Risposta TV del 30 settembre già ricevuta, file post-store-20260930-120901-112525
+  e post-store-latest.json: 4281 byte, hash/provenienza nei documenti.
+  HTTP LAN: app API UNAVAILABLE, package READ_OK, 18 componenti di sistema.
+  Non inventario Store completo, non byte delle risorse, non prova URL-only.
+- Ricevitore isolato ultimo PID 5676, LAN 192.168.1.5:8080, /status 200 e stesso
+  report; non modificato, non ascolta loopback. Verifica prima di intervenire.
+  Non avviare Sidee normale o aprire la pagina storica con auto-probe.
+- HTTPS già visibile dopo NAT: 382 record, FILTERED_FLOW_VISIBLE_AFTER_NAT.
+  Non ripetere inventario, cattura o probe esauriti identità/AppInfo/HSPDK/file.
 
-Stato da conoscere, poi ricontrollare:
+Il prossimo fatto utile è una **procedura pubblica e autorizzata di import della
+propria app su Q0707**, con formato/contesto/storage documentati. Una nuova
+specifica di contesto deve chiarire permessi effettivi, non soltanto le API.
+Solo allora preparare app minima propria con versione riconoscibile, importare,
+verificare launcher/telecomando, riavvio con host spenti e playback autorizzato.
+In alternativa valutare esplicitamente distribuzione Nuvio del fornitore che sia
+operativa e autorizzata. Senza questi prerequisiti non c'è un altro tentativo TV
+giustificato nei vincoli. Non colmare il vuoto con un URL candidato o LAN test.
 
-- Sidee `main`, HEAD prima dell'ultimo handoff documentale
-  `4e14334663b099ad000802736e9b64ae35b6e9e1`; ricava il nuovo HEAD da Git.
-  `control/request.json` è un'aggiunta dell'utente già in staging: preservala
-  ed escludila dai tuoi commit. Tutti i flag sono false.
-- Nuvio `main`, HEAD `1f1ad284a292c06b0ed6b045dd1e1f3177666d1b`, pulita,
-  nessuna modifica/build durante questa ricerca.
-- Risposta TV reale già ricevuta: `reports/post-store-20260930-120901-112525.json`,
-  anche `reports/post-store-latest.json`, file locali ignorati da Git.
-  Timestamp pagina `2026-09-30T12:09:05.471Z`; ricezione nel file
-  `2026-09-30T14:09:01.111526+02:00`. Provenienza/hash nel documento research.
-- Quel test era da `http://192.168.1.5:8080`: elenco app **UNAVAILABLE**,
-  elenco package **READ_OK**, 18 componenti di sistema, incluso tvbrowser web
-  locale. Non prova che Duplecast memorizzi solo un URL; non è un A/B identico
-  rispetto a vidaahub e non dimostra causalità del solo hostname.
-- Ricevitore isolato `sidee.py --post-store-check`, ultimo PID 5676,
-  listener `192.168.1.5:8080`, stato su `/status`; non ascolta su loopback.
-  Verifica prima di intervenire. Non avvia DNS/TLS/vecchi probe/install/write.
-  Non riaprire la pagina solo per ripetere lo snapshot già completato.
-
-Punti già accertati: i vecchi contesti vidaahub, IP e app native avevano
-respinto install/write con **AppConfig 503**, anche con identità nativa
-presente. Callback 0 e API esposte non provavano installazione o permessi.
-Questo non prova impossibilità universale né autorizzazione da un altro dominio.
-Ricostruisci origine, data, build, API e risposte dei test salvati, separando
-esposizione del bridge, autorizzazione e storage persistente.
-
-HTTPS è già visibile dopo la correzione NAT: **382 record HTTPS** nella cattura
-salvata, `FILTERED_FLOW_VISIBLE_AFTER_NAT`. Non ripartire dalla cattura.
-Non ripetere probe esauriti su identità, AppInfo, HSPDK o file tvbrowser senza
-nuova evidenza. Non aggiungere diagnostica che non distingua una domanda aperta.
-
-Il packager Nuvio produce un archivio web, non un package VIDAA dimostrato;
-l'installer passa un URL, non risorse. Duplecast aveva URL/StartCommand remoto
-e `packaged:0` nel report del 26 settembre, prima della successiva operazione
-Store: resta da dimostrare cosa abbia realmente conservato sulla TV.
-Le fonti già controllate, con link e limiti, sono nella valutazione: non
-presentarle come nuove scoperte né trasformare l'audit MSX in una prova TV.
-
-La prima consegna deve aggiornare concretamente le tre strade:
-**package Nuvio locale**, **registrazione nel launcher di app ospitata**,
-**contenitore con risorse Nuvio locali e persistenti**. Per ciascuna indica
-evidenze, cosa manca, dipendenze da hosting/PC/DNS/cache, prossimo test decisivo
-e criterio per abbandonarla. Dai priorità alla domanda su vidaahub e sui
-cambiamenti documentati del contesto attuale. Se un controllo necessario
-richiede una funzionalità autorizzata non disponibile, spiega precisamente
-quel limite invece di sostituirlo con un altro probe IP.
-
-Quando emerge una strada sostenuta da evidenze, implementa il minimo e
-verifica i cinque criteri sulla TV. Tutti sono ancora non verificati.
-Se nessuna strada soddisfa i requisiti nelle condizioni date, dichiaralo con
-le evidenze e i limiti disponibili, senza spacciare una UI ospitata per app
-locale. Lavora direttamente sulle repo; su Sidee committa su `main` escludendo
-il file già in staging, e aggiorna contesto, risultati e prossimo passo.
+Aggiorna i documenti con nuove evidenze, limiti e prossimo test decisivo. Committa
+Sidee su main con percorsi espliciti escludendo control/request.json. Riporta cosa
+è provato, cosa manca e se una candidata soddisfa davvero tutti i criteri.
