@@ -1,5 +1,17 @@
 # Sidee / Nuvio — passaggio di consegne corrente
 
+## Ultimo setup LAN, superate le indicazioni hotspot
+
+TV sulla rete del router confermato dall'utente. Implementato lan_dns.py,
+DNS specifico 192.168.1.5:53 UDP/TCP, clienti LAN .1.0/24. Solo vidaahub.com
+diretto al PC; AAAA/HTTPS NODATA senza NXDOMAIN, altro DNS via router .1.1.
+PID20404; collector PID2312 e post-Store PID9552 intatti. ICS PID6844 RUNNING,
+nessun servizio fermato. Nessuna nuova regola firewall, vecchie Private UDP53
+preservate. DNS locale e forwarding verificati; nessuna ricevuta TV ancora.
+Launcher ora avvia/riusa DNS conforme e collector, senza stop globali o Store.
+Azione TV: DNS primario 192.168.1.5, riaprire Browser, http://vidaahub.com,
+Raccogli una volta. Stato reale in bridge-domain-readiness.json e /status.
+
 Ultimo errore TV: «failed to load page name not resolved». Root collector ancora
 HTTP200, receipt null. DNS ICS risponde su 192.168.137.1 con A 192.168.1.5;
 query verso 192.168.1.5 non risponde correttamente. Per TV sull'hotspot il DNS

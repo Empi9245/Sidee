@@ -1,5 +1,24 @@
 # Prompt per la prossima chat — 30 settembre 2026
 
+## Ultima correzione: TV sulla LAN router, DNS dedicato al PC
+
+L'utente conferma: NON usa hotspot, TV sulla rete router. Le istruzioni .137.1
+sotto sono ritirate per questo collegamento. Ora lan_dns.py serve il DNS isolato
+UDP/TCP **192.168.1.5:53**, solo clienti 192.168.1.0/24: vidaahub.com A .1.5,
+AAAA/HTTPS NOERROR/NODATA, altre query inoltrate a router .1.1. Nessun capture,
+probe SDK/native, altri hostname riscritti o log delle query ordinarie.
+Binding esclusivo specifico LAN possibile senza fermare ICS, servizio PID6844
+ancora RUNNING. DNS PID20404, collector :80 PID2312 e post-Store :8080 PID9552
+preservati. Query A UDP/TCP, NOERROR AAAA/HTTPS e forwarding ordinario verificati
+dal PC fuori dalle restrizioni di rete della sonda iniziale; non sono prove TV.
+start-windows.bat avvia/riusa anche DNS LAN prima del collector, abortisce se
+non ne verifica marker/hash e i due trasporti. Regole esistenti Private UDP53
+preservate; nessuna nuova regola (UAC di un helper opzionale annullata, helper
+ritirato). Collector corrente stessa collectionId, receipt null alla verifica.
+TV: DNS primario 192.168.1.5, chiudere/riaprire Browser, http://vidaahub.com,
+Raccogli una volta. Leggere subito /status e report se arriva. Non cambiare
+router/DoH/IPv6, fermare ICS o ripetere inventario/capture/write gate.
+
 ULTIMO ESITO: TV «failed to load page name not resolved», non raccolta eseguita.
 Collector :80 PID2312 attivo, /status tramite dominio HTTP200 e receipt null.
 ICS 192.168.137.1 risponde A vidaahub.com → 192.168.1.5; query DNS allo stesso

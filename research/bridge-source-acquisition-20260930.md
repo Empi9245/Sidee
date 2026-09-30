@@ -278,3 +278,56 @@ chiudere/riaprire Browser, poi http://vidaahub.com. Il launcher ora stampa
 questa istruzione locale specifica. Nessun DNS automatico, debug, inventario,
 IPv6 disabilitato o stop ICS. Se fallisce anche con rete/DNS confermati, il
 negativo AAAA e la cache/resolver Browser restano aspetti da distinguere.
+
+## TV confermata sulla rete router: DNS LAN indipendente
+
+L'utente corregge l'ipotesi hotspot: TV e PC sulla rete router, come nel
+meccanismo locale di weinzii/vidaa-edge già analizzato. L'indicazione .137.1
+non è applicabile qui. Il prerequisito è un DNS che risponda sul PC LAN .1.5,
+non soltanto un HTTP server o il mapping hosts usato dal resolver del PC.
+
+Prova nuova di bind, non di API: socket UDP esclusivo su 192.168.1.5:53
+disponibile nonostante la precedente entry ICS wildcard. Nessun SO_REUSEADDR
+forzato, stop/disabilitazione ICS o reconfigurazione NAT/DoH/IPv6.
+Implementato lan_dns.py, processo separato dai worker storici:
+
+- bind esclusivo UDP e TCP allo specifico .1.5, clienti solo .1.0/24;
+- solo vidaahub.com A .1.5; AAAA/HTTPS e altri tipi NOERROR/NODATA;
+- altre richieste inoltrate al router .1.1, senza cattura/log dei loro nomi;
+- marker TXT locale con hash per il riuso della propria versione, non un
+  servizio VIDAA; framing/limiti e 16 worker, nessuna chiamata TV;
+- status locale limitato ai tentativi sul solo nome target, PID/hash/ultimo
+  client e tipo; una query dal PC non equivale a ricezione TV;
+- --background avvia nascosto e conferma entrambi i trasporti prima di
+  restituire; versione estranea non viene fermata o sostituita.
+
+start-windows.bat ora avvia/riusa quel DNS LAN prima del collector, con i valori
+locali espliciti noti; fallisce chiaramente se non ne verifica la salute.
+Test off-TV UDP/TCP reali su loopback: A, AAAA/HTTPS NODATA, forwarding a un
+upstream fittizio su entrambi i trasporti, richieste fuori subnet respinte,
+malformate gestite e bind doppio respinto senza danneggiare il server.
+
+Prima sonda/avvio nella restrizione di rete del tool: timeout health/inoltro
+pur con bind corretto. Sonde locali fuori da tale restrizione hanno confermato
+il server; il solo DNS nuovo PID3412 è stato poi riavviato dopo verifica del
+percorso esatto/hash, per permettere l'inoltro al router. Una chiamata
+Stop-Process aveva errore interno; completato con il solo handle di quel PID,
+nessun altro processo toccato. DNS finale PID20404, .1.5:53 UDP/TCP; A .1.5
+su entrambi, AAAA/HTTPS NOERROR/NODATA verificati. Query example.com via DNS
+locale inoltrata al router e riuscita, non ricerca di metodi TV. Launcher
+reale verificato per riuso di DNS/collector, da ambiente con accesso rete locale.
+
+Tentativo opzionale di nuove regole LAN UDP/TCP ristrette: UAC annullata
+dall'utente, helper non eseguito e ritirato. Nessuna nuova regola applicata;
+regole Private UDP53 esistenti preservate. Ethernet è Private. Non dichiarare
+verificata l'accessibilità dalla TV sulla base delle sole sonde locali.
+
+ICS servizio PID6844 resta RUNNING; collector :80 PID2312 con stessa collection
+bridge-d424a584b261425db1be7176edd852fd e post-Store :8080 PID9552 intatti.
+Receipt collector null alla preparazione. Readiness aggiornata con status/hash
+DNS; il firmware resta riferimento storico, non nuova misura.
+
+Azione fisica preparata per questa rete: **DNS primario TV 192.168.1.5 → chiudi
+e riapri Browser → http://vidaahub.com → Raccogli una volta**. Non indirizzo IP
+sostitutivo del contesto, hotspot imposto o nuova operazione native. Analizzare
+immediatamente l'eventuale report senza eseguire sorgenti estratte.

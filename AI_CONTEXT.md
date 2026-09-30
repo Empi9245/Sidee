@@ -5,6 +5,19 @@
 
 Last updated: 2026-09-30
 
+> NEWEST CORRECTION: user confirms TV is on router LAN, NOT hotspot. Retire .137.1
+> advice for this connection. Implemented lan_dns.py on specific .1.5:53 UDP/TCP,
+> LAN clients only; vidaahub A .1.5, AAAA/HTTPS NOERROR/NODATA, other queries
+> forwarded unchanged to router .1.1, no other-name logging/capture/native/SDK.
+> Exclusive specific-IP bind works without stopping ICS; service6844 RUNNING.
+> DNS PID20404, collector2312 and post-Store9552 preserved. PC checks verify
+> both transports/types and forwarding; first restricted probe timed out and
+> its DNS process3412 was replaced after exact path/hash verification only.
+> Launcher now starts/reuses healthy DNS before collector; no global process
+> stop or Store worker. No firewall changes (optional helper UAC cancelled,
+> helper retired), old Private UDP53 rules retained. TV action: primary DNS .1.5,
+> reopen Browser, http://vidaahub.com, click once. Collector receipt still null.
+
 > LATEST NAVIGATION RESULT: TV says "failed to load page name not resolved".
 > Collector root still HTTP200/receipt null. ICS DNS192.168.137.1 resolves A to
 > .1.5, while DNS query to Ethernet .1.5 fails. For hotspot clients primary DNS

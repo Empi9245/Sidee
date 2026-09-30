@@ -4,6 +4,13 @@ Verifica: 2026-09-30, Europe/Rome. TV: Hisense **50E77NQ** (modello confermato
 dall'utente durante la ricerca successiva), firmware `V0000.09.60A.Q0707`,
 OS `U09.60`, MTK9603, Odin/Chromium 111.
 
+Ultima correzione: utente conferma LAN router, non hotspot. DNS isolato
+lan_dns.py ora su 192.168.1.5:53 UDP/TCP, binding LAN specifico, senza fermare
+ICS; solo vidaahub indirizzato al collector, altro DNS via router. Risposte
+A/NODATA e forwarding verificati dal PC, collector ricevuta null. DNS TV da
+impostare .1.5; riaprire Browser e usare http://vidaahub.com. Non è prova API,
+autorizzazione, storage o installazione Nuvio; vecchio consiglio .137.1 superato.
+
 Ultima navigazione TV: «failed to load page name not resolved». Collector root
 ancora HTTP200 dal PC, receipt null. DNS ICS .137.1 risponde A .1.5, mentre query
 DNS a .1.5 fallisce; per collegamento hotspot TV usare primario 192.168.137.1.

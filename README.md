@@ -1,5 +1,18 @@
 # Sidee
 
+Current connection confirmed by owner: **TV and PC are on the router LAN**.
+Set TV primary DNS to **192.168.1.5**, reopen the Browser and visit
+**http://vidaahub.com/**, then press **Raccogli una volta**.
+`start-windows.bat` now starts/reuses `lan_dns.py` before the collector:
+UDP/TCP only on 192.168.1.5:53, clients 192.168.1.0/24, vidaahub.com → this PC,
+ordinary DNS via router 192.168.1.1. No Store/native/SDK/capture workers or
+other-name query logging. ICS remains running. PC DNS/forwarding checks passed;
+TV receipt required. Hotspot .137.1 advice below is historical for this setup.
+
+The launcher uses these known local addresses; update its explicit arguments
+if the PC address/router subnet changes. An existing matching DNS service is
+reused via bounded local health checks; foreign/stale services remain intact.
+
 Windows startup fixed: `start-windows.bat` now opens the isolated collector on
 HTTP/80. It does not start DNS/Store workers, elevate, alter firewall rules or
 stop existing processes. A second launch reuses the same matching receiver and
