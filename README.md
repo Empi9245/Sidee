@@ -1,5 +1,17 @@
 # Sidee
 
+## Targeted loaded-source acquisition — 30 September 2026
+
+New isolated mode: `python sidee.py --bridge-source-check --check-port 8082`.
+It collects only after an explicit click, using script tags plus resource timing
+to find already-loaded, browser-readable scripts missing from past excerpts.
+No native calls, SDK execution, inventory, DNS/TLS, historical startup probes or
+Git upload. Local reports contain source/build/report hashes and completeness.
+[Scope, context, checks and access blocker](research/bridge-source-acquisition-20260930.md).
+vidaahub remains the preferred context; this mode does not create domain routing.
+HTTP/8082 and LAN observations are distinguished from historical HTTPS/443.
+Receiver readiness is verified; **no new TV receipt or installation yet**.
+
 ## Current diagnosis: legacy, V2 and upstream New
 
 [Installation-method diagnosis](research/install-methods-q0707-20260930.md):

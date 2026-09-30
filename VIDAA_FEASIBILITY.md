@@ -4,6 +4,15 @@ Verifica: 2026-09-30, Europe/Rome. TV: Hisense **50E77NQ** (modello confermato
 dall'utente durante la ricerca successiva), firmware `V0000.09.60A.Q0707`,
 OS `U09.60`, MTK9603, Odin/Chromium 111.
 
+Aggiornamento operativo: implementato un
+[collector isolato delle sorgenti già caricate](research/bridge-source-acquisition-20260930.md),
+che copre anche resource timing, non registrato dai vecchi collector DOM.
+Test off-TV passati e ricevitore :8082 pronto; nessuna ricevuta TV nuova.
+Priorità vidaahub mantenuta senza cambiare DNS/TLS: l'accesso dal Browser TV
+dipende dal canale già presente. La raccolta non legge l'implementazione nativa
+AppConfig e non risolve da sola il rifiuto false/503 o il trasferimento risorse.
+HTTP/8082 non è equivalente al vecchio HTTPS/443. Tutti i criteri restano aperti.
+
 **Ultima richiesta:** prove dirette sulla TV, senza imporre una guida pubblica
 per ogni controllo. Il test secondario Nuvio LAN è stato preparato e poi
 fermato senza report TV: non sostituisce la priorità vidaahub. L'utente indica

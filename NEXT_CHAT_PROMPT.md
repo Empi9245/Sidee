@@ -1,5 +1,31 @@
 # Prompt per la prossima chat — 30 settembre 2026
 
+## Aggiornamento operativo successivo: collector implementato
+
+Leggere anche `research/bridge-source-acquisition-20260930.md` integralmente.
+Ora esiste `sidee.py --bridge-source-check --check-port 8082`, collector
+`web/bridge-source-check.js` e ricevitore separato `bridge_source_check.py`.
+Test off-TV passati. La lacuna scelta è script caricati visibili in resource
+timing ma fuori da document.scripts; raccolta singola esplicita, senza native
+API, SDK execution, DNS/TLS, filesystem TV, inventario o vecchi auto-probe.
+Receiver verificato su 192.168.1.5:8082; ricevitore post-Store :8080 preservato.
+Alla preparazione `/status` receipt null: non dichiarare nuova prova TV.
+
+Prima di proseguire controllare `/status` del nuovo ricevitore e leggere eventuale
+`reports/bridge-source-latest.json`. Provenienza include build, Git HEAD/dirty,
+hash sorgenti/report, origine effettiva e completezza. Analizzare gli script
+localmente senza eseguirli. Non ripetere la raccolta se esiste già una ricevuta.
+Raccolta nel contesto vidaahub mediante instradamento già presente, se accessibile:
+http://vidaahub.com:8082/bridge-source-check.html → Raccogli una volta.
+Non attivare nuovo spoof DNS/TLS o sostituire con un test LAN della stessa domanda.
+HTTP/8082 differisce dal vecchio HTTPS/443. Se il nome non arriva al ricevitore,
+registrare precisamente quel blocco del canale, non una mancata autorizzazione.
+Il collector non può inserire codice nel Browser/Store remoto né leggere processi
+di sistema; se non emerge sorgente utile, non inventare un nuovo servizio/API.
+
+Il testo seguente è la consegna originale; le sue frasi "nessun nuovo collector"
+descrivono lo stato precedente e sono superate da questo aggiornamento.
+
 Continua il lavoro su Sidee in `C:\Users\empi0\Desktop\Sidee` e Nuvio in
 `D:\nuvio\nuviotvsmart`. Svolgi tu il lavoro. L'obiettivo è **installare Nuvio
 come vera app sulla mia Hisense 50E77NQ**. Se le informazioni disponibili non

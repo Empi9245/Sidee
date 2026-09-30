@@ -5,6 +5,17 @@
 
 Last updated: 2026-09-30
 
+> CURRENT OPERATIONAL UPDATE: targeted loaded-script collector implemented.
+> Read research/bridge-source-acquisition-20260930.md. New isolated mode
+> --bridge-source-check on :8082, explicit one-shot; script tags + resource timing,
+> only observed browser-readable source, no native calls/SDK execution/DNS/TLS,
+> inventory/capture/write or Git sync. JS/HTTP off-TV checks passed. Receiver
+> readiness verified, receipt null at preparation; no new TV result/install.
+> Preferred vidaahub route is not created: requires an existing TV page-loading
+> route. HTTP/8082 differs from historical HTTPS/443; LAN results stay separate.
+> Check /status and reports/bridge-source-latest.json before doing more work.
+> Historical "no collector" handoff statements below are superseded.
+
 > IMMEDIATE CORRECTION: user points to weinzii/vidaa-edge. vidaahub is the
 > context used for API exposure in that toolkit, not a public importer portal.
 > The instruction to use automatic DNS/public-site navigation was mistaken and

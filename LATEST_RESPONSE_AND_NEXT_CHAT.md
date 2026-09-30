@@ -4,6 +4,37 @@ Aggiornato: 30 settembre 2026, Europe/Rome. Questo documento prevale sui piani
 storici in AI_CONTEXT.md. Prompt: [NEXT_CHAT_PROMPT.md](NEXT_CHAT_PROMPT.md).
 Indagine completata: [vidaahub-context-20260930.md](research/vidaahub-context-20260930.md).
 
+## Stato corrente: acquisizione mirata implementata, ricevuta TV assente
+
+[Protocollo e blocco tecnico](research/bridge-source-acquisition-20260930.md).
+Creati bridge_source_check.py e web/bridge-source-check.js/html; nuova modalità
+isolata `sidee.py --bridge-source-check --check-port 8082`. La lacuna concreta
+è resource timing degli script già caricati, non registrato dal precedente
+collector di document.scripts. Nessuna scansione native namespace o chiamata
+TV, SDK caricato/eseguito, filesystem, vecchio inventario, capture o write.
+Hash/provenienza/completezza e singola ricevuta locale, niente Git upload.
+
+Verifiche JS e HTTP off-TV passate. Receiver pronto su 192.168.1.5:8082,
+HTML/status 200 e Host vidaahub:8082 accettato dal PC; **receipt null**.
+Questa non è una prova TV/routing DNS TV. :8080 PID 5676 preservato.
+Prima di continuare controllare `/status`; usare immediatamente eventuali
+reports/bridge-source-latest.json e history, ignorati da Git. Non ripetere una
+raccolta ricevuta e non interpretare user agent come attestazione del dispositivo.
+
+Priorità vidaahub: URL http://vidaahub.com:8082/bridge-source-check.html solo
+tramite instradamento già presente, poi clic Raccogli una volta. Non creati
+DNS/TLS per quel nome. HTTP/8082 differisce da HTTPS/443; non è test permessi.
+Se la TV non può caricarlo, manca quel canale di caricamento, non il consenso.
+Sidee non può aprire/navigare il Browser o inserire il collector in altri processi.
+Il nuovo dato potrebbe recuperare un bundle già caricato ma assente dai vecchi
+estratti; non può fornire l'implementazione nativa AppConfig dietro il 503.
+Nessuna candidata installante o criterio finale Nuvio verificato.
+
+Nuvio: aggiornato solo VIDAA_STATUS.md; installer/packager locali preservati,
+nessun build/ZIP/commit. Sidee base f64aafa727c6801370554daa92488b5682fc76b9;
+HEAD finale da Git. control/request.json resta staged invariato ed escluso dal
+commit su main, senza push. Le sezioni seguenti documentano fasi precedenti.
+
 ## Richiesta corrente: consegna per soluzione o acquisizione TV tramite Sidee
 
 L'utente ha chiesto un prompt per la prossima chat: deve trovare una soluzione

@@ -1,0 +1,439 @@
+{
+  "kind": "loaded-script-coverage-v1",
+  "offline": true,
+  "reportFilesRead": 63,
+  "reports": [
+    {
+      "file": "sidee-session-20260925-195421-ff60.json",
+      "sha256": "ae3eb5fba6cafffe8a14bb3aae7493634b27612b61158bea16dc2ffb073e1fba",
+      "bytes": 739844
+    },
+    {
+      "file": "sidee-session-20260926-104537-d029.json",
+      "sha256": "8211ac4e154385f3f6c8b97c6bcb6b82dac8bca3070e3980e60533289cb3e897",
+      "bytes": 72459
+    },
+    {
+      "file": "sidee-session-20260926-144008-ceb5.json",
+      "sha256": "6420428f21713219f5e50c49b928c4b7535cc5560b980ed6d219e2fa83758385",
+      "bytes": 3774
+    },
+    {
+      "file": "sidee-session-20260926-150815-b6a2.json",
+      "sha256": "ae2d30f58af762bc69ee0ed9bd8706020923854875bbe29e6269c30b6053fd53",
+      "bytes": 18916
+    },
+    {
+      "file": "sidee-session-20260926-153038-1083.json",
+      "sha256": "c97c069ce55634368cfcd06aa43aa54605fea09824cd3c93dc832fddf0642431",
+      "bytes": 178005
+    },
+    {
+      "file": "sidee-session-20260926-155433-ccad.json",
+      "sha256": "314eeb16e68e6c6941ed4a2f873be92206a5be3be6e8af6bc4b64fbd8a88d565",
+      "bytes": 1275
+    },
+    {
+      "file": "sidee-session-20260926-155433-dc54.json",
+      "sha256": "91ca2a7c3d18651a95d15ff87b095951d123443c5ca1bd87176655b45a8b38d3",
+      "bytes": 3625
+    },
+    {
+      "file": "sidee-session-20260926-155433-e9e6.json",
+      "sha256": "6fc0166e2123cdd8a671ecf566f1bfab83e479647acf108e3240b848f657fe2d",
+      "bytes": 1276
+    },
+    {
+      "file": "sidee-session-20260926-160530-37f9.json",
+      "sha256": "bec18740d3a71ecd03b3d4263185138ee70a863a17dc79c35c11a12061b7b40d",
+      "bytes": 1276
+    },
+    {
+      "file": "sidee-session-20260926-160531-01b9.json",
+      "sha256": "e14c90098e000e6f4ac2078b4360db357d4bbd3d728f3f1d310d389c2b0117b5",
+      "bytes": 3625
+    },
+    {
+      "file": "sidee-session-20260926-160531-6611.json",
+      "sha256": "bd7580318c0ebe16cf5aebf23d7d64ce4da50f700cff18b802f298cc05b78acc",
+      "bytes": 1275
+    },
+    {
+      "file": "sidee-session-20260926-160944-2811.json",
+      "sha256": "8dc926b785ff2d98f24bc134574e1c3e5343771d10ac1a7d4d007e9dac4bda78",
+      "bytes": 6088
+    },
+    {
+      "file": "sidee-session-20260926-160944-5198.json",
+      "sha256": "e7e32eb5db317a6835a0a00f287634f1f41ab593511b0abde4984646e57f00a4",
+      "bytes": 1275
+    },
+    {
+      "file": "sidee-session-20260926-160944-b38a.json",
+      "sha256": "85b87bbef546f83e0d510e73f9c6a6ce23b2f8d0d6b5a7461c88f0917dba3ef4",
+      "bytes": 1276
+    },
+    {
+      "file": "sidee-session-20260926-161254-1ee9.json",
+      "sha256": "7d4d079218b6f0628ca59e47cfc7accfe3866b680f329b89e2ab7d9faa97a07c",
+      "bytes": 1296
+    },
+    {
+      "file": "sidee-session-20260926-161254-f911.json",
+      "sha256": "f51d674316c50e5c25bb26dc0ecf144c13744b77ec7cd6aa98cc1f4ef3f363b0",
+      "bytes": 1297
+    },
+    {
+      "file": "sidee-session-20260926-161255-410f.json",
+      "sha256": "707cc50cab7560cabc8ed4887b8e4a215f062c012b41a84698198fef37686e63",
+      "bytes": 6130
+    },
+    {
+      "file": "sidee-session-20260926-161806-2543.json",
+      "sha256": "d8443d6df10de9e6150373c996b7352a4186da7c0e8cb8fec999a2b3566f4914",
+      "bytes": 1296
+    },
+    {
+      "file": "sidee-session-20260926-161806-255b.json",
+      "sha256": "4f5a479cdfb477d1cc799edade38db250fb0ab05c6dbe29ecc57d83db0df579d",
+      "bytes": 1297
+    },
+    {
+      "file": "sidee-session-20260926-161807-2866.json",
+      "sha256": "a55afe502dbd9256ceea9b6ebb04dae14e2d4b43d6ba85c44a5acf7bc259162b",
+      "bytes": 13963
+    },
+    {
+      "file": "sidee-session-20260926-161907-1215.json",
+      "sha256": "0d6cb372952dfb8d410f9dfbbbee57f225c5edfcf9f29efea27ce3847fe843b7",
+      "bytes": 1276
+    },
+    {
+      "file": "sidee-session-20260926-161907-f35a.json",
+      "sha256": "90c75fde79d033dffc94a3276a5f6f2f8a370289588920a6c0d90deca21f0f72",
+      "bytes": 1275
+    },
+    {
+      "file": "sidee-session-20260926-161908-ef00.json",
+      "sha256": "7b9ac14a63394b211367fa1967bcf0105c645487cfdf1a2f09de362bdc8cd468",
+      "bytes": 13921
+    },
+    {
+      "file": "sidee-session-20260926-162430-ed02.json",
+      "sha256": "06565ed5871c3ec67575ba2206d65344a6ee28db04d38f82409eed93e527b958",
+      "bytes": 1296
+    },
+    {
+      "file": "sidee-session-20260926-162430-f496.json",
+      "sha256": "1c668a38f3dca344692c8e1a3c4f9ea2f58993195e6b1a4589b6f791a104a8bb",
+      "bytes": 1297
+    },
+    {
+      "file": "sidee-session-20260926-162430-f773.json",
+      "sha256": "4b3dfa074aec73d37bac1d7a8f097cbcb538a0c35928ab58aaa16e72d0bb9b97",
+      "bytes": 18706
+    },
+    {
+      "file": "sidee-session-20260926-172629-e5b8.json",
+      "sha256": "77e356982aab8a132bbbf3c1d444b642b0bbe6199092b3e47c7f10f63c3545d0",
+      "bytes": 14860
+    },
+    {
+      "file": "sidee-session-20260926-174114-044f.json",
+      "sha256": "64f74bad3c122c6aa49cd0dac895607c76b3ec1a1d88d23c2d3b9d773020d4dd",
+      "bytes": 1297
+    },
+    {
+      "file": "sidee-session-20260926-174114-61c3.json",
+      "sha256": "71a2df6085b2216b6f92dd70d11c96a12d38b406617de5b1e8467c117a3d0646",
+      "bytes": 23239
+    },
+    {
+      "file": "sidee-session-20260926-174114-d44e.json",
+      "sha256": "853fcb5ba3740fbe45b7e0553a5c3a8850699fb26f70d138118c456c4660ba68",
+      "bytes": 1296
+    },
+    {
+      "file": "sidee-session-20260926-182425-cbe7.json",
+      "sha256": "e2b8006c702a5f2ac3c3a101ddd8ae1c3b2711981357c6036cb31eee248d73d3",
+      "bytes": 42731
+    },
+    {
+      "file": "sidee-session-20260926-201849-a7b2.json",
+      "sha256": "b4ba5f3e1ddc25614faa249808322b42993e7eea6e4463250a6c6da557a407b7",
+      "bytes": 3777
+    },
+    {
+      "file": "sidee-session-20260926-202846-8d82.json",
+      "sha256": "5915d7801678be09a82d3320ed26724f3d836185b136f1436c5ee168a86bafb5",
+      "bytes": 7333
+    },
+    {
+      "file": "sidee-session-20260926-202902-25ce.json",
+      "sha256": "f73cc20edfa3351cc30de56b159ff29be62c34655b1aec5e258f756b78a5d20a",
+      "bytes": 7608
+    },
+    {
+      "file": "sidee-session-20260926-203219-f906.json",
+      "sha256": "12cdcce24f3b1c3dfe62143360b64818bee5e7cff218a9ebd18da27129cdd334",
+      "bytes": 10097
+    },
+    {
+      "file": "sidee-session-20260926-203224-8ef2.json",
+      "sha256": "6de30680852178f5eeb57a7d59e81190e1a29343939f746a3d5f696e60f817da",
+      "bytes": 11168
+    },
+    {
+      "file": "sidee-session-20260926-203306-844d.json",
+      "sha256": "2933739ea603f156f7fcbb07ca037ce2fb2c78ce1599652ab40300df1acb85b1",
+      "bytes": 1276
+    },
+    {
+      "file": "sidee-session-20260926-203306-d559.json",
+      "sha256": "63c86f4d2d08ea10d3d55aac0ac51e6fb58e0ee1c09ff7209150c567afc05d84",
+      "bytes": 1275
+    },
+    {
+      "file": "sidee-session-20260926-203307-e777.json",
+      "sha256": "e2c9c404a06bea3161469f9b530b0b1faa12738c34c3660495766b9074b8531a",
+      "bytes": 162266
+    },
+    {
+      "file": "sidee-session-20260926-204550-b8a4.json",
+      "sha256": "6fcd7592c2a96a529c5738a7225580b4a9ea77a4df48056ce2448c60a8855321",
+      "bytes": 6103
+    },
+    {
+      "file": "sidee-session-20260926-204720-4cb5.json",
+      "sha256": "8d22dd7ab2f578980537e27965db55db15b3c0c950f11b43c366438cf9196b05",
+      "bytes": 1276
+    },
+    {
+      "file": "sidee-session-20260926-204720-73b2.json",
+      "sha256": "cd95b82c0ef9796db61e95c98229b37691279edc72b6eb6f10ec72c47e6927fa",
+      "bytes": 1275
+    },
+    {
+      "file": "sidee-session-20260926-204721-6faf.json",
+      "sha256": "c59825508ed5dc7b42070686a45c35236b70b67722f85e3b2860a50a183755f3",
+      "bytes": 162266
+    },
+    {
+      "file": "sidee-session-20260926-210157-6704.json",
+      "sha256": "6bb89d7e41c57cbdc482b6dd17f559f6cc55241268dd87dc9a55af227458516b",
+      "bytes": 5407
+    },
+    {
+      "file": "sidee-session-20260929-145316-dec1.json",
+      "sha256": "5c300f3d12ff202f2751bd10fc33019cf94b77fa0ecca897b230029d32c6b45e",
+      "bytes": 80550
+    },
+    {
+      "file": "sidee-session-20260929-151455-56a1.json",
+      "sha256": "75d14631a02bd572e31bcba10c0ec6d08c20169e21503bbb1722c3d10b7ac3fa",
+      "bytes": 12848
+    },
+    {
+      "file": "sidee-session-20260929-160134-368c.json",
+      "sha256": "5911ff4b6b553d1d1ace6db32bc2df895fe18ef8569d5a0539219d9e3702cc36",
+      "bytes": 16576
+    },
+    {
+      "file": "sidee-session-20260929-161057-217e.json",
+      "sha256": "87614c23e520c685ec82b1e66e22d5fea4e69679a5b310089d174fee18b3da49",
+      "bytes": 27101
+    },
+    {
+      "file": "sidee-session-20260929-161959-d177.json",
+      "sha256": "72b9fe8d4936d609701a9aec7ba84c6bad0a1830f34d6d22a061cad774f9855f",
+      "bytes": 35951
+    },
+    {
+      "file": "sidee-session-20260929-162120-aa37.json",
+      "sha256": "a5fc1059eb8de6d5a221f742ce648685a49c8b0f60afd97b37a9d8d313e5220b",
+      "bytes": 84157
+    },
+    {
+      "file": "sidee-session-20260929-163507-4a6a.json",
+      "sha256": "dce757e8bd1419df8e6fbaa96625482ddfed91515727c72c6b02427f19b44533",
+      "bytes": 15604
+    },
+    {
+      "file": "sidee-session-20260929-164523-4fb4.json",
+      "sha256": "c8952c679f29c5b34bd2dcf6e217fc557120551c7be908d389ec3fc0e3f43a40",
+      "bytes": 27212
+    },
+    {
+      "file": "sidee-session-20260929-171309-a335.json",
+      "sha256": "b30b53e0fcf8d22bc389ea0138fbf1bfe3fcb130d46f20a99a8266ca1a2b973a",
+      "bytes": 29242
+    },
+    {
+      "file": "sidee-session-20260929-172209-014d.json",
+      "sha256": "7b5f7071235d133865f2b624debf73bc087af8cd1505fe4cc5a23ab27e93afb2",
+      "bytes": 32543
+    },
+    {
+      "file": "sidee-session-20260929-173911-7b2f.json",
+      "sha256": "41e8b8594ff07ac94b91e0b3b7be118c6c44cd4c95dd1fedb483204f235d1a9b",
+      "bytes": 27166
+    },
+    {
+      "file": "sidee-session-20260929-184053-c852.json",
+      "sha256": "1ae16af321d26d7e89f3349416df9100c21158fbe351dd04879f142818ad78b5",
+      "bytes": 20199
+    },
+    {
+      "file": "sidee-session-20260929-185528-fde9.json",
+      "sha256": "66519564cce9ec4ec1f3092f54a126b3402b900abf54a3c58691c2120d99f4c6",
+      "bytes": 28864
+    },
+    {
+      "file": "sidee-session-20260929-185551-a556.json",
+      "sha256": "d5edf0020a432d517619ee95b3d15a92400cf4de67b8719e37da7d3dd3afc09d",
+      "bytes": 7936
+    },
+    {
+      "file": "sidee-session-20260929-190401-363a.json",
+      "sha256": "5703bc66731c3361d720e19c8277e85116627af0bcd699f73a755407e09bd71b",
+      "bytes": 1734
+    },
+    {
+      "file": "sidee-session-20260929-191824-4f82.json",
+      "sha256": "d1bc96e5dda6214d44f7d7ae115ee1d9c3019dcd2ed681195383d07c9a0da188",
+      "bytes": 28952
+    },
+    {
+      "file": "sidee-session-20260929-191916-046b.json",
+      "sha256": "39e1190af996f3e9174242e252d49ab83758c4fc160ffd898cb5fc6af9d24b70",
+      "bytes": 8400
+    },
+    {
+      "file": "sidee-session-20260929-193523-f3f4.json",
+      "sha256": "ee3e521b676c5cab62a7a21dc0442d32c645cbaeb0a82351464c2bfd6223ae47",
+      "bytes": 1268
+    },
+    {
+      "file": "sidee-session-20260929-194224-f686.json",
+      "sha256": "929f42f6adab183454622d3a1211346ac3bf9634e4ed3f997454b3dba6ad3875",
+      "bytes": 44124
+    }
+  ],
+  "resourceTimingRecorded": false,
+  "targets": {
+    "window.HiUtils_createRequest": [
+      {
+        "file": "sidee-session-20260925-195421-ff60.json",
+        "chars": 179,
+        "sha256": "aeffd81c7a3b336cae653cf9eb79cd43c5d418828358ba02fbeaa0ab9fe424e8",
+        "clippingMarker": false,
+        "representation": "Function.toString text; historical length often unrecorded"
+      }
+    ],
+    "window.writeInstallAppObjToJson": [
+      {
+        "file": "sidee-session-20260925-195421-ff60.json",
+        "chars": 179,
+        "sha256": "6b7f00e996593c455edd0975d04f120da7ffe5c77afdfb87136611b0b1566e5b",
+        "clippingMarker": false,
+        "representation": "Function.toString text; historical length often unrecorded"
+      }
+    ],
+    "window.Hisense_installApp": [
+      {
+        "file": "sidee-session-20260925-195421-ff60.json",
+        "chars": 1929,
+        "sha256": "81ff4b79be7afd46bf559b8b1b56fbf3b877721c6c8875a351c4d01ce8cc6ddd",
+        "clippingMarker": false,
+        "representation": "Function.toString text; historical length often unrecorded"
+      }
+    ],
+    "window.Hisense_installApp_V2": [
+      {
+        "file": "sidee-session-20260925-195421-ff60.json",
+        "chars": 1406,
+        "sha256": "019c8e90c0300933b35faa6cbb80edd000663eef7948cd54394ddabec31399a6",
+        "clippingMarker": false,
+        "representation": "Function.toString text; historical length often unrecorded"
+      }
+    ],
+    "window.mapAppInfoFields": [],
+    "window.vowOS.store.installApp": [
+      {
+        "file": "sidee-session-20260925-195421-ff60.json",
+        "chars": 990,
+        "sha256": "f931062482d31a594d319f5d7b06643d416ba24914fd0a66370b0f73d842fa0a",
+        "clippingMarker": false,
+        "representation": "Function.toString text; historical length often unrecorded"
+      }
+    ],
+    "window.vowOS.store.sendPkgmgrRequest": [
+      {
+        "file": "sidee-session-20260925-195421-ff60.json",
+        "chars": 1477,
+        "sha256": "9129b7d77d0a05bcb7bce4a62e8aab6fd4080f1334e5bcdd36a34550ff81700f",
+        "clippingMarker": false,
+        "representation": "Function.toString text; historical length often unrecorded"
+      }
+    ],
+    "window.vowOS.service.syncExecute": [
+      {
+        "file": "sidee-session-20260925-195421-ff60.json",
+        "chars": 1300,
+        "sha256": "e94ac3e8abc915375c8d8050c48cfb4b26374829d04d2a5de81cf2ae73ce0dd7",
+        "clippingMarker": false,
+        "representation": "Function.toString text; historical length often unrecorded"
+      }
+    ],
+    "window.vowOS.service.executeHttpRequest": [
+      {
+        "file": "sidee-session-20260925-195421-ff60.json",
+        "chars": 1575,
+        "sha256": "7f6fdd87512891409383c3a7074ba3b59ff6a3a94d801a8704ecf7b77656d40d",
+        "clippingMarker": false,
+        "representation": "Function.toString text; historical length often unrecorded"
+      }
+    ],
+    "window.vowOS.service.execute": [
+      {
+        "file": "sidee-session-20260925-195421-ff60.json",
+        "chars": 2078,
+        "sha256": "5859dca19c76acfd801816956aa39b46623d54c51ac746033af9337e8068d032",
+        "clippingMarker": false,
+        "representation": "Function.toString text; historical length often unrecorded"
+      }
+    ]
+  },
+  "scriptObservations": [
+    {
+      "file": "sidee-session-20260926-172629-e5b8.json",
+      "surface": "legacyHspdkContext.scripts",
+      "scriptCount": 2,
+      "explicitlySideeOwned": 2
+    },
+    {
+      "file": "sidee-session-20260926-174114-61c3.json",
+      "surface": "legacyHspdkContext.scripts",
+      "scriptCount": 2,
+      "explicitlySideeOwned": 2
+    },
+    {
+      "file": "sidee-session-20260926-203307-e777.json",
+      "surface": "legacyHspdkContext.scripts",
+      "scriptCount": 2,
+      "explicitlySideeOwned": 2
+    },
+    {
+      "file": "sidee-session-20260926-204721-6faf.json",
+      "surface": "legacyHspdkContext.scripts",
+      "scriptCount": 2,
+      "explicitlySideeOwned": 2
+    }
+  ],
+  "gap": "Past document.scripts inspection does not cover scripts visible only through resource timing; no such timing was recorded.",
+  "limits": [
+    "Copies are not independent TV sessions. No source bodies or client identifiers exported.",
+    "Missing source means unrecorded, not absent. The map helper gap does not explain the observed permission denial.",
+    "No native authorization implementation can be recovered by executing these JavaScript transport wrappers."
+  ]
+}
