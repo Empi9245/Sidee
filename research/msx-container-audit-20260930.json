@@ -1,0 +1,26 @@
+{
+  "auditDate": "2026-09-30",
+  "source": {
+    "url": "https://msx.benzac.de/js/tvx-plugin.min.js",
+    "pluginVersion": "0.0.79",
+    "bytes": 101333,
+    "sha256": "7cf9daabeb7787094433f7958fed41d2bedc561496e987d01fc070c6a0183684"
+  },
+  "scope": "Reviewed BlobService only; mocked transport; no TV or browser execution",
+  "results": {
+    "loadBlobMethod": "GET",
+    "executeBlobMethod": "POST",
+    "responseKeptInCurrentInstance": true,
+    "freshRuntimeHasStoredResponse": false,
+    "freshRuntimeHasStoredObjectUrl": false,
+    "persistentStorageAccesses": 0,
+    "clearRevokesObjectUrls": true,
+    "realNetworkRequests": 0
+  },
+  "conclusion": "This BlobService is transient response storage, not a persistent app importer.",
+  "limits": [
+    "Does not prove the persistence behavior of the entire MSX app or its TV build.",
+    "Does not exclude explicit persistence implemented separately by a plugin author.",
+    "No launcher, remote, TV reboot, Nuvio UI or playback verification."
+  ]
+}

@@ -14,6 +14,16 @@ official Nuvio 1.2.1 TV packages only for Tizen/webOS, an upstream explanation o
 the hosted VIDAA port, and documented MSX support for VIDAA U6+ but no proven
 persistent local-app import. See the follow-up section in the assessment.
 
+Latest constraints: **no VIDAA contact/partner onboarding and no Media Station X**.
+The user confirms MSX is in their TV Store but declines it. The off-TV audit in
+[research/](research/README.md) shows its reviewed BlobService retains resources
+only in its current instance; this is not a TV reboot test. The official Nuvio
+wrapper points at `web.nuvioapp.space`, which returned HTTP 522 in the latest
+PC check. A community VIDAA wrapper returns 200 but embeds that same endpoint,
+without importing Nuvio locally. The MT9603/U9 software manual describes USB
+media and browser shortcuts, not an own-app importer in the inspected sections;
+it is for another model/region. No new TV acceptance result or usable candidate.
+
 The Nuvio fork's VIDAA ZIP is an archive of web files, not a demonstrated
 installable VIDAA package. Its installer registers a URL and still incorrectly
 treats callback 0 as success. Duplecast's observed registry entry has a remote

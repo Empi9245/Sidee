@@ -19,6 +19,110 @@ cache e service worker non sono una dimostrazione di installazione persistente.
 Un eventuale servizio dell'interfaccia gestito dal produttore va dichiarato
 come tale; non equivale a un pacchetto locale e non è una soluzione oggi provata.
 
+**Vincoli aggiornati dall'utente:** niente contatto con VIDAA e niente percorso
+partner. Media Station X è disponibile nello Store della sua TV, secondo la
+risposta dell'utente, ma l'utente non vuole usarlo. Escluso dal percorso finale;
+le verifiche sotto rimangono evidenze di ricerca, non una proposta di setup.
+
+## Nuove verifiche concrete — senza partner e senza MSX
+
+Ricerca del 30 settembre, Sidee `main` inizialmente `ef25a23`, Nuvio `main`
+`1f1ad284` pulita. Nessuna nuova sessione sulla TV; ultimo report e relativo
+commit restano quelli elencati nella sezione Report verificati.
+
+### Prova del servizio di risorse MSX fuori dalla TV
+
+Esaminato il JavaScript pubblico collegato dalla documentazione MSX:
+[tvx-plugin.min.js](https://msx.benzac.de/js/tvx-plugin.min.js), versione
+0.0.79, 101.333 byte, SHA256
+`7cf9daabeb7787094433f7958fed41d2bedc561496e987d01fc070c6a0183684`.
+Il test riproducibile [audit-msx-container.mjs](research/audit-msx-container.mjs)
+estrae soltanto il BlobService revisionato, dopo controllo dell'hash, e usa
+trasporto fittizio e una risorsa HTML sintetica. Zero richieste reali, nessun
+server, nessun accesso TV e nessuna esecuzione dell'intero plugin.
+
+Risultato salvato in [msx-container-audit-20260930.json](research/msx-container-audit-20260930.json):
+`loadBlob` usa GET, `executeBlob` usa POST (non esegue un'app), le risposte e
+gli object URL esistono nell'istanza corrente; una nuova istanza in un nuovo
+contesto JavaScript non li recupera. Nessun accesso a localStorage/IndexedDB
+durante il test; `clear` revoca gli object URL. **Questo BlobService non è un
+importatore persistente.** Il test simula una nuova istanza, non un riavvio
+della TV, e non esclude storage separato implementato da altre funzioni.
+
+La documentazione [Video/Audio Plugin](https://msx.benzac.de/wiki/index.php?title=Video/Audio_Plugin)
+spiega inoltre che anche il plugin visibile in iframe non riceve eventi tasto,
+mouse o touch: non è sufficiente per l'interfaccia Nuvio. [Key Property](https://msx.benzac.de/wiki/index.php?title=Key_Property)
+assegna azioni ai contenuti MSX; non documenta l'invio completo di frecce/OK/
+Indietro all'iframe. [HTML5X Plugin](https://msx.benzac.de/wiki/index.php?title=HTML5X_Plugin)
+è un player multimediale, non un importatore di app. Nessun loader costruito
+su data URL, cache, aggiramento della validazione o ipotesi sui nomi delle API.
+
+### Nuvio ospitato dal produttore: indirizzo reale, servizio non utilizzabile ora
+
+Trovato un endpoint concreto, non inventato: `https://web.nuvioapp.space/`.
+Il [wrapper ufficiale TizenBrew](https://github.com/NuvioMedia/NuvioTVTizenBrew/blob/f3851d9ff671cca0c6d48bc7bb79b8c7debbddcc/app/main.js)
+lo usa in `window.location.replace`; anche index.html contiene il redirect.
+Il commit corrente del wrapper è `f3851d9ff671cca0c6d48bc7bb79b8c7debbddcc`,
+14 luglio 2026, 08:02:09 UTC. Il README lo descrive come wrapper di app ospitata.
+La vecchia repo `NuvioMedia/NuvioWeb` ora rimanda a `NuvioTVSmart`: non è un
+nuovo port locale separato. Il wrapper Tizen non è installabile su VIDAA.
+
+La richiesta HTTPS diretta dal PC al servizio ha restituito **HTTP 522**;
+anche il lettore web è andato in timeout. Questo risultato vale per il momento
+e il punto di osservazione del test, non prova chiusura definitiva del servizio.
+Non è stata caricata o testata l'interfaccia Nuvio da questo endpoint.
+
+Esaminato anche `https://nuviovidaa.netlify.app/`, trovato in una segnalazione
+pubblica: HTTP 200, pagina di 8.920 byte, SHA256
+`b0b4cd5eb7088bd70d1bbf531b8c5f2ab59c214674b6538ecb10d68c92cead45`.
+La pagina è un wrapper comunitario che ridimensiona e mette a fuoco un iframe
+caricato dallo **stesso** `web.nuvioapp.space`. Conserva eventuali dimensioni
+manuali in localStorage, non contiene il bundle Nuvio e non importa risorse
+persistenti. HTTP 200 del wrapper non dimostra che Nuvio funzioni. Non è una
+distribuzione ufficiale VIDAA; nessun account inserito e nessuna esecuzione TV.
+
+MSX documenta `link:{URL}` per app HTML5 esterne in [Tips & Tricks](https://msx.benzac.de/wiki/index.php?title=Tips_%26_Tricks#External_HTML5_Games/Apps),
+ma questo percorso è ora escluso dall'utente. Anche prima dell'esclusione
+avrebbe richiesto servizio funzionante, verifica del contesto di apertura
+(app o browser), input, ritorno e riavvio. Nessuna di queste prove è superata.
+La disponibilità di un URL ufficiale corregge la precedente mancanza di un
+indirizzo identificato; non risolve servizio, launcher VIDAA o storage locale.
+
+### Manuale software della famiglia MT9603 / VIDAA U9
+
+Scaricato l'[E-Manual ufficiale Hisense](https://hisense.cl/wp-content/uploads/2025/11/User-Manual-58Q6QV.pdf),
+213 pagine EN/ES, 10.889.122 byte, SHA256
+`7dcf27b9db2cb982c36fc51dda53a9cc0e330591177a43a42acbb7f94150bb02`.
+Il risultato pubblico lo identifica come MT9603 VIDAA U9 NA/SA. È pubblicato
+per 58Q6QV e altra regione: non è il manuale esatto della 50E77NQ EU/Q0707.
+Lette completamente le pagine pertinenti di Home/Shortcuts, gestione app,
+Browser, USB, Media/Media Format e App Issues; render e lettura visiva delle
+pagine PDF 8 e 49, comprese le icone OK/Home.
+
+- Shortcuts (pagina stampata 7): aggiunge un sito visitato dal Browser alla
+  Home. È un collegamento browser, già escluso dai requisiti.
+- USB (pagina 48) e Media (72–75): foto/audio/video, NTFS/FAT32 e registrazioni;
+  nessuna procedura di importazione HTML/JS/CSS descritta in queste sezioni.
+- App Issues (95): app compatibili e Store; distingue gli APK scaricati, che
+  potrebbero non essere installabili. Non documenta un sideload Nuvio.
+
+Queste sezioni non offrono una nuova strada locale; la loro assenza di istruzioni
+non dimostra l'impossibilità universale di qualsiasi importatore sul firmware.
+Riesaminati anche i nomi/URL delle 61 app nel report storico: nessuna nuova
+funzione autorizzata di importazione emersa. Non trasformare la presenza di
+Browser, Media, E-Manual locale, Plex o giochi in un'autorizzazione a sostituirne
+risorse/identità. Nessun tentativo su package o database di app altrui.
+
+**Esito operativo:** nessuna nuova strada che soddisfi i requisiti e i vincoli
+aggiornati. Nessuna installazione/prova TV è giustificata da queste evidenze.
+Il test BlobService ha chiuso un'ipotesi concreta; il servizio ospitato ha un
+indirizzo confermato ma è indisponibile nel test e manca comunque la strada
+launcher accettata. Non chiedere all'utente di contattare VIDAA, diventare
+partner, usare MSX o ripetere i probe respinti. Per riaprire la ricerca serve
+un nuovo importatore/procedura pubblica autorizzata, o un servizio Nuvio
+funzionante con percorso launcher accettato; nessuna modifica al bundle
+può sostituire tale prerequisito.
+
 ## Provenienza e stato Git
 
 - Letti interamente `AI_CONTEXT.md`, `LATEST_RESPONSE_AND_NEXT_CHAT.md` e
@@ -181,13 +285,12 @@ o trasferire il package. Nell'uso normale nessun hosting UI, PC o DNS
 personalizzato; cache non necessaria alla presenza dei file. Contenuti/account
 possono continuare a usare Internet.
 
-**Prossimo test decisivo.** Prima ottenere da VIDAA una procedura documentata
-applicabile a Q0707 per distribuire un'app propria, conservata localmente,
-senza devkit. Solo se esiste: importare un'app minima con ID proprio,
+**Prossimo test decisivo.** Prima individuare in fonti pubbliche una procedura
+autorizzata applicabile a Q0707 per distribuire un'app propria, conservata
+localmente, senza devkit o percorso partner. Solo se esiste: importare un'app minima con ID proprio,
 verificare risorse in storage applicativo autorizzato e apertura dal launcher
 dopo riavvio con fonte di trasferimento spenta; poi usare il bundle Nuvio.
-Richiedere questa informazione tramite il canale ufficiale è un possibile
-passo umano, non un messaggio inviato da Sidee o da questa chat.
+Il contatto VIDAA e il percorso partner sono esclusi dall'utente.
 
 **Abbandono.** Se è disponibile solo URL hosting, oppure sono necessari devkit,
 debug firmware, permessi/firme non ottenibili legittimamente o manipolazione
@@ -216,9 +319,10 @@ misurata. Non è provato che “Installa” copi un package locale o soltanto e
 esclusivamente metadata; potrebbero essere memorizzati anche icone/config/cache.
 DNS `files.duplecast.com` non identifica il tipo di file trasferito.
 
-Per Nuvio manca sia una registrazione consentita su questa TV sia un endpoint
-UI VIDAA gestito dal produttore verificato. Il repository ufficiale consultato
-documenta Tizen/webOS, non una distribuzione VIDAA.
+Per Nuvio manca una registrazione consentita su questa TV. Il successivo
+controllo ha identificato un endpoint ospitato ufficiale, `web.nuvioapp.space`,
+ma ha ottenuto HTTP 522; funzionamento e compatibilità VIDAA non verificati.
+Il repository documenta Tizen/webOS, non una distribuzione VIDAA.
 
 **Dipendenze.** Hosting UI permanente. Con il server attuale servono PC e
 potenzialmente DNS personalizzato; un host pubblico gestito dall'utente
@@ -251,7 +355,8 @@ L'identità nativa non implica una funzione di importazione o un permesso write.
 
 Media Station X ha API documentate per contenuti, link e plugin; non compare
 nell'inventario di 61 app del 26 settembre, quindi non è dimostrato installato
-qui né disponibile nello Store italiano di questa TV. La documentazione di
+qui. L'utente ha poi confermato che è disponibile nello Store, ma non vuole
+usarlo: escluso dalla soluzione. La documentazione di
 setup richiede un server HTTP per i JSON; l'Interaction Plugin è una pagina
 in iframe di background che non riceve input. Queste funzioni non dimostrano
 un contenitore capace di conservare e far usare tutta l'interfaccia Nuvio.

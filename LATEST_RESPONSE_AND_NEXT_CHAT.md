@@ -2,6 +2,38 @@
 
 Date: 2026-09-30, Europe/Rome.
 
+## Latest steering and concrete checks
+
+The user excludes contacting VIDAA/becoming a partner. They confirmed that
+Media Station X is available in their TV Store, but do not want to use it.
+Exclude it from the solution; do not ask again or treat availability as a test.
+
+New work saved in VIDAA_FEASIBILITY.md and research/:
+- Passed an off-TV audit of the reviewed public MSX BlobService. It retains
+  GET/POST responses/object URLs in memory; a fresh JS instance/context cannot
+  recover them. No real transport/storage/TV operations. This does not simulate
+  a firmware reboot or exclude separate storage elsewhere in MSX.
+- Video/Audio Plugin documentation also says its iframe receives no input.
+- Confirmed a real official hosted Nuvio URL via its TizenBrew wrapper, commit
+  f3851d9ff671cca0c6d48bc7bb79b8c7debbddcc: https://web.nuvioapp.space/.
+  Direct HTTPS returned HTTP 522; web reader timed out. Current functionality
+  and VIDAA compatibility unverified, not proof of permanent shutdown.
+- Community nuviovidaa.netlify.app returned 200 but only wraps the same origin
+  in an iframe. It scales/focuses UI and does not contain/import the Nuvio bundle.
+- Read official MT9603/VIDAA U9 NA/SA software E-Manual (58Q6QV). Shortcuts opens
+  browser sites; USB/Media describes media files, no own-app import in those
+  sections. Different model/region from 50E77NQ EU/Q0707: keep the limitation.
+- Rechecked the historical 61-app inventory; no new documented resource
+  importer identified. No new TV reports or acceptance results.
+
+Initial Sidee main ef25a23, staged control/request.json preserved. Nuvio main
+1f1ad284 remains clean. No TV/server/DNS changes or Nuvio implementation.
+There is still no supported candidate for the five TV tests under these
+constraints. A future candidate must establish authorized import or an
+accepted hosted launcher path first; do not build another cache/iframe loader.
+
+## Previous assessment context
+
 Follow-up: the user asked the agent to find a method autonomously and confirmed
 the TV model as Hisense 50E77NQ. Additional public-source research is saved in
 the follow-up section of VIDAA_FEASIBILITY.md. No local import path was found.
@@ -90,9 +122,10 @@ TV page merely to generate another report for this assessment.
 ## Next discriminating step
 
 Identify a documented authorized import/distribution path for Q0707 that can
-store a user-owned app locally without devkit. VIDAA's current content-partner
-channel is documented, but package eligibility/import remains unconfirmed.
-Do not send vendor/maintainer messages without human authorization.
+store a user-owned app locally without devkit or partner onboarding, from public
+evidence. The user explicitly excludes contacting VIDAA and using MSX.
+The official hosted URL identified above currently fails the PC fetch and
+does not establish a VIDAA launcher route. Do not send vendor messages.
 
 Only if that precondition is satisfied, implement the smallest app with its
 own ID, verify local resource provenance and all five TV acceptance checks,

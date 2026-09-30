@@ -10,6 +10,10 @@ Last updated: 2026-09-30
 > local UI server off and no user-managed UI hosting, without devkit.
 > Earlier "next" plans below are historical. HTTPS visibility after NAT is
 > already confirmed; do not resume captures or exhausted probes automatically.
+> Updated user constraints: no VIDAA contact/partner route; no Media Station X.
+> User confirmed MSX is available in the TV Store but does not want to use it.
+> The new off-TV BlobService audit and provider-hosted URL checks are research
+> evidence only. No new Nuvio TV acceptance criterion has been verified.
 
 ## Project
 
@@ -5193,3 +5197,42 @@ Il manuale B2B con Custom App riguarda Android, non è applicabile a questa TV.
 Report locale/remoto invariati (f8dee5d sul ramo report). Tutti i cinque criteri
 Nuvio ancora non verificati. Nessuna strada implementabile dimostrata: il prossimo
 passo richiede una nuova evidenza tecnica autorizzata, non altri probe identici.
+
+## Ricerca e test aggiuntivi senza partner — 2026-09-30
+
+L'utente esclude esplicitamente contatto VIDAA/percorso partner. Ha poi
+confermato disponibilità di MSX nello Store della 50E77NQ, ma non vuole usarlo.
+Non riproporre MSX o il contatto come prossimo passo. Stato iniziale di questa
+fase: Sidee main ef25a23; control/request.json già in staging preservato;
+Nuvio main 1f1ad284 pulita. Report più recente invariato, nessuna prova TV nuova.
+
+Fatti nuovi e fonti complete in VIDAA_FEASIBILITY.md:
+- Test riproducibile research/audit-msx-container.mjs: solo BlobService pubblico
+  revisionato/hash verificato, VM e trasporto fittizio, zero richieste reali.
+  GET/POST tengono risposte/object URL nell'istanza; nuova istanza/contesto
+  non le recupera, zero accessi a storage persistente, clear revoca gli URL.
+  Ricevuta research/msx-container-audit-20260930.json. Test passato: questo
+  BlobService non è un importatore persistente. Non è un riavvio TV e non
+  esclude persistenza separata in altri componenti. Nessuna diagnostica TV nuova.
+- MSX Video/Audio Plugin documenta assenza di input anche nel plugin visibile;
+  HTML5X è un player. link:{URL} è la distinta funzione documentata per app
+  esterne: non copia file e ora è comunque esclusa dall'utente.
+- Endpoint reale del wrapper ufficiale Nuvio TizenBrew:
+  https://web.nuvioapp.space/, commit f3851d9ff671cca0c6d48bc7bb79b8c7debbddcc
+  del 14 luglio 2026. Richiesta HTTPS dal PC: HTTP 522; lettore web timeout.
+  Non dichiarare morto per sempre né operativo. Corregge solo l'assenza di
+  un indirizzo ufficiale identificato, non servizio/launcher/input VIDAA.
+- https://nuviovidaa.netlify.app/ risponde 200 ma contiene solo wrapper iframe
+  allo stesso servizio e scaling/focus. Non contiene bundle Nuvio né importer
+  persistente. Non è una distribuzione ufficiale; nessun account/test TV.
+- E-Manual Hisense MT9603/VIDAA U9 NA/SA, pubblicato per 58Q6QV, letto per
+  Shortcuts/Browser/app/USB/Media/App Issues. Shortcuts è un sito Browser;
+  USB/Media documenta foto/audio/video, non importazione HTML propria.
+  Limite: altra regione/modello, non prova universale di assenza in Q0707 EU.
+- Riesaminato inventario storico delle 61 app, senza nuovi accessi alla TV.
+  Nessuna funzione pubblica autorizzata di importazione propria identificata.
+
+Nessun build/installer modificato, server riavviato, DNS cambiato, installazione,
+capture o playback eseguito. Nessuno dei cinque criteri Nuvio supera la verifica.
+Nuova ricerca ammessa su evidenze pubbliche di importatore/procedura autorizzata
+o servizio Nuvio funzionante con launcher accettato; niente partner/MSX o bypass.
