@@ -2,6 +2,22 @@
 
 Date: 2026-09-30, Europe/Rome.
 
+Follow-up: the user asked the agent to find a method autonomously and confirmed
+the TV model as Hisense 50E77NQ. Additional public-source research is saved in
+the follow-up section of VIDAA_FEASIBILITY.md. No local import path was found.
+Do not send the user back to research generic sideload instructions already
+examined, or imply an installer exists. No new TV tests have been run.
+
+New evidence: current GitHub API says issue #790 not_planned and PR #1007 closed,
+unmerged, head 00cfecaa; cached HTML/search states are stale. Official release
+1.2.1 has Tizen/webOS assets, no VIDAA package. The remote follow-up commit fixes
+the SW asset list but does not establish a local install path; local Nuvio stays
+at 1f1ad284. MSX officially supports VIDAA U6+, yet persistent app import/input
+is still not demonstrated. The model's downloadable PDF guides refer software
+functions to the TV E-Manual. The examined B2B Custom App manual is for Android,
+not this VIDAA TV. Native Linux support exists via the VIDAA partner integration
+process; this is not a public consumer sideload procedure.
+
 Read `VIDAA_FEASIBILITY.md` for evidence, three-route evaluation, dependencies,
 decisive tests, abandonment criteria, acceptance status and source links.
 

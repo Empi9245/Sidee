@@ -1,6 +1,7 @@
 # Nuvio sulla Hisense VIDAA 9: valutazione di fattibilità
 
-Verifica: 2026-09-30, Europe/Rome. TV: firmware `V0000.09.60A.Q0707`,
+Verifica: 2026-09-30, Europe/Rome. TV: Hisense **50E77NQ** (modello confermato
+dall'utente durante la ricerca successiva), firmware `V0000.09.60A.Q0707`,
 OS `U09.60`, MTK9603, Odin/Chromium 111.
 
 ## Esito
@@ -33,6 +34,108 @@ come tale; non equivale a un pacchetto locale e non è una soluzione oggi provat
 - Nuvio: `D:\nuvio\nuviotvsmart`, `main`, HEAD
   `1f1ad284a292c06b0ed6b045dd1e1f3177666d1b`, working tree pulito.
   Nessuna modifica o ricostruzione degli artefatti Nuvio in questa fase.
+
+## Ricerca successiva richiesta dall'utente — 50E77NQ
+
+L'utente ha chiesto di cercare autonomamente un modo, senza delegare la ricerca
+al supporto. Sono stati controllati altri percorsi pubblici e il modello preciso.
+L'esito resta: nessun meccanismo pronto e dimostrato per tutti i requisiti.
+
+### Nuvio: distribuzione e risposta dei maintainer
+
+- L'API GitHub ufficiale conferma issue #790 chiusa con `state_reason:not_planned`
+  dal `2026-09-19T17:18:38Z`, aggiornata il 25 settembre. L'indice search conserva
+  ancora uno snapshot “Open”: per lo stato vale l'API corrente.
+- Il [commento del 25 settembre](https://github.com/NuvioMedia/NuvioTVSmart/issues/790#issuecomment-5839576551)
+  classifica PR #1007 come registrazione di una UI ospitata; la strada nativa
+  richiede integrazione e distribuzione confermate con VIDAA. Non fornisce
+  un nuovo sideload locale.
+- [PR #1007](https://github.com/NuvioMedia/NuvioTVSmart/pull/1007), autore
+  Empi9245: API corrente `closed`, `merged:false`, chiusa
+  `2026-09-25T21:02:43Z`; head `00cfecaa02e22d903b2d004ced58150527eda39f`
+  su `vidaa-upstream-1.2.0`. La pagina indicizzata “Open” è obsoleta.
+- Il [confronto dei due commit](https://github.com/Empi9245/nuviotvsmart/compare/1f1ad284a292c06b0ed6b045dd1e1f3177666d1b...00cfecaa02e22d903b2d004ced58150527eda39f)
+  mostra un commit successivo al checkout locale: isolamento VIDAA e correzione
+  precache a `css/bundle.css`, senza un diverso meccanismo di importazione.
+  Esaminato il diff di build/packager/SW; nessun merge nella repo Nuvio.
+  Le incongruenze SW descritte sotto riguardano il checkout locale `1f1ad284`.
+- [Release ufficiale 1.2.1](https://github.com/NuvioMedia/NuvioTVSmart/releases/tag/1.2.1),
+  pubblicata `2026-09-28T16:36:35Z`: WGT Tizen, IPK webOS e installer desktop;
+  nessun asset VIDAA. Controllate anche 1.2.0 e 1.1.9, stesso limite.
+
+### VIDAA e strumenti alternativi
+
+- La [FAQ ufficiale partner in turco](https://www.vidaa.com/is-ortaklari/)
+  è ancora accessibile: supporta HTML5 e native Linux, stima 12–18 mesi per
+  integrazione nativa, offre strumenti/dispositivi ai partner e condivide
+  specifiche dopo NDA. Non contiene una procedura consumer di importazione
+  locale per Q0707 senza devkit. Questo impedisce di dire “VIDAA non supporta
+  mai app native”, ma non sblocca il port corrente.
+- [NAGRAVISION CONNECT SDK](https://docs.nagra.vision/connect-player-sdk-5-for-browsers/5.28.x/Default/smart-tv-apps)
+  descrive le proprie app VIDAA nello Store come HTML5 ospitate, distinguendole
+  dagli app payload di altre piattaforme. Conferma il modello di distribuzione
+  ordinario per quel SDK; non esclude package nativi o componenti di sistema.
+- [trialuser/vidaa-appstore](https://github.com/trialuser/vidaa-appstore) e
+  [vidaa-custom-app](https://github.com/arashbehmand/vidaa-custom-app) configurano
+  URL delle app. “Local” o “container” si riferisce al server sul PC/Docker,
+  non a un contenitore installato nella TV che importi risorse.
+- [Vidaa Edge](https://github.com/weinzii/vidaa-edge) descrive due vie:
+  registrazione tramite API e scrittura del registro applicazioni. Non documenta
+  un bundle Nuvio conservato localmente. Non sono stati eseguiti questi metodi
+  né tentativi contro il rifiuto AppConfig già osservato.
+- [NoobyGains/stremio-vidaa-tv](https://github.com/NoobyGains/stremio-vidaa-tv)
+  dichiara esplicitamente bookmark/service-worker e installer launcher
+  non affidabile sui firmware recenti. Non è nuova evidenza di package locale;
+  nessun test ripetuto sulla TV.
+
+### Contenitore MSX: supporto confermato, importazione non dimostrata
+
+La [tabella ufficiale MSX](https://msx.benzac.de/info/?tab=PlatformSupport)
+include VIDAA U6+, versione elencata 0.1.167. Quindi non è corretto trattare
+MSX come piattaforma VIDAA non supportata. La presenza nello Store della
+specifica TV/regione resta non verificata; era assente nell'inventario salvato.
+
+Sono state esaminate anche [Setup Start Parameter](https://msx.benzac.de/wiki/index.php?title=Setup_Start_Parameter),
+[Start Object](https://msx.benzac.de/wiki/index.php?title=Start_Object),
+[Plugin API Reference](https://msx.benzac.de/wiki/index.php?title=Plugin_API_Reference)
+e [Tips & Tricks](https://msx.benzac.de/wiki/index.php?title=Tips_%26_Tricks).
+Il setup documenta JSON ospitato e parametri conservati; `TVXServices.storage`
+è un wrapper di localStorage. `TVXBlobService` espone load/execute di blob,
+ma la pagina non documenta importazione e rilancio persistenti di app dopo
+riavvio. Questi nomi non bastano a promuovere MSX a soluzione locale.
+Non è stato costruito un loader basato su API presunte, data URL non documentati
+o cache. Per riaprire questa strada serve una funzione documentata che conservi
+ed esegua le risorse proprie, con input utile, e poi la prova sulla TV.
+
+### Manuali del modello e piste USB/hospitality
+
+Dalla [pagina ufficiale 50E77NQ](https://it.hisense.com/prodotti/tv/tv-hi-qled/TV-SET-50E77NQ-HSN/p/000000000020014013)
+sono stati scaricati i due PDF collegati. I download sono riusciti via HTTPS
+diretto anche se il lettore web restituiva “Cache miss”. Ispezionate visivamente
+le pagine introduttive pertinenti, perché i PDF sono scansioni senza testo.
+
+| Fonte ufficiale | Identificazione | Limite |
+| --- | --- | --- |
+| [Italiano](https://partners.gorenje.com/fts/GetDigitDoc.aspx?docName=24081513470448382.pdf&jezik=it&sifra=20014013&tipVsebine=1) | 18 pagine, SHA256 `00e2431f7c956f84f67534b5b9aa40fba4102043f5c8091c561e8b0dd88ffc50` | guida hardware/sicurezza; rinvia all'E-Manual integrato per funzioni software |
+| [Inglese](https://partners.gorenje.com/fts/GetDigitDoc.aspx?docName=b+1401910+es-a23441m-1+um+hisense+43-50-55-65-75-85e70levs_en.pdf&jezik=en&sifra=20014013&tipVsebine=1) | 20 pagine, SHA256 `dba46c807fd92e7b65481a26a1c4c16169b0f96d30dfbe9e0147f5c6c3da3cff` | stesso rinvio all'E-Manual; non è documentazione aggiornata specifica di Q0707 |
+
+Non dedurre da queste guide l'assenza universale di un importatore USB. Non è
+stata trovata una procedura di installazione locale utilizzabile. Il manuale
+[Hisense B2B](https://www.hisense-b2b.com/Attachment/DownloadFile?downloadId=20)
+con “Custom App”/copia file descrive invece un display Android: Android Launcher
+e Android Version sono espliciti. Non è applicabile alla 50E77NQ VIDAA.
+Clonazione canali/impostazioni o aggiornamento firmware non dimostrano import
+di risorse HTML/JS/CSS. Nessun cambio hotel/service mode o firmware effettuato.
+
+### Stato e arresto della ricerca corrente
+
+Report locale e remoto invariati: il ramo report resta `f8dee5d` del 29 settembre.
+Nessun nuovo risultato TV. La ricerca documentale non ha trovato il prerequisito
+per un'implementazione locale. I cinque criteri di accettazione rimangono tutti
+non verificati. Non presentare questa ricerca come installazione riuscita.
+Per proseguire serve nuova evidenza tecnica autorizzata (formato/procedura
+locale, importatore persistente documentato, o distribuzione del produttore
+che soddisfi esplicitamente l'obiettivo). Altri probe identici non la sostituiscono.
 
 ## Report verificati
 

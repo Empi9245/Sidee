@@ -9,6 +9,11 @@ app requirements without devkit:** launcher launch, full remote navigation,
 reboot persistence, and use with Sidee/local UI host off, without user-managed
 UI hosting. Browser fullscreen and service-worker cache are insufficient.
 
+The model is now confirmed as **Hisense 50E77NQ**. Further source research found
+official Nuvio 1.2.1 TV packages only for Tizen/webOS, an upstream explanation of
+the hosted VIDAA port, and documented MSX support for VIDAA U6+ but no proven
+persistent local-app import. See the follow-up section in the assessment.
+
 The Nuvio fork's VIDAA ZIP is an archive of web files, not a demonstrated
 installable VIDAA package. Its installer registers a URL and still incorrectly
 treats callback 0 as success. Duplecast's observed registry entry has a remote

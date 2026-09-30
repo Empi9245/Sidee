@@ -5159,3 +5159,37 @@ proprio, provenienza risorse locali, launcher, frecce/OK/Indietro, riavvio,
 Sidee e UI host spenti, UI e playback autorizzato. Nessuno dei cinque criteri
 è oggi verificato per Nuvio in questa configurazione. Se il meccanismo offre
 solo URL/playlist/cache o richiede bypass/firme altrui/devkit, abbandonarlo.
+
+## Ricerca autonoma aggiuntiva — modello 50E77NQ — 2026-09-30
+
+L'utente ha chiesto di trovare direttamente un modo e ha confermato il modello
+Hisense 50E77NQ. Ricerca documentale estesa, senza probe TV, devkit o Superdesign.
+Risultati e link completi sono nella nuova sezione di VIDAA_FEASIBILITY.md.
+
+GitHub API corrente: issue Nuvio #790 not_planned, PR #1007 chiusa/non merged;
+gli snapshot search/HTML che indicano Open sono obsoleti. Release 1.2.1 del
+28 settembre: Tizen/webOS, nessun asset VIDAA. Il commit remoto 00cfecaa successivo
+al locale corregge precache/isola VIDAA, non introduce installazione locale.
+Non effettuato merge nella repo Nuvio, rimasta pulita su main 1f1ad284.
+
+Ulteriori fonti primarie: FAQ ufficiale www.vidaa.com/is-ortaklari/ conferma native
+Linux e percorso partner, strumenti/NDA/integrazione; NAGRAVISION descrive app
+VIDAA HTML5 ospitate per il proprio SDK. Non estendere questi fatti a una prova
+che nessuna app locale sia possibile. Nessuna procedura consumer autorizzata
+per importare Nuvio su Q0707 senza devkit trovata.
+
+MSX tabella ufficiale: VIDAA U6+, versione elencata 0.1.167. Supporto piattaforma
+confermato, disponibilità nella specifica TV/regione ancora non verificata.
+Setup/Start Object/Plugin API/Tips controllati: server JSON, parametri salvati,
+storage wrapper localStorage e BlobService non provano importazione e riavvio
+persistenti del bundle. Nessun loader basato su comportamenti non documentati.
+Appstore/Edge/custom-app/Stremio fork pubblici non aggiungono una nuova strada
+locale; non eseguiti API/write già respinti, né cambi DNS/firmware/hotel mode.
+
+Manuali ufficiali collegati alla 50E77NQ scaricati e pagine introduttive pertinenti
+lette visivamente: guide IT 18p ed EN 20p rinviano al software E-Manual in TV.
+Non sono manuali completi delle funzioni Q0707 e non provano assenza di USB import.
+Il manuale B2B con Custom App riguarda Android, non è applicabile a questa TV.
+Report locale/remoto invariati (f8dee5d sul ramo report). Tutti i cinque criteri
+Nuvio ancora non verificati. Nessuna strada implementabile dimostrata: il prossimo
+passo richiede una nuova evidenza tecnica autorizzata, non altri probe identici.
