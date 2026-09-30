@@ -4,6 +4,12 @@ Verifica: 2026-09-30, Europe/Rome. TV: Hisense **50E77NQ** (modello confermato
 dall'utente durante la ricerca successiva), firmware `V0000.09.60A.Q0707`,
 OS `U09.60`, MTK9603, Odin/Chromium 111.
 
+TV .1.10 ora confermata, ultimo errore «name not resolved». Il tentativo recente
+non produce nuove richieste target registrate dal DNS né accessi HTTP; risposta
+A del DNS Sidee accettata dal resolver Windows senza hosts. DNS primario effettivo
+TV ancora richiesto; cache/selezione resolver non determinata. Nessuna nuova
+evidenza di rifiuto AppConfig o installazione: il problema precede il collector.
+
 Aggiornamento: richieste DNS A vidaahub da .1.10 osservate, appartenenza alla TV
 ancora da confermare. Receipt collector null non prova assenza del GET. Aggiunti
 contatori passivi al solo HTTP receiver per distinguere connessione/pagina/script;

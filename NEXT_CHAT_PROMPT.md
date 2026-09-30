@@ -1,5 +1,22 @@
 # Prompt per la prossima chat — 30 settembre 2026
 
+## Ultimo dato TV: «name not resolved», IP .1.10 confermato
+
+L'utente conferma IP TV 192.168.1.10. Prima della nuova sonda PC, DNS fermo
+al targetQueries9/client .1.10/timestamp 2026-09-30T18:27:33Z (20:27 locale),
+mentre verifica 20:50:12 locale: nessuna nuova richiesta target registrata per
+l'ultimo fallimento. HTTP collector PID19752 vede soltanto PC .1.5, receipt null.
+Verifica Windows Resolve-DnsName esplicita a .1.5, DnsOnly/NoHostsFile:
+A vidaahub → .1.5 TTL30; AAAA nessun record senza errore; TXT marker del proprio
+server corrisponde al SHA lan_dns d0616fe...ee961. Sonde PC successive aggiornano
+il lastTargetClient .1.5: non scambiarle per TV. Processo/bind DNS20404 confermati;
+regole Sidee Private UDP53 Allow hanno Local/Remote/Program Any, sola lettura.
+Il blocco osservato è prima del caricamento HTTP: DNS effettivo/cache Browser
+TV o percorso di risoluzione restano da distinguere, non un nuovo rifiuto AppConfig.
+Domanda pendente ridotta al SOLO valore DNS primario TV; il dato IP è risolto.
+Non ripetere la domanda IP né il tentativo identico senza cambiare/verificare
+quel prerequisito. Nessuna modifica router/IPv6/DoH/firewall o nuovo probe TV.
+
 ## Stato più recente: distinguere DNS e accesso HTTP locale
 
 Riscontro ATTIVO: collector :80 PID19752, collectionId
@@ -13,7 +30,7 @@ dopo la riapertura del Browser. Controllare subito /status e gli accessi live;
 readiness è una fotografia PC, non un report TV. Niente nuove regole firewall.
 
 Dopo «non funziona ancora», DNS LAN PID20404 registra richieste A vidaahub da
-192.168.1.10 (8 al controllo); non è ancora confermato che sia l'IP della TV.
+192.168.1.10 (8 al controllo); IP poi confermato dalla TV dall'utente.
 Non dire che il DNS sia rimasto irraggiungibile o che una query provi il GET.
 Collector precedente PID2312 aveva receipt null e nessun contatore accessi;
 receipt null da solo NON prova assenza di apertura pagina.
@@ -25,7 +42,7 @@ Errore di scrittura diagnostica non blocca il servizio. Test HTTP reale passato,
 inclusa connessione senza richiesta e query sensibile non conservata.
 Leggere /status per provenienza effettiva dopo l'attivazione; conservare qualsiasi
 ricevuta prima di cambiare un processo. DNS e :8080 non richiedono riavvio.
-Domande specifiche pendenti: errore attuale esatto e conferma dell'IP .1.10.
+Errore risposto «name not resolved» e IP .1.10 confermato; DNS primario pendente.
 I paragrafi sotto sono cronologia: prevale questo stato e il runtime verificato.
 
 ## Ultima correzione: TV sulla LAN router, DNS dedicato al PC

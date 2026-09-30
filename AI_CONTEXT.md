@@ -5,6 +5,17 @@
 
 Last updated: 2026-09-30
 
+> LATEST TV REPLY: owner confirms TV IPv4 .1.10 and "name not resolved".
+> Before PC probe the DNS target status was still9/TV .1.10 at18:27:33Z;
+> check18:50Z found no newer recorded target query. HTTP shows only PC and null
+> receipt. Windows Resolve-DnsName to .1.5 with DnsOnly/NoHostsFile now verifies
+> A .1.5 TTL30, empty AAAA without error, exact own TXT marker. Those probes
+> overwrite last-client with PC: never attribute them to TV. DNS20404 process
+> and bind confirmed; existing Private UDP53 allow rules Any addresses/program,
+> read only. Pending question is actual saved primary DNS, not TV IP. Resolver
+> choice/cache remains unresolved before HTTP; no new native/permission result,
+> process restart, firewall/router/IPv6/DoH change or repeated TV probe.
+
 > CURRENT DIAGNOSTIC: LAN DNS receives target A queries from 192.168.1.10;
 > Now active: collector19752, collection bridge-5194a818c1e14b96b7d4e5b858ce4465,
 > build bridge-6bbcea0ceaa98b5e, runtime HEAD339fa8e, collectorDirty false. Only
@@ -12,7 +23,7 @@ Last updated: 2026-09-30
 > DNS20404, post-Store9552 and ICS6844 preserved. PC root/JS200; access .1.5
 > observed and receipt null. Owner asked fresh explicit http://vidaahub.com/;
 > no new TV proof. Read live status/access; readiness is a PC-only snapshot.
-> owner has not yet confirmed this is the TV. Old collector2312 had null receipt,
+> owner subsequently confirmed this is the TV. Old collector2312 had null receipt,
 > which cannot establish absence of GET. Added passive own HTTP receiver access:
 > separate TCP accepts/GET+POST counts and bounded known-path counts, private IPs
 > only, maximum32 clients. /status.httpAccess and ignored local access status;

@@ -376,3 +376,26 @@ Readiness sostituita con fotografia corrente e provenienza, report post-Store
 hash0efd7bac0e62b3c19b46141e1844d0127d07d14c086ddc531cd5c30c2370d2ba intatto.
 Chiesto tentativo fisico esplicito http://vidaahub.com/ dopo riapertura Browser.
 Nessun POST snapshot, nuova raccolta TV, native API o build Nuvio eseguiti.
+
+## Risposta utente successiva: «name not resolved», TV .1.10
+
+Prima delle sonde Windows, status DNS ancora targetQueries9/.1.10/1790792853,
+2026-09-30T18:27:33Z (20:27 locale); clock PC alla verifica20:50:12 locale.
+Non risultavano nuove richieste del nome target per il tentativo recente.
+HTTP19752 conserva solo accessi PC .1.5 e receipt null. L'utente conferma
+poi IP TV .1.10; le vecchie richieste provenivano quindi dalla sua TV.
+Resolve-DnsName -Server .1.5 -DnsOnly -NoHostsFile verifica con un resolver
+indipendente dalla funzione exchange del codice: A .1.5 TTL30, AAAA senza
+record né errore, marker TXT esatto del proprio hash d0616fe...ee961.
+La sonda A aggiorna targetQueries10/clientPC: conservarne questa attribuzione.
+Processo DNS20404/percorso/cmdline e bindUDP .1.5 confermati in sola lettura;
+regole Sidee Allow inbound Private UDP53 con indirizzi e programma Any.
+Nessuna regola cambiata, processo riavviato o nuovo test TV/native/capture.
+
+La risposta DNS è accettata dal resolver Windows, ma non è provata la risposta
+usata dalla TV nel tentativo recente. Campo DNS primario TV ancora richiesto
+separatamente: l'utente alla domanda raggruppata aveva fornito soltanto l'IP.
+Nessun presupposto che un'opzione preselezionata sia stata confermata.
+Blocco osservabile prima di HTTP; selezione del resolver/cache o diverso nome
+effettivo da distinguere prima di intervenire. Non chiamarlo nuovo rifiuto
+AppConfig/installazione, né difetto certo del router o della risposta DNS.
