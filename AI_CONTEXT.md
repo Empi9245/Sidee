@@ -5,6 +5,23 @@
 
 Last updated: 2026-09-30
 
+> IMMEDIATE CORRECTION: user points to weinzii/vidaa-edge. vidaahub is the
+> context used for API exposure in that toolkit, not a public importer portal.
+> The instruction to use automatic DNS/public-site navigation was mistaken and
+> withdrawn. Read research/vidaa-edge-context-review-20260930.md. Legacy/new
+> methods register remote URLs; availability checks do not attest permission.
+> Q0707 saved vidaahub reports already expose APIs and deny AppConfig. No new
+> supported method identified; do not repeat or bypass those denied operations.
+
+> LATEST USER STEERING: observe/test the real TV, do not require public docs for
+> every check. Secondary Nuvio UI + telemetry trial was prepared, then stopped
+> (own PID 3712 only) after the user's priority correction; no TV result. See
+> research/tv-acceptance-20260930.md. No installation/VIDAA privileged operations.
+> Negative PWA observations on insecure HTTP are inconclusive for firmware.
+> localStorage marker is not resource persistence. User's prior exclusions remain.
+> Earlier "no TV test without public procedure" is too broad: an import route
+> must respect TV controls, but UI/input observations can precede documentation.
+
 > CURRENT PRIORITY: read `VIDAA_FEASIBILITY.md` and the 2026-09-30 handoff.
 > No route yet proves a persistent Nuvio app on Q0707 with launcher/remote,
 > local UI server off and no user-managed UI hosting, without devkit.

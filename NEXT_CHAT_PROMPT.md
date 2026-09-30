@@ -13,8 +13,29 @@ Prima di modificare o eseguire test, leggi **completamente**:
 7. research/vidaahub-context-20260930.md;
 8. research/vidaa-context-comparison-20260930.json;
 9. in Nuvio, VIDAA_STATUS.md.
+10. research/tv-acceptance-20260930.md;
+11. research/vidaa-edge-context-review-20260930.md.
 
 Il riepilogo corrente prevale sui vecchi piani della cronologia.
+
+**Ultima correzione dell'utente:** il riferimento è
+https://github.com/weinzii/vidaa-edge. Leggi anche
+research/vidaa-edge-context-review-20260930.md prima di proseguire.
+vidaahub è il contesto usato dal toolkit per esporre API; non un portale pubblico
+in cui cercare un importatore. La richiesta precedente di DNS automatico /
+apertura del sito pubblico era errata e ritirata. Non riproporla.
+
+L'utente autorizza test diretti e non vuole attendere informazioni online; i suoi
+vincoli contro bypass restano. Il codice upstream letto registra URL o modifica
+registro app, non copia bundle. Presenza API non è permesso; callback 0 upstream
+può essere falso positivo. I report vidaahub Q0707 già provano esposizione e 503.
+La domanda resta il cambiamento concreto di bootstrap/API/operazione supportata,
+non un altro dominio candidato o la reachability della radice pubblica.
+
+Il test secondario Nuvio UI su LAN :8181 è stato preparato e poi fermato (solo
+PID 3712), senza risultati TV. File conservati; non usarlo per sostituire la
+priorità. Ricevitore :8080 PID 5676 e Windows ICS UDP 53 PID 6844 preservati.
+Non è stato avviato DNS/TLS né ritentata alcuna installazione/AppConfig.
 
 **Priorità vidaahub.com:** l'indagine pubblica del 30 settembre e il confronto
 fra sei report sono ora completati. Verifica eventuali fatti tecnici nuovi sul
@@ -75,14 +96,14 @@ Stato da preservare:
 - HTTPS già visibile dopo NAT: 382 record, FILTERED_FLOW_VISIBLE_AFTER_NAT.
   Non ripetere inventario, cattura o probe esauriti identità/AppInfo/HSPDK/file.
 
-Il prossimo fatto utile è una **procedura pubblica e autorizzata di import della
-propria app su Q0707**, con formato/contesto/storage documentati. Una nuova
+Il prossimo fatto utile per installare è un **meccanismo consentito di import della
+propria app su Q0707**, documentato oppure osservato nella normale UI TV. Una nuova
 specifica di contesto deve chiarire permessi effettivi, non soltanto le API.
 Solo allora preparare app minima propria con versione riconoscibile, importare,
 verificare launcher/telecomando, riavvio con host spenti e playback autorizzato.
 In alternativa valutare esplicitamente distribuzione Nuvio del fornitore che sia
-operativa e autorizzata. Senza questi prerequisiti non c'è un altro tentativo TV
-giustificato nei vincoli. Non colmare il vuoto con un URL candidato o LAN test.
+operativa e autorizzata. Sono possibili test diretti UI/telecomando come quello
+preparato e poi sospeso; non confonderli con una nuova origine o installazione.
 
 Aggiorna i documenti con nuove evidenze, limiti e prossimo test decisivo. Committa
 Sidee su main con percorsi espliciti escludendo control/request.json. Riporta cosa

@@ -1,5 +1,12 @@
 # vidaahub.com: contesto, API e autorizzazione
 
+**Steering successivo:** l'utente autorizza osservazioni dirette anche senza
+guide pubbliche e indica il meccanismo di weinzii/vidaa-edge.
+[Correzione del contesto](vidaa-edge-context-review-20260930.md): il consiglio
+DNS automatico/sito pubblico era errato per il toolkit. Il test Nuvio LAN è ora
+fermato, nessun report TV. Le condizioni di ricerca sotto non vietano normali
+osservazioni; resta distinto aggirare un permesso negato. Risultati invariati.
+
 Indagine del **30 settembre 2026**, Europe/Rome. Target: Hisense **50E77NQ**,
 `V0000.09.60A.Q0707`, VIDAA U09.60, MTK9603, Odin/Chromium 111.
 Letture obbligatorie completate prima di modifiche/verifiche. Base Sidee:

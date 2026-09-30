@@ -4,6 +4,13 @@ Verifica: 2026-09-30, Europe/Rome. TV: Hisense **50E77NQ** (modello confermato
 dall'utente durante la ricerca successiva), firmware `V0000.09.60A.Q0707`,
 OS `U09.60`, MTK9603, Odin/Chromium 111.
 
+**Ultima richiesta:** prove dirette sulla TV, senza imporre una guida pubblica
+per ogni controllo. Il test secondario Nuvio LAN è stato preparato e poi
+fermato senza report TV: non sostituisce la priorità vidaahub. L'utente indica
+vidaa-edge; [correzione del contesto](research/vidaa-edge-context-review-20260930.md).
+Il suggerimento DNS automatico/sito pubblico era errato per quel meccanismo.
+La condizione sotto riguarda un'importazione consentita, non ogni osservazione.
+
 ## Esito
 
 Indagine prioritaria completata:
@@ -47,8 +54,9 @@ le verifiche sotto rimangono evidenze di ricerca, non una proposta di setup.
 | Contenitore persistente | identità native, tvbrowser locale; non file Nuvio | import di risorse proprie e persistenza documentati; MSX escluso | stessa prova, risorse/versione riconoscibili dopo riavvio | solo URL/cache/sessione o percorso escluso |
 | UI del fornitore | registrazione URL pubblicata per altre app, port Nuvio hosted | servizio Nuvio operativo e distribuzione launcher autorizzata; hosting esterno | launcher/D-pad/riavvio PC spento e playback, dipendenza dichiarata | permesso negato, endpoint indisponibile o hosting richiesto all'utente |
 
-**Prerequisito oggi non soddisfatto:** procedura pubblica autorizzata per una
-propria app sul firmware target, con formato/contesto/storage documentati.
+**Prerequisito per installare oggi non soddisfatto:** importazione consentita di
+una propria app sul firmware target, documentata o effettivamente offerta dalla
+normale UI della TV. Si possono misurare UI/input prima di trovarla.
 Solo dopo si prepara/importa una app minima con ID proprio e versione riconoscibile
 e si esegue il test reale. Un altro indirizzo o snapshot LAN non lo sostituisce.
 La procedura pubblica TVOЁ ispezionata usa ancora URL + Hisense_installApp e

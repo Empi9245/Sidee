@@ -1,5 +1,11 @@
 # Verifiche fuori dalla TV — 30 settembre 2026
 
+Priorità: [correzione del contesto vidaa-edge](vidaa-edge-context-review-20260930.md).
+Il consiglio DNS automatico/sito pubblico non verificava il meccanismo del toolkit.
+La [prova Nuvio secondaria](tv-acceptance-20260930.md) è preparata ma ora fermata,
+nessun report TV. Non sostituisce vidaahub; code/fixtures conservati. L'utente
+consente prove empiriche; non confonderle con bypass di permessi o API esaurite.
+
 Indagine corrente prioritaria:
 [vidaahub-context-20260930.md](vidaahub-context-20260930.md).
 [vidaa-context-comparison-20260930.json](vidaa-context-comparison-20260930.json)

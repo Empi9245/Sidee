@@ -1,5 +1,8 @@
 .sidee-certs/
 reports/*.json
+reports/*.pdf
+reports/nuvio-tv-check*.log
+tmp/pdfs/
 __pycache__/
 *.pyc
 .DS_Store

@@ -4,6 +4,34 @@ Aggiornato: 30 settembre 2026, Europe/Rome. Questo documento prevale sui piani
 storici in AI_CONTEXT.md. Prompt: [NEXT_CHAT_PROMPT.md](NEXT_CHAT_PROMPT.md).
 Indagine completata: [vidaahub-context-20260930.md](research/vidaahub-context-20260930.md).
 
+## Ultima correzione: il meccanismo vidaa-edge
+
+L'utente ha indicato https://github.com/weinzii/vidaa-edge e chiarito perché il
+contesto vidaahub conta. Riletti README, template/componente installer e servizio
+app alla revisione 94c3134911cbd4b813eea1f88c56819c0981518b.
+[Analisi del codice e correzione](research/vidaa-edge-context-review-20260930.md).
+
+L'indicazione dell'assistente di aprire il sito pubblico con DNS automatico era
+sbagliata per verificare quel meccanismo: il progetto usa quel contesto per
+esporre le API alla pagina del toolkit. Le richieste DNS automatico/E-Manual
+sono ritirate. Non riproporre il test LAN come risposta alla domanda vidaahub.
+La raggiungibilità Internet della radice non decide il funzionamento descritto.
+
+Il servizio upstream verifica presenza delle funzioni, registra URL via legacy
+oppure modifica registro app via HiUtils. Non trasferisce il bundle Nuvio; il
+ramo legacy tratta callback 0 come successo. I report Q0707 nel contesto vidaahub
+avevano già le API ma false/AppConfig 503 internamente. Il codice corrente non
+identifica un nuovo metodo autorizzato che renda quelle operazioni accettate.
+Non concludere impossibilità universale; non progettare bypass dei rifiuti.
+
+L'utente autorizza prove dirette anche prima di documentazione pubblica. Era
+stato preparato un test UI/telecomando Nuvio su :8181; ora **fermato**, solo il
+nostro PID 3712, nessun report TV ricevuto. Codice e fixtures conservati in
+nuvio_tv_check.py/web/nuvio-tv-check.js, protocollo storico in
+research/tv-acceptance-20260930.md. Non è la candidata di installazione corrente.
+Ricevitore post-Store PID 5676 preservato; UDP 53 preesistente PID 6844 è Windows
+SharedAccess/ICS, non modificato. Nessun nuovo DNS/TLS/install/probe/cattura.
+
 ## Richiesta e risultato corrente
 
 L'utente ha chiesto di svolgere il lavoro su Sidee e Nuvio, con priorità a
@@ -111,15 +139,15 @@ La matrice aggiornata in VIDAA_FEASIBILITY.md/research confronta package/sideloa
 contenitore persistente e UI del fornitore. Nessuna strada è oggi dimostrata
 capace di tutti i requisiti, senza concludere impossibilità universale.
 
-Serve un fatto tecnico nuovo: procedura pubblica autorizzata per una propria app
-su Q0707, con formato, contesto e storage documentati; oppure distribuzione
+Serve un fatto tecnico nuovo: meccanismo consentito per una propria app
+su Q0707, documentato oppure osservato nella normale UI della TV; oppure distribuzione
 Nuvio gestita da un fornitore realmente utilizzabile, valutata come strada distinta.
 Una nuova specifica di contesto deve descrivere autorizzazione, non solo esporre API.
 Con il prerequisito soddisfatto, preparare app minima con ID proprio/versione
 riconoscibile, importare secondo la procedura, verificare launcher/D-pad e poi
 riavvio reale con PC/Sidee/UI host spenti, UI e playback autorizzato.
-Senza quel prerequisito non c'è un ulteriore tentativo TV giustificato nei vincoli;
-un diverso URL o un altro test LAN non sostituisce la prova.
+Quel prerequisito riguarda l'importazione, non ogni test diretto del port.
+Il test UI/telecomando ora preparato non sostituisce una prova di installazione.
 
 ## Letture obbligatorie per proseguire
 

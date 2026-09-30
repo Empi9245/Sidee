@@ -1,5 +1,20 @@
 # Sidee
 
+## Current correction: vidaa-edge context
+
+Read [the source review](research/vidaa-edge-context-review-20260930.md).
+vidaahub is the context used for API exposure in vidaa-edge, not a public
+installation portal. The previous instruction to open its public site with
+automatic DNS was mistaken and withdrawn. Reachability of that public root does
+not decide the toolkit mechanism. API exposure and write authorization differ;
+the saved Q0707 vidaahub reports already show exposed APIs and AppConfig denial.
+
+The secondary Nuvio UI/remote trial was prepared and then stopped, with no TV
+result; [protocol and limits](research/tv-acceptance-20260930.md). Its code is
+preserved for future functional checks, not a replacement for this investigation.
+No inventory/capture/install/write was repeated. Public documentation is not a
+prerequisite for every observation, but user constraints against bypass remain.
+
 ## Current handoff — vidaahub context investigation
 
 Next-chat prompt: [NEXT_CHAT_PROMPT.md](NEXT_CHAT_PROMPT.md). Complete current
@@ -61,8 +76,9 @@ they are not an authorized local-app import mechanism. The TV/browser probe
 code is unchanged and may still run its existing startup diagnostics if opened.
 This assessment does not require opening Sidee on the TV or restarting services.
 
-Proceed only after a documented, authorized package/import path is identified,
-or an explicitly evaluated provider-managed hosted-app distribution exists.
+For import trials, use a permitted package/import feature identified in public
+documentation or the TV's normal interface. Direct UI/input tests can precede it.
+Evaluate provider-managed hosted-app distribution separately if applicable.
 Do not repeat exhausted permission/identity/HSPDK/pkgmgr probes, replace
 third-party Store packages, or bypass signatures, authentication or AppConfig.
 
