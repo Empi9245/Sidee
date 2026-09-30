@@ -79,7 +79,11 @@ If neither inventory API is available, the page displays that limitation and
 does not save a fake TV result. No Nuvio acceptance test is claimed.
 
 HTTP receiver isolation and denial/error/redaction fixtures passed off-TV.
-The TV result is pending until the user opens the page on the TV.
+TV result received on 30 September at 14:09 Europe/Rome: app inventory API
+unavailable, package inventory returned 18 system components from the HTTP LAN
+origin. No current app/package correlation or local Nuvio importer established.
+See [result and limits](research/post-store-result-20260930.md). Do not repeat
+this snapshot without a relevant state change.
 
 ## Historical toolkit reference and procedures
 

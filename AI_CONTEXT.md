@@ -14,8 +14,8 @@ Last updated: 2026-09-30
 > User confirmed MSX is available in the TV Store but does not want to use it.
 > The new off-TV BlobService audit and provider-hosted URL checks are research
 > evidence only. No new Nuvio TV acceptance criterion has been verified.
-> Latest authorized action: isolated post-Store inventory mode is prepared
-> and started at http://192.168.1.5:8080. TV response is pending. See latest
+> Latest authorized action: isolated post-Store inventory mode received a real
+> result: app API unavailable, 18 system packages, no import mechanism. See latest
 > handoff; do not start normal Sidee or old auto-probes to perform this check.
 
 ## Project
@@ -5283,3 +5283,25 @@ secureContext) e receiverContext (HTTP transport, Host/Origin header). Questi
 sono dati di contesto, non un'autorizzazione. Test JS e HTTP aggiornati passati;
 nessun risultato TV ancora ricevuto al controllo successivo. Ricaricare la pagina
 TV per utilizzare lo script aggiornato. Modalità normale Sidee e config invariate.
+
+## Risposta reale della TV ricevuta — 30 settembre 2026, 14:09 italiane
+
+L'utente ha completato la lettura. Report locale timestamped
+reports/post-store-20260930-120901-112525.json e post-store-latest.json,
+SHA256 e limiti in research/post-store-result-20260930.md. Origine HTTP LAN
+192.168.1.5:8080, secureContext false. API app UNAVAILABLE; API package READ_OK,
+18 componenti di sistema, incluso tvbrowser type web/versione 9.6.0-r20260706x.
+Nessun package con nome Nuvio/Duplecast. Count/famiglie coerenti con il vecchio
+inventario, non è stata verificata identità esatta di versioni/campi.
+
+La lettura non consente correlazione con registro app corrente e non dimostra
+che Duplecast memorizzi solo URL o che non conservi altre risorse. La domanda
+post-reinstallazione resta inconclusiva. Il package web di sistema esiste, ma
+nessun importatore autorizzato proprio è emerso. Non ripetere questo inventario
+senza nuova evidenza/cambiamento utile e non ampliare automaticamente i probe.
+
+L'utente insiste su vidaahub.com e chiede ricerca di altri domini con permessi.
+Nessuna sostituzione DNS/TLS di domini vendor o ricerca di origini privilegiate
+eseguita. I vecchi contesti vidaahub/native avevano respinto install/write 503.
+Il test attuale non è un A/B con stesso codice/contesto nativo: non attribuire
+causalità certa al solo hostname. Tutti i cinque criteri Nuvio non verificati.

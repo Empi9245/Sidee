@@ -2,7 +2,25 @@
 
 Date: 2026-09-30, Europe/Rome.
 
-## Latest steering and concrete checks
+## Real TV response received — 30 September, 14:09 Europe/Rome
+
+User says they completed the check. Receiver result is now present:
+reports/post-store-20260930-120901-112525.json and post-store-latest.json.
+Detailed provenance/limits: research/post-store-result-20260930.md.
+HTTP LAN origin 192.168.1.5:8080; installed-app API UNAVAILABLE, package API
+READ_OK with 18 system components, including tvbrowser type web. No Nuvio or
+Duplecast-named package. Missing app inventory prevents current registry/package
+correlation; no conclusion that Duplecast only stores a URL. Package count and
+families match the documented old baseline; exact version equality not verified.
+No new own-app import mechanism or Nuvio acceptance result.
+
+User insists on vidaahub.com and asks how to find other origins giving privileges.
+No vendor-domain DNS/TLS impersonation or privileged-origin search was performed.
+Past vidaahub/native-app contexts still rejected install/write with AppConfig 503.
+The new read is not a controlled same-code A/B: don't prove hostname causation.
+Don't repeat the completed snapshot or exhausted permission/file/source probes.
+
+## Earlier preparation and origin correction
 
 User reminded us of the historical vidaahub.com origin. The previous tested
 origin exposed VIDAA APIs but did not pass the install/write AppConfig 503 gate.

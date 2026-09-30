@@ -26,7 +26,16 @@ le verifiche sotto rimangono evidenze di ricerca, non una proposta di setup.
 
 ## Nuove verifiche concrete — senza partner e senza MSX
 
-### Verifica attuale sulla TV predisposta — risposta in attesa
+### Verifica attuale sulla TV — risultato parziale ricevuto
+
+**Aggiornamento: risposta ricevuta alle 14:09 del 30 settembre, Europe/Rome.**
+Provenienza e limiti in [post-store-result-20260930.md](research/post-store-result-20260930.md).
+Origine HTTP LAN; API elenco app UNAVAILABLE, API package READ_OK con 18
+componenti di sistema, incluso tvbrowser type web. Nessun package con nome
+Nuvio/Duplecast, ma manca il registro app corrente: questa assenza non prova
+che Duplecast memorizzi solo metadata. Nessun nuovo importatore individuato;
+la domanda sullo storage post-reinstallazione rimane inconclusiva. Le righe
+seguenti descrivono la preparazione precedente alla risposta.
 
 Dopo la richiesta esplicita di usare Sidee, verificati processi/listener e
 connessione: Sidee era spento, localhost e `192.168.1.5:8080` rifiutavano
