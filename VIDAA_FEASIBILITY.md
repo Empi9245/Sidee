@@ -26,6 +26,33 @@ le verifiche sotto rimangono evidenze di ricerca, non una proposta di setup.
 
 ## Nuove verifiche concrete — senza partner e senza MSX
 
+### Verifica attuale sulla TV predisposta — risposta in attesa
+
+Dopo la richiesta esplicita di usare Sidee, verificati processi/listener e
+connessione: Sidee era spento, localhost e `192.168.1.5:8080` rifiutavano
+`/api/status`. Questo PC è ancora su `192.168.1.5`.
+
+Preparata e avviata modalità `sidee.py --post-store-check`. Serve una pagina
+dedicata e riceve gli elenchi attuali dalle sole API esposte
+`Hisense_getInstalledApps()` e `vowOS.store.getInstalledPkgs()`. Nessun caricamento
+SDK, override di identità/origin, accesso a file TV, install/write, DNS, vecchi
+probe o catture. Test off-TV su risposte valide/negate/assenti e isolamento HTTP
+passati. Il risultato TV non è ancora arrivato al momento della predisposizione.
+
+La nuova lettura è motivata dall'operazione Store del 29 settembre, successiva
+al registro dettagliato del 26. Obiettivo: trovare eventuali riferimenti a un
+package o flag di packaging nello stato attuale, non ricercare nuovi permessi.
+I campi potrebbero non essere esposti: assenza di riferimenti non equivale
+all'assenza di file/cache. Questo test non legge byte delle risorse e non prova
+un importatore autorizzato per Nuvio. Tutti i cinque criteri restano non verificati.
+
+La pagina parte automaticamente quando l'utente apre `http://192.168.1.5:8080`
+nel Browser della TV. Sidee non è un controllo remoto generale capace di aprire
+autonomamente la pagina sulla TV. `/status` mostra l'ultimo risultato; i file
+sono locali in `reports/post-store-latest.json` e history, senza sync Git.
+Se entrambe le API sono indisponibili, la pagina lo mostra senza salvare un
+falso report TV. Nessuna nuova reinstallazione Duplecast è richiesta.
+
 Ricerca del 30 settembre, Sidee `main` inizialmente `ef25a23`, Nuvio `main`
 `1f1ad284` pulita. Nessuna nuova sessione sulla TV; ultimo report e relativo
 commit restano quelli elencati nella sezione Report verificati.
@@ -113,8 +140,10 @@ funzione autorizzata di importazione emersa. Non trasformare la presenza di
 Browser, Media, E-Manual locale, Plex o giochi in un'autorizzazione a sostituirne
 risorse/identità. Nessun tentativo su package o database di app altrui.
 
-**Esito operativo:** nessuna nuova strada che soddisfi i requisiti e i vincoli
-aggiornati. Nessuna installazione/prova TV è giustificata da queste evidenze.
+**Esito della ricerca documentale:** nessuna nuova strada che soddisfi i requisiti
+e i vincoli aggiornati. Nessuna installazione o verifica Nuvio è giustificata
+da queste evidenze; la successiva lettura inventario predisposta sopra risolve
+solo la domanda sullo stato dopo lo Store.
 Il test BlobService ha chiuso un'ipotesi concreta; il servizio ospitato ha un
 indirizzo confermato ma è indisponibile nel test e manca comunque la strada
 launcher accettata. Non chiedere all'utente di contattare VIDAA, diventare

@@ -4,6 +4,33 @@ Date: 2026-09-30, Europe/Rome.
 
 ## Latest steering and concrete checks
 
+Latest user instruction: use Sidee and connect to the TV if useful. Checked
+current main c1cb6e6 and preserved staged control/request.json. Sidee was not
+running: both localhost and 192.168.1.5:8080 refused /api/status. Elevated LAN
+inventory confirmed this PC is 192.168.1.5, with no Sidee listener on known ports.
+
+Implemented and started `sidee.py --post-store-check`: isolated inventory-only
+mode, bypassing old startup routines and the historical Sidee handler. One TV
+page calls only exposed Hisense_getInstalledApps/getInstalledPkgs. No arbitrary
+JS control, file access, install/write, origin/identity override, DNS, capture,
+Git workers or vendor contact. The old normal mode remains unchanged.
+New files: post_store_check.py, web/post-store-check.html/js, two focused tests.
+Both Node fixtures and HTTP integration test passed; git diff --check passed.
+
+Server running as hidden Python PID 18200 at http://192.168.1.5:8080 when launched.
+Recheck live state instead of trusting the PID later. /status initially latest:null.
+Asked user to open this address in the TV Browser; the read starts automatically.
+Result is pending. Local report path: reports/post-store-latest.json, plus history.
+Those files are ignored and not auto-synced. If both APIs are unavailable, no
+report is posted. Do not treat an off-TV fixture as a real TV result.
+
+This new snapshot is justified by the 29 September Store operation following
+the detailed 26 September Duplecast inventory. It reads lists only, without
+repeating exhausted permission/file-path/source probes. Missing metadata or
+no matching package still cannot prove absence of persisted app resources.
+Analyze the returned targets/package references; no own-app importer or any
+of the five Nuvio acceptance criteria is established by this snapshot alone.
+
 The user excludes contacting VIDAA/becoming a partner. They confirmed that
 Media Station X is available in their TV Store, but do not want to use it.
 Exclude it from the solution; do not ask again or treat availability as a test.

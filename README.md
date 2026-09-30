@@ -48,6 +48,34 @@ or an explicitly evaluated provider-managed hosted-app distribution exists.
 Do not repeat exhausted permission/identity/HSPDK/pkgmgr probes, replace
 third-party Store packages, or bypass signatures, authentication or AppConfig.
 
+## Current isolated TV check — after the Store operation
+
+The user has authorized connecting Sidee to the TV for useful checks. Use
+`python sidee.py --post-store-check` to serve only the inventory page on the
+configured PC LAN address and HTTP port (currently `http://192.168.1.5:8080`).
+It does not start the historical dashboard, DNS, TLS interception, Git workers,
+captures or TV install/write probes. Open that address in the TV Browser;
+the page reads only `Hisense_getInstalledApps()` and
+`vowOS.store.getInstalledPkgs()` if exposed. No SDK injection, identity/origin
+override, TV file reads or writes. No custom DNS is needed for this check.
+
+Purpose: obtain current inventory after the 29 September Store operation;
+the detailed Duplecast registry snapshot is from 26 September. This is a
+targeted freshness check, not another permission or tvbrowser-file probe.
+The result can reveal exposed package references/packaging metadata, but missing
+fields or an unmatched package are not proof that no app resources are stored.
+It does not establish an authorized own-app import procedure.
+
+Target app metadata and package names/versions/paths are saved locally to
+`reports/post-store-latest.json` and timestamped `reports/post-store-*.json`.
+URL credentials/query strings and unrelated account fields are omitted.
+The receiver `/status` reports whether a result arrived; no automatic Git sync.
+If neither inventory API is available, the page displays that limitation and
+does not save a fake TV result. No Nuvio acceptance test is claimed.
+
+HTTP receiver isolation and denial/error/redaction fixtures passed off-TV.
+The TV result is pending until the user opens the page on the TV.
+
 ## Historical toolkit reference and procedures
 
 The sections below describe earlier phases and retained capabilities. Their

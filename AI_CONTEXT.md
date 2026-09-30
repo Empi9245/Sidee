@@ -14,6 +14,9 @@ Last updated: 2026-09-30
 > User confirmed MSX is available in the TV Store but does not want to use it.
 > The new off-TV BlobService audit and provider-hosted URL checks are research
 > evidence only. No new Nuvio TV acceptance criterion has been verified.
+> Latest authorized action: isolated post-Store inventory mode is prepared
+> and started at http://192.168.1.5:8080. TV response is pending. See latest
+> handoff; do not start normal Sidee or old auto-probes to perform this check.
 
 ## Project
 
@@ -5236,3 +5239,35 @@ Nessun build/installer modificato, server riavviato, DNS cambiato, installazione
 capture o playback eseguito. Nessuno dei cinque criteri Nuvio supera la verifica.
 Nuova ricerca ammessa su evidenze pubbliche di importatore/procedura autorizzata
 o servizio Nuvio funzionante con launcher accettato; niente partner/MSX o bypass.
+
+## Collegamento Sidee autorizzato: verifica isolata dopo lo Store
+
+L'utente ha ribadito di usare Sidee e collegarsi alla TV se serve. Sidee era
+spento: /api/status rifiutato su localhost e 192.168.1.5; verifica LAN conferma
+questo PC su 192.168.1.5. Stato iniziale main c1cb6e6; control/request.json
+già in staging preservato. Nuvio invariata su main 1f1ad284.
+
+Aggiunta modalità sidee.py --post-store-check, con handler separato ristretto
+e pagina dedicata. Salta gli automatismi storici, DNS/HTTPS, sync/remote workers,
+capture e ogni endpoint di install/write. Legge soltanto le due API esposte
+Hisense_getInstalledApps e vowOS.store.getInstalledPkgs, se disponibili.
+Nessun SDK caricato, impersonazione, override identity/origin, fileRead o write.
+Il vecchio funzionamento normale di Sidee non è stato cambiato.
+
+Motivo concreto: ottenere lo stato dopo l'operazione Store del 29 settembre,
+successiva al deep dump Duplecast del 26. Non ripetere i vecchi probe su
+permessi o file tvbrowser. Questa lettura può trovare riferimenti a package
+o metadata esposti; non prova assenza universale di risorse se i campi mancano.
+Non dimostra un'importazione Nuvio autorizzata, né i cinque criteri TV.
+
+Test off-TV passati: risposte JSON annidate, denial 503 senza falso READ_OK,
+errori/assenza API, selezione target, redazione credenziali/query/campi privati;
+HTTP reale su loopback, isolamento dai vecchi endpoint, origin/body validation,
+salvataggio in directory temporanea e lettura dello stato. Nessun report TV finto.
+
+Avviato server nascosto (PID 18200 al momento del lancio), URL
+http://192.168.1.5:8080; /status iniziale latest:null. Richiesta all'utente
+l'apertura nel Browser della TV: parte una sola lettura automatica. Attendere
+risposta reale; eventuali file reports/post-store-latest.json e history sono
+locali/ignorati, senza sync Git. Se entrambe le API sono assenti, nessun POST.
+Ricontrollare processo/stato prima di proseguire, non affidarsi al vecchio PID.

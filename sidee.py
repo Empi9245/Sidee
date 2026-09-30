@@ -4384,10 +4384,15 @@ def main():
     parser = argparse.ArgumentParser(description="Sidee VIDAA local toolkit")
     parser.add_argument("--no-dns", action="store_true", help="Do not start DNS server")
     parser.add_argument("--no-https", action="store_true", help="Do not start HTTPS server")
+    parser.add_argument("--post-store-check", action="store_true", help="Serve isolated read-only post-Store inventory page only")
     args = parser.parse_args()
 
     cfg = load_config()
     local_ip = get_local_ip()
+    if args.post_store_check:
+        from post_store_check import serve
+        serve(local_ip, int(cfg.get("http_port", 8080)))
+        return
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     configure_report_sync(cfg)
     configure_remote_diagnostics(cfg)
