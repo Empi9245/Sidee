@@ -1,0 +1,93 @@
+{
+  "kind": "vidaa-install-wrapper-contract-v1",
+  "offline": true,
+  "sourceReportSha256": "ae3eb5fba6cafffe8a14bb3aae7493634b27612b61158bea16dc2ffb073e1fba",
+  "sourceSha256": {
+    "window.vowOS.store.installApp": "f931062482d31a594d319f5d7b06643d416ba24914fd0a66370b0f73d842fa0a",
+    "window.vowOS.store.sendPkgmgrRequest": "9129b7d77d0a05bcb7bce4a62e8aab6fd4080f1334e5bcdd36a34550ff81700f"
+  },
+  "scenarios": [
+    {
+      "name": "package-rejected",
+      "packageBranch": true,
+      "simulatedPackageAccepted": false,
+      "simulatedLauncherAccepted": null,
+      "immediateReturn": true,
+      "callbacksBeforeResponse": 0,
+      "callbacks": [
+        {
+          "kind": "result",
+          "ret": false
+        }
+      ],
+      "launcherCalls": 0,
+      "callbackMasksLauncherFailure": false
+    },
+    {
+      "name": "package-accepted-launcher-rejected",
+      "packageBranch": true,
+      "simulatedPackageAccepted": true,
+      "simulatedLauncherAccepted": false,
+      "immediateReturn": true,
+      "callbacksBeforeResponse": 0,
+      "callbacks": [
+        {
+          "kind": "legacy-code",
+          "code": 0
+        },
+        {
+          "kind": "result",
+          "ret": true
+        }
+      ],
+      "launcherCalls": 1,
+      "callbackMasksLauncherFailure": true
+    },
+    {
+      "name": "package-and-launcher-accepted",
+      "packageBranch": true,
+      "simulatedPackageAccepted": true,
+      "simulatedLauncherAccepted": true,
+      "immediateReturn": true,
+      "callbacksBeforeResponse": 0,
+      "callbacks": [
+        {
+          "kind": "legacy-code",
+          "code": 0
+        },
+        {
+          "kind": "result",
+          "ret": true
+        }
+      ],
+      "launcherCalls": 1,
+      "callbackMasksLauncherFailure": false
+    },
+    {
+      "name": "url-registration-rejected",
+      "packageBranch": false,
+      "simulatedPackageAccepted": null,
+      "simulatedLauncherAccepted": false,
+      "immediateReturn": false,
+      "callbacksBeforeResponse": 2,
+      "callbacks": [
+        {
+          "kind": "legacy-code",
+          "code": 0
+        },
+        {
+          "kind": "result",
+          "ret": false
+        }
+      ],
+      "launcherCalls": 1,
+      "callbackMasksLauncherFailure": false
+    }
+  ],
+  "limits": [
+    "Only two reviewed JavaScript wrapper bodies execute in a fixture with no network or TV bridge.",
+    "A package success response is synthetic; no package was staged, accepted, signed or installed.",
+    "No firmware permission check implementation, app resource bytes or reboot behavior is tested.",
+    "Neither true nor callback success alone proves launcher registration or resource persistence."
+  ]
+}

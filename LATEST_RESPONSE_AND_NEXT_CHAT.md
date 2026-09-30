@@ -4,20 +4,28 @@ Aggiornato: 30 settembre 2026, Europe/Rome. Questo documento prevale sui piani
 storici in AI_CONTEXT.md. Prompt: [NEXT_CHAT_PROMPT.md](NEXT_CHAT_PROMPT.md).
 Indagine completata: [vidaahub-context-20260930.md](research/vidaahub-context-20260930.md).
 
-## Ultima richiesta: trovare una soluzione
+## Ultima richiesta: studiare il codice VIDAA locale, senza ricerca online
 
-[Controllo alternative](research/alternative-install-check-20260930.md).
-HiZ-Store scartato dopo lettura sorgenti: stessi percorsi install/write, errori
-JS, nessun importatore persistente. Distribuzione ufficiale Nuvio confermata
-Tizen/webOS; PR1007 già documentata closed/non-merged, non una novità.
-Nuova candidata soltanto da osservare sulla TV: pagina interna storica
-hisense://debug, descritta nella sezione indicizzata della guida VIDAA; PDF diretto
-ancora404 e non letto integralmente. Non provata su Q0707 né come import locale.
-Chiesta apertura nel Browser normale, modulo o errore, senza INSTALL; risposta
-pending. Pending anche presenza di import proprio nella normale gestione app.
-Se richiede DevKit/partner/bypass, esclusa. Sidee non può aprire quei menu/browser
-di sistema. Nessuna nuova operazione TV, server, bundle o soluzione installante.
-Endpoint UI esterno: timeout tool web/URLError PC, non un nuovo status522.
+L'utente conferma hisense://debug **già provato**: non riproporlo. Non ha dato
+un esito tecnico puntuale, quindi non attribuire un errore specifico alla TV.
+Le domande UI precedenti sono superate per questa fase. Il
+[controllo alternative](research/alternative-install-check-20260930.md) è storico.
+
+Scanditi 65 report JSON locali per sorgenti/excerpt; letti integralmente i wrapper
+store e service selezionati. Analisi aggiornata in
+[install-methods-q0707-20260930.md](research/install-methods-q0707-20260930.md).
+Nuovo riscontro verificato: return true nel ramo package è anticipato; dopo
+package riuscito il wrapper chiama comunque Hisense_installApp e può dare un
+callback package positivo anche se il launcher fallisce. Non è una nuova prova
+di installazione package TV o di applicabilità del 503 a ogni suo payload.
+
+[Audit offline](research/audit-vidaa-install-contract.mjs),
+[risultato](research/vidaa-install-contract-20260930.json): due corpi originali
+vincolati all'hash del report, VM con trasporto fittizio, quattro scenari passati.
+Zero rete/TV, nessun altro sorgente eseguito, argomenti/identità non esportati.
+Il materiale locale non contiene l'implementazione del servizio nativo che applica
+AppConfig né uno stager/schema d'import Nuvio verificato. Limite dei dati, non
+prova di impossibilità universale. Nessuna soluzione installante individuata.
 
 ## Ultima richiesta: risolvere V2 o trovare un'alternativa
 
@@ -189,6 +197,6 @@ Leggere integralmente NEXT_CHAT_PROMPT.md, AI_CONTEXT.md, questo documento,
 README.md, VIDAA_FEASIBILITY.md, research/post-store-result-20260930.md,
 research/vidaahub-context-20260930.md e il confronto JSON; in Nuvio VIDAA_STATUS.md.
 Leggere anche research/install-methods-q0707-20260930.md per non confondere i metodi.
-Leggere research/alternative-install-check-20260930.md; richieste UI pending.
+Leggere research/alternative-install-check-20260930.md come storico; debug già provato.
 Ricontrollare branch/HEAD/locali e provenienza prima di azioni. Preservare il lavoro
 locale e committare Sidee su main con percorsi espliciti, mai control/request.json.

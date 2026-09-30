@@ -1,8 +1,15 @@
 # Verifiche fuori dalla TV — 30 settembre 2026
 
-[Controllo circoscritto di alternative](alternative-install-check-20260930.md):
-HiZ-Store scartato, distribuzione Nuvio confermata; richiesta osservazione della
-pagina integrata storica hisense://debug pending, senza INSTALL. Nessun test TV.
+[Controllo circoscritto di alternative](alternative-install-check-20260930.md)
+storico: hisense://debug già provato, candidata ritirata. La fase corrente è
+studio locale del codice, senza ricerche online.
+
+[audit-vidaa-install-contract.mjs](audit-vidaa-install-contract.mjs) verifica due
+wrapper store originali, vincolati all'hash del report del 25 settembre, con VM
+e trasporto fittizio. Quattro scenari; package positivo può mascherare il launcher
+negato. [Risultato](vidaa-install-contract-20260930.json), non una prova TV.
+Esecuzione dalla radice: `node research/audit-vidaa-install-contract.mjs reports/sidee-session-20260925-195421-ff60.json`.
+Niente rete, chiamate native o package reali. Argomenti/identità non esportati.
 
 Nuovo riscontro sulle prove salvate:
 [legacy, V2 e New su Q0707](install-methods-q0707-20260930.md).

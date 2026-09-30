@@ -13,12 +13,15 @@ La condizione sotto riguarda un'importazione consentita, non ogni osservazione.
 
 ## Esito
 
-[Controllo alternative successivo](research/alternative-install-check-20260930.md):
-HiZ-Store non fornisce un nuovo importatore; normale pagina interna storica
-hisense://debug candidata soltanto a osservazione, risposta TV pending, senza
-INSTALL. Nessuna compatibilità Q0707 o persistenza provata. Richiesta normale UI
-non è bypass; se richiede DevKit/partner resta esclusa. Distribuzione Nuvio
-ufficiale ricontrollata: Tizen/webOS, conferma delle evidenze sotto.
+**Correzione corrente:** hisense://debug era già stato provato, non riproporlo.
+L'utente chiede studio del codice locale senza ricerche online. Scanditi 65 JSON
+locali (con duplicati), letti i wrapper store/service. Ramo package → registrazione
+Hisense_installApp dopo esito positivo; return/callback non garantiscono entrambe
+le fasi. Quattro scenari offline sui corpi originali confermano callback positivo
+anche con launcher fallito: [analisi](research/install-methods-q0707-20260930.md),
+[audit](research/vidaa-install-contract-20260930.json). Nessuna nuova install TV,
+schema/stager d'import proprio o implementazione AppConfig trovati nel materiale.
+Il [controllo alternative](research/alternative-install-check-20260930.md) è storico.
 
 [Diagnosi legacy/V2/New](research/install-methods-q0707-20260930.md): New upstream
 non è l'API V2. Legacy/V2 condividono helper e backend installApplication; le

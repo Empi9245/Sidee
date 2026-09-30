@@ -20,17 +20,23 @@ Prima di modificare o eseguire test, leggi **completamente**:
 
 Il riepilogo corrente prevale sui vecchi piani della cronologia.
 
-**Ultima richiesta: "trova una soluzione".** Nuova candidata solo da osservare:
-pagina integrata storica hisense://debug, descritta dalla sezione indicizzata della
-vecchia guida VIDAA (PDF diretto ancora 404, non letto integralmente). Non è prova
-Q0707/import locale. Chiesto all'utente di aprirla nel Browser e riportare modulo
-o errore, senza INSTALL; risposta pending. Chiesta anche la presenza di import
-proprio nella gestione app. Sidee non può aprire autonomamente quei menu. Non
-trattare silenzio come assenza. Se richiede DevKit/partner/bypass resta esclusa.
-HiZ-Store letto e scartato: stessi install/write più errori JS, nessun nuovo
-importatore. PR Nuvio1007 closed/non-merged e release1.2.1 senza VIDAA sono conferme
-già note; sito ufficiale Smart TV mostra Tizen/webOS. Endpoint UI: timeout web e
-URLError PC, esito inconclusivo, non nuovo522. Nessun nuovo test TV/server/bundle.
+**Ultima correzione dell'utente:** hisense://debug era già stato provato.
+Non richiederlo di nuovo; esito puntuale non comunicato, non inventare un errore.
+La richiesta corrente è trovare una soluzione **studiando il codice VIDAA già
+disponibile, senza ricerche online**. Le precedenti domande UI non sono il piano
+corrente. I controlli alternativi nel documento 13 sono storici.
+
+Studio locale: scanditi 65 report JSON per sorgenti/excerpt, letti i wrapper
+store e service completi. Il ramo package, dopo pkgmgr ret:true, usa comunque
+Hisense_installApp per il launcher. Il suo return true precede l'esito asincrono;
+callback package positivo può mascherare il fallimento del launcher. Verificato
+offline sui due corpi originali con trasporto fittizio, quattro scenari:
+research/audit-vidaa-install-contract.mjs e vidaa-install-contract-20260930.json.
+Hash intero report vincolato; zero rete/TV/esecuzione di altri sorgenti.
+Dettagli aggiunti al documento 12. Nessuno stager/formato d'import proprio o codice
+del servizio nativo AppConfig individuato nel materiale disponibile. Non dedurre
+assenza universale dal sottoinsieme catturato. Nessuna soluzione installante;
+non chiamare pkgmgr con package/URL/metodi ipotizzati né alterare autorizzazioni.
 
 **Ultima richiesta:** risolvere il metodo V2 o trovare un'alternativa. La nuova
 diagnosi offline distingue native legacy, native V2 e upstream New (File System):

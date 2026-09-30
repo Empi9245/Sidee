@@ -5449,3 +5449,27 @@ PC con TLS verificato (14:39:58Z), non nuovo522 e non prova di servizio spento.
 Nessun nuovo test TV/inventario/cattura/server/bundle o modifica autorizzazioni.
 Preservati staging control/request.json e modifiche locali Nuvio. Ancora nessuna
 soluzione installante provata; prossimo fatto utile risposta normale UI TV.
+
+## Correzione utente e studio codice locale, senza Internet
+
+L'utente chiarisce hisense://debug già provato; non riproporlo, nessun esito
+puntuale qui comunicato. Chiede trovare una soluzione studiando il codice VIDAA
+già acquisito, non online. Le precedenti domande UI sono superate per questa fase.
+
+Scanditi 65 report JSON locali (anche copie/duplicati) per sorgenti/excerpt; letti
+store.installApp/sendPkgmgrRequest/getInstalledPkgs e service.syncExecute/execute
+completi. Ramo package inoltra metadata, dopo risposta positiva chiama comunque
+Hisense_installApp per launcher; return true anticipato e callback package non
+combina esito launcher. Nuovo audit offline esegue solo i due corpi store originali
+vincolati all'hash dell'intero report: VM con XHR fittizio, quattro scenari passati.
+Caso package riuscito/launcher fallito ha stessi valori esterni positivi del caso
+tutto riuscito. Nessuna rete, API TV, SDK caricato o payload package reale.
+File research/audit-vidaa-install-contract.mjs e vidaa-install-contract-20260930.json;
+analisi aggiunta a install-methods-q0707-20260930.md, consegna e vecchia candidata
+corrette. Nessuna ricerca online in questa fase.
+
+Non disponibile nel materiale locale implementazione servizio AppConfig o schema/
+stager d'import proprio verificato. Non inventare C++/whitelist/regola completa;
+assenza nel sottoinsieme non significa impossibilità universale. Il falso successo
+è correggibile ma non concede installazione. Nessuna soluzione autorizzata ancora
+ricavata per tutti i requisiti; nessuna nuova operazione TV/server/bundle.

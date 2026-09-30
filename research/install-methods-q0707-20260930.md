@@ -109,3 +109,73 @@ callback 0, bookmark o cache non soddisfa questi criteri.
 
 Non è stata trovata una correzione che installi Nuvio; non affermare né successo
 né impossibilità universale. Tutti i cinque criteri finali restano non verificati.
+
+## Studio successivo del codice locale, senza ricerche online
+
+L'utente conferma che hisense://debug era già stato provato: candidata ritirata,
+non riproporre l'apertura. L'esito puntuale non è stato comunicato in questa
+correzione. La richiesta corrente è lavorare sulle sorgenti VIDAA già disponibili.
+
+Scanditi 65 JSON nella directory reports per corpi source/excerpt e nomi relativi
+a installazione, package, trasferimento e launcher. Comprendono copie/duplicati,
+non 65 prove indipendenti. Letti integralmente i corpi salvati di installApp,
+sendPkgmgrRequest, getInstalledPkgs, service.syncExecute e service.execute.
+Il materiale conserva wrapper JavaScript e frammenti di runtime; non è l'intero
+firmware. Nessuna ricerca Internet o nuova chiamata alla TV in questa fase.
+
+La catena package esposta è distinta dalla preparazione di un archivio:
+
+1. installApp distingue il ramo URL dal ramo package in base alla presenza di
+   un nome package. Nel secondo inoltra nome/versione/ID, non bytes dell'archivio.
+2. sendPkgmgrRequest invia la richiesta al servizio pkgmgr della TV.
+3. Solo dopo risposta package positiva costruisce un riferimento ai file locali
+   del package e chiama **comunque Hisense_installApp per il launcher**.
+4. Il wrapper restituisce true prima dell'esito asincrono. Nel callback finale
+   ripete il ret del servizio package senza combinarlo con quello del launcher.
+
+Quindi questa superficie non documenta come trasferire o preparare uno ZIP Nuvio,
+né concede da sola una seconda autorizzazione. Non è stata eseguita un'installazione
+package sulla TV: non attribuire al ramo package un rifiuto native specifico che
+non è stato misurato. Il dato certo è il codice del collegamento al launcher e il
+rifiuto già misurato delle chiamate legacy/V2 nei loro contesti reali.
+
+### Nuovo riscontro verificato: falso successo nel ramo package
+
+[audit-vidaa-install-contract.mjs](audit-vidaa-install-contract.mjs) esegue solo
+i due corpi originali store in una VM con un trasporto fittizio, dopo verifica
+dell'hash dell'intero report. Non c'è rete, filesystem TV, caricamento SDK o
+modifica di funzioni sulla TV. Argomenti/percorsi/identità non vengono esportati.
+[Risultato riproducibile](vidaa-install-contract-20260930.json):
+
+| Scenario simulato | Ritorno immediato | Callback finale | Collegamento launcher |
+| --- | --- | --- | --- |
+| Package respinto | true | ret false | non chiamato |
+| Package riuscito, launcher respinto | true | ret true | chiamato, return false ignorato dal callback finale |
+| Package e launcher riusciti | true | ret true | chiamato |
+| URL remoto, launcher respinto | false | ret false, preceduto da callback numerico 0 | chiamato |
+
+I casi 2 e 3 producono gli stessi valori esterni positivi. Senza verifica separata,
+un frontend non può distinguere app avviabile da package riuscito e launcher negato.
+Il test accerta questa semantica del wrapper, non grant, firma, trasferimento,
+file Nuvio persistenti o comportamento dopo riavvio del firmware.
+
+Hash dei due corpi:
+
+- installApp: `f931062482d31a594d319f5d7b06643d416ba24914fd0a66370b0f73d842fa0a`;
+- sendPkgmgrRequest: `9129b7d77d0a05bcb7bce4a62e8aab6fd4080f1334e5bcdd36a34550ff81700f`.
+
+### Limite concreto del materiale disponibile
+
+service.syncExecute ed execute sono trasporti al servizio della TV. I corpi
+catturati non implementano la decisione AppConfig che produce il 503 osservato.
+Non è stato trovato nei due workspace un sorgente o un'immagine del firmware
+che contenga quell'implementazione, né uno schema/stager d'import proprio
+verificato nei wrapper/excerpt salvati. Non si conoscono da questi dati il formato
+accettato, le condizioni complete di autorizzazione o il trasferimento Nuvio.
+
+Correggere il falso successo è possibile; non è una correzione dell'installazione.
+Con questo sottoinsieme di codice non è stata ricavata una soluzione autorizzata
+che soddisfi l'obiettivo. Non inventare metodi o argomenti pkgmgr, non riscrivere
+AppConfig e non presentare un altro booleano positivo come app installata.
+Un ulteriore tentativo utile richiede una nuova evidenza concreta sul trasferimento
+e formato ammessi per una propria app, non ripetere il gate o le pagine già provate.

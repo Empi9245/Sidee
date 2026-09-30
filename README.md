@@ -12,6 +12,14 @@ No new TV operation or working installation fix; backend traces/source hashes
 are now included in the reproducible comparison. These URL-registration paths
 do not transfer Nuvio's resources to the TV.
 
+Latest direction: study the captured VIDAA code locally, with no further online
+research. The user already tried hisense://debug; do not request it again.
+[Offline package-wrapper audit](research/vidaa-install-contract-20260930.json)
+confirms that package success can mask failed launcher registration. It executes
+two reviewed source bodies with a fixture transport, not TV operations.
+The captured wrappers do not supply a verified own-package stager/format or the
+system service's AppConfig decision implementation. No working install fix found.
+
 ## Current correction: vidaa-edge context
 
 Read [the source review](research/vidaa-edge-context-review-20260930.md).

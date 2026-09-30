@@ -1,5 +1,10 @@
 # Alternative: controllo circoscritto del 30 settembre 2026
 
+**Aggiornamento successivo dell'utente:** hisense://debug era già stato provato.
+La candidata sotto è ritirata, non richiedere di ripetere quella prova. Non è
+stato comunicato qui l'esito puntuale. La nuova fase è studio dei sorgenti locali,
+senza ricerca online; le domande UI descritte sotto sono storiche.
+
 Richiesta: trovare una soluzione installabile per Nuvio sulla Hisense 50E77NQ
 Q0707, mantenendo i vincoli già registrati. Nessuna soluzione provata in questo
 controllo; nessuna nuova operazione sulla TV.
@@ -23,7 +28,7 @@ Non dichiarare che questa sia una procedura corrente per VIDAA 9.
 Unica osservazione TV richiesta per questa candidata: aprire quell'indirizzo
 nel Browser normale e riferire se compare il modulo o un errore, senza premere
 INSTALL. Sidee non può navigare autonomamente i menu/browser di sistema.
-La domanda è pending: non è arrivato un risultato TV. Era stata chiesta anche
+La domanda era pending prima della correzione successiva. Era stata chiesta anche
 la presenza di un comando normale di importazione propria nella gestione app;
 nessuna risposta acquisita. L'assenza di risposta non è un esito negativo.
 
@@ -76,5 +81,5 @@ sulla Q0707. Codice letto, non eseguito, né modificato o portato sulla TV.
 Nessun nuovo inventario/cattura/write gate, nessun server avviato o modificato,
 nessuna modifica al bundle Nuvio. Modifiche locali e control/request.json preservati.
 Tutti i criteri finali ancora non verificati. Non ripetere ricerche identiche in
-attesa: il prossimo fatto è la risposta sulla normale UI TV, non un altro dominio
+attesa: il prossimo fatto di quella fase era la risposta sulla normale UI TV, non un altro dominio
 da impersonare o un nuovo test LAN.
