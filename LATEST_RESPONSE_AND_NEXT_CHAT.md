@@ -4,6 +4,26 @@ Aggiornato: 30 settembre 2026, Europe/Rome. Questo documento prevale sui piani
 storici in AI_CONTEXT.md. Prompt: [NEXT_CHAT_PROMPT.md](NEXT_CHAT_PROMPT.md).
 Indagine completata: [vidaahub-context-20260930.md](research/vidaahub-context-20260930.md).
 
+## Richiesta corrente: consegna per soluzione o acquisizione TV tramite Sidee
+
+L'utente ha chiesto un prompt per la prossima chat: deve trovare una soluzione
+oppure modificare Sidee per acquisire dalla sua TV i dati che servono a trovarla.
+Il compito operativo è ora esplicito in NEXT_CHAT_PROMPT.md: identificare una
+lacuna concreta, verificare i dati già disponibili, implementare una raccolta
+mirata se fattibile, acquisire una ricevuta reale e usare subito il risultato.
+Non basta ripetere che manca il codice nativo o proporre altre ricerche online.
+
+I test sulla propria TV sono già autorizzati. L'acquisizione deve restare entro
+osservazioni/letture consentite e gestire i dinieghi; i vincoli contro bypass,
+impersonazione e sostituzioni ingannevoli restano. Una necessaria azione fisica
+va chiesta precisamente dopo aver preparato collector e ricevitore. Non esiste
+ancora un nuovo collector per questa lacuna: questa consegna è solo documentale,
+nessun nuovo test TV, server, build Nuvio o risultato di installazione.
+
+Sidee main prima della consegna: 513f85ea8646ba0628699781cd3d446fb94afca7.
+Staging e hash di control/request.json ricontrollati e invariati; file escluso
+anche dal commit documentale. HEAD finale della consegna da leggere in Git.
+
 ## Ultima richiesta: studiare il codice VIDAA locale, senza ricerca online
 
 L'utente conferma hisense://debug **già provato**: non riproporlo. Non ha dato
@@ -175,21 +195,29 @@ Default spoof_domains vuoto, Store capture auto-arm false. Hosts PC non ripulito
 HTTPS già risolto: 382 record dopo NAT, FILTERED_FLOW_VISIBLE_AFTER_NAT.
 Non ripetere cattura, inventario, identità, AppInfo/HSPDK/pkgmgr/FileRead/Write.
 
-## Prossimo fatto e test decisivi
+## Prossimo lavoro e test decisivi
 
-La matrice aggiornata in VIDAA_FEASIBILITY.md/research confronta package/sideload,
-contenitore persistente e UI del fornitore. Nessuna strada è oggi dimostrata
-capace di tutti i requisiti, senza concludere impossibilità universale.
+Scegliere una lacuna tecnica che possa cambiare la decisione sull'importazione
+di una propria app Q0707; controllare prima report e sorgenti già disponibili.
+Esempi pertinenti, se realmente mancanti e accessibili: sorgenti complete già
+caricate, contratto di uno stager/importatore consentito, diagnostica del rifiuto,
+prova delle risorse conservate di una app propria. Non sono endpoint presunti
+né un'autorizzazione a scandire storage o raccogliere identità/credenziali.
 
-Serve un fatto tecnico nuovo: meccanismo consentito per una propria app
-su Q0707, documentato oppure osservato nella normale UI della TV; oppure distribuzione
-Nuvio gestita da un fornitore realmente utilizzabile, valutata come strada distinta.
-Una nuova specifica di contesto deve descrivere autorizzazione, non solo esporre API.
-Con il prerequisito soddisfatto, preparare app minima con ID proprio/versione
-riconoscibile, importare secondo la procedura, verificare launcher/D-pad e poi
-riavvio reale con PC/Sidee/UI host spenti, UI e playback autorizzato.
-Quel prerequisito riguarda l'importazione, non ogni test diretto del port.
-Il test UI/telecomando ora preparato non sostituisce una prova di installazione.
+Se manca un dato acquisibile, modificare Sidee con modalità isolata e raccolta
+singola esplicita, limitata a quel dato, con build/commit, origine, timestamp,
+hash e stato di completezza. Conservare dinieghi e assenze come tali. Verificare
+il collector e acquisire dalla TV con un canale disponibile; se un passaggio
+fisico è inevitabile, preparare tutto e chiedere soltanto quell'azione precisa.
+Non avviare i vecchi auto-probe, non ripetere inventario/HTTPS/debug/LAN UI.
+
+Usare il risultato per costruire una candidata consentita. Un importatore
+concreto richiede prima app minima propria e poi verifica distinta di package,
+launcher, telecomando, riavvio reale con host spenti, UI e contenuto autorizzato.
+Nessuna strada è oggi dimostrata capace di tutti i requisiti. Se la raccolta non
+è fattibile, descrivere il limite specifico del canale e il dato ancora necessario;
+non inventare un'installazione o una impossibilità universale. Il prompt corrente
+contiene il dettaglio operativo e la distinzione fra API, permessi e risorse.
 
 ## Letture obbligatorie per proseguire
 

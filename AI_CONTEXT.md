@@ -5473,3 +5473,33 @@ stager d'import proprio verificato. Non inventare C++/whitelist/regola completa;
 assenza nel sottoinsieme non significa impossibilità universale. Il falso successo
 è correggibile ma non concede installazione. Nessuna soluzione autorizzata ancora
 ricavata per tutti i requisiti; nessuna nuova operazione TV/server/bundle.
+
+
+## Consegna richiesta: soluzione o dati TV tramite Sidee — 30 settembre 2026
+
+Ultima richiesta testuale: "niente.. fai prompt per prossima chat, deve trovare
+una soluzione o trovare un modo per prendere i dati dalla mia tv tramite sidee
+(modificandolo) che servono per poi farlo".
+
+Riscritto NEXT_CHAT_PROMPT.md con priorità operativa: soluzione installabile
+oppure identificazione di una lacuna utile e implementazione di una raccolta
+mirata Sidee, ricevuta reale e analisi successiva. Non basta una nuova conclusione
+"dati mancanti". Le letture integrali obbligatorie restano; prevalgono prompt e
+riepilogo correnti. Studio locale senza ripetere ricerche online, vidaahub come
+contesto e non portale pubblico; hisense://debug già provato. Acquisizione solo
+tramite osservazioni/letture consentite, senza bypass o impersonazione. Separare
+API disponibili, permessi effettivi e risorse persistenti; non ridurre il compito
+al test UI LAN sospeso o all'inventario/cattura HTTPS già ricevuti/risolti.
+
+Collector eventualmente da realizzare nella prossima chat: lacuna motivata,
+modalità isolata, singola raccolta esplicita e limitata, provenienza/versioni/hash,
+stati assente/troncato/non disponibile/negato. Preparare tutto prima di chiedere
+una eventuale azione fisica precisa sulla TV. Consenso ai test già dato.
+I criteri di vera app e tutti i vincoli originali sono invariati.
+
+Questa consegna modifica solo NEXT_CHAT_PROMPT.md, LATEST_RESPONSE_AND_NEXT_CHAT.md
+e AI_CONTEXT.md: nessun nuovo collector, test TV, modifica runtime o build Nuvio.
+Sidee main prima della consegna 513f85ea8646ba0628699781cd3d446fb94afca7.
+control/request.json ancora A in staging, blob aefa724c1725b1ef2178c79fdd8914745bb9065e,
+SHA256 6d8cd6ec102dd17b4ebd110e443fe6a68d645eee663ed1ce05fc2749699fa9b4;
+preservato ed escluso dal commit. Nuvio e i suoi cambiamenti locali preservati.
