@@ -5,17 +5,17 @@ import pathlib
 import tempfile
 import threading
 import unittest
-from http.server import ThreadingHTTPServer
+from unittest.mock import patch
 
-from bridge_source_check import make_handler
+from bridge_source_check import SourceHTTPServer, make_handler, serve
 
 
 class BridgeSourceReceiverTest(unittest.TestCase):
     def test_isolation_build_binding_hashes_and_single_receipt(self):
-        provenance = {"collectionId": "test", "buildId": "fixture"}
+        provenance = {"collectionId": "test", "buildId": "fixture", "fileSha256": {"fixture": "same-source"}}
         with tempfile.TemporaryDirectory(prefix="sidee-source-test-") as directory:
             reports = pathlib.Path(directory)
-            server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(reports, provenance))
+            server = SourceHTTPServer(("127.0.0.1", 0), make_handler(reports, provenance))
             worker = threading.Thread(target=server.serve_forever, daemon=True)
             worker.start()
             origin = "http://127.0.0.1:" + str(server.server_address[1])
@@ -64,6 +64,17 @@ class BridgeSourceReceiverTest(unittest.TestCase):
                 self.assertNotIn(b"omit-this", raw)
                 self.assertEqual(request("POST", "/snapshot", encoded)[0], 200)
                 self.assertEqual(len(list(reports.glob("*.json"))), 2)
+                # A second launcher must reuse this live receiver, without
+                # replacing its collected report, collection ID or receipt.
+                with patch("bridge_source_check.manifest", return_value=provenance):
+                    serve("127.0.0.1", server.server_address[1])
+                self.assertEqual((reports / "bridge-source-latest.json").read_bytes(), raw)
+                self.assertEqual(json.loads(request("GET", "/status")[1])["receipt"], json.loads(receipt))
+                with patch("bridge_source_check.manifest", return_value=dict(provenance, fileSha256={"fixture": "different-source"})):
+                    with self.assertRaises(RuntimeError):
+                        serve("127.0.0.1", server.server_address[1])
+                self.assertEqual(request("GET", "/status")[0], 200)
+                self.assertEqual((reports / "bridge-source-latest.json").read_bytes(), raw)
                 changed = dict(fixture, timestamp="2026-09-30T12:00:01Z")
                 self.assertEqual(request("POST", "/snapshot", json.dumps(changed))[0], 409)
             finally:

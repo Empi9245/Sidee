@@ -193,3 +193,38 @@ registrare quel fatto senza bypass certificati. Attendere la ricevuta reale
 su http://192.168.1.5/status e leggere subito gli script locali senza eseguirli.
 HTTP/80 è distinto dal vecchio HTTPS/443; nessuna equivalenza di bootstrap,
 permessi o persistenza è promessa. La scrittura 503 resta un dato precedente.
+
+## Correzione del launcher Windows dopo il log utente
+
+Il log successivo mostra il vecchio avvio Store/DNS e WinError 10048 UDP53.
+Letto start-windows.bat: elevava il processo, aggiungeva regole firewall,
+fermava tutti i processi con sidee.py nella command line (senza verificarne
+modalità/ricevuta), poi eseguiva sidee.py senza flag isolato. Al controllo
+successivo :80 e :8080 non avevano listener; ICS UDP53 PID 6844 restava attivo.
+Nessun bridge-source-latest.json presente. Il receiver predisposto non era
+quindi resistente a quell'avvio normale; correggere soltanto il server non
+aveva completato il percorso di avvio Windows.
+
+start-windows.bat ora sceglie Python con un flusso sequenziale affidabile,
+quota il runtime bundled, esegue soltanto
+sidee.py --bridge-source-check --check-port 80 e lascia aperta la finestra.
+Rimossi elevazione, firewall, stop globali e avvio DNS/Store. Nessun servizio
+Windows fermato. Il normale ingresso collector precede sempre i worker Git.
+
+bridge_source_check.serve gestisce la porta occupata leggendo al massimo 64 KiB
+di /status dal receiver locale: solo mode isolato e hash file identici permettono
+il riuso. Nessun nuovo processo/ricevuta se quello conforme è già attivo; servizio
+estraneo o build diversa produce errore senza stop. Binding Windows esclusivo
+evita condivisioni imprevedibili di porta dovute a SO_REUSEADDR.
+sidee.py presenta gli errori di avvio con esito nonzero e senza vecchio flusso.
+
+Test HTTP reale off-TV aggiornato: seconda chiamata serve dopo report raccolto
+preserva byte, collectionId e receipt; build differente respinta, server e report
+restano disponibili. Fixture solo in directory temporanea. Parsing Python e
+diff passati. JavaScript invariato, nessuna nuova operazione TV.
+
+La readiness finale del launcher e i PID/provenienza ripristinati sono nel
+record locale reports/bridge-domain-readiness.json. Il vecchio ricevitore
+post-Store viene ripristinato senza raccolta nuova; il report del 30 settembre
+rimane quello già acquisito. Non ripetere inventario o cattura per questo fix.
+L'azione resta Browser TV → http://vidaahub.com → Raccogli una volta.

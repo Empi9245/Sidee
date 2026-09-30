@@ -1,5 +1,18 @@
 # Sidee / Nuvio — passaggio di consegne corrente
 
+## Ultimo fix dell'avvio Windows
+
+Il log utente viene dal launcher storico: chiusura globale sidee.py, vecchio
+flusso Store, DNS UDP53 in conflitto con ICS. :80 e :8080 risultavano spenti
+al controllo. Ora start-windows.bat entra soltanto nel collector HTTP/80,
+senza stop, DNS, elevazione o cambi firewall. Riavvio su un receiver conforme
+conserva ricevuta e processo; build diversa/servizio estraneo resta intatto e
+produce errore preciso. Binding Windows esclusivo. Test HTTP passato includendo
+riavvio dopo una ricevuta e rifiuto di build diversa senza perdere il report.
+PID/provenienza operativi da /status e reports/bridge-domain-readiness.json;
+i precedenti PID 14152/5676 sono storici dopo quell'avvio. Nessun nuovo inventario
+o install TV. Il Browser deve aprire http://vidaahub.com e cliccare una volta.
+
 ## Stato più recente: accesso root predisposto su vidaahub.com
 
 L'utente richiede esplicitamente di spostare il collector alla radice del dominio.

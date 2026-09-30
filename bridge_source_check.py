@@ -2,11 +2,15 @@
 from __future__ import annotations
 
 import datetime
+import errno
 import hashlib
+import http.client
 import http.server
 import json
+import os
 import pathlib
 import re
+import socket
 import subprocess
 import threading
 import urllib.parse
@@ -200,9 +204,42 @@ def make_handler(report_dir, provenance=None):
     return Handler
 
 
+class SourceHTTPServer(http.server.ThreadingHTTPServer):
+    # Windows SO_REUSEADDR can let two receivers share a port unpredictably.
+    allow_reuse_address = os.name != "nt"
+
+    def server_bind(self):
+        if os.name == "nt":
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        super().server_bind()
+
+
 def serve(host, port=8082):
-    server = http.server.ThreadingHTTPServer((host, port), make_handler(ROOT / "reports"))
-    print(f"[BRIDGE-SOURCE] Receiver http://{host}:{port}/bridge-source-check.html", flush=True)
+    provenance = manifest()
+    try:
+        server = SourceHTTPServer((host, port), make_handler(ROOT / "reports", provenance))
+    except OSError as exc:
+        if exc.errno != errno.EADDRINUSE and getattr(exc, "winerror", None) not in {10048, 10013}:
+            raise
+        connection = http.client.HTTPConnection(host, port, timeout=3)
+        try:
+            connection.request("GET", "/status")
+            response = connection.getresponse()
+            raw = response.read(64 * 1024 + 1)
+            if response.status != 200 or len(raw) > 64 * 1024:
+                raise ValueError("Unknown receiver")
+            active = json.loads(raw)
+            if (active.get("mode") != "isolated-bridge-source-check" or
+                    active.get("provenance", {}).get("fileSha256") != provenance["fileSha256"]):
+                raise ValueError("Different service or collector build")
+        except (OSError, ValueError, AttributeError, http.client.HTTPException) as error:
+            raise RuntimeError(f"Porta {port} occupata da un altro servizio o collector diverso. Nessun processo fermato.") from error
+        finally:
+            connection.close()
+        print("[BRIDGE-SOURCE] Collector gia attivo: raccolta e ricevuta correnti preservate.", flush=True)
+        return
+    entry = "http://vidaahub.com/" if port == 80 else f"http://{host}:{port}/bridge-source-check.html"
+    print(f"[BRIDGE-SOURCE] Receiver {entry}", flush=True)
     print("[BRIDGE-SOURCE] Explicit single collection only. No DNS/TLS/SDK/native/Git workers.", flush=True)
     try:
         server.serve_forever(poll_interval=0.5)

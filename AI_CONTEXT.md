@@ -5,6 +5,17 @@
 
 Last updated: 2026-09-30
 
+> NEWEST FIX: user's launch log exposed unchanged start-windows.bat: it killed
+> all sidee.py processes then ran legacy Store/DNS mode; both receivers were
+> absent after that launch. Windows launcher now selects isolated collector :80
+> only, without elevation/firewall/kill/DNS/Git workers. An active matching mode
+> and source-hash receiver is reused without resetting receipt; foreign/stale
+> service is left intact. Windows exclusive bind prevents duplicate receivers.
+> HTTP tests cover a second launch after collection and a different-source
+> rejection without losing the saved report. Runtime IDs must come from current
+> /status and bridge-domain-readiness.json; old 14152/5676 IDs are historical.
+> ICS UDP53 remains preserved. No new TV collection or installation yet.
+
 > NEWEST USER STEERING AND ACTION: explicitly move passive collector to bare
 > vidaahub.com. Isolated receiver now HTTP/80 root / (PID 14152), no TLS/native
 > calls/SDK execution. Existing ICS resolver 192.168.137.1 returned stale .8;

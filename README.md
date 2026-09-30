@@ -1,5 +1,12 @@
 # Sidee
 
+Windows startup fixed: `start-windows.bat` now opens the isolated collector on
+HTTP/80. It does not start DNS/Store workers, elevate, alter firewall rules or
+stop existing processes. A second launch reuses the same matching receiver and
+receipt. The previous launcher killed all Sidee instances and then collided
+with Windows ICS DNS. Keep ICS running. Current process provenance is in
+http://192.168.1.5/status; older PID references below are historical.
+
 Current collector entry: **http://vidaahub.com/**, served at `/` on HTTP/80 by
 `python sidee.py --bridge-source-check --check-port 80`. The owner explicitly
 requested this routing correction. Existing Windows ICS DNS now returns the
@@ -272,7 +279,11 @@ Double-click:
 start-windows.bat
 ```
 
-Approve the Administrator prompt. Python 3 and OpenSSL must be available in PATH.
+This launcher runs the isolated collector on HTTP/80. Python 3 is required;
+the bundled Codex runtime is used when no Python launcher is in PATH.
+The local vidaahub route has already been repaired on this PC. No Administrator
+prompt or OpenSSL is required for this collector. A second launch preserves an
+existing matching collector and its receipt.
 
 ### macOS / Linux
 
@@ -282,6 +293,10 @@ sudo ./start-mac-linux.sh
 ```
 
 ## TV steps
+
+Current collector: open **http://vidaahub.com/** and press **Raccogli una volta**.
+The numbered list below is historical legacy-mode documentation; do not use it
+for this collection or rerun the exhausted install/identity/write probes.
 
 1. Start Sidee on a computer connected to the same LAN as the TV.
 2. Set the TV DNS manually to the PC IP printed by Sidee.

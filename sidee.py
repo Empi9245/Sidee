@@ -4395,7 +4395,11 @@ def main():
     local_ip = get_local_ip()
     if args.bridge_source_check:
         from bridge_source_check import serve
-        serve(local_ip, args.check_port)
+        try:
+            serve(local_ip, args.check_port)
+        except (OSError, RuntimeError) as exc:
+            print(f"[ERROR] {exc}")
+            raise SystemExit(1)
         return
     if args.post_store_check:
         from post_store_check import serve

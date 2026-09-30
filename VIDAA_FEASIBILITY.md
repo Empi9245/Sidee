@@ -4,6 +4,12 @@ Verifica: 2026-09-30, Europe/Rome. TV: Hisense **50E77NQ** (modello confermato
 dall'utente durante la ricerca successiva), firmware `V0000.09.60A.Q0707`,
 OS `U09.60`, MTK9603, Odin/Chromium 111.
 
+Ultimo fix operativo: start-windows.bat avviava ancora il flusso storico e
+fermava tutti i processi Sidee. Dopo il log utente :80/:8080 erano assenti.
+Launcher corretto per il solo collector HTTP/80 e riuso del receiver conforme,
+senza DNS/stop processi; ICS preservato. Test riavvio/conservazione ricevuta e
+build estranea passati off-TV. Non cambia la diagnosi AppConfig o i criteri Nuvio.
+
 Aggiornamento successivo alla richiesta esplicita dell'utente: collector ora
 alla radice **http://vidaahub.com/**, HTTP/80. Corretto solo il vecchio mapping
 hosts .8 → .5 con backup. DNS ICS verificato .5 e GET dal PC attraverso il

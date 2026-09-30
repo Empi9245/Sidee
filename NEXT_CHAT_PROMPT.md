@@ -1,5 +1,20 @@
 # Prompt per la prossima chat — 30 settembre 2026
 
+## Ultimo fix: launcher Windows isolato, nessun DNS o stop globale
+
+L'utente ha aperto start-windows.bat, ancora storico: fermava indistintamente
+tutti i processi sidee.py, poi avviava il flusso Store e DNS su UDP53 già ICS.
+Dopo il log, i listener :80 e :8080 erano assenti. Corretto start-windows.bat:
+solo --bridge-source-check --check-port 80, senza elevazione, firewall, Git sync,
+DNS o arresto processi. Il receiver riusa un processo attivo solo se mode e
+hash dei quattro sorgenti corrispondono; non azzera la ricevuta o uccide un
+servizio diverso. Binding Windows esclusivo per impedire due receiver sulla
+stessa porta. Test HTTP off-TV passato per riavvio con ricevuta e build diversa.
+Per PID/collectionId/HEAD correnti leggere /status e reports/bridge-domain-readiness.json,
+non riutilizzare gli ID storici sotto. Riavvio operativo e verifica attraverso
+il launcher corretti prima della consegna; nessuna nuova raccolta TV dichiarata.
+Non fermare Windows ICS UDP53. Azione TV: http://vidaahub.com → Raccogli una volta.
+
 ## Ultima correzione operativa: collector alla radice vidaahub
 
 La richiesta successiva esplicita dell'utente è predisporre il collector perché
