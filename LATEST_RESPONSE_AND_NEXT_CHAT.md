@@ -1,5 +1,18 @@
 # Sidee / Nuvio — passaggio di consegne corrente
 
+## Riscontro HTTP aggiunto dopo il nuovo fallimento
+
+Il DNS riceve A vidaahub da 192.168.1.10; IP TV non ancora confermato. Vecchio
+collector PID2312 receipt null, dato insufficiente a stabilire se la pagina
+fosse stata aperta. Ora il receiver conta passivamente connessioni, richieste e
+percorsi propri, distinti per IP privato (massimo 32). Stato /status.httpAccess
+e bridge-domain-http-status.json locale ignorato; niente query/body/cookie/TLS.
+Test reale: GET script, query non conservata, connessione senza richiesta,
+isolamento e ricevuta singola/riuso passati. Nessun nuovo test VIDAA o Nuvio.
+Per lo stato operativo leggere /status/readiness, non i vecchi PID sotto.
+Errore attuale preciso e appartenenza dell'IP .1.10 chiesti all'utente.
+Tutte le indicazioni precedenti sotto sono cronologia superata ove incompatibile.
+
 ## Ultimo setup LAN, superate le indicazioni hotspot
 
 TV sulla rete del router confermato dall'utente. Implementato lan_dns.py,

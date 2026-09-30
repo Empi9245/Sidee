@@ -5,6 +5,17 @@
 
 Last updated: 2026-09-30
 
+> CURRENT DIAGNOSTIC: LAN DNS receives target A queries from 192.168.1.10;
+> owner has not yet confirmed this is the TV. Old collector2312 had null receipt,
+> which cannot establish absence of GET. Added passive own HTTP receiver access:
+> separate TCP accepts/GET+POST counts and bounded known-path counts, private IPs
+> only, maximum32 clients. /status.httpAccess and ignored local access status;
+> no queries/bodies/cookies/TLS/native APIs. File-write failure does not prevent
+> page delivery. Real HTTP and bare TCP tests passed; single-receipt isolation
+> retained. Check live provenance after activation; preserve any receipt before
+> replacing only the owned receiver. DNS/:8080 need no restart. Owner asked exact
+> current error and confirmation of .1.10. Older corrections below are history.
+
 > NEWEST CORRECTION: user confirms TV is on router LAN, NOT hotspot. Retire .137.1
 > advice for this connection. Implemented lan_dns.py on specific .1.5:53 UDP/TCP,
 > LAN clients only; vidaahub A .1.5, AAAA/HTTPS NOERROR/NODATA, other queries

@@ -331,3 +331,33 @@ Azione fisica preparata per questa rete: **DNS primario TV 192.168.1.5 → chiud
 e riapri Browser → http://vidaahub.com → Raccogli una volta**. Non indirizzo IP
 sostitutivo del contesto, hotspot imposto o nuova operazione native. Analizzare
 immediatamente l'eventuale report senza eseguire sorgenti estratte.
+
+## Nuovo fallimento: separazione delle evidenze DNS/HTTP
+
+Utente: «non funziona ancora». DNS in esecuzione PID20404 osserva richieste
+A vidaahub da 192.168.1.10 (targetQueries 8 all'ultima lettura), senza errori
+nel log del processo; non ancora confermato l'IP TV. Il log conta richieste,
+non attesta che il client abbia usato la risposta. Collector precedente PID2312
+ancora HTTP200 dal PC, receipt null. Mancavano contatori degli accessi: una
+ricevuta assente non permette di dedurre assenza di GET o caricamento script.
+
+Implementati in SourceHTTPServer, indipendenti dalla raccolta:
+- contatore di connessioni TCP accettate e di GET/POST per IP privato;
+- conteggi per root, HTML/JS collector, manifest, status, snapshot; altri path e
+  Host mascherati [OTHER], query scartate prima di ogni registrazione;
+- massimo32 client, timestamp e stato locale ignored bridge-domain-http-status;
+- snapshot disponibile in /status.httpAccess; errore di scrittura diagnostica
+  tollerato per non impedire il caricamento della pagina.
+
+Non è una nuova cattura HTTPS, un inventario o un probe SDK/native. Non conservati
+header sensibili, cookie o body. Test reale HTTP e TCP passati: script servito,
+query token non registrata, connessione senza HTTP distinta da richiesta;
+isolamento, singola ricevuta idempotente e riuso/rifiuto build estranea invariati.
+Regole firewall lette soltanto: presenti 54 Allow inbound TCP80 profilo Private,
+Ethernet Private; nessuna regola Block inbound attiva nell'elenco consultato.
+Questo non prova la raggiungibilità della TV né esclude filtri esterni.
+
+Errore preciso attuale e conferma .1.10 richiesti con due domande mirate.
+Attivare solo il receiver nuovo dopo verifica di identità/receipt; preservare
+DNS20404, post-Store9552, ICS6844 e i file già acquisiti. Poi leggere accessi
+e dati ricevuti: nessun esito installante dichiarato sulla base del test PC.

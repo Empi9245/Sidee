@@ -1,5 +1,23 @@
 # Prompt per la prossima chat — 30 settembre 2026
 
+## Stato più recente: distinguere DNS e accesso HTTP locale
+
+Dopo «non funziona ancora», DNS LAN PID20404 registra richieste A vidaahub da
+192.168.1.10 (8 al controllo); non è ancora confermato che sia l'IP della TV.
+Non dire che il DNS sia rimasto irraggiungibile o che una query provi il GET.
+Collector precedente PID2312 aveva receipt null e nessun contatore accessi;
+receipt null da solo NON prova assenza di apertura pagina.
+Implementato riscontro passivo del solo receiver HTTP: connessioni TCP accettate,
+richieste GET/POST e conteggi per sei percorsi noti; altri percorsi/Host mascherati.
+Solo IP privati, massimo 32 client; niente query, body, cookie o cattura TLS.
+Stato in /status.httpAccess e reports/bridge-domain-http-status.json ignorato.
+Errore di scrittura diagnostica non blocca il servizio. Test HTTP reale passato,
+inclusa connessione senza richiesta e query sensibile non conservata.
+Leggere /status per provenienza effettiva dopo l'attivazione; conservare qualsiasi
+ricevuta prima di cambiare un processo. DNS e :8080 non richiedono riavvio.
+Domande specifiche pendenti: errore attuale esatto e conferma dell'IP .1.10.
+I paragrafi sotto sono cronologia: prevale questo stato e il runtime verificato.
+
 ## Ultima correzione: TV sulla LAN router, DNS dedicato al PC
 
 L'utente conferma: NON usa hotspot, TV sulla rete router. Le istruzioni .137.1

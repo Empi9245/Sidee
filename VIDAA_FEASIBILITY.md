@@ -4,6 +4,11 @@ Verifica: 2026-09-30, Europe/Rome. TV: Hisense **50E77NQ** (modello confermato
 dall'utente durante la ricerca successiva), firmware `V0000.09.60A.Q0707`,
 OS `U09.60`, MTK9603, Odin/Chromium 111.
 
+Aggiornamento: richieste DNS A vidaahub da .1.10 osservate, appartenenza alla TV
+ancora da confermare. Receipt collector null non prova assenza del GET. Aggiunti
+contatori passivi al solo HTTP receiver per distinguere connessione/pagina/script;
+test off-TV passati. Nessuna nuova prova dei permessi o dei cinque criteri Nuvio.
+
 Ultima correzione: utente conferma LAN router, non hotspot. DNS isolato
 lan_dns.py ora su 192.168.1.5:53 UDP/TCP, binding LAN specifico, senza fermare
 ICS; solo vidaahub indirizzato al collector, altro DNS via router. Risposte

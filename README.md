@@ -1,5 +1,12 @@
 # Sidee
 
+The isolated HTTP collector records minimal access diagnostics in `/status`
+(`httpAccess`) and local ignored `reports/bridge-domain-http-status.json`.
+Separate TCP connection/request counts and known-page/script counts distinguish
+DNS visibility from page delivery. Private IPs only, maximum 32 clients; no query
+strings, request bodies, cookies or TLS capture. No TV API is called by this
+diagnostic. A null collection receipt does not imply the page was never opened.
+
 Current connection confirmed by owner: **TV and PC are on the router LAN**.
 Set TV primary DNS to **192.168.1.5**, reopen the Browser and visit
 **http://vidaahub.com/**, then press **Raccogli una volta**.
@@ -14,7 +21,7 @@ if the PC address/router subnet changes. An existing matching DNS service is
 reused via bounded local health checks; foreign/stale services remain intact.
 
 Windows startup fixed: `start-windows.bat` now opens the isolated collector on
-HTTP/80. It does not start DNS/Store workers, elevate, alter firewall rules or
+HTTP/80 after the isolated LAN DNS. It does not start Store workers, elevate, alter firewall rules or
 stop existing processes. A second launch reuses the same matching receiver and
 receipt. The previous launcher killed all Sidee instances and then collided
 with Windows ICS DNS. Keep ICS running. Current process provenance is in

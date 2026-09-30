@@ -6,6 +6,7 @@ import errno
 import hashlib
 import http.client
 import http.server
+import ipaddress
 import json
 import os
 import pathlib
@@ -148,6 +149,7 @@ def make_handler(report_dir, provenance=None):
 
         def do_GET(self):
             path = urllib.parse.urlsplit(self.path).path
+            self.server.record_access(self.client_address[0], self.headers.get('Host', ''), 'GET', path)
             if path in ("/", "/bridge-source-check.html"):
                 return self.reply(200, html, "text/html; charset=utf-8")
             if path == "/bridge-source-check.js":
@@ -155,11 +157,14 @@ def make_handler(report_dir, provenance=None):
             if path == "/manifest":
                 return self.reply(200, provenance)
             if path == "/status":
-                return self.reply(200, {"mode": "isolated-bridge-source-check", "provenance": provenance, "receipt": latest})
+                return self.reply(200, {"mode": "isolated-bridge-source-check", "provenance": provenance,
+                                        "receipt": latest, "httpAccess": self.server.access_snapshot()})
             self.reply(404, {"error": "Not found"})
 
         def do_POST(self):
             nonlocal latest, submitted
+            self.server.record_access(self.client_address[0], self.headers.get('Host', ''), 'POST',
+                                      urllib.parse.urlsplit(self.path).path)
             if self.path != "/snapshot":
                 return self.reply(404, {"error": "Not found"})
             origin = self.headers.get("Origin")
@@ -208,6 +213,57 @@ class SourceHTTPServer(http.server.ThreadingHTTPServer):
     # Windows SO_REUSEADDR can let two receivers share a port unpredictably.
     allow_reuse_address = os.name != "nt"
 
+    def __init__(self, address, handler, access_path=None):
+        self.access_path = access_path
+        self.access_lock = threading.Lock()
+        self.access_clients = {}
+        super().__init__(address, handler)
+
+    def record_access(self, client, host='', method=None, path=None):
+        try:
+            address = ipaddress.ip_address(client)
+        except ValueError:
+            return
+        if not address.is_private:
+            return
+        allowed_paths = {'/', '/bridge-source-check.html', '/bridge-source-check.js', '/manifest', '/status', '/snapshot'}
+        allowed_hosts = {'vidaahub.com', 'vidaahub.com:80', self.server_address[0],
+                         self.server_address[0] + ':' + str(self.server_address[1])}
+        with self.access_lock:
+            if client not in self.access_clients and len(self.access_clients) >= 32:
+                return
+            item = self.access_clients.setdefault(client, {'connections': 0, 'requests': 0, 'paths': {}})
+            if method is None:
+                item['connections'] += 1
+            else:
+                item['requests'] += 1
+                item['lastMethod'] = method
+                item['lastPath'] = path if path in allowed_paths else '[OTHER]'
+                item['lastHost'] = host if host in allowed_hosts else '[OTHER]'
+                item['paths'][item['lastPath']] = item['paths'].get(item['lastPath'], 0) + 1
+            item['lastAt'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            if self.access_path is not None:
+                saved = {'mode': 'isolated-collector-http-access', 'pid': os.getpid(),
+                         'bind': list(self.server_address), 'clients': self.access_clients,
+                         'scope': 'Passive own receiver access; no body, query, cookies, TLS capture or TV API.'}
+                try:
+                    self.access_path.parent.mkdir(parents=True, exist_ok=True)
+                    temporary = self.access_path.with_suffix('.tmp')
+                    temporary.write_text(json.dumps(saved, indent=2) + '\n', encoding='utf-8')
+                    temporary.replace(self.access_path)
+                except OSError:
+                    # Diagnostics must not prevent delivery of the collector.
+                    pass
+
+    def access_snapshot(self):
+        with self.access_lock:
+            return {client: dict(item, paths=dict(item['paths'])) for client, item in self.access_clients.items()}
+
+    def get_request(self):
+        connection, address = super().get_request()
+        self.record_access(address[0])
+        return connection, address
+
     def server_bind(self):
         if os.name == "nt":
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
@@ -217,7 +273,8 @@ class SourceHTTPServer(http.server.ThreadingHTTPServer):
 def serve(host, port=8082):
     provenance = manifest()
     try:
-        server = SourceHTTPServer((host, port), make_handler(ROOT / "reports", provenance))
+        server = SourceHTTPServer((host, port), make_handler(ROOT / "reports", provenance),
+                                  ROOT / 'reports/bridge-domain-http-status.json')
     except OSError as exc:
         if exc.errno != errno.EADDRINUSE and getattr(exc, "winerror", None) not in {10048, 10013}:
             raise

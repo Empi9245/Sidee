@@ -2,6 +2,7 @@ import hashlib
 import http.client
 import json
 import pathlib
+import socket
 import tempfile
 import threading
 import unittest
@@ -11,6 +12,51 @@ from bridge_source_check import SourceHTTPServer, make_handler, serve
 
 
 class BridgeSourceReceiverTest(unittest.TestCase):
+    def test_access_distinguishes_connection_and_request_without_private_query(self):
+        provenance = {'collectionId': 'test', 'buildId': 'fixture'}
+        with tempfile.TemporaryDirectory(prefix='sidee-http-access-') as directory:
+            reports = pathlib.Path(directory)
+            access = reports / 'access.json'
+            server = SourceHTTPServer(('127.0.0.1', 0), make_handler(reports, provenance), access)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            try:
+                conn = http.client.HTTPConnection(*server.server_address, timeout=3)
+                conn.request('GET', '/bridge-source-check.js?token=never-store', headers={'Host': 'vidaahub.com'})
+                response = conn.getresponse()
+                self.assertEqual(response.status, 200)
+                response.read()
+                conn.close()
+                saved = json.loads(access.read_text())
+                peer = saved['clients']['127.0.0.1']
+                self.assertEqual(peer['connections'], 1)
+                self.assertEqual(peer['requests'], 1)
+                self.assertEqual(peer['lastPath'], '/bridge-source-check.js')
+                self.assertEqual(peer['lastHost'], 'vidaahub.com')
+                self.assertEqual(peer['paths'], {'/bridge-source-check.js': 1})
+                self.assertNotIn('never-store', access.read_text())
+                self.assertFalse((reports / 'bridge-source-latest.json').exists())
+                # A TCP connection that sends no HTTP must remain distinguishable.
+                accepted = threading.Event()
+                record_access = server.record_access
+
+                def observed_access(*args, **kwargs):
+                    record_access(*args, **kwargs)
+                    if len(args) == 1:
+                        accepted.set()
+
+                with patch.object(server, 'record_access', side_effect=observed_access):
+                    with socket.create_connection(server.server_address, timeout=3) as connection:
+                        self.assertTrue(accepted.wait(timeout=3))
+                        connection.shutdown(socket.SHUT_WR)
+                peer = server.access_snapshot()['127.0.0.1']
+                self.assertEqual(peer['connections'], 2)
+                self.assertEqual(peer['requests'], 1)
+            finally:
+                server.shutdown()
+                server.server_close()
+                worker.join(timeout=3)
+
     def test_isolation_build_binding_hashes_and_single_receipt(self):
         provenance = {"collectionId": "test", "buildId": "fixture", "fileSha256": {"fixture": "same-source"}}
         with tempfile.TemporaryDirectory(prefix="sidee-source-test-") as directory:
