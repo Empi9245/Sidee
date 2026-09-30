@@ -6,6 +6,12 @@
 Last updated: 2026-09-30
 
 > CURRENT DIAGNOSTIC: LAN DNS receives target A queries from 192.168.1.10;
+> Now active: collector19752, collection bridge-5194a818c1e14b96b7d4e5b858ce4465,
+> build bridge-6bbcea0ceaa98b5e, runtime HEAD339fa8e, collectorDirty false. Only
+> owned empty receiver2312 replaced after identity/listener/receipt checks;
+> DNS20404, post-Store9552 and ICS6844 preserved. PC root/JS200; access .1.5
+> observed and receipt null. Owner asked fresh explicit http://vidaahub.com/;
+> no new TV proof. Read live status/access; readiness is a PC-only snapshot.
 > owner has not yet confirmed this is the TV. Old collector2312 had null receipt,
 > which cannot establish absence of GET. Added passive own HTTP receiver access:
 > separate TCP accepts/GET+POST counts and bounded known-path counts, private IPs

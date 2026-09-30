@@ -2,6 +2,16 @@
 
 ## Stato più recente: distinguere DNS e accesso HTTP locale
 
+Riscontro ATTIVO: collector :80 PID19752, collectionId
+bridge-5194a818c1e14b96b7d4e5b858ce4465, build bridge-6bbcea0ceaa98b5e,
+runtime HEAD 339fa8e670348ddf12de04ade073dfb22bfe53da, collectorDirty false.
+Sostituito soltanto il vecchio PID2312 dopo verifica identità/listener/receipt null;
+DNS20404, post-Store9552 e ICS6844 intatti. Root e JS HTTP200 dal PC; accessi
+registrati solo da .1.5 alla verifica, non prova per i tentativi TV precedenti.
+Receipt ancora null. Chiesto un tentativo con http://vidaahub.com/ esplicito
+dopo la riapertura del Browser. Controllare subito /status e gli accessi live;
+readiness è una fotografia PC, non un report TV. Niente nuove regole firewall.
+
 Dopo «non funziona ancora», DNS LAN PID20404 registra richieste A vidaahub da
 192.168.1.10 (8 al controllo); non è ancora confermato che sia l'IP della TV.
 Non dire che il DNS sia rimasto irraggiungibile o che una query provi il GET.

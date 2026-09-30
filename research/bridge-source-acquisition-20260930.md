@@ -361,3 +361,18 @@ Errore preciso attuale e conferma .1.10 richiesti con due domande mirate.
 Attivare solo il receiver nuovo dopo verifica di identità/receipt; preservare
 DNS20404, post-Store9552, ICS6844 e i file già acquisiti. Poi leggere accessi
 e dati ricevuti: nessun esito installante dichiarato sulla base del test PC.
+
+Attivazione completata: soltanto PID2312, vuoto, sostituito dopo controllo di
+mode, collection/hash precedenti, executable/cmdline esatti e listener TCP80.
+Nuovo PID19752, collection bridge-5194a818c1e14b96b7d4e5b858ce4465,
+build bridge-6bbcea0ceaa98b5e, runtime HEAD339fa8e670348ddf12de04ade073dfb22bfe53da,
+collectorDirty false, receiver SHA256
+69d40333c13f9e04aef03efa6c21e803f3155ef302261439a3dc6d55ab5f9c5d.
+DNS20404, post-Store9552 e ICS6844 confermati vivi, nessun cambio firewall.
+Root via dominio e script HTTP200, pagina isolata verificata; prime registrazioni
+HTTP solo da PC .1.5, receipt null. Questo intervallo non descrive i precedenti
+tentativi TV senza contatori. Ultimo status DNS letto targetQueries9, client .1.10.
+Readiness sostituita con fotografia corrente e provenienza, report post-Store
+hash0efd7bac0e62b3c19b46141e1844d0127d07d14c086ddc531cd5c30c2370d2ba intatto.
+Chiesto tentativo fisico esplicito http://vidaahub.com/ dopo riapertura Browser.
+Nessun POST snapshot, nuova raccolta TV, native API o build Nuvio eseguiti.

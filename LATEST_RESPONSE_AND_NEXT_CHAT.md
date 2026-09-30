@@ -2,6 +2,13 @@
 
 ## Riscontro HTTP aggiunto dopo il nuovo fallimento
 
+Attivato collector PID19752, collection bridge-5194a818c1e14b96b7d4e5b858ce4465,
+build bridge-6bbcea0ceaa98b5e, runtime HEAD339fa8e, collectorDirty false.
+Solo vecchio receiver2312 sostituito dopo identità/listener/receipt null verificati.
+DNS20404/:8080 PID9552/ICS6844 intatti. Root+script HTTP200 dal PC, accessi .1.5
+registrati, receipt null. Chiesto tentativo TV con http://vidaahub.com/ esplicito;
+nessuna prova TV nuova. Leggere accessi live, non confondere readiness con report.
+
 Il DNS riceve A vidaahub da 192.168.1.10; IP TV non ancora confermato. Vecchio
 collector PID2312 receipt null, dato insufficiente a stabilire se la pagina
 fosse stata aperta. Ora il receiver conta passivamente connessioni, richieste e
