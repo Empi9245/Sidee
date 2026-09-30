@@ -35,7 +35,9 @@ class BridgeSourceReceiverTest(unittest.TestCase):
                        "accessContext": {"origin": origin, "hostname": "127.0.0.1", "protocol": "http:", "secureContext": False},
                        "discovery": {"timingStatus": "OBSERVED", "timingCount": 1},
                        "sources": [{"url": origin + "/script.js", "observedVia": "performance.resource", "inline": False,
-                                    "status": "COMPLETE", "source": "function f() { return 'è'; }", "account": "omit-this"}],
+                                    "status": "COMPLETE", "source": "function f() { return 'è'; }", "account": "omit-this"},
+                                   {"url": None, "scheme": "file:", "status": "OUT_OF_SCOPE", "inline": False,
+                                    "observedVia": "performance.resource"}],
                        "account": "omit-this"}
             try:
                 code, html = request("GET", "/")

@@ -38,6 +38,11 @@ function root(scripts = [], timing = []) {
   const skipped = await collect(root(privateUrls.map(src => ({src}))), () => { throw new Error("Private fetch forbidden"); }, provenance);
   assert.ok(skipped.sources.every(item => item.status === "PRIVATE_URL_SKIPPED"));
   assert.ok(!JSON.stringify(skipped).includes("private"));
+  const schemes = await collect(root([{src: "data:text/javascript,const token='private'"},
+    {src: "file:///system/component.js"}]), () => { throw new Error("Non-HTTP fetch forbidden"); }, provenance);
+  assert.ok(schemes.sources.every(item => item.status === "OUT_OF_SCOPE" && item.url === null));
+  assert.ok(!JSON.stringify(schemes).includes("private"));
+  assert.ok(!JSON.stringify(schemes).includes("system/component"));
   assert.equal((await readSource("fixture", async () => body("", 403), 20)).status, "DENIED");
   assert.equal((await readSource("fixture", async () => { throw new Error("CORS"); }, 20)).status, "UNAVAILABLE");
   const truncated = await readSource("fixture", async () => body("123456789"), 5);

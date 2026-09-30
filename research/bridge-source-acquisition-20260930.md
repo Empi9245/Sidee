@@ -47,6 +47,8 @@ La pagina `web/bridge-source-check.html` esegue solo al clic **Raccogli una volt
 - stati `COMPLETE`, `TRUNCATED`, `EMPTY`, `DENIED` per HTTP 401/403,
   `UNAVAILABLE` per CORS/rete/TLS/timeout, `OUT_OF_SCOPE`, omissione sensibile
   o limite. Nessuno script recuperato viene eseguito;
+- riferimenti file/data/blob restano fuori scope: si conserva solo lo schema,
+  senza percorsi di sistema o contenuti incorporati; non invalidano la ricevuta;
 - una ricevuta per processo ricevitore. Un retry identico reinvia la stessa
   raccolta senza rieseguirla; una seconda raccolta differente riceve HTTP 409.
 

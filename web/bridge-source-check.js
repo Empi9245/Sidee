@@ -8,6 +8,8 @@
   function publicUrl(value, base) {
     try {
       const url = new URL(value, base);
+      if (!/^https?:$/.test(url.protocol)) return { url: null, safe: false, protocol: url.protocol,
+        origin: null, host: null, path: "" };
       const safe = !url.username && !url.password && !url.search && !url.hash;
       url.username = ""; url.password = ""; url.search = ""; url.hash = "";
       return { url: url.href, safe, protocol: url.protocol, origin: url.origin, host: url.hostname, path: url.pathname };
@@ -18,7 +20,7 @@
     let timingStatus = "UNAVAILABLE", timingCount = null, eligibleCount = 0;
     function add(value, via, inline) {
       const ref = inline ? null : publicUrl(value, root.location.href);
-      const key = inline ? "inline:" + entries.length : ref && ref.url;
+      const key = inline ? "inline:" + entries.length : ref && (ref.url || "scheme:" + ref.protocol);
       if (!inline && (!ref || seen.has(key))) return;
       seen.add(key);
       const owned = ref && ref.origin === root.location.origin && SELF.test(ref.path);
@@ -26,9 +28,9 @@
         (ref.origin === root.location.origin || ref.host === "tvmodules-vidaa.vidaahub.com");
       if (!owned) eligibleCount++;
       if (entries.length >= 64) return;
-      entries.push({ url: ref && ref.url, observedVia: via, inline: !!inline,
+      entries.push({ url: ref && ref.url, scheme: ref && ref.protocol, observedVia: via, inline: !!inline,
         status: owned ? "SIDEE_OWNED_SKIPPED" : inline ? "PENDING" :
-          !ref.safe ? "PRIVATE_URL_SKIPPED" : !allowed ? "OUT_OF_SCOPE" : "PENDING",
+          !/^https?:$/.test(ref.protocol) ? "OUT_OF_SCOPE" : !ref.safe ? "PRIVATE_URL_SKIPPED" : !allowed ? "OUT_OF_SCOPE" : "PENDING",
         observedQueryOmitted: ref ? !ref.safe : false, inlineText: inline || null });
     }
     for (const script of Array.from(root.document.scripts || []).slice(0, 64)) {

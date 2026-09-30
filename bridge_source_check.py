@@ -66,6 +66,8 @@ def sanitize(data, provenance):
             if parsed.scheme not in ("http", "https") or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment:
                 raise ValueError("Invalid source URL")
         item = {key: entry.get(key) for key in ("url", "observedVia", "inline", "status", "observedQueryOmitted")}
+        if entry.get("scheme") in {"http:", "https:", "file:", "data:", "blob:", "javascript:"}:
+            item["scheme"] = entry["scheme"]
         for key in ("httpStatus", "receivedBytes"):
             if key in entry and type(entry[key]) is int and 0 <= entry[key] <= 1024 * 1024:
                 item[key] = entry[key]
