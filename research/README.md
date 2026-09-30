@@ -1,5 +1,10 @@
 # Verifiche fuori dalla TV — 30 settembre 2026
 
+Nuovo riscontro sulle prove salvate:
+[legacy, V2 e New su Q0707](install-methods-q0707-20260930.md).
+Confronto esteso con operazioni backend e hash delle sorgenti dei wrapper TV.
+Nessuna funzione catturata viene eseguita; nessun nuovo tentativo sulla TV.
+
 Priorità: [correzione del contesto vidaa-edge](vidaa-edge-context-review-20260930.md).
 Il consiglio DNS automatico/sito pubblico non verificava il meccanismo del toolkit.
 La [prova Nuvio secondaria](tv-acceptance-20260930.md) è preparata ma ora fermata,

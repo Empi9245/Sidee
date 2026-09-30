@@ -13,6 +13,12 @@ La condizione sotto riguarda un'importazione consentita, non ogni osservazione.
 
 ## Esito
 
+[Diagnosi legacy/V2/New](research/install-methods-q0707-20260930.md): New upstream
+non è l'API V2. Legacy/V2 condividono helper e backend installApplication; le
+tracce TV mostrano lettura riuscita e poi rifiuto AppConfig 503. Non è un errore
+del tipo oggetto V2; nessun nuovo permesso o import di risorse è stato dimostrato.
+Le validazioni successive al gate restano ignote. Non ripetuti install/write.
+
 Indagine prioritaria completata:
 [vidaahub-context-20260930.md](research/vidaahub-context-20260930.md),
 [confronto offline dei sei report](research/vidaa-context-comparison-20260930.json).

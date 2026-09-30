@@ -15,8 +15,21 @@ Prima di modificare o eseguire test, leggi **completamente**:
 9. in Nuvio, VIDAA_STATUS.md.
 10. research/tv-acceptance-20260930.md;
 11. research/vidaa-edge-context-review-20260930.md.
+12. research/install-methods-q0707-20260930.md.
 
 Il riepilogo corrente prevale sui vecchi piani della cronologia.
+
+**Ultima richiesta:** risolvere il metodo V2 o trovare un'alternativa. La nuova
+diagnosi offline distingue native legacy, native V2 e upstream New (File System):
+New non è Hisense_installApp_V2. Le sorgenti conservate nel report TV e le tracce
+mostrano legacy/V2 → stesso helper → installApplication, con lettura riuscita e
+rifiuto AppConfig 503. Il controllo oggetto V2 non è la causa di quel tentativo;
+eventuali validazioni successive restano ignote. Callback 0 è incondizionata nel
+ramo di aggiunta e non prova successo. Hash/operazioni nel confronto aggiornato.
+Non eseguiti nuovi write/test TV; nessuna correzione installante individuata.
+Per controllare un importatore nella normale UI manca un canale disponibile:
+Sidee non può autonomamente navigare i menu TV. Non confondere questo limite
+operativo con una richiesta di nuova autorizzazione, già data dall'utente.
 
 **Ultima correzione dell'utente:** il riferimento è
 https://github.com/weinzii/vidaa-edge. Leggi anche

@@ -41,6 +41,16 @@ def summarize(path):
     }
     for attempt in (report.get("installDiagnostic") or {}).get("attempts", []):
         internal = attempt.get("internal") or {}
+        backend = []
+        for call in attempt.get("hiUtilsTrace") or []:
+            result = call.get("result") or {}
+            backend.append({
+                "operation": call.get("type"),
+                **result_fields(result),
+                "sdkVersion": result.get("sdkVersion"),
+                "appConfigPermissionFailure": result.get("ret") is False
+                    and "appconfig" in str(result.get("msg", "")).lower(),
+            })
         row["permissionResults"].append({
             "operation": attempt.get("method"),
             "timestamp": attempt.get("timestamp"),
@@ -50,7 +60,21 @@ def summarize(path):
             "ret": internal.get("internalRet"),
             "code": internal.get("errorCode"),
             "appConfigPermissionFailure": internal.get("appConfigPermissionFailure"),
+            "backendOperations": backend,
         })
+    globals_by_name = {entry.get("name"): entry for entry in environment.get("globals") or []}
+    sources = {name: (globals_by_name.get(name) or {}).get("source") for name in
+               ("Hisense_installApp", "Hisense_installApp_V2", "writeInstallAppObjToJson")}
+    if all(isinstance(source, str) for source in sources.values()):
+        row["installWrapperEvidence"] = {
+            "sourceSha256": {name: hashlib.sha256(source.encode("utf-8")).hexdigest()
+                             for name, source in sources.items()},
+            "bothCallSameWriteHelper": all("writeInstallAppObjToJson" in sources[name]
+                                           for name in ("Hisense_installApp", "Hisense_installApp_V2")),
+            "helperUsesInstallApplication": "installApplication" in sources["writeInstallAppObjToJson"],
+            "v2HasObjectTypeGuardAndMinusOneCallback": all(marker in sources["Hisense_installApp_V2"]
+                for marker in ("typeof (appinfo) != 'object'", "callback(-1)")),
+        }
     lab = report.get("directAppInfoWriteLab") or {}
     if lab:
         result = (lab.get("response") or {}).get("result") or {}
@@ -117,6 +141,8 @@ if __name__ == "__main__":
             "Build equality does not establish identical native context or an origin-only A/B.",
             "No credentials, native identifiers, raw registry or resource bytes exported.",
             "No historical firmware update A/B or new TV acceptance test.",
+            "Wrapper evidence records source markers and hashes, not execution of captured functions.",
+            "Permission denial does not establish that all later payload validation would pass.",
         ],
         "observations": rows,
     }, ensure_ascii=False, indent=2))

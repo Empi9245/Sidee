@@ -5409,3 +5409,23 @@ valutazione, priorità e correzione della vecchia frase sui privilegi nel contes
 Nessun nuovo probe TV, installazione, server riavviato o modifica DNS/TLS.
 I test del codice isolato erano già passati; nessun nuovo risultato sui cinque
 criteri Nuvio. Niente devkit/Superdesign/partner/contatto VIDAA/MSX, come richiesto.
+
+## Diagnosi aggiuntiva legacy/V2/New — 30 settembre 2026
+
+L'utente chiede di risolvere V2 o trovare un'alternativa. Nuova analisi offline
+del report TV 25 settembre: le sorgenti legacy/V2 chiamano lo stesso helper
+writeInstallAppObjToJson, che usa installApplication. Entrambe le tracce:
+fileRead true/0 e installApplication false/503 AppConfig, SDK 1.5.0; callback
+0 e return false. Il controllo di tipo oggetto V2 non ha causato quel fallimento;
+non sono provate le validazioni successive al gate. New (File System) upstream
+è diverso da V2 e usa la scrittura diretta già respinta nel no-op del 26.
+
+research/compare-vidaa-contexts.py ora riporta operazioni/hash senza argomenti,
+registro o identità. Diagnosi dettagliata in
+research/install-methods-q0707-20260930.md, consegna/README/valutazione aggiornati.
+Nessuna nuova prova TV, installazione, inventario o cattura; nessuna modifica
+AppConfig/firme/autorizzazioni. Nessuna soluzione installante ancora individuata.
+Per osservare un importatore nella UI normale manca un canale di interazione:
+Sidee non è un telecomando generale. Consenso dell'utente ai test già presente.
+Prossima prova utile: candidato importatore/contenitore concreto, app minima
+propria e riavvio reale con host spenti; tutti i criteri restano non verificati.

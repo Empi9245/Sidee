@@ -4,6 +4,25 @@ Aggiornato: 30 settembre 2026, Europe/Rome. Questo documento prevale sui piani
 storici in AI_CONTEXT.md. Prompt: [NEXT_CHAT_PROMPT.md](NEXT_CHAT_PROMPT.md).
 Indagine completata: [vidaahub-context-20260930.md](research/vidaahub-context-20260930.md).
 
+## Ultima richiesta: risolvere V2 o trovare un'alternativa
+
+[Diagnosi dei tre percorsi](research/install-methods-q0707-20260930.md).
+Il metodo upstream New (File System) è diverso da Hisense_installApp_V2.
+Le sorgenti catturate dalla TV il 25 settembre mostrano legacy/V2 che convergono
+sullo stesso helper e backend installApplication. In entrambi i tentativi:
+fileRead true/0, poi installApplication false/503 AppConfig (SDK 1.5.0), callback
+0 e return false. Non fallisce il controllo di tipo oggetto V2; non è però provata
+la validità di ogni altro campo dopo un eventuale permesso. New usa una scrittura
+diretta già respinta nel no-op vidaahub del 26; non ripetuta la routine upstream.
+
+Confronto offline aggiornato con operazioni backend e hash delle tre sorgenti,
+senza argomenti/registro/identità; rigenerazione e riscontri sui report verificati.
+Nessuna nuova chiamata TV o correzione installante. Tutti i criteri finali ancora
+non verificati. Un importatore/contenitore normale resta alternativa da trovare,
+non soluzione promessa. Sidee non è un telecomando generale e non può aprire
+autonomamente i menu TV: manca un canale per quell'osservazione, non il consenso
+ai test. L'autorizzazione dell'utente persiste.
+
 ## Ultima correzione: il meccanismo vidaa-edge
 
 L'utente ha indicato https://github.com/weinzii/vidaa-edge e chiarito perché il
@@ -154,5 +173,6 @@ Il test UI/telecomando ora preparato non sostituisce una prova di installazione.
 Leggere integralmente NEXT_CHAT_PROMPT.md, AI_CONTEXT.md, questo documento,
 README.md, VIDAA_FEASIBILITY.md, research/post-store-result-20260930.md,
 research/vidaahub-context-20260930.md e il confronto JSON; in Nuvio VIDAA_STATUS.md.
+Leggere anche research/install-methods-q0707-20260930.md per non confondere i metodi.
 Ricontrollare branch/HEAD/locali e provenienza prima di azioni. Preservare il lavoro
 locale e committare Sidee su main con percorsi espliciti, mai control/request.json.

@@ -5,7 +5,9 @@
     "Missing fields mean unrecorded, not unavailable or unauthorized.",
     "Build equality does not establish identical native context or an origin-only A/B.",
     "No credentials, native identifiers, raw registry or resource bytes exported.",
-    "No historical firmware update A/B or new TV acceptance test."
+    "No historical firmware update A/B or new TV acceptance test.",
+    "Wrapper evidence records source markers and hashes, not execution of captured functions.",
+    "Permission denial does not establish that all later payload validation would pass."
   ],
   "observations": [
     {
@@ -37,7 +39,23 @@
           "classification": "REJECTED",
           "ret": false,
           "code": 503,
-          "appConfigPermissionFailure": true
+          "appConfigPermissionFailure": true,
+          "backendOperations": [
+            {
+              "operation": "fileRead",
+              "ret": true,
+              "code": 0,
+              "sdkVersion": "1.5.0",
+              "appConfigPermissionFailure": false
+            },
+            {
+              "operation": "installApplication",
+              "ret": false,
+              "code": 503,
+              "sdkVersion": "1.5.0",
+              "appConfigPermissionFailure": true
+            }
+          ]
         },
         {
           "operation": "v2",
@@ -47,9 +65,35 @@
           "classification": "REJECTED",
           "ret": false,
           "code": 503,
-          "appConfigPermissionFailure": true
+          "appConfigPermissionFailure": true,
+          "backendOperations": [
+            {
+              "operation": "fileRead",
+              "ret": true,
+              "code": 0,
+              "sdkVersion": "1.5.0",
+              "appConfigPermissionFailure": false
+            },
+            {
+              "operation": "installApplication",
+              "ret": false,
+              "code": 503,
+              "sdkVersion": "1.5.0",
+              "appConfigPermissionFailure": true
+            }
+          ]
         }
-      ]
+      ],
+      "installWrapperEvidence": {
+        "sourceSha256": {
+          "Hisense_installApp": "81ff4b79be7afd46bf559b8b1b56fbf3b877721c6c8875a351c4d01ce8cc6ddd",
+          "Hisense_installApp_V2": "019c8e90c0300933b35faa6cbb80edd000663eef7948cd54394ddabec31399a6",
+          "writeInstallAppObjToJson": "6b7f00e996593c455edd0975d04f120da7ffe5c77afdfb87136611b0b1566e5b"
+        },
+        "bothCallSameWriteHelper": true,
+        "helperUsesInstallApplication": true,
+        "v2HasObjectTypeGuardAndMinusOneCallback": true
+      }
     },
     {
       "file": "sidee-session-20260926-150815-b6a2.json",

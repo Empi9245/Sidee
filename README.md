@@ -1,5 +1,17 @@
 # Sidee
 
+## Current diagnosis: legacy, V2 and upstream New
+
+[Installation-method diagnosis](research/install-methods-q0707-20260930.md):
+the TV's captured legacy/V2 wrappers call the same installApplication backend.
+Both saved attempts read successfully then receive AppConfig 503; callback 0
+does not establish success. V2's object-type guard was not the failing step.
+vidaa-edge's New (File System) method is a separate direct registry-write path,
+whose write capability was already denied in the saved vidaahub no-op test.
+No new TV operation or working installation fix; backend traces/source hashes
+are now included in the reproducible comparison. These URL-registration paths
+do not transfer Nuvio's resources to the TV.
+
 ## Current correction: vidaa-edge context
 
 Read [the source review](research/vidaa-edge-context-review-20260930.md).
