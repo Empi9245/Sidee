@@ -1,5 +1,9 @@
 # Verifiche fuori dalla TV — 30 settembre 2026
 
+[Controllo circoscritto di alternative](alternative-install-check-20260930.md):
+HiZ-Store scartato, distribuzione Nuvio confermata; richiesta osservazione della
+pagina integrata storica hisense://debug pending, senza INSTALL. Nessun test TV.
+
 Nuovo riscontro sulle prove salvate:
 [legacy, V2 e New su Q0707](install-methods-q0707-20260930.md).
 Confronto esteso con operazioni backend e hash delle sorgenti dei wrapper TV.

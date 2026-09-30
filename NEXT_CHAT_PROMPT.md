@@ -16,8 +16,21 @@ Prima di modificare o eseguire test, leggi **completamente**:
 10. research/tv-acceptance-20260930.md;
 11. research/vidaa-edge-context-review-20260930.md.
 12. research/install-methods-q0707-20260930.md.
+13. research/alternative-install-check-20260930.md.
 
 Il riepilogo corrente prevale sui vecchi piani della cronologia.
+
+**Ultima richiesta: "trova una soluzione".** Nuova candidata solo da osservare:
+pagina integrata storica hisense://debug, descritta dalla sezione indicizzata della
+vecchia guida VIDAA (PDF diretto ancora 404, non letto integralmente). Non è prova
+Q0707/import locale. Chiesto all'utente di aprirla nel Browser e riportare modulo
+o errore, senza INSTALL; risposta pending. Chiesta anche la presenza di import
+proprio nella gestione app. Sidee non può aprire autonomamente quei menu. Non
+trattare silenzio come assenza. Se richiede DevKit/partner/bypass resta esclusa.
+HiZ-Store letto e scartato: stessi install/write più errori JS, nessun nuovo
+importatore. PR Nuvio1007 closed/non-merged e release1.2.1 senza VIDAA sono conferme
+già note; sito ufficiale Smart TV mostra Tizen/webOS. Endpoint UI: timeout web e
+URLError PC, esito inconclusivo, non nuovo522. Nessun nuovo test TV/server/bundle.
 
 **Ultima richiesta:** risolvere il metodo V2 o trovare un'alternativa. La nuova
 diagnosi offline distingue native legacy, native V2 e upstream New (File System):

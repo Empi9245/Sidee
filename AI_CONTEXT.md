@@ -5429,3 +5429,23 @@ Per osservare un importatore nella UI normale manca un canale di interazione:
 Sidee non è un telecomando generale. Consenso dell'utente ai test già presente.
 Prossima prova utile: candidato importatore/contenitore concreto, app minima
 propria e riavvio reale con host spenti; tutti i criteri restano non verificati.
+
+## Richiesta "trova una soluzione" — controllo alternative
+
+research/alternative-install-check-20260930.md documenta una nuova candidata
+solo da osservare: vecchia pagina integrata hisense://debug, sezione Quick
+Deploying indicizzata della guida VIDAA (PDF diretto404, non letto integralmente).
+Chiesta all'utente apertura Browser e testo modulo/errore, senza INSTALL;
+risposta pending. Pending anche presenza import proprio in normale gestione app.
+Non dedurre compatibilità/autorizzazione/persistenza Q0707. Se richiede
+DevKit/partner/bypass resta esclusa. Sidee non apre autonomamente menu di sistema.
+
+HiZ-Store revisione0f1f748 letto: stessi install/write, riferimenti JS non definiti,
+nessun nuovo importatore. Non eseguito. API Nuvio release1.2.1 senza VIDAA e
+PR1007closed/non-merged sono conferme già documentate, non nuove soluzioni;
+il primo commento le presentava come correzione nuova, poi chiarito. Sito ufficiale
+Smart TV letto con Tizen/webOS, link NuvioWeb. Endpoint UI: timeout web e URLError
+PC con TLS verificato (14:39:58Z), non nuovo522 e non prova di servizio spento.
+Nessun nuovo test TV/inventario/cattura/server/bundle o modifica autorizzazioni.
+Preservati staging control/request.json e modifiche locali Nuvio. Ancora nessuna
+soluzione installante provata; prossimo fatto utile risposta normale UI TV.

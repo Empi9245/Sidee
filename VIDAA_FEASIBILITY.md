@@ -13,6 +13,13 @@ La condizione sotto riguarda un'importazione consentita, non ogni osservazione.
 
 ## Esito
 
+[Controllo alternative successivo](research/alternative-install-check-20260930.md):
+HiZ-Store non fornisce un nuovo importatore; normale pagina interna storica
+hisense://debug candidata soltanto a osservazione, risposta TV pending, senza
+INSTALL. Nessuna compatibilità Q0707 o persistenza provata. Richiesta normale UI
+non è bypass; se richiede DevKit/partner resta esclusa. Distribuzione Nuvio
+ufficiale ricontrollata: Tizen/webOS, conferma delle evidenze sotto.
+
 [Diagnosi legacy/V2/New](research/install-methods-q0707-20260930.md): New upstream
 non è l'API V2. Legacy/V2 condividono helper e backend installApplication; le
 tracce TV mostrano lettura riuscita e poi rifiuto AppConfig 503. Non è un errore

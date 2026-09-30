@@ -4,6 +4,21 @@ Aggiornato: 30 settembre 2026, Europe/Rome. Questo documento prevale sui piani
 storici in AI_CONTEXT.md. Prompt: [NEXT_CHAT_PROMPT.md](NEXT_CHAT_PROMPT.md).
 Indagine completata: [vidaahub-context-20260930.md](research/vidaahub-context-20260930.md).
 
+## Ultima richiesta: trovare una soluzione
+
+[Controllo alternative](research/alternative-install-check-20260930.md).
+HiZ-Store scartato dopo lettura sorgenti: stessi percorsi install/write, errori
+JS, nessun importatore persistente. Distribuzione ufficiale Nuvio confermata
+Tizen/webOS; PR1007 già documentata closed/non-merged, non una novità.
+Nuova candidata soltanto da osservare sulla TV: pagina interna storica
+hisense://debug, descritta nella sezione indicizzata della guida VIDAA; PDF diretto
+ancora404 e non letto integralmente. Non provata su Q0707 né come import locale.
+Chiesta apertura nel Browser normale, modulo o errore, senza INSTALL; risposta
+pending. Pending anche presenza di import proprio nella normale gestione app.
+Se richiede DevKit/partner/bypass, esclusa. Sidee non può aprire quei menu/browser
+di sistema. Nessuna nuova operazione TV, server, bundle o soluzione installante.
+Endpoint UI esterno: timeout tool web/URLError PC, non un nuovo status522.
+
 ## Ultima richiesta: risolvere V2 o trovare un'alternativa
 
 [Diagnosi dei tre percorsi](research/install-methods-q0707-20260930.md).
@@ -174,5 +189,6 @@ Leggere integralmente NEXT_CHAT_PROMPT.md, AI_CONTEXT.md, questo documento,
 README.md, VIDAA_FEASIBILITY.md, research/post-store-result-20260930.md,
 research/vidaahub-context-20260930.md e il confronto JSON; in Nuvio VIDAA_STATUS.md.
 Leggere anche research/install-methods-q0707-20260930.md per non confondere i metodi.
+Leggere research/alternative-install-check-20260930.md; richieste UI pending.
 Ricontrollare branch/HEAD/locali e provenienza prima di azioni. Preservare il lavoro
 locale e committare Sidee su main con percorsi espliciti, mai control/request.json.
