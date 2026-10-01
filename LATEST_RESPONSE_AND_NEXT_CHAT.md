@@ -1,5 +1,22 @@
 # Sidee / Nuvio — passaggio di consegne corrente
 
+## Richiesta HTTPS del 1 ottobre: stato e limite distinti
+
+Richiesto il ripristino del precedente https://vidaahub.com come vidaa-edge.
+Non attivato il dominio impersonato per ottenere API riservate. HTTPS locale
+ordinario resta distinto; il limite dell'assistenza non dimostra impossibilità
+tecnica della TV e non va attribuito a un nuovo fallimento TLS mai provato.
+Non avviare il server Sidee storico come se fosse il collector isolato.
+Verifica10:43:22 Europe/Rome: stessa collection4ae91e9a77d646749cc6eea99d66aefd,
+build6ecf39c1d5849466/runtimeHEADc8f6e13/dirtyfalse, receipt null, nessun listener443.
+DNS18896: TV .1.10 12query/12submitted/0errori. Nessun riavvio/processo nuovo,
+TLS, modifica di certificati/trust o nuova raccolta TV. Ripetere l'avvio non
+abilita HTTPS; nessun nuovo tentativo identico richiesto all'utente.
+Report HTTPS25/26set già conservati: installApplication e fileWrite503 AppConfig,
+readback della scrittura identico. Non provano un'impossibilità universale,
+né un import Nuvio autorizzato o trasferimento del bundle. Solo documenti
+aggiornati; codice e modifiche locali Nuvio/control preservati.
+
 ## 1 ottobre: accesso HTTP TV acquisito, clic e HTTPS da distinguere
 
 Avvio reale utente: DNS18896, HTTP2848/collection bridge-c2f2b35c1a30469fbcfdd197f5602847,

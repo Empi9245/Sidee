@@ -1,5 +1,29 @@
 # Acquisizione mirata: script caricati fuori dai tag DOM
 
+## Richiesta HTTPS del 1 ottobre, verifica 10:43 Europe/Rome
+
+L'utente chiede di rimettere il collector nel precedente contesto HTTPS della
+guida vidaa-edge. Non eseguita l'impersonazione dell'origine VIDAA per ottenere
+accesso alle API riservate. Non è un diniego tecnico misurato oggi né un divieto
+generale di HTTPS/certificati auto-firmati per servizi di sviluppo propri.
+Non sostituire la domanda con un test su un'origine LAN diversa.
+
+GET locale /status10:43:22: mode isolated-bridge-source-check, collection
+bridge-4ae91e9a77d646749cc6eea99d66aefd, buildbridge-6ecf39c1d5849466,
+runtimeHEADc8f6e1395edee58a9364c0c431d8c665d37f3856/dirtyfalse, receipt null.
+Solo client PC .1.5 nel registro di questa collection; gli accessi TV precedenti
+restano in backup. Nessun listener443. DNS18896: TV .1.10 12queries/12submitted/
+0errori, ultimo AUDP rcode0/answers1. Non avviato TLS, cambiato certificato,
+letto chiave privata, alterato trust store, riavviato processo o chiamata TV.
+
+Il ripristino richiesto non è completato. Un altro avvio del BAT corrente
+riusa il receiver HTTP e non abilita443. Il vecchio run_https serve SideeHandler
+e ha osservatori/worker storici: non va avviato come collector passivo isolato.
+I dati HTTPS25/26set in vidaa-context-comparison conservano false/503 AppConfig
+su installApplication/fileWrite e readback identico; nessuna nuova causa TLS
+o impossibilità universale attribuita. Mancano ancora import proprio consentito
+e i cinque criteri di vera app. Solo documenti aggiornati, niente nuovo test.
+
 30 settembre 2026. Tutte le letture obbligatorie completate prima di modifiche
 e test. Base Sidee `f64aafa727c6801370554daa92488b5682fc76b9`, main;
 base Nuvio `1f1ad284a292c06b0ed6b045dd1e1f3177666d1b`, main.

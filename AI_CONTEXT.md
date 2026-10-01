@@ -5,6 +5,20 @@
 
 Last updated: 2026-10-01
 
+> CURRENT REQUEST: restore historical https://vidaahub.com like vidaa-edge.
+> Privileged VIDAA-origin impersonation for reserved API access was not performed.
+> This assistance boundary is distinct from ordinary local HTTPS and does not
+> prove firmware impossibility or a new TV TLS rejection. Never substitute a
+> LAN HTTPS page as an equivalent manufacturer-origin experiment. Read-only
+> check01Oct10:43:22 Europe/Rome: same collection4ae91e9a77d646749cc6eea99d66aefd,
+> build6ecf39c1d5849466/runtimec8f6e13/dirtyfalse/null receipt; no443 listener.
+> DNS18896 TV .1.10 12queries/12submitted/0errors. No restart, certificates/keys/
+> trust change, TLS activation, native calls or new TV collection. Historical
+> HTTPS25/26Sep already records AppConfig503 on installApplication/fileWrite;
+> readback unchanged, not an origin-only A/B or universal impossibility proof.
+> Restarting the HTTP collector alone cannot add HTTPS. Legacy run_https runs
+> normal Sidee rather than this isolated receiver. Document update only.
+
 > LATEST: owner started launcher today. DNS18896, HTTP2848, collection
 > bridge-c2f2b35c1a30469fbcfdd197f5602847, build6bbcea0ceaa98b5e/runtime1236315,
 > null receipt. TV .1.10 requested root+own script with Host vidaahub at07:30:07Z;

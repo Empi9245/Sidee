@@ -1,5 +1,30 @@
 # Prompt per la prossima chat — aggiornato 1 ottobre 2026
 
+## Richiesta corrente: ripristinare il precedente HTTPS come vidaa-edge
+
+L'utente chiede esplicitamente il precedente contesto https://vidaahub.com.
+Il riferimento upstream è già stato letto; usare il dominio VIDAA per ottenere
+accesso alle API riservate è distinto dal normale HTTPS locale. Non è stata
+eseguita la parte di impersonazione dell'origine privilegiata. Questo è un
+limite dell'assistenza, NON una nuova prova di impossibilità del firmware o
+un divieto generale dei certificati auto-firmati per sviluppo locale.
+Non presentare una pagina HTTPS su IP LAN come un test equivalente richiesto.
+
+Verifica live 1ott2026 10:43:22 Europe/Rome: collector isolato ancora nella
+collection bridge-4ae91e9a77d646749cc6eea99d66aefd, build6ecf39c1d5849466,
+runtimeHEADc8f6e13/dirtyfalse, receipt null; nessun listener443. DNS18896:
+TV .1.10 queries12/repliesSubmitted12/errori0, ultimo A rcode0/answers1.
+Nessun nuovo accesso TV registrato nella collection corrente. Nessun servizio
+riavviato, certificato/chiave/trust store modificato, TLS avviato o probe TV.
+Il riavvio da solo non aggiunge HTTPS al collector. run_https storico è il
+server Sidee normale, non un ripristino isolato della raccolta passiva.
+
+Le evidenze conservate riportano https://vidaahub.com il25 e26set: nel primo
+installApplication false/503, nel secondo fileWrite false/503 e readback
+identico. Non sono un A/B del solo protocollo né un diniego TLS osservato oggi.
+Resta necessario un importatore proprio consentito per Q0707, non ricavato
+dai dati locali. Nuvio e control/request.json preservati; niente push.
+
 ## Ultimo esito: HTTP arriva dalla TV, salto a HTTPS riferito al clic
 
 IP TV .1.10/DNS .1.5 confermati, non chiederli ancora. Nuovo avvio utente:
