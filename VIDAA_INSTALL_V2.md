@@ -9,14 +9,21 @@ contro il progetto prima di essere adottati.
 ## Avvio
 
 Su Windows esegui `start-windows-vidaa-v2.bat`. Il launcher avvia Sidee in modalità
-isolata sulla porta HTTP 80. Se Windows nega l'apertura della porta, avvia il file
-come amministratore. Sulla TV apri l'indirizzo locale già instradato dal progetto:
+isolata sulla porta HTTP 80 e, se esistono `.sidee-certs/vidaahub.com.crt/.key`,
+anche su HTTPS 443 con lo stesso certificato auto-firmato (valido fino al
+25 ottobre 2026): entrambi i canali servono la stessa pagina e condividono le
+ricevute. Se Windows nega l'apertura della porta, avvia il file come
+amministratore. Sulla TV apri uno dei due indirizzi già instradati dal progetto:
 
 ```text
 http://vidaahub.com/
+https://vidaahub.com/
 ```
 
-Nessuna operazione nativa parte al caricamento della pagina.
+Nessuna operazione nativa parte al caricamento della pagina. Le API del bridge
+funzionano da entrambe le origini; HTTPS è il contesto storico in cui le
+funzioni Hisense sono state osservate per prima su questa TV e copre il caso
+in cui il browser TV passi da solo a `https://`.
 
 ## Le tre fasi
 

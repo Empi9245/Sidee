@@ -53,6 +53,9 @@
   var RAW_PORT_OPTIONS = ["https://localhost:9888/service/", "http://localhost:9009/service/"];
   var FALLBACK_CANDIDATES = ["tv.vidaa.app.tvbrowser", "tv.vidaa.app.operationui",
     "tv.vidaa.app.phoenix", "tv.vidaa.jsservice.system"];
+  // Contesti app osservati (lab 26 settembre): aprendo queste tile dal
+  // launcher la pagina gira con l'identita' nativa dell'app.
+  var APP_CONTEXT_HOSTS = ["vidaa.duplecast.com", "vidaa.smartone-iptv.com"];
   var DETAIL_LIMIT = 600;
   var REGISTRY_LIMIT = 512 * 1024;
 
@@ -217,6 +220,15 @@
 
   // ---- Canale pkgmgr (servizio separato da hiutils) ------------------------
 
+  function busObservation() {
+    // getUIVersion e' la lettura piu' semplice del bus (usata da vowOS.tvinfo).
+    // Se una porta risponde il bus e' su e il problema e' di permessi; se
+    // entrambe danno eccezione/status 0 il servizio non e' raggiungibile.
+    var ports = rawBus.probePorts("hiutils", "getUIVersion", "");
+    var reachable = ports.some(function (port) { return port.ok === true; });
+    return { status: reachable ? "REACHABLE" : "UNREACHABLE", ports: ports };
+  }
+
   function pkgmgrObservation() {
     // getInstalledPkgs e' la stessa chiamata che il report del 30 settembre
     // mostra usata dal contesto post-Store. Lettura, nessun parametro.
@@ -357,6 +369,31 @@
       }
       this.validated = true; // stesso comportamento del wrapper: non ritentare le porte
       return { ok: false, detail: last };
+    },
+    probePorts: function (service, api, args) {
+      // Diagnostica per porta: distingue "servizio non raggiungibile"
+      // (eccezione/status 0) da "servizio che risponde negando" (status != 200
+      // o JSON ret:false). Non modifica la validazione cached del canale.
+      if (typeof XMLHttpRequest !== "function") {
+        return [{ url: "-", ok: false, detail: "XMLHttpRequest assente" }];
+      }
+      var body = JSON.stringify({ api: api, args: args });
+      return RAW_PORT_OPTIONS.map(function (base) {
+        var xhr = new XMLHttpRequest();
+        var url = base + service;
+        try {
+          xhr.open("POST", url, false);
+          xhr.setRequestHeader("identifier", "");
+          xhr.send(body);
+          var parsed = null;
+          try { parsed = JSON.parse(xhr.responseText); } catch (_) { parsed = null; }
+          return { url: url, ok: xhr.status === 200, status: xhr.status,
+            body: parsed !== null ? summarize(parsed) : short(String(xhr.responseText)) };
+        } catch (error) {
+          return { url: url, ok: false, status: 0,
+            detail: "exception:" + short(String(error && error.message ? error.message : String(error))) };
+        }
+      });
     }
   };
 
@@ -380,15 +417,71 @@
     return pool.slice(0, 6);
   }
 
+  function tryAssignAppIdentifier(identityJson) {
+    // Assegna il JSON identita' costruito (formato osservato nei lab
+    // app-context) e registra se il layer nativo lo accetta: se dopo
+    // l'assegnazione vowOS.service.getIdentifier() ritorna un token non
+    // vuoto, le chiamate del wrapper originale partiranno con quella
+    // identita'. Letture e assegnazione page-scoped, nessun setter nativo.
+    var result = { identityJson: identityJson, assigned: false,
+      before: null, after: null, identifierBefore: null, identifierAfter: null, detail: null };
+    try { result.before = short(JSON.stringify(navigator.appIdentifier)); }
+    catch (error) { result.before = "exception:" + short(String(error)); }
+    try {
+      if (typeof vowOS !== "undefined" && vowOS.service && typeof vowOS.service.getIdentifier === "function") {
+        result.identifierBefore = short(JSON.stringify(vowOS.service.getIdentifier()));
+      }
+    } catch (_) { /* ispezione non disponibile */ }
+    try {
+      navigator.appIdentifier = identityJson;
+      result.assigned = true;
+    } catch (error) {
+      result.detail = "assignment:" + short(String(error && error.message ? error.message : String(error)));
+    }
+    try { result.after = short(JSON.stringify(navigator.appIdentifier)); }
+    catch (error) { result.after = "exception:" + short(String(error)); }
+    try {
+      if (typeof vowOS !== "undefined" && vowOS.service && typeof vowOS.service.getIdentifier === "function") {
+        result.identifierAfter = short(JSON.stringify(vowOS.service.getIdentifier()));
+      }
+    } catch (_) { /* ispezione non disponibile */ }
+    return result;
+  }
+
   async function runIdentifierLab(path, mergedJson, attempts) {
     // Stessa richiesta del wrapper, header identifier selezionabile.
-    // Primo tentativo con "" = baseline A/B sullo stesso canale (atteso il
-    // 503 AppConfig noto), poi i candidati osservati. Se fileWrite non passa
-    // con nessun candidato si applica la stessa griglia a installApplication,
+    // Prima l'identita' nativa costruita per il target (il token cifrato di
+    // sessione lo produce da solo vowOSContext se accetta l'assegnazione),
+    // poi la griglia raw: baseline "" (A/B sullo stesso canale, atteso il
+    // 503 noto) e i candidati osservati sulla TV. Se fileWrite non passa con
+    // nessun candidato si applica la stessa griglia a installApplication,
     // l'API che il wrapper legacy usa per registrare il registro intero.
     var candidates = identifierCandidates();
     var result = { identifiersTried: [],
-      writeSucceeded: false, registerSucceeded: false, baseline503: null };
+      writeSucceeded: false, registerSucceeded: false, baseline503: null, identityAssignment: null };
+    if (target && target.identityMd5) {
+      var identityJson = JSON.stringify({ appid: target.appId, md5: target.identityMd5, permissions: "" });
+      result.identityAssignment = tryAssignAppIdentifier(identityJson);
+      if (result.identityAssignment.identifierAfter && result.identityAssignment.identifierAfter !== '""') {
+        result.identifiersTried.push("nativo-assegnato");
+        var writers = makeWriters().filter(function (w) { return w.name === "HiUtils fileWrite"; });
+        if (writers.length) {
+          var nativeAttempt = { primitive: "HiUtils fileWrite (identita' nativa assegnata)",
+            phase: "write", path: path, mode: APPINFO_MODE };
+          try {
+            var nativeResponse = writers[0].write(path, mergedJson, APPINFO_MODE);
+            nativeAttempt.ok = nativeResponse.ok === true;
+            if (nativeResponse.denied) nativeAttempt.denied = true;
+            if (nativeResponse.raw) nativeAttempt.detail = nativeResponse.raw;
+          } catch (error) {
+            nativeAttempt.ok = false;
+            nativeAttempt.detail = "exception:" + short(String(error && error.message ? error.message : String(error)));
+          }
+          attempts.push(nativeAttempt);
+          result.writeSucceeded = nativeAttempt.ok === true;
+        }
+      }
+    }
     var grid = [""].concat(candidates);
     for (var i = 0; i < grid.length && !result.writeSucceeded; i++) {
       var value = grid[i];
@@ -480,7 +573,7 @@
   // ---- Fasi -----------------------------------------------------------------
 
   function baseReport(phase, provenance) {
-    return {
+    var report = {
       kind: "vidaa-install-v2",
       phase: phase,
       timestamp: new Date().toISOString(),
@@ -493,8 +586,13 @@
         secureContext: !!window.isSecureContext
       },
       userAgent: String(navigator.userAgent || "").slice(0, 500),
-      preferredContextObserved: location.hostname === "vidaahub.com"
+      preferredContextObserved: ["vidaahub.com"].concat(APP_CONTEXT_HOSTS).indexOf(location.hostname) >= 0
     };
+    // Nei contesti app questo campo e' la chiave dell'identita' nativa
+    // ({"appid","md5","permissions"}): una sola lettura, nessun setter qui.
+    try { report.appIdentity = short(JSON.stringify(navigator.appIdentifier)); }
+    catch (error) { report.appIdentity = "exception:" + short(String(error)); }
+    return report;
   }
 
   async function runProbe(provenance) {
@@ -539,6 +637,7 @@
     report.writePrimitivesPresent = writers.map(function (w) { return w.name; });
     report.identifierProvenance = identifierProvenance();
     report.pkgmgrObservation = pkgmgrObservation();
+    report.busObservation = busObservation();
     report.outcome = state.workingReader
       ? (writers.length ? "READ_OK_WRITE_PRIMITIVE_PRESENT" : "READ_OK_NO_WRITE_PRIMITIVE")
       : (writers.length ? "READ_FAILED_WRITE_PRIMITIVE_PRESENT" : "NO_READ_NO_WRITE_PRIMITIVE");
@@ -835,7 +934,8 @@
   if (typeof window === "undefined" && typeof module !== "undefined" && module.exports) {
     module.exports = { detectCapabilities, enumerateGlobals, makeReaders, makeWriters,
       mergeRegistry, buildEntry, registrySummary, runProbe, runInstall, runVerify,
-      pkgmgrObservation, identifierProvenance, storeInstallPackage,
+      pkgmgrObservation, identifierProvenance, storeInstallPackage, busObservation,
+      tryAssignAppIdentifier,
       _state: state, configureTarget: configureTarget, utf8Length: utf8Length, navigate: navigate };
     return;
   }

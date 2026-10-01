@@ -17,6 +17,9 @@ import time
 
 ROOT = pathlib.Path(__file__).resolve().parent
 TARGET = 'vidaahub.com'
+# Domini app-context: le tile Store di queste app (Id 1876/1470) caricano la
+# pagina dal PC con l'identita' nativa dell'app (lab 26 settembre 2026).
+TARGETS = (TARGET, 'www.vidaahub.com', 'vidaa.duplecast.com', 'vidaa.smartone-iptv.com')
 HEALTH = '_sidee-dns.vidaahub.com'
 MAX_PACKET = 4096
 
@@ -104,7 +107,8 @@ class LanDNS:
 
     def _status_locked(self):
         return {'mode': 'isolated-lan-dns', 'pid': os.getpid(), 'bind': self.bind,
-                'target': TARGET, 'targetAddress': self.bind, 'sourceSha256': self.hash,
+                'target': TARGET, 'targets': list(TARGETS), 'targetAddress': self.bind,
+                'sourceSha256': self.hash,
                 'targetQueries': self.queries, **self.last_target,
                 'clients': {client: dict(item) for client, item in self.clients.items()},
                 'statusWriteErrors': self.status_errors, 'checkedAtUnix': time.time(),
@@ -150,7 +154,7 @@ class LanDNS:
             _, _, name, qtype, qclass, _ = question(packet)
         except (ValueError, UnicodeError):
             return
-        if name != TARGET or qclass != 1 or ipaddress.ip_address(client) not in self.network:
+        if (name not in TARGETS and name != HEALTH) or qclass != 1 or ipaddress.ip_address(client) not in self.network:
             return
         with self.lock:
             item = self._client_locked(client)
@@ -171,7 +175,7 @@ class LanDNS:
         _, _, name, qtype, qclass, _ = parsed
         if ipaddress.ip_address(client) not in self.network or qclass != 1:
             return reply(packet, parsed, code=5)
-        if name == TARGET:
+        if name in TARGETS:
             self.note_target(client, qtype, tcp)
             # AAAA/HTTPS and other types get NOERROR/NODATA, never NXDOMAIN.
             return reply(packet, parsed, record=socket.inet_aton(self.bind) if qtype == 1 else None)
@@ -318,7 +322,7 @@ def main():
             return
         print('[LAN-DNS] Porta occupata o non disponibile. Nessun servizio fermato.', flush=True)
         raise SystemExit(1)
-    print(f'[LAN-DNS] UDP/TCP {dns.bind}:{args.port}; {TARGET} -> {dns.bind}', flush=True)
+    print(f"[LAN-DNS] UDP/TCP {dns.bind}:{args.port}; {', '.join(TARGETS)} -> {dns.bind}", flush=True)
     print('[LAN-DNS] Solo LAN. Nessun probe TV, capture, SDK o Git worker.', flush=True)
     thread = threading.Thread(target=tcp.serve_forever, daemon=True)
     thread.start()

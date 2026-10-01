@@ -1,6 +1,9 @@
 import http.client
 import json
 import pathlib
+import shutil
+import ssl
+import subprocess
 import tempfile
 import threading
 import unittest
@@ -14,7 +17,8 @@ class InstallReceiverTests(unittest.TestCase):
         self.target = {"appId": "nuviodebug", "appName": "Nuvio TV",
                        "appUrl": "http://192.168.1.5:4173/?wrapper=vidaa",
                        "iconUrl": "http://192.168.1.5:4173/assets/images/icon.png",
-                       "storeType": "store"}
+                       "storeType": "store",
+                       "identityMd5": "f31ae32083f6dc690241c46ad36b9526"}
         self.provenance = {"collectionId": "fixture", "buildId": "fixture-build",
                            "fileSha256": {"fixture": "hash"}, "mode": v2.MODE,
                            "target": self.target}
@@ -26,8 +30,9 @@ class InstallReceiverTests(unittest.TestCase):
                   "timestamp": "2026-10-01T12:00:00Z", "collectionId": "fixture",
                   "clientBuildId": "fixture-build", "outcome": outcomes[phase],
                   "userAgent": "VIDAA test", "accessContext": {
-                      "origin": origin, "hostname": "127.0.0.1", "protocol": "http:",
-                      "secureContext": False}}
+                      "origin": origin, "hostname": "127.0.0.1",
+                      "protocol": "https:" if origin.startswith("https") else "http:",
+                      "secureContext": origin.startswith("https")}}
         if phase == "probe":
             report["capabilities"] = {"Hisense_FileRead": True, "Hisense_FileWrite": True}
             report["registryBefore"] = {"content": '{"AppInfo":[]}', "bytes": 14, "entryCount": 0}
@@ -121,6 +126,100 @@ class InstallReceiverTests(unittest.TestCase):
                 server.shutdown()
                 server.server_close()
                 worker.join(timeout=3)
+
+    def test_shared_receipts_across_handlers(self):
+        with tempfile.TemporaryDirectory(prefix="sidee-install-v2-") as directory:
+            reports = pathlib.Path(directory)
+            shared = {}
+            servers = []
+            for _ in range(2):
+                server = v2.InstallHTTPServer(("127.0.0.1", 0),
+                                              v2.make_handler(reports, self.provenance, shared))
+                worker = threading.Thread(target=server.serve_forever, daemon=True)
+                worker.start()
+                servers.append((server, worker))
+            origin_a = "http://127.0.0.1:" + str(servers[0][0].server_address[1])
+            try:
+                connection = http.client.HTTPConnection(*servers[0][0].server_address, timeout=3)
+                connection.request("POST", "/snapshot", json.dumps(self.report("probe", origin_a)),
+                                   {"Origin": origin_a, "Content-Type": "application/json"})
+                self.assertEqual(connection.getresponse().status, 200)
+                connection.close()
+                connection = http.client.HTTPConnection(*servers[1][0].server_address, timeout=3)
+                connection.request("GET", "/status")
+                payload = json.loads(connection.getresponse().read())
+                connection.close()
+                self.assertEqual(payload["receipt"]["phase"], "probe",
+                                 "le ricevute devono essere condivise tra HTTP e HTTPS")
+            finally:
+                for server, worker in servers:
+                    server.shutdown()
+                    server.server_close()
+
+    def test_https_serves_page_and_shares_receipts(self):
+        if shutil.which("openssl") is None:
+            self.skipTest("openssl non disponibile")
+        with tempfile.TemporaryDirectory(prefix="sidee-install-v2-") as directory:
+            reports = pathlib.Path(directory)
+            cert = pathlib.Path(directory) / "test.crt"
+            key = pathlib.Path(directory) / "test.key"
+            subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes",
+                            "-keyout", str(key), "-out", str(cert), "-days", "1",
+                            "-subj", "/CN=127.0.0.1"], check=True, capture_output=True)
+            shared = {}
+            server = v2.InstallHTTPServer(("127.0.0.1", 0),
+                                          v2.make_handler(reports, self.provenance, shared))
+            v2.wrap_tls(server, cert, key)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            origin = "https://127.0.0.1:" + str(server.server_address[1])
+            client = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            client.check_hostname = False
+            client.verify_mode = ssl.CERT_NONE
+            try:
+                connection = http.client.HTTPSConnection(*server.server_address, context=client, timeout=3)
+                connection.request("GET", "/")
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                html = response.read()
+                connection.close()
+                self.assertIn(b"vidaa-install-v2.js?v=fixture-build", html)
+                connection = http.client.HTTPSConnection(*server.server_address, context=client, timeout=3)
+                connection.request("POST", "/snapshot", json.dumps(self.report("probe", origin)),
+                                   {"Origin": origin, "Content-Type": "application/json"})
+                self.assertEqual(connection.getresponse().status, 200)
+                connection.close()
+                self.assertEqual(shared["latest"]["phase"], "probe")
+                self.assertEqual(shared["latest"]["origin"], origin)
+            finally:
+                server.shutdown()
+                server.server_close()
+                worker.join(timeout=3)
+
+    def test_expected_origin_default_port_follows_scheme(self):
+        with tempfile.TemporaryDirectory(prefix="sidee-install-v2-") as directory:
+            handler_class = v2.make_handler(pathlib.Path(directory), self.provenance)
+            import email.message
+            stub = type("StubServer", (), {})()
+            for scheme, port, host_header, valid in (
+                    ("https", 443, "vidaahub.com", True),
+                    ("http", 80, "vidaahub.com", True),
+                    ("https", 443, "vidaahub.com:443", True),
+                    ("https", 443, "vidaahub.com:80", False),
+                    ("http", 8080, "vidaahub.com", False),
+                    ("https", 443, "other.invalid", False)):
+                message = email.message.Message()
+                message["Host"] = host_header
+                handler = object.__new__(handler_class)
+                handler.headers = message
+                stub.scheme = scheme
+                stub.server_address = ("192.168.1.5", port)
+                handler.server = stub
+                if valid:
+                    self.assertEqual(handler.expected_origin(), scheme + "://" + host_header)
+                else:
+                    with self.assertRaises(ValueError):
+                        handler.expected_origin()
 
     def test_sidee_routes_full_installer_as_an_isolated_mode(self):
         import sidee

@@ -27,6 +27,7 @@ import os
 import pathlib
 import re
 import socket
+import ssl
 import subprocess
 import threading
 import urllib.parse
@@ -55,6 +56,10 @@ MAX_DETAIL = 1200
 MAX_REGISTRY = 512 * 1024
 MAX_BODY = 2 * 1024 * 1024
 MODE = "isolated-vidaa-install-v2"
+# Contesti app: le tile Store di queste app caricano la pagina dal PC con
+# l'identita' nativa dell'app (lab 26 settembre: getIdentifier() ritorna il
+# token di sessione reale, non vuoto). Il DNS LAN instrada questi host qui.
+APP_CONTEXT_HOSTS = ("vidaa.duplecast.com", "vidaa.smartone-iptv.com")
 
 
 def _web_url(value, *, optional=False):
@@ -82,7 +87,11 @@ def target_profile():
     return {"appId": app_id, "appName": app_name,
             "appUrl": _web_url(data.get("app_url")),
             "iconUrl": _web_url(data.get("icon_url"), optional=True),
-            "storeType": store_type}
+            "storeType": store_type,
+            # Formato identita' osservato sui lab app-context:
+            # {"appid","md5":md5(appid),"permissions":""}; il token cifrato di
+            # sessione e' derivato dal layer nativo della TV.
+            "identityMd5": hashlib.md5(app_id.encode()).hexdigest()}
 
 
 def manifest():
@@ -183,7 +192,15 @@ def _clean_observation(value):
         elif isinstance(item, (int, bool)) or item is None:
             out[name] = item
         elif isinstance(item, list):
-            out[name] = [str(entry)[:120] for entry in item[:40]]
+            cleaned_list = []
+            for entry in item[:40]:
+                if isinstance(entry, dict):
+                    cleaned_list.append(json.dumps(
+                        {str(k)[:60]: str(v)[:200] for k, v in list(entry.items())[:10]
+                         if isinstance(v, (str, int, bool)) or v is None})[:400])
+                else:
+                    cleaned_list.append(str(entry)[:120])
+            out[name] = cleaned_list
         elif isinstance(item, dict):
             out[name] = {str(k)[:60]: str(v)[:MAX_DETAIL] for k, v in list(item.items())[:10]}
     return out
@@ -232,6 +249,8 @@ def sanitize(data, provenance, expected_origin=None):
         "clientDeviceHint": "TV_LIKE" if re.search(r"VIDAA|Hisense|SmartTV|Smart-TV", ua, re.I) else "UNCONFIRMED",
         "outcome": outcome,
     }
+    if isinstance(data.get("appIdentity"), str):
+        payload["appIdentity"] = data["appIdentity"][:MAX_DETAIL]
     caps = data.get("capabilities")
     if isinstance(caps, dict):
         payload["capabilities"] = {str(k)[:80]: bool(v) for k, v in list(caps.items())[:80]}
@@ -248,7 +267,7 @@ def sanitize(data, provenance, expected_origin=None):
     for key in ("readAttempts", "attempts"):
         if key in data:
             payload[key] = _clean_attempts(data[key])
-    for key in ("identifierProvenance", "pkgmgrObservation", "identifierLab"):
+    for key in ("identifierProvenance", "pkgmgrObservation", "identifierLab", "busObservation"):
         observation = _clean_observation(data.get(key))
         if observation is not None:
             payload[key] = observation
@@ -282,10 +301,13 @@ def sanitize(data, provenance, expected_origin=None):
     return payload
 
 
-def make_handler(report_dir, provenance=None):
+def make_handler(report_dir, provenance=None, shared=None):
     provenance = provenance or manifest()
-    lock = threading.Lock()
-    latest = None
+    if shared is None:
+        shared = {}
+    shared.setdefault("latest", None)
+    shared.setdefault("lock", threading.Lock())
+    lock = shared["lock"]
     html = (ROOT / "web/vidaa-install-v2.html").read_text(encoding="utf-8").replace(
         '/vidaa-install-v2.js"', '/vidaa-install-v2.js?v=' + provenance["buildId"] + '"').encode()
     script = (ROOT / "web/vidaa-install-v2.js").read_bytes()
@@ -301,14 +323,17 @@ def make_handler(report_dir, provenance=None):
         def expected_origin(self):
             host = self.headers.get("Host", "")
             parsed = urllib.parse.urlsplit(self.server.scheme + "://" + host)
-            allowed = {self.server.server_address[0], "vidaahub.com", "www.vidaahub.com"}
+            allowed = {self.server.server_address[0], "vidaahub.com", "www.vidaahub.com",
+                       *APP_CONTEXT_HOSTS}
             try:
                 if ipaddress.ip_address(self.server.server_address[0]).is_loopback:
                     allowed.update({"localhost", "127.0.0.1"})
             except ValueError:
                 pass
+            # Host senza porta = porta di default dello schema (80 http, 443 https).
+            default_port = 443 if self.server.scheme == "https" else 80
             if (parsed.hostname not in allowed or parsed.username or parsed.password or parsed.path or
-                    parsed.query or parsed.fragment or (parsed.port or 80) != self.server.server_address[1]):
+                    parsed.query or parsed.fragment or (parsed.port or default_port) != self.server.server_address[1]):
                 raise ValueError("Invalid host")
             return self.server.scheme + "://" + host
 
@@ -340,12 +365,11 @@ def make_handler(report_dir, provenance=None):
                 return self.reply(200, provenance)
             if path == "/status":
                 return self.reply(200, {"mode": MODE, "provenance": provenance,
-                                        "transport": self.server.scheme, "receipt": latest,
+                                        "transport": self.server.scheme, "receipt": shared["latest"],
                                         "httpAccess": self.server.access_snapshot()})
             self.reply(404, {"error": "Not found"})
 
         def do_POST(self):
-            nonlocal latest
             self.server.record_access(self.client_address[0], self.headers.get("Host", ""), "POST",
                                       urllib.parse.urlsplit(self.path).path)
             if urllib.parse.urlsplit(self.path).path != "/snapshot" or urllib.parse.urlsplit(self.path).query:
@@ -383,7 +407,7 @@ def make_handler(report_dir, provenance=None):
                     temporary.replace(report_dir / "vidaa-install-v2-latest.json")
                 except OSError:
                     return self.reply(503, {"error": "Report storage unavailable"})
-                latest = {"file": filename, "sha256": hashlib.sha256(saved).hexdigest(), "bytes": len(saved),
+                shared["latest"] = latest = {"file": filename, "sha256": hashlib.sha256(saved).hexdigest(), "bytes": len(saved),
                           "receivedAt": payload["receivedAt"], "phase": payload["phase"],
                           "origin": payload["accessContext"]["origin"],
                           "preferredContextObserved": payload["preferredContextObserved"],
@@ -414,7 +438,8 @@ class InstallHTTPServer(http.server.ThreadingHTTPServer):
         if not address.is_private:
             return
         allowed_paths = {"/", "/vidaa-install-v2.html", "/vidaa-install-v2.js", "/manifest", "/status", "/snapshot"}
-        allowed_hosts = {"vidaahub.com", "vidaahub.com:80", self.server_address[0],
+        allowed_hosts = {"vidaahub.com", "vidaahub.com:80", *APP_CONTEXT_HOSTS,
+                         self.server_address[0],
                          self.server_address[0] + ":" + str(self.server_address[1])}
         with self.access_lock:
             if client not in self.access_clients and len(self.access_clients) >= 32:
@@ -460,14 +485,58 @@ def _status_connection(host, port):
     return http.client.HTTPConnection(host, port, timeout=3)
 
 
-def serve(host, port=80, report_dir=None):
+def _https_material():
+    cert_dir = ROOT / ".sidee-certs"
+    # Il multihost copre anche i domini app-context (duplecast/smartone) e lo
+    # Store; include gia' vidaahub.com, quindi resta valido per il canale base.
+    for name in ("sidee-vidaa-multihost-store-v2", "vidaahub.com"):
+        cert = cert_dir / (name + ".crt")
+        key = cert_dir / (name + ".key")
+        if cert.is_file() and key.is_file():
+            return cert, key
+    return None, None
+
+
+def wrap_tls(server, certfile, keyfile):
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.load_cert_chain(certfile=str(certfile), keyfile=str(keyfile))
+    server.socket = context.wrap_socket(server.socket, server_side=True)
+    server.scheme = "https"
+    return server
+
+
+def start_https_server(host, port, report_dir, provenance, shared, access_path):
+    """Stessa pagina e stesse ricevute anche su HTTPS (443). Mai fatale: se il
+    certificato manca o la porta e' occupata si continua solo in HTTP."""
+    if not port:
+        return None
+    if not 0 <= port <= 65535:
+        raise ValueError("Invalid https port")
+    cert, key = _https_material()
+    if cert is None:
+        print("[INSTALL-V2] HTTPS non attivo: mancano .sidee-certs/vidaahub.com.crt/.key.", flush=True)
+        return None
+    try:
+        server = wrap_tls(InstallHTTPServer((host, port), make_handler(report_dir, provenance, shared),
+                                            access_path), cert, key)
+    except (OSError, ssl.SSLError) as exc:
+        print(f"[INSTALL-V2] HTTPS su porta {port} non disponibile ({exc}). Solo HTTP attivo.", flush=True)
+        return None
+    entry = "https://vidaahub.com/" if port == 443 else f"https://vidaahub.com:{port}/"
+    print(f"[INSTALL-V2] HTTPS attivo: {entry}", flush=True)
+    return server
+
+
+def serve(host, port=80, report_dir=None, https_port=443):
     if not 0 <= port <= 65535:
         raise ValueError("Invalid port")
     ipaddress.ip_address(host)
     provenance = manifest()
+    reports = report_dir or ROOT / "reports"
+    shared = {}
+    server = None
     try:
-        reports = report_dir or ROOT / "reports"
-        server = InstallHTTPServer((host, port), make_handler(reports, provenance),
+        server = InstallHTTPServer((host, port), make_handler(reports, provenance, shared),
                                    reports / "install-v2-http-status.json")
     except OSError as exc:
         if exc.errno != errno.EADDRINUSE and getattr(exc, "winerror", None) != 10048:
@@ -488,25 +557,37 @@ def serve(host, port=80, report_dir=None):
             raise RuntimeError(f"Porta {port} occupata da un altro servizio. Nessun processo fermato.") from error
         finally:
             connection.close()
-        print("[INSTALL-V2] Ricevitore gia attivo con la stessa build: report preservati.", flush=True)
-        return
-    entry = "http://vidaahub.com/" if port == 80 else f"http://vidaahub.com:{port}/"
-    print(f"[INSTALL-V2] Ricevitore attivo. Sulla TV apri: {entry}", flush=True)
+        print("[INSTALL-V2] Ricevitore HTTP gia attivo con la stessa build: report preservati.", flush=True)
+    https_server = start_https_server(host, https_port, reports, provenance, shared,
+                                      reports / "install-v2-https-status.json")
+    if server is not None:
+        entry = "http://vidaahub.com/" if port == 80 else f"http://vidaahub.com:{port}/"
+        print(f"[INSTALL-V2] Ricevitore attivo. Sulla TV apri: {entry}", flush=True)
     print("[INSTALL-V2] Tre fasi esplicite: Analizza -> Installa -> riavvio TV -> Verifica.", flush=True)
+    servers = [item for item in (server, https_server) if item is not None]
+    threads = []
+    for item in servers:
+        thread = threading.Thread(target=item.serve_forever, kwargs={"poll_interval": 0.5}, daemon=True)
+        thread.start()
+        threads.append(thread)
     try:
-        server.serve_forever(poll_interval=0.5)
+        while any(thread.is_alive() for thread in threads):
+            threading.Event().wait(0.5)
     except KeyboardInterrupt:
         pass
     finally:
-        server.server_close()
+        for item in servers:
+            item.server_close()
 
 
 def main():
     parser = argparse.ArgumentParser(description="Ricevitore isolato vidaa-install-v2")
     parser.add_argument("--host", default="192.168.1.5", help="IP LAN del PC (default 192.168.1.5)")
     parser.add_argument("--port", type=int, default=80, help="Porta HTTP (default 80, radice vidaahub)")
+    parser.add_argument("--https-port", type=int, default=443,
+                        help="Porta HTTPS (default 443; 0 per disattivarla)")
     args = parser.parse_args()
-    serve(args.host, args.port)
+    serve(args.host, args.port, https_port=args.https_port)
 
 
 if __name__ == "__main__":

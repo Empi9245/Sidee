@@ -339,6 +339,14 @@ test campi pkgmgr). Tutte le suite Python e le due JS passano.
 
 ### Prossimo test TV e albero decisionale pkgmgr
 
+Il ricevitore V2 serve ora la stessa pagina e le stesse ricevute sia su
+`http://vidaahub.com/` (porta 80) sia su `https://vidaahub.com/` (porta 443,
+cert auto-firmato `.sidee-certs/vidaahub.com.*` valido fino al 25 ottobre 2026;
+fix Host-senza-porta per la porta default dello schema). Le API del bridge
+funzionano anche da origin HTTP (report 26 settembre da `http://192.168.1.5:8080`):
+HTTPS non è un requisito del gate, ma copre il salto a https osservato sulla TV
+il 1 ottobre.
+
 Eseguire le tre fasi con `start-windows-vidaa-v2.bat`. Leggere poi
 `reports/vidaa-install-v2-latest.json`:
 
@@ -358,6 +366,116 @@ Eseguire le tre fasi con `start-windows-vidaa-v2.bat`. Leggere poi
 
 Vincoli invariati: scritture sempre protette da backup+rilettura, callback 0
 non è successo, sola la rilettura (riavvio compreso) attesta persistenza.
+
+### Primo test TV V2 — 2026-10-01 18:31 — bus non raggiungibile dal browser usato
+
+`reports/vidaa-install-v2-probe-20261001-183131-620268.json` (probe reale TV):
+origine `https://vidaahub.com`, secureContext true — **HTTPS/443 funziona dalla
+TV** (cert auto-firmato accettato). UA `WebNavigator/3.0.10`. Tutte le funzioni
+Hisense/vowOS presenti (1303 props globali), MA ogni chiamata al bus ritorna
+`false`: `Hisense_FileRead` → `""`, `HiUtils fileRead` → `false`,
+`getInstalledPkgs` → `false`. Esito `READ_FAILED_WRITE_PRIMITIVE_PRESENT`;
+installazione correttamente disabilitata (nessun backup del registro).
+
+Confronto UA dei report: la TV ha PIÙ app browser (NetSurfer/5.2.2, Odin/
+111.5563.5.1 Model/VIDAA-MTK9603, WebViewer/7.0.15, Browser/5.2.20, Browser/3.0.1,
+WebNavigator/7.0.0 e 3.0.10). Il bus è confermato raggiungibile nei contesti
+NetSurfer (25 set, fileRead true + 503) e Odin (26 set, 503+trace), e il 30 set
+il pkgmgr post-Store riuscì (18 pacchetti, da `http://192.168.1.5:8080`).
+Le sessioni WebViewer/Browser/WebNavigator del 26-29 set erano diagnostiche
+che NON chiamavano API native: nessuna evidenza negativa. Quindi: possibile
+browser diverso senza accesso al bus, oppure bus momentaneamente giù.
+
+Risposta implementata: `busObservation` nel probe — `rawBus.probePorts` tenta
+`getUIVersion` (sola lettura) su `https://localhost:9888` e
+`http://localhost:9009` separatamente e registra per ognuna status/eccezione:
+`status 0`+eccezione = servizio non raggiungibile (o XHR a localhost bloccato
+dal browser); `status != 200` o JSON `ret:false` = servizio su che rifiuta.
+Verifica off-TV con la skill browser-use (PC: `NO_READ_NO_WRITE_PRIMITIVE`,
+busObservation UNREACHABLE con eccezioni di rete su entrambe le porte —
+comportamento corretto della pagina senza bus).
+
+Prossimo test TV: ricaricare la pagina (build nuova; la pagina segnala da sola
+se non aggiornata) ed eseguire Analizza (a) nello stesso browser WebNavigator
+per leggere busObservation e (b) nel browser di sistema usato il 26 settembre
+(UA Odin): se lì il bus risponde, il problema è l'app browser; se nessuno
+risponde (status 0), riavvio elettrico della TV e secondo tentativo.
+
+### Correzione e sweep LAN — 2026-10-01 sera
+
+L'utente conferma di aver SEMPRE usato la stessa app browser della TV: gli UA
+diversi (NetSurfer/Odin/WebNavigator/Browser/WebViewer) sono rotazione interna
+della stessa app. Ipotesi "browser senza bus" ritirata. Resta: bus giù/spento
+o comportamento diverso del servizio in questo stato della TV.
+
+Valutazione ipotesi utente "il bus funzionava perché la TV era sull'hotspot
+del PC": meccanicamente improbabile — il bus è `localhost` DENTRO la TV
+(loopback), la rete (hotspot ICS o router) non cambia la raggiungibilità dal
+browser della TV. Resta plausibile però la correlazione di STATO: nelle epoche
+in cui il bus rispondeva la TV aveva subito attività launcher/Store/configurazione
+che può avere avviato lo stack di servizi hiutils/phoenix. Servizio avviato
+on-demand dal launcher = ipotesi principale da testare.
+
+Sweep TCP dal PC su 192.168.1.10 (24 porte note, timeout 1.2s, autorizzazione
+proprietario): aperta SOLO 36669. 9888/9009 NON raggiungibili dalla LAN → il
+bus è spento oppure binda solo sul loopback della TV (distinguibile solo dal
+busObservation della pagina). 36669 accetta TCP ma azzera HTTP (protocollo
+proprietario, canale remoto VIDAA; nessuna conoscenza pregressa nel repo;
+interrotto dopo 2 tentativi per regola budget). Nessuna porta debug (9222/9223).
+
+Azione TV aggiornata: prima di rieseguire Analizza con la pagina nuova
+(busObservation), aprire una volta il launcher/Home e lo Store sulla TV per
+svegliare lo stack di servizi, poi tornare al Browser. Se busObservation
+mostra status 0 su entrambe le porte → riavvio elettrico e secondo tentativo;
+se mostra status/JSON di rifiuto → servizio attivo che nega: nuovo dato per il
+percorso identifier/permessi.
+
+### Scoperta chiave — 2026-10-01 sera: meccanismo app-context ricostruito
+
+L'utente ricorda il vecchio "spoof DNS dedicato a Store/Duplecast/altra app":
+era `app_context_probe` in config.json. VERIFICATO nei lab del 26 settembre
+(`sidee-session-20260926-160944-2811/161807-2866/162430-f773.json`,
+accessMode `DUPLECAST_APP_CONTEXT`/`SMARTONE_APP_CONTEXT`):
+
+1. Aprendo la tile Store-installed di Duplecast/Smartone dal launcher (con il
+   loro dominio spoofato sul PC), la pagina gira nel CONTESTO APP e
+   `navigator.appIdentifier` ritorna
+   `{"appid":"1876","md5":"ba9a56ce...","permissions":""}`.
+2. **md5 = md5(appid), confermato matematicamente** (1876→ba9a56ce..., 1470→
+   42ffcf05...): l'identità è costruibilenche per il nostro target
+   (`nuviodebug` → `f31ae32083f6dc690241c46ad36b9526`).
+3. In app context `vowOS.service.getIdentifier()` ritorna un TOKEN CIFRATO
+   per-sessione (`paIZWmmnPvlZrsphA18SiA==`, cambia a ogni sessione):
+   derivato nativamente dal JSON. Non è fabbricabile da noi — ma NON serve:
+   basta farsi assegnare/avere il JSON giusto e il layer nativo produce il
+   token. Gli identifier "1470"/"1876" testati il 26 settembre erano il
+   FORMATO SBAGLIATO (plain id invece del JSON/token).
+4. Nei lab del 26 set le scritturе in app context presero comunque 503
+   (permissions "" di quelle app) e il canale pkgmgr NON fu mai provato in
+   app context: è la misura da fare.
+
+Infrastruttura ricostruita (tutta verificata off-TV, test 13 Python + 4
+scenari JS verdi):
+- `lan_dns.py`: TARGETS multipli (vidaahub, www, vidaa.duplecast.com,
+  vidaa.smartone-iptv.com). ATTENZIONE: il vecchio DNS elevato (PID 18896,
+  solo vidaahub) gira ancora; va chiuso dall'utente (admin) e riavviato.
+- `vidaa_install_v2.py`: APP_CONTEXT_HOSTS ammessi in Host/Origin, cert TLS
+  preferito `sidee-vidaa-multihost-store-v2` (8 SAN: duplecast, smartone,
+  4 domini Store, vidaahub), manifest target con `identityMd5`.
+- pagina V2: `appIdentity` nel report (lettura singola di
+  `navigator.appIdentifier`), `tryAssignAppIdentifier` nel lab — assegna
+  `{"appid","md5","permissions"}` del target, e se `getIdentifier()` produce
+  un token non vuoto prova `HiUtils fileWrite` col wrapper originale
+  (header nativo). Poi griglia raw come prima. Ricevitore preserva tutto
+  (`identityAssignment`, `appIdentity`).
+
+Test TV in ordine: (1) wake test Store→browser→Analizza (niente DNS da
+toccare); (2) se il bus vive, Installa dal browser: il lab prova da solo
+l'assegnazione dell'identità nativa; (3) percorso completo app-context:
+chiudere il DNS elevato, riavviare lan_dns (nuovi target), aprire la tile
+Duplecast dal launcher → la pagina gira con identità nativa 1876 e il lab
+prova anche l'assegnazione dell'identità nuviodebug → Installa (pkgmgr mai
+misurato in app context).
 
 ## Project
 
@@ -5779,3 +5897,49 @@ Sidee main prima della consegna 513f85ea8646ba0628699781cd3d446fb94afca7.
 control/request.json ancora A in staging, blob aefa724c1725b1ef2178c79fdd8914745bb9065e,
 SHA256 6d8cd6ec102dd17b4ebd110e443fe6a68d645eee663ed1ce05fc2749699fa9b4;
 preservato ed escluso dal commit. Nuvio e i suoi cambiamenti locali preservati.
+
+## 2026-10-01 — Repository nuviotvsmart (port HTML di Nuvio) e skill hack-skills
+
+Repository di riferimento clonato in C:/Users/empi0/Desktop/nuviotvsmart (shallow).
+Nuvio è una web app HTML5 (non APK): appinfo.json tipo "web", service worker sw.js,
+adapter per Tizen/webOS/VIDAA (js/platform/adapters/vidaaAdapter.js).
+
+Meccanismo di installazione su VIDAA documentato nel repo:
+1. Metodo raccomandato (bookmark): `npm run build:vidaa && npm run serve:vidaa`
+   oppure `python3 installer/server.py`; si apre il Browser TV su
+   http://<ip-pc>:8080 (installer usa 4173); si aggiunge ai bookmark/speed-dial.
+   sw.js cachea tutto localmente.
+2. Icona permanente nel launcher: installer/server.py spoofa DNS di
+   vidaahub.com verso il PC (porta 53) e serve la pagina installer in HTTPS
+   sulla 443 con cert autofirmato. DNS della TV impostato manuale sull'IP del PC.
+   La pagina installer chiama, dall'interno del browser VIDAA:
+   - Hisense_AddInsecureDomain(hostname)
+   - Hisense_installApp(appId="space.nuvio.tv", nome, iconUrl x3,
+     appUrl=<origin>/?wrapper=vidaa, storeType="store", callback(code))
+   - poi omi_platform/opera_omi.sendPlatformMessage con APPMessage
+     MsgType "appControl" action "updateAppState" (event AllAppsUpdate)
+     per far comparire il tile.
+   - Hisense_uninstallApp(appId, cb) per rimuovere.
+   Quindi l'installazione registra solo un URL web come app del launcher:
+   nessun file system scrive, nessun APK. VidaaAdapter espone anche
+   Hisense_Exit/Hisense_CloseApp, Hisense_GetModelName,
+   sendPlatformMessage launchNativePlayer (tasto giallo), trusted domains
+   via Hisense_AddInsecureDomain (elenco default in registerTrustedDomains).
+3. Nota firmware: su VIDAA U6/U7/U8/U9+ i fileWrite su websdk/Appinfo.json
+   falliscono con "permission check error" e le registrazioni non firmate
+   vengono scartate in silenzio; il repo sconsiglia service menu 1969
+   (rischio brick) e punta al bookmark o a Hisense_installApp se disponibile.
+
+Relazione con Sidee: il receiver su :80 e il canale pkgmgr della V2 restano
+il percorso autonomo; il flusso installer di Nuvio conferma che l'unica via
+affidabile documentata per registrare un'app nel launcher VIDAA è
+Hisense_installApp dal browser (con DNS spoof di un dominio trusted per
+HTTPS) o il semplice bookmark. Su VIDAA 9 il vincolo firme/permessi sopra
+resta il rischio principale.
+
+Skill hack-skills copiate in .agents/skills/ e rimesse a punto per questo
+obiettivo (rimosse android-pentesting-tricks e mobile-ssl-pinning-bypass,
+non pertinenti perché Nuvio è web app): network-protocol-attacks (DNS
+spoofing/poisoning del trucco vidaahub), recon-and-methodology,
+unauthorized-access-common-services, upload-insecure-files, file-access-vuln,
+tunneling-and-pivoting. Repo completo anche in hack-skills/ (110 skill).

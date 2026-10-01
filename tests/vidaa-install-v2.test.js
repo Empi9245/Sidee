@@ -7,10 +7,10 @@ const api = require("../web/vidaa-install-v2.js");
 const target = {appId:"nuviodebug",appName:"Nuvio TV",
   appUrl:"http://192.168.1.5:4173/?wrapper=vidaa",
   iconUrl:"http://192.168.1.5:4173/assets/images/icon.png",storeType:"store"};
-const provenance = {collectionId:"fixture",buildId:"fixture-build",
-  mode:"isolated-vidaa-install-v2",target};
+  const provenance = {collectionId:"fixture",buildId:"fixture-build",
+    mode:"isolated-vidaa-install-v2",target:Object.assign({}, target, {identityMd5:"f31ae32083f6dc690241c46ad36b9526"})};
 
-api.configureTarget(target);
+api.configureTarget(provenance.target);
 const original = {Version:2,AppInfo:[{Id:"existing",AppName:"Existing"},{Id:"nuviodebug",AppName:"Old"}]};
 const merged = JSON.parse(api.mergeRegistry(JSON.stringify(original)).json);
 assert.equal(merged.Version, 2, "top-level registry fields must be preserved");
@@ -210,6 +210,62 @@ const documentState = {activeElement:null};
   const verified3 = JSON.parse(registry3);
   assert.equal(verified3.Version, 2, "il registro merge conserva i campi di primo livello");
   assert.equal(verified3.AppInfo.find(item => item.Id === target.appId).URL, target.appUrl);
+
+  // Scenario 4: identita' nativa costruita assegnata con successo. Il mock
+  // nativo deriva il token dall'JSON assegnato (come vowOSContext) e il
+  // wrapper originale parte con quella identita': niente griglia raw.
+  let registry4 = JSON.stringify({Version:2,AppInfo:[{Id:"existing",AppName:"Existing"}]});
+  const read4 = () => registry4;
+  const service4 = { getIdentifier() {
+    const value = root4.navigator.appIdentifier;
+    return typeof value === "string" && value.indexOf("nuviodebug") >= 0 ? "tok-native==" : "";
+  } };
+  const hiUtils4 = (type, msg) => {
+    const value = root4.navigator.appIdentifier;
+    if (type === "fileWrite" && typeof value === "string" && value.indexOf("nuviodebug") >= 0) {
+      registry4 = msg.writedata;
+      return {ret:true, code:0, msg:"ok"};
+    }
+    return {ret:false, code:503, msg:"client request permission check error, please check appconfig"};
+  };
+  const elements4 = {
+    probe:makeElement("BUTTON"),install:makeElement("BUTTON",true),verify:makeElement("BUTTON"),
+    retry:makeElement("BUTTON"),status:makeElement("P"),origin:makeElement("P"),target:makeElement("P")
+  };
+  const doc4 = {currentScript:script,activeElement:elements4.probe,
+    getElementById(id) { return id === "install-v2-script" ? script : elements4[id]; },
+    addEventListener() {},querySelectorAll() { return [elements4.probe,elements4.install,elements4.verify,elements4.retry]; }};
+  const root4 = {location:{origin:"https://vidaa.duplecast.com",hostname:"vidaa.duplecast.com",protocol:"https:"},
+    navigator:{userAgent:"VIDAA test"},isSecureContext:true,Hisense_FileRead:read4,
+    HiUtils_createRequest:hiUtils4,vowOS:{service:service4}};
+  const reports4 = [];
+  async function fetcher4(url, options) {
+    if (url === "/manifest") return {ok:true,json:async () => provenance};
+    const report = JSON.parse(options.body);
+    reports4.push(report);
+    return {ok:true,json:async () => ({sha256:"1234567890abcdef",phase:report.phase,outcome:report.outcome})};
+  }
+  vm.runInNewContext(source, {window:root4,document:doc4,location:root4.location,navigator:root4.navigator,
+    Hisense_FileRead:read4,HiUtils_createRequest:hiUtils4,vowOS:root4.vowOS,fetch:fetcher4,URL,TextEncoder,Promise,
+    setTimeout,clearTimeout,console}, {timeout:8000});
+  await elements4.probe.click({preventDefault() {}});
+  await elements4.install.click({preventDefault() {}});
+  const installReport4 = reports4[1];
+  assert.equal(installReport4.accessContext.hostname, "vidaa.duplecast.com",
+    "la pagina dichiara il contesto app in cui gira");
+  const lab4 = installReport4.identifierLab;
+  assert.equal(lab4.identityAssignment.assigned, true);
+  assert.match(lab4.identityAssignment.identityJson, /"appid":"nuviodebug"/);
+  assert.match(lab4.identityAssignment.identityJson, /f31ae32083f6dc690241c46ad36b9526/,
+    "l'md5 dell'identita' arriva dal manifest (PC)");
+  assert.equal(lab4.identityAssignment.identifierAfter, '"tok-native=="',
+    "il layer nativo accetta l'identita' e produce il token di sessione");
+  assert.deepEqual(lab4.identifiersTried, ["nativo-assegnato"],
+    "con l'identita' nativa riuscita la griglia raw non parte");
+  const nativeAttempt4 = installReport4.attempts.find(item => item.primitive === "HiUtils fileWrite (identita' nativa assegnata)");
+  assert.equal(nativeAttempt4.ok, true);
+  assert.equal(installReport4.outcome, "REGISTRY_WRITE_VERIFIED_REBOOT_REQUIRED");
+  assert.equal(JSON.parse(registry4).AppInfo.find(item => item.Id === target.appId).Id, target.appId);
 
   const controls = [makeElement("BUTTON"),makeElement("BUTTON"),makeElement("BUTTON")];
   const navDoc = {activeElement:controls[0],querySelectorAll:() => controls};
