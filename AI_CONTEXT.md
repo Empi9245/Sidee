@@ -18,6 +18,11 @@ Last updated: 2026-10-01
 > upload/retry. VM browser/module shim/native-getter-forbidden click/retry/error
 > tests and2 HTTP tests pass; off-TV only. Check actual post-activation provenance
 > and preserve any receipt. Old TLS server is normal Sidee, not isolated mode.
+> Activation now complete: HTTP7320, collection bridge-4ae91e9a77d646749cc6eea99d66aefd,
+> build6ecf39c1d5849466/runtimeHEADc8f6e13/dirtyfalse/null receipt. Only empty
+> HTTP2848 replaced after mode/collection/hash/access-file/listener/process-name
+> checks; earlier TV access/manifest saved locally. DNS18896 preserved, PC root/
+> JS200 and updated HTML/client verified. No TLS or old normal server activated.
 
 > CURRENT: owner confirms TV .1.10 and primary DNS .1.5. Do not ask again.
 > Fixed lan_dns failure where OSError persisting status prevented DNS reply;

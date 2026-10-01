@@ -16,6 +16,11 @@ Test JS VM (native access vietato), retry identico e redirect respinto passati;
 2test HTTP receiver passati. Attivazione pagina/provenienza reale da verificare
 in /status; preservare eventuale ricevuta. Nessuna nuova operazione TV/installante.
 
+Correzione attiva: HTTP7320, collection bridge-4ae91e9a77d646749cc6eea99d66aefd,
+build bridge-6ecf39c1d5849466/runtime HEADc8f6e13/dirtyfalse. Sostituito solo
+receiver2848 vuoto dopo verifica identità/listener; accessi TV precedenti salvati.
+DNS18896 intatto, root/JS200 dal PC, receipt null. HTTPS ancora non attivato.
+
 ## Correzione DNS e prossimo tentativo dopo riavvio TV
 
 IP TV .1.10 e DNS primario .1.5 confermati dall'utente. Corretto lan_dns:

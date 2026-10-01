@@ -27,6 +27,13 @@ respinto con errore visibile. Test receiver HTTP2 passati. Non sono prove TV.
 Attivare solo la nuova pagina dopo verifica receipt/provenienza e conservare
 evidenze pre-fix; leggere nuovo /status per PID/build reali, non vecchi PID sotto.
 HTTPS fidato del nome VIDAA rimane blocco distinto dalla raccolta web ordinaria.
+Attivazione completata: HTTP7320, collection bridge-4ae91e9a77d646749cc6eea99d66aefd,
+build bridge-6ecf39c1d5849466/runtime HEADc8f6e13/dirtyfalse, receipt null.
+Sostituito solo HTTP2848 dopo mode/collection/hash, file accessi/listener/nome
+processo verificati e assenza ricevuta. Evidenze precedenti TV conservate in
+bridge-domain-http-before-click-fix-20261001.json e manifest-before-click-fix.
+DNS18896 intatto; root/JS aggiornati HTTP200 dal PC. Nessun TLS/server storico
+avviato. Per operazioni successive usare nuovo /status e provenienza live.
 Le sezioni successive sono cronologia, superate ove incompatibili.
 
 ## Stato corrente: IP e DNS confermati, correzione DNS attiva

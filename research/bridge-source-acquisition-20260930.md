@@ -479,3 +479,18 @@ body dopo errore upload; redirect respinto mostra errore senza cambiare location
 Fixture fonti/limiti/dinieghi passate, 2test HTTP receiver passati. Non sono prove
 del browser TV, di HTTPS o dell'importazione Nuvio. Preservare ricevuta e dati
 pre-fix prima dell'attivazione; registrare nuovo build/collection/PID live.
+
+Attivazione completata dopo commitc8f6e13: mode/collection/preimageSHA e receipt
+null del vecchio2848, file accessi localePID2848 e listener .1.5:80/2848 verificati;
+ProcessNamepython3.13 confermato. Non disponibile il percorso WMI, perciò non
+asserito: identità corroborata da mode/hash/collection e file generato dal receiver.
+Salvati prima di fermare il solo2848 i due JSON bridge-domain-http-before-click-fix-
+20261001 e bridge-domain-manifest-before-click-fix-20261001, ignorati da Git.
+Nuovo HTTP7320 avviato nascosto con runtime bundled e modalità isolata; DNS18896
+preservato. Collection bridge-4ae91e9a77d646749cc6eea99d66aefd,
+build bridge-6ecf39c1d5849466/runtimeHEADc8f6e1395edee58a9364c0c431d8c665d37f3856,
+dirtyfalse. JS SHA7c3a4809bb830a7666e9bb6c139ade45448f92ca87871f69acb1dd9d9ff4b6c5;
+HTML SHAe360f8f62e0f042b92346c6b2298e0adabafedd6a092779e548ce226f06b67e4.
+Root e JS HTTP200 dal PC, tipo bottoni e guard browser/redirecterror verificati,
+receipt null. Readiness aggiornata e attribuisce i GET TV alla versione precedente,
+non al fix ancora privo di una nuova prova TV. Nessun TLS o server Sidee normale.
