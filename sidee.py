@@ -4387,6 +4387,7 @@ def main():
     parser.add_argument("--post-store-check", action="store_true", help="Serve isolated read-only post-Store inventory page only")
     parser.add_argument("--bridge-source-check", action="store_true", help="Collect already-loaded script source in isolation; no native APIs")
     parser.add_argument("--check-port", type=int, default=8082, help="Isolated bridge-source receiver port (default 8082)")
+    parser.add_argument("--check-https", action="store_true", help="Serve the isolated bridge-source receiver over HTTPS")
     args = parser.parse_args()
     if args.post_store_check and args.bridge_source_check:
         parser.error("Select one isolated mode")
@@ -4396,7 +4397,10 @@ def main():
     if args.bridge_source_check:
         from bridge_source_check import serve
         try:
-            serve(local_ip, args.check_port)
+            serve(local_ip, args.check_port, use_https=args.check_https)
+        except PermissionError:
+            print(f"[ERROR] Porta {args.check_port} non accessibile. Avvia start-windows.bat come Administrator.")
+            raise SystemExit(1)
         except (OSError, RuntimeError) as exc:
             print(f"[ERROR] {exc}")
             raise SystemExit(1)

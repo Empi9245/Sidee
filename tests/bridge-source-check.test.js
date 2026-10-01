@@ -13,16 +13,16 @@ function body(text, status = 200) {
 }
 function root(scripts = [], timing = []) {
   const result = {
-    location: { href: "http://vidaahub.com:8082/", origin: "http://vidaahub.com:8082", hostname: "vidaahub.com", protocol: "http:" },
+    location: { href: "https://vidaahub.com/", origin: "https://vidaahub.com", hostname: "vidaahub.com", protocol: "https:" },
     document: { scripts }, performance: { getEntriesByType: () => timing },
-    navigator: { userAgent: "off-TV fixture" }, isSecureContext: false
+    navigator: { userAgent: "off-TV fixture" }, isSecureContext: true
   };
   for (const name of ["Hisense_installApp", "Hisense_FileRead", "HiUtils_createRequest", "vowOS", "vowOSContext", "clientInformation"])
     Object.defineProperty(result, name, { get() { throw new Error("Native access forbidden: " + name); } });
   return result;
 }
 function browserClient(fetcher) {
-  const script = { src: "http://vidaahub.com:8082/bridge-source-check.js?v=fixture" };
+  const script = { src: "https://vidaahub.com/bridge-source-check.js?v=fixture" };
   const browser = root([script]);
   Object.freeze(browser.location);
   const elements = {};
@@ -60,7 +60,7 @@ function browserClient(fetcher) {
   await ui.elements.retry.click(event);
   assert.equal(defaultsPrevented, 2);
   assert.equal(uiCalls[1].options.body, uiCalls[2].options.body);
-  assert.equal(ui.browser.location.href, "http://vidaahub.com:8082/");
+  assert.equal(ui.browser.location.href, "https://vidaahub.com/");
   assert.match(ui.elements.status.textContent, /Invio completato/);
   const rejected = browserClient(async (_, options) => {
     assert.equal(options.redirect, "error");
@@ -68,9 +68,9 @@ function browserClient(fetcher) {
   });
   await rejected.elements.collect.click(event);
   assert.match(rejected.elements.status.textContent, /non riusciti/);
-  assert.equal(rejected.browser.location.href, "http://vidaahub.com:8082/");
+  assert.equal(rejected.browser.location.href, "https://vidaahub.com/");
   const calls = [];
-  const report = await collect(root([{ src: "http://vidaahub.com:8082/bridge-source-check.js?v=fixture" }], [
+  const report = await collect(root([{ src: "https://vidaahub.com/bridge-source-check.js?v=fixture" }], [
     { initiatorType: "script", name: "https://tvmodules-vidaa.vidaahub.com/deviceapi/vidaatv.js" },
     { initiatorType: "fetch", name: "https://tvmodules-vidaa.vidaahub.com/private" },
     { initiatorType: "script", name: "https://tvmodules-vidaa.vidaahub.com/deviceapi/vidaatv.js" }
@@ -103,7 +103,7 @@ function browserClient(fetcher) {
   const native = root(); delete native.performance;
   const noTiming = await collect(native, () => { throw new Error("No fetch expected"); }, provenance);
   assert.equal(noTiming.discovery.timingStatus, "UNAVAILABLE");
-  const limited = await collect(root(Array.from({length: 14}, (_, i) => ({src: "http://vidaahub.com:8082/test" + i + ".js"}))),
+  const limited = await collect(root(Array.from({length: 14}, (_, i) => ({src: "https://vidaahub.com/test" + i + ".js"}))),
     async () => body("example"), provenance);
   assert.equal(limited.sources.filter(item => item.status === "COMPLETE").length, 12);
   assert.equal(limited.sources.filter(item => item.status === "NOT_COLLECTED_LIMIT").length, 2);

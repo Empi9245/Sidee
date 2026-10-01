@@ -57,6 +57,42 @@ class BridgeSourceReceiverTest(unittest.TestCase):
                 server.server_close()
                 worker.join(timeout=3)
 
+    def test_https_origin_and_receiver_context_are_enforced(self):
+        provenance = {"collectionId": "test", "buildId": "fixture", "fileSha256": {"fixture": "same-source"}}
+        with tempfile.TemporaryDirectory(prefix="sidee-source-https-test-") as directory:
+            reports = pathlib.Path(directory)
+            server = SourceHTTPServer(("127.0.0.1", 0), make_handler(reports, provenance))
+            server.scheme = "https"
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            origin = "https://vidaahub.com"
+
+            try:
+                fixture = {"kind": "loaded-bridge-source-v1", "readOnly": True, "timestamp": "2026-09-30T12:00:00Z",
+                           "collectionId": "test", "clientBuildId": "fixture", "userAgent": "off-TV fixture",
+                           "accessContext": {"origin": origin, "hostname": "vidaahub.com", "protocol": "https:", "secureContext": True},
+                           "discovery": {"timingStatus": "OBSERVED", "timingCount": 0},
+                           "sources": []}
+                conn = http.client.HTTPConnection(*server.server_address, timeout=3)
+                conn.request("POST", "/snapshot", json.dumps(fixture), {
+                    "Host": "vidaahub.com",
+                    "Origin": origin,
+                    "Content-Type": "application/json",
+                })
+                response = conn.getresponse()
+                self.assertEqual(response.status, 200)
+                response.read()
+                conn.close()
+
+                saved = json.loads((reports / "bridge-source-latest.json").read_text())
+                self.assertEqual(saved["accessContext"]["origin"], "https://vidaahub.com")
+                self.assertEqual(saved["receiverContext"]["transport"], "https")
+                self.assertTrue(saved["accessContext"]["secureContext"])
+            finally:
+                server.shutdown()
+                server.server_close()
+                worker.join(timeout=3)
+
     def test_isolation_build_binding_hashes_and_single_receipt(self):
         provenance = {"collectionId": "test", "buildId": "fixture", "fileSha256": {"fixture": "same-source"}}
         with tempfile.TemporaryDirectory(prefix="sidee-source-test-") as directory:

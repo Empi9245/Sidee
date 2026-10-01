@@ -1,0 +1,8 @@
+{
+  "runSafeDiagnostic": false,
+  "runSafeDiagnosticV2": false,
+  "runDirectAppInfoWriteNoop": false,
+  "runDirectAppInfoWriteNoopV2": false,
+  "runIdentityWriteGateLabV1": false,
+  "note": "Idle. Identifier Write-Gate Lab completed manually: 1470, 1876 and 2568 all returned the same AppConfig 503 with identical registry readback."
+}

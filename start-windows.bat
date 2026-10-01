@@ -28,6 +28,6 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-echo Sulla TV apri http://vidaahub.com e premi Raccogli una volta.
-%SIDEE_PY% sidee.py --bridge-source-check --check-port 80
+echo Sulla TV apri https://vidaahub.com e premi Raccogli una volta.
+%SIDEE_PY% sidee.py --bridge-source-check --check-port 443 --check-https
 pause

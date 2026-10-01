@@ -11,13 +11,16 @@ import json
 import os
 import pathlib
 import re
+import shutil
 import socket
+import ssl
 import subprocess
 import threading
 import urllib.parse
 import uuid
 
 ROOT = pathlib.Path(__file__).resolve().parent
+CERT_DIR = ROOT / ".sidee-certs"
 PRIVATE_LITERAL = re.compile(
     r"(?:token|secret|password|cookie|authorization|signature|credential|api[_-]?key)"
     r"[\"']?\s*[:=]\s*[\"'`][^\"'`\r\n]+[\"'`]|Bearer\s+[A-Za-z0-9._~+/\-]{8,}", re.I
@@ -25,6 +28,68 @@ PRIVATE_LITERAL = re.compile(
 STATUSES = {"SIDEE_OWNED_SKIPPED", "PRIVATE_URL_SKIPPED", "OUT_OF_SCOPE", "DENIED",
             "UNAVAILABLE", "TRUNCATED", "COMPLETE", "EMPTY", "SENSITIVE_SOURCE_OMITTED", "NOT_COLLECTED_LIMIT"}
 FILES = ("bridge_source_check.py", "web/bridge-source-check.js", "web/bridge-source-check.html", "sidee.py")
+
+
+def _find_openssl():
+    openssl = shutil.which("openssl")
+    if openssl or os.name != "nt":
+        return openssl
+    candidates = [
+        r"C:\\Program Files\\Git\\usr\\bin\\openssl.exe",
+        r"C:\\Program Files\\OpenSSL-Win64\\bin\\openssl.exe",
+        r"C:\\Program Files (x86)\\OpenSSL-Win32\\bin\\openssl.exe",
+    ]
+    return next((path for path in candidates if os.path.isfile(path)), None)
+
+
+def generate_cert():
+    CERT_DIR.mkdir(parents=True, exist_ok=True)
+    cert = CERT_DIR / "bridge-source-vidaahub-v1.crt"
+    key = CERT_DIR / "bridge-source-vidaahub-v1.key"
+    if cert.exists() and key.exists():
+        return cert, key
+
+    openssl = _find_openssl()
+    if not openssl:
+        reuse_cert = CERT_DIR / "sidee-vidaa-multihost-store-v2.crt"
+        reuse_key = CERT_DIR / "sidee-vidaa-multihost-store-v2.key"
+        if reuse_cert.exists() and reuse_key.exists():
+            return reuse_cert, reuse_key
+        raise RuntimeError("OpenSSL non trovato e nessun certificato HTTPS Sidee riutilizzabile presente.")
+
+    hosts = ["vidaahub.com", "www.vidaahub.com"]
+    san = ",".join("DNS:" + host for host in hosts)
+    cmd = [
+        openssl, "req", "-x509", "-newkey", "rsa:2048",
+        "-keyout", str(key), "-out", str(cert), "-days", "30", "-nodes",
+        "-subj", "/CN=vidaahub.com",
+        "-addext", "subjectAltName=" + san,
+    ]
+    try:
+        subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except subprocess.CalledProcessError:
+        config = CERT_DIR / "bridge-source-openssl.cnf"
+        config.write_text(
+            "[req]\n"
+            "distinguished_name = dn\n"
+            "prompt = no\n"
+            "x509_extensions = v3_req\n"
+            "[dn]\n"
+            "CN = vidaahub.com\n"
+            "[v3_req]\n"
+            "subjectAltName = @alt_names\n"
+            "[alt_names]\n"
+            "DNS.1 = vidaahub.com\n"
+            "DNS.2 = www.vidaahub.com\n",
+            encoding="utf-8",
+        )
+        fallback = [
+            openssl, "req", "-x509", "-newkey", "rsa:2048",
+            "-keyout", str(key), "-out", str(cert), "-days", "30", "-nodes",
+            "-config", str(config), "-extensions", "v3_req",
+        ]
+        subprocess.run(fallback, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return cert, key
 
 
 def manifest():
@@ -119,8 +184,8 @@ def sanitize(data, provenance):
             "limits": ["Client context and user agent are reported by the page, not TV attestation.",
                        "Only the current page; no other-process, native-code or full-firmware coverage.",
                        "No native operations or install/launcher/resource persistence test.",
-                       "No DNS, TLS impersonation, SDK loading or Git report upload.",
-                       "HTTP vidaahub differs from the historical HTTPS context; LAN is a separate observation."]}
+                       "No SDK loading or Git report upload.",
+                       "Local DNS/TLS/browser context is an observation path, not proof of TV service trust."]}
 
 
 def make_handler(report_dir, provenance=None):
@@ -158,7 +223,8 @@ def make_handler(report_dir, provenance=None):
                 return self.reply(200, provenance)
             if path == "/status":
                 return self.reply(200, {"mode": "isolated-bridge-source-check", "provenance": provenance,
-                                        "receipt": latest, "httpAccess": self.server.access_snapshot()})
+                                        "transport": self.server.scheme, "receipt": latest,
+                                        "httpAccess": self.server.access_snapshot()})
             self.reply(404, {"error": "Not found"})
 
         def do_POST(self):
@@ -168,7 +234,7 @@ def make_handler(report_dir, provenance=None):
             if self.path != "/snapshot":
                 return self.reply(404, {"error": "Not found"})
             origin = self.headers.get("Origin")
-            expected_origin = "http://" + self.headers.get("Host", "")
+            expected_origin = self.server.scheme + "://" + self.headers.get("Host", "")
             if origin != expected_origin:
                 return self.reply(403, {"error": "Origin mismatch"})
             try:
@@ -188,7 +254,7 @@ def make_handler(report_dir, provenance=None):
                         return self.reply(200, latest)
                     return self.reply(409, {"error": "Single collection already received"})
                 payload["receivedAt"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
-                payload["receiverContext"] = {"transport": "http", "hostHeader": self.headers.get("Host"), "originHeader": origin}
+                payload["receiverContext"] = {"transport": self.server.scheme, "hostHeader": self.headers.get("Host"), "originHeader": origin}
                 saved = (json.dumps(payload, ensure_ascii=False, indent=2) + "\n").encode()
                 report_dir.mkdir(parents=True, exist_ok=True)
                 stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
@@ -215,6 +281,7 @@ class SourceHTTPServer(http.server.ThreadingHTTPServer):
 
     def __init__(self, address, handler, access_path=None):
         self.access_path = access_path
+        self.scheme = "http"
         self.access_lock = threading.Lock()
         self.access_clients = {}
         super().__init__(address, handler)
@@ -227,7 +294,7 @@ class SourceHTTPServer(http.server.ThreadingHTTPServer):
         if not address.is_private:
             return
         allowed_paths = {'/', '/bridge-source-check.html', '/bridge-source-check.js', '/manifest', '/status', '/snapshot'}
-        allowed_hosts = {'vidaahub.com', 'vidaahub.com:80', self.server_address[0],
+        allowed_hosts = {'vidaahub.com', 'vidaahub.com:80', 'vidaahub.com:443', self.server_address[0],
                          self.server_address[0] + ':' + str(self.server_address[1])}
         with self.access_lock:
             if client not in self.access_clients and len(self.access_clients) >= 32:
@@ -243,7 +310,7 @@ class SourceHTTPServer(http.server.ThreadingHTTPServer):
                 item['paths'][item['lastPath']] = item['paths'].get(item['lastPath'], 0) + 1
             item['lastAt'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
             if self.access_path is not None:
-                saved = {'mode': 'isolated-collector-http-access', 'pid': os.getpid(),
+                saved = {'mode': 'isolated-collector-http-access', 'transport': self.scheme, 'pid': os.getpid(),
                          'bind': list(self.server_address), 'clients': self.access_clients,
                          'scope': 'Passive own receiver access; no body, query, cookies, TLS capture or TV API.'}
                 try:
@@ -270,15 +337,33 @@ class SourceHTTPServer(http.server.ThreadingHTTPServer):
         super().server_bind()
 
 
-def serve(host, port=8082):
+def enable_https(server, cert, key):
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.load_cert_chain(certfile=str(cert), keyfile=str(key))
+    server.socket = context.wrap_socket(server.socket, server_side=True)
+    server.scheme = "https"
+    return server
+
+
+def _status_connection(host, port, use_https):
+    if use_https:
+        return http.client.HTTPSConnection(host, port, timeout=3, context=ssl._create_unverified_context())
+    return http.client.HTTPConnection(host, port, timeout=3)
+
+
+def serve(host, port=8082, *, use_https=False, cert=None, key=None):
     provenance = manifest()
+    if use_https:
+        cert, key = (cert, key) if cert and key else generate_cert()
     try:
         server = SourceHTTPServer((host, port), make_handler(ROOT / "reports", provenance),
                                   ROOT / 'reports/bridge-domain-http-status.json')
+        if use_https:
+            enable_https(server, cert, key)
     except OSError as exc:
-        if exc.errno != errno.EADDRINUSE and getattr(exc, "winerror", None) not in {10048, 10013}:
+        if exc.errno != errno.EADDRINUSE and getattr(exc, "winerror", None) != 10048:
             raise
-        connection = http.client.HTTPConnection(host, port, timeout=3)
+        connection = _status_connection(host, port, use_https)
         try:
             connection.request("GET", "/status")
             response = connection.getresponse()
@@ -295,9 +380,17 @@ def serve(host, port=8082):
             connection.close()
         print("[BRIDGE-SOURCE] Collector gia attivo: raccolta e ricevuta correnti preservate.", flush=True)
         return
-    entry = "http://vidaahub.com/" if port == 80 else f"http://{host}:{port}/bridge-source-check.html"
+    scheme = "https" if use_https else "http"
+    if use_https and port == 443:
+        entry = "https://vidaahub.com/"
+    elif not use_https and port == 80:
+        entry = "http://vidaahub.com/"
+    else:
+        entry = f"{scheme}://{host}:{port}/bridge-source-check.html"
     print(f"[BRIDGE-SOURCE] Receiver {entry}", flush=True)
-    print("[BRIDGE-SOURCE] Explicit single collection only. No DNS/TLS/SDK/native/Git workers.", flush=True)
+    if use_https:
+        print(f"[BRIDGE-SOURCE] HTTPS certificate: {cert}", flush=True)
+    print("[BRIDGE-SOURCE] Explicit single collection only. No SDK/native/Git workers.", flush=True)
     try:
         server.serve_forever(poll_interval=0.5)
     except KeyboardInterrupt:

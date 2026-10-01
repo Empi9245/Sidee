@@ -4,9 +4,9 @@ The collector buttons now initialize even when the TV browser defines a module
 shim; Node exports apply only outside a browser. Control/upload requests reject
 redirects and omit credentials, with an error shown in the page. Buttons prevent
 default navigation. HTTP requests from the owner's TV for root and script were
-observed on1Oct2026; no source receipt yet. This collector still serves HTTP80.
-Existing self-signed domain certificates are not proof of trusted VIDAA HTTPS;
-the normal Sidee HTTPS server also has unrelated workers and is not used here.
+observed on1Oct2026; no source receipt yet. The isolated collector now serves
+the vidaa-edge-style HTTPS route on port 443 with a local self-signed
+`vidaahub.com` certificate.
 
 LAN DNS diagnostics keep separate target query/reply counters for up to32 clients.
 `repliesSubmitted` means the local socket sent a reply, not that the TV received
@@ -16,16 +16,16 @@ queries retain both PC and TV client metrics. Tests cover real UDP/TCP delivery
 with a simulated locked status file. Current known TV IP .1.10 and primary DNS
 .1.5 are owner-confirmed. Runtime PID/hash are in the local DNS status file.
 
-The isolated HTTP collector records minimal access diagnostics in `/status`
+The isolated HTTPS collector records minimal access diagnostics in `/status`
 (`httpAccess`) and local ignored `reports/bridge-domain-http-status.json`.
 Separate TCP connection/request counts and known-page/script counts distinguish
 DNS visibility from page delivery. Private IPs only, maximum 32 clients; no query
-strings, request bodies, cookies or TLS capture. No TV API is called by this
+strings, request bodies, cookies or private TLS payload capture. No TV API is called by this
 diagnostic. A null collection receipt does not imply the page was never opened.
 
 Current connection confirmed by owner: **TV and PC are on the router LAN**.
 Set TV primary DNS to **192.168.1.5**, reopen the Browser and visit
-**http://vidaahub.com/**, then press **Raccogli una volta**.
+**https://vidaahub.com/**, then press **Raccogli una volta**.
 `start-windows.bat` now starts/reuses `lan_dns.py` before the collector:
 UDP/TCP only on 192.168.1.5:53, clients 192.168.1.0/24, vidaahub.com → this PC,
 ordinary DNS via router 192.168.1.1. No Store/native/SDK/capture workers or
@@ -37,16 +37,16 @@ if the PC address/router subnet changes. An existing matching DNS service is
 reused via bounded local health checks; foreign/stale services remain intact.
 
 Windows startup fixed: `start-windows.bat` now opens the isolated collector on
-HTTP/80 after the isolated LAN DNS. It does not start Store workers, elevate, alter firewall rules or
+HTTPS/443 after the isolated LAN DNS. It does not start Store workers, alter firewall rules or
 stop existing processes. A second launch reuses the same matching receiver and
 receipt. The previous launcher killed all Sidee instances and then collided
 with Windows ICS DNS. Keep ICS running. Current process provenance is in
-http://192.168.1.5/status; older PID references below are historical.
+https://192.168.1.5/status; older PID references below are historical.
 
 For a TV connected to **this PC's Windows hotspot**, primary DNS is
 **192.168.137.1**, where ICS actually answers vidaahub.com with 192.168.1.5.
-The Ethernet IP 192.168.1.5 serves HTTP but does not answer DNS in this setup.
-After a TV DNS change, close/reopen the Browser and use http://vidaahub.com/.
+The Ethernet IP 192.168.1.5 serves the collector but does not answer DNS in this setup.
+After a TV DNS change, close/reopen the Browser and use https://vidaahub.com/.
 This instruction is specific to the hotspot; TV router-network settings are
 not confirmed. A TV "name not resolved" report does not mean the collector ran.
 
@@ -59,13 +59,13 @@ Subsequent explicit owner approval received: historical :8080 receiver restored
 as PID9552, existing report unchanged, no new collection. Collector PID2312 and
 ICS remain intact; the earlier approval block is resolved.
 
-Current collector entry: **http://vidaahub.com/**, served at `/` on HTTP/80 by
-`python sidee.py --bridge-source-check --check-port 80`. The owner explicitly
-requested this routing correction. Existing Windows ICS DNS now returns the
+Current collector entry: **https://vidaahub.com/**, served at `/` on HTTPS/443 by
+`python sidee.py --bridge-source-check --check-port 443 --check-https`. The owner explicitly
+requested restoration of the previous vidaa-edge-style HTTPS context. Existing Windows ICS DNS now returns the
 current PC IP 192.168.1.5 after repair of the stale hosts entry (raw backup kept
 locally); ICS and post-Store receiver are preserved. PC domain/root HTTP 200
-verified. TV receipt still required: open the URL and click Raccogli una volta.
-Check receiver state at http://192.168.1.5/status. No TLS/native probes or SDK
+verified historically; the current route is HTTPS. TV receipt still required: open the URL and click Raccogli una volta.
+Check receiver state at https://192.168.1.5/status. No native probes or SDK
 execution. `setup_bridge_domain.ps1` is a guarded one-time repair for that exact
 stale hosts entry, using the expected full-file SHA256; do not rerun after repair.
 The previous :8082 receiver and opening instructions below are historical.
@@ -331,10 +331,10 @@ Double-click:
 start-windows.bat
 ```
 
-This launcher runs the isolated collector on HTTP/80. Python 3 is required;
+This launcher runs the isolated collector on HTTPS/443. Python 3 is required;
 the bundled Codex runtime is used when no Python launcher is in PATH.
-The local vidaahub route has already been repaired on this PC. No Administrator
-prompt or OpenSSL is required for this collector. A second launch preserves an
+The local vidaahub route has already been repaired on this PC. Run it as
+Administrator if Windows blocks binding to port 443. A second launch preserves an
 existing matching collector and its receipt.
 
 ### macOS / Linux
@@ -346,7 +346,7 @@ sudo ./start-mac-linux.sh
 
 ## TV steps
 
-Current collector: open **http://vidaahub.com/** and press **Raccogli una volta**.
+Current collector: open **https://vidaahub.com/** and press **Raccogli una volta**.
 The numbered list below is historical legacy-mode documentation; do not use it
 for this collection or rerun the exhausted install/identity/write probes.
 
