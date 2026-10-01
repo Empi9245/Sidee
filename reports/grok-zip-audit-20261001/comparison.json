@@ -1,0 +1,119 @@
+{
+  "archive": "C:\\Users\\empi0\\Downloads\\McEE9pUVlMV1xOpw-grok-workspace.zip",
+  "archiveSha256": "71D59258F8C4A8F9CD764138E4744633836B1C8725A3EFB5A18C4627AC07EB8C",
+  "checkedOn": "2026-10-01 Europe/Rome",
+  "files": [
+    {
+      "path": "screenshots/app-builder-preview.json",
+      "bytes": 1192,
+      "sourceSha256": "8BCA027547A804219CF438617D297F0BAF6BD88352D92850AD34B5384BB3D632",
+      "existsInSidee": false,
+      "existsInNuvio": false
+    },
+    {
+      "path": "screenshots/install-ok.png",
+      "bytes": 80219,
+      "sourceSha256": "A930DA9399686D51716529686A7FFC0D2D0040C06648BECDB43C706DA50F8BCA",
+      "existsInSidee": false,
+      "existsInNuvio": false
+    },
+    {
+      "path": "src/components/tv/guide-view.tsx",
+      "bytes": 1505,
+      "sourceSha256": "5E3B8B9143B8BF06243349B6A36E4721B1B17731E9C23E659D7B38672C74A0F3",
+      "existsInSidee": false,
+      "existsInNuvio": false
+    },
+    {
+      "path": "src/components/tv/home-view.tsx",
+      "bytes": 3610,
+      "sourceSha256": "933B17815D35C59459C6BD31EB683CB34BF14282D0595F12AD7479092CC53EE4",
+      "existsInSidee": false,
+      "existsInNuvio": false
+    },
+    {
+      "path": "src/components/tv/install-view.tsx",
+      "bytes": 4950,
+      "sourceSha256": "9CF0A59334CCBFBF5414761BCDA6D8973CB2AB2D04BA2564B57E6EE7FD1D11AD",
+      "existsInSidee": false,
+      "existsInNuvio": false
+    },
+    {
+      "path": "src/components/tv/scan-view.tsx",
+      "bytes": 4073,
+      "sourceSha256": "76254AC19E937AE42AD4D14DE85C67A7288A33FC5142F5448FCD23BBFD463739",
+      "existsInSidee": false,
+      "existsInNuvio": false
+    },
+    {
+      "path": "src/components/tv/shell.tsx",
+      "bytes": 2547,
+      "sourceSha256": "DADFF3292D562A0AF971F23A0F78D78CBEC39D352F5D9673643FE62D2B627AF4",
+      "existsInSidee": false,
+      "existsInNuvio": false
+    },
+    {
+      "path": "src/components/tv/use-tv-keys.ts",
+      "bytes": 1000,
+      "sourceSha256": "104CFF7376EDEC0DFB97358CD77ED5356E148879984AB1F9FBCA36C4BA781D07",
+      "existsInSidee": false,
+      "existsInNuvio": false
+    },
+    {
+      "path": "src/lib/vidaa/bridge.ts",
+      "bytes": 9955,
+      "sourceSha256": "5099CF0C5A973859A75997ACAC5CC85530F6D08E236CCA48FDF6FC94B10B6840",
+      "existsInSidee": false,
+      "existsInNuvio": false
+    },
+    {
+      "path": "src/lib/vidaa/i18n.ts",
+      "bytes": 5722,
+      "sourceSha256": "5A2D6F7302DD3F14816085103EE7FB49159B83A5EA9D76F43310CCC658E0EDB3",
+      "existsInSidee": false,
+      "existsInNuvio": false
+    },
+    {
+      "path": "src/lib/vidaa/install.ts",
+      "bytes": 5084,
+      "sourceSha256": "F3A5CC6F1EB81EE01FF3B439A737285FC60F156CC2E0AEFD675CDA3C3E11CDF2",
+      "existsInSidee": false,
+      "existsInNuvio": false
+    },
+    {
+      "path": "src/lib/vidaa/profile.ts",
+      "bytes": 1731,
+      "sourceSha256": "CE7703F6D5B49187D72161AA69780476159A19610BCB463239D7D4C4D6D125B9",
+      "existsInSidee": false,
+      "existsInNuvio": false
+    },
+    {
+      "path": "src/lib/vidaa/store.ts",
+      "bytes": 1303,
+      "sourceSha256": "3362F38608EAE9FF2A097D21C72EF8187D104B514A861D5DE5CB4BBCEB646485",
+      "existsInSidee": false,
+      "existsInNuvio": false
+    },
+    {
+      "path": "src/lib/vidaa/types.ts",
+      "bytes": 2071,
+      "sourceSha256": "A335079035336207B2011A53016E21D403571D871703DE18B1D267D0F80FE12E",
+      "existsInSidee": false,
+      "existsInNuvio": false
+    },
+    {
+      "path": "src/routes/__root.tsx",
+      "bytes": 1586,
+      "sourceSha256": "7B77AF42722F4F040B240C34A5E52632D62FC0DEDD9218AF5B646AAB119D3479",
+      "existsInSidee": false,
+      "existsInNuvio": false
+    },
+    {
+      "path": "src/routes/index.tsx",
+      "bytes": 1152,
+      "sourceSha256": "D4ADDC08FE2979CE2B5AC0C13D0F0F6C0540DC1548C62ACBDB8F1B23801BBE09",
+      "existsInSidee": false,
+      "existsInNuvio": false
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "checkedOn": "2026-10-01 Europe/Rome",
+  "scope": "Extracted source executed only in isolated JavaScript contexts with simulated or mocked APIs; no network or TV interaction",
+  "findings": [
+    {
+      "scenario": "Fresh desktop simulation, FHD off",
+      "classification": "REJECTED",
+      "verified": false
+    },
+    {
+      "scenario": "Desktop simulation, FHD on; no TV present",
+      "classification": "VERIFIED INSTALLED",
+      "verified": true
+    },
+    {
+      "scenario": "Desktop simulation, FHD off after previous FHD success",
+      "classification": "VERIFIED INSTALLED",
+      "verified": true
+    },
+    {
+      "scenario": "Synthetic TV user agent with native wrappers absent",
+      "detectedRealTv": false,
+      "classification": "VERIFIED INSTALLED",
+      "verified": true
+    },
+    {
+      "scenario": "Mock readback has same name but different target ID and URL; requested entry absent",
+      "classification": "VERIFIED INSTALLED",
+      "verified": true
+    },
+    {
+      "scenario": "Mock denied write and callback zero",
+      "classification": "REJECTED",
+      "verified": false,
+      "subsequentCalls": {
+        "notifications": 1,
+        "legacyRequests": 1
+      }
+    },
+    {
+      "scenario": "Mock API never invokes callback; source has no timeout",
+      "result": "still pending"
+    },
+    {
+      "scenario": "Keyboard handler exercised with synthetic events",
+      "directionalKeysIgnoredByHook": [
+        "ArrowLeft",
+        "ArrowUp",
+        "ArrowRight",
+        "ArrowDown"
+      ],
+      "handledCalls": {
+        "blue": 1,
+        "back": 1
+      }
+    }
+  ]
+}

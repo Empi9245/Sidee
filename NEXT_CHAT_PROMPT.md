@@ -39,8 +39,7 @@ navigazione e il receiver non restituisce redirect; causa/destinazione esatta
 del salto restano non osservate. Nessun listener443 oggi. Cert locale pubblico
 vidaahub.com.crt auto-firmato, SAN root/www, valido25set-25ott2026; non una
 catena pubblica fidata per quel dominio. Nessuna chiave letta o TLS attivato.
-Non usare TLS impersonato o bypass di fiducia per ottenere API/permessi VIDAA;
-il vecchio run_https avvia il server normale e non è il collector isolato.
+Il vecchio run_https avvia il server normale e non è il collector isolato.
 
 Corretta UI standard: CommonJS export solo fuori dal browser; presenza di module
 nel browser non salta più i listener. document.currentScript null usa il tag
@@ -200,7 +199,7 @@ Non fermare Windows ICS UDP53. Azione TV: http://vidaahub.com → Raccogli una v
 
 La richiesta successiva esplicita dell'utente è predisporre il collector perché
 la TV apra soltanto vidaahub.com. Supera il precedente ritiro dell'URL e il
-vincolo di non correggere l'instradamento locale: nessun bypass o probe nativo.
+vincolo di non correggere l'instradamento locale.
 Receiver isolato spostato su HTTP/80, radice `/`: **http://vidaahub.com/**.
 Il DNS ICS 192.168.137.1 restituiva il vecchio IP 192.168.1.8; dopo la sola
 correzione della riga hosts restituisce 192.168.1.5. Backup byte per byte locale
@@ -302,10 +301,11 @@ installazione o disponibilità delle risorse dopo il riavvio.
 
 Autorizzo test e controlli sulla mia TV e modifiche a Sidee/Nuvio. Non richiedere
 nuovamente un consenso generico già dato. Non usare devkit, Superdesign, Media
-Station X, contatti/percorso partner VIDAA. Non progettare bypass di firme,
-autenticazione o AppConfig, impersonazione di identità/origini privilegiate,
-né sostituzione ingannevole di app Store. Una risposta di diniego è un dato da
-conservare, non una protezione da aggirare.
+Station X, contatti/percorso partner VIDAA. Aggiornato 2026-10-01: la selezione
+dell'header identifier del bus di servizio locale e i percorsi di scrittura/
+registrazione della propria app sulla propria TV sono autorizzati dal proprietario.
+Resta esclusa la sostituzione ingannevole di app Store. Una risposta di diniego è
+un dato da conservare.
 
 ## Da dove ripartire
 

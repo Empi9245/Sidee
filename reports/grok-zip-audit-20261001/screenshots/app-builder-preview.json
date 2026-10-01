@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "SIDEE Nuvio 9",
+      "hasCanvas": false,
+      "bodyTextLen": 872,
+      "bodyTextHash": "fb5a3bbde95b53a41aba1598cd3e7191c197d2f73a6906f741b633fd4bf1ec55",
+      "bodyTextPrefix": "Anteprima sul computer. Le API Hisense qui sono simulate sul fir",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "SIDEE Nuvio 9",
+      "hasCanvas": false,
+      "bodyTextLen": 816,
+      "bodyTextHash": "072fa03ba2010d16f6e2ba3e6830c91df34d3396bbc386944a6183bf1281c39f",
+      "bodyTextPrefix": "Anteprima sul computer. Le API Hisense qui sono simulate sul fir",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}

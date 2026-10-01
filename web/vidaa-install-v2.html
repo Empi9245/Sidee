@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="it">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sidee — Installazione Nuvio v2</title>
+<style>
+body{background:#111;color:#fff;font:26px Arial,sans-serif;margin:5vw;line-height:1.5}
+h1{font-size:38px}button{font:inherit;padding:18px;margin:12px 0;display:block;width:100%}
+button:focus{outline:5px solid #fd6}
+.note{color:#bbb;font-size:22px}
+#status{font-weight:bold;color:#fd6}
+</style>
+<h1>Installazione Nuvio — metodo v2</h1>
+<p id="origin"></p>
+<p id="target"></p>
+<p class="note">Fase 1 legge il registro e ne salva una copia nel report sul PC.
+Solo dopo un backup completo si abilita la fase 2, che aggiunge la voce configurata
+in <code>config.json</code>, preserva tutte le altre app e verifica con una rilettura.
+Fase 3, dopo il riavvio elettrico della TV, conferma che la voce è rimasta.</p>
+<button id="probe" type="button" autofocus>1. Analizza funzioni (sola lettura)</button>
+<button id="install" type="button" disabled>2. Installa Nuvio (scrittura + verifica)</button>
+<button id="verify" type="button">3. Verifica dopo riavvio</button>
+<button id="retry" type="button" hidden>Riprova invio report</button>
+<p id="status">Pronto. Nessuna operazione automatica.</p>
+<p class="note">La fase 2 richiama primitive native della TV solo quando premi il
+pulsante. Dopo l'esito REGISTRY_WRITE_VERIFIED_REBOOT_REQUIRED:
+stacca la corrente della TV per 30 secondi, riaccendi, cerca la tile Nuvio nel
+launcher (icona vuota e' normale), poi torna qui per la fase 3.</p>
+<script id="install-v2-script" src="/vidaa-install-v2.js"></script>
+</html>

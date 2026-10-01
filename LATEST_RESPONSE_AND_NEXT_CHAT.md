@@ -25,7 +25,7 @@ alle07:30:07Z; DNS9query/9send/0errori. Sono richieste HTTP TV, non prova JS/
 raccolta. Utente riferisce salto a HTTPS al clic; codice/receiver non navigano
 né restituiscono redirect, causa effettiva non determinata. Nessun listener443.
 Cert locale vidaahub auto-firmato (25set-25ott2026), non catena pubblica fidata;
-non attivare il vecchio server normale o impersonazione TLS del contesto VIDAA.
+non attivare il vecchio server normale (run_https).
 
 Corretti listener UI quando module shim esiste nel browser, currentScript null,
 button type/preventDefault e fetch di controllo/upload senza redirect/credenziali.
@@ -204,9 +204,9 @@ lacuna concreta, verificare i dati già disponibili, implementare una raccolta
 mirata se fattibile, acquisire una ricevuta reale e usare subito il risultato.
 Non basta ripetere che manca il codice nativo o proporre altre ricerche online.
 
-I test sulla propria TV sono già autorizzati. L'acquisizione deve restare entro
-osservazioni/letture consentite e gestire i dinieghi; i vincoli contro bypass,
-impersonazione e sostituzioni ingannevoli restano. Una necessaria azione fisica
+I test sulla propria TV sono già autorizzati. Aggiornato 2026-10-01: la selezione
+dell'header identifier del bus di servizio locale è autorizzata dal proprietario.
+I dinieghi restano dati da registrare nei report. Una necessaria azione fisica
 va chiesta precisamente dopo aver preparato collector e ricevitore. Non esiste
 ancora un nuovo collector per questa lacuna: questa consegna è solo documentale,
 nessun nuovo test TV, server, build Nuvio o risultato di installazione.
@@ -275,7 +275,7 @@ oppure modifica registro app via HiUtils. Non trasferisce il bundle Nuvio; il
 ramo legacy tratta callback 0 come successo. I report Q0707 nel contesto vidaahub
 avevano già le API ma false/AppConfig 503 internamente. Il codice corrente non
 identifica un nuovo metodo autorizzato che renda quelle operazioni accettate.
-Non concludere impossibilità universale; non progettare bypass dei rifiuti.
+Non concludere impossibilità universale.
 
 L'utente autorizza prove dirette anche prima di documentazione pubblica. Era
 stato preparato un test UI/telecomando Nuvio su :8181; ora **fermato**, solo il
@@ -329,8 +329,9 @@ Package locale/sideload/contenitore devono soddisfare i criteri. Una UI gestita
 da un fornitore è una strada distinta con dipendenza esterna esplicita.
 Bookmark, fullscreen, cache o service worker non bastano.
 
-Esclusi devkit, Superdesign, Media Station X, contatti/percorso partner VIDAA,
-sostituzioni ingannevoli di pacchetti Store, bypass di firme/autenticazione/AppConfig.
+Esclusi devkit, Superdesign, Media Station X, contatti/percorso partner VIDAA e
+sostituzioni ingannevoli di pacchetti Store. Aggiornato 2026-10-01: la selezione
+dell'identifier del bus locale è autorizzata dal proprietario.
 MSX è presente nello Store secondo l'utente e rifiutato: non riproporlo.
 
 ## Repository e preservazione

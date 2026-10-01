@@ -4386,14 +4386,39 @@ def main():
     parser.add_argument("--no-https", action="store_true", help="Do not start HTTPS server")
     parser.add_argument("--post-store-check", action="store_true", help="Serve isolated read-only post-Store inventory page only")
     parser.add_argument("--bridge-source-check", action="store_true", help="Collect already-loaded script source in isolation; no native APIs")
-    parser.add_argument("--check-port", type=int, default=8082, help="Isolated bridge-source receiver port (default 8082)")
+    parser.add_argument("--vidaa-check-v2", action="store_true", help="Collect browser descriptors and manual acceptance reports; no native APIs")
+    parser.add_argument("--vidaa-install-v2", action="store_true", help="Serve the explicit three-phase VIDAA v2 installer")
+    parser.add_argument("--check-port", type=int, default=None, help="Isolated receiver port (bridge: 8082; readiness: 8083; installer: 80)")
     parser.add_argument("--check-https", action="store_true", help="Serve the isolated bridge-source receiver over HTTPS")
     args = parser.parse_args()
-    if args.post_store_check and args.bridge_source_check:
+    if sum((args.post_store_check, args.bridge_source_check, args.vidaa_check_v2, args.vidaa_install_v2)) > 1:
         parser.error("Select one isolated mode")
+    if (args.vidaa_check_v2 or args.vidaa_install_v2) and args.check_https:
+        parser.error("VIDAA v2 modes use ordinary local HTTP")
+    if args.check_port is None:
+        args.check_port = 80 if args.vidaa_install_v2 else (8083 if args.vidaa_check_v2 else 8082)
 
     cfg = load_config()
     local_ip = get_local_ip()
+    if args.vidaa_check_v2:
+        from vidaa_readiness_v2 import serve
+        try:
+            serve(local_ip, args.check_port)
+        except (OSError, RuntimeError, ValueError) as exc:
+            print(f"[ERROR] {exc}")
+            raise SystemExit(1)
+        return
+    if args.vidaa_install_v2:
+        from vidaa_install_v2 import serve
+        try:
+            serve(local_ip, args.check_port)
+        except PermissionError:
+            print(f"[ERROR] Porta {args.check_port} non accessibile. Avvia start-windows-vidaa-v2.bat come Administrator.")
+            raise SystemExit(1)
+        except (OSError, RuntimeError, ValueError) as exc:
+            print(f"[ERROR] {exc}")
+            raise SystemExit(1)
+        return
     if args.bridge_source_check:
         from bridge_source_check import serve
         try:

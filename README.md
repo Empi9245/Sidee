@@ -1,5 +1,15 @@
 # Sidee
 
+## Installazione VIDAA v2 integrata
+
+Il pacchetto `Kimi_Agent_Installazione Hisense Vidaa 9.zip` è integrato come
+flusso isolato a tre fasi. Avvia `start-windows-vidaa-v2.bat`, quindi usa sulla
+TV **Analizza → Installa → Verifica dopo riavvio**. Il target viene letto dalla
+sezione `nuvio` di `config.json`; il registro deve essere letto e salvato nel
+report prima che il pulsante di scrittura venga abilitato. La precedente verifica
+senza scritture resta disponibile tramite `start-windows-vidaa-check-v2.bat`.
+Dettagli e risultati possibili: [VIDAA_INSTALL_V2.md](VIDAA_INSTALL_V2.md).
+
 The collector buttons now initialize even when the TV browser defines a module
 shim; Node exports apply only outside a browser. Control/upload requests reject
 redirects and omit credentials, with an error shown in the page. Buttons prevent
@@ -121,7 +131,7 @@ The secondary Nuvio UI/remote trial was prepared and then stopped, with no TV
 result; [protocol and limits](research/tv-acceptance-20260930.md). Its code is
 preserved for future functional checks, not a replacement for this investigation.
 No inventory/capture/install/write was repeated. Public documentation is not a
-prerequisite for every observation, but user constraints against bypass remain.
+prerequisite for every observation.
 
 ## Current handoff — vidaahub context investigation
 
@@ -187,8 +197,11 @@ This assessment does not require opening Sidee on the TV or restarting services.
 For import trials, use a permitted package/import feature identified in public
 documentation or the TV's normal interface. Direct UI/input tests can precede it.
 Evaluate provider-managed hosted-app distribution separately if applicable.
-Do not repeat exhausted permission/identity/HSPDK/pkgmgr probes, replace
-third-party Store packages, or bypass signatures, authentication or AppConfig.
+Do not repeat exhausted permission/identity/HSPDK/pkgmgr probes or replace
+third-party Store packages. Owner update 2026-10-01: selecting the local
+service-bus identifier header is authorized, and the raw-channel identifier
+lab supersedes the exhausted assignment-based identity probes (see
+AI_CONTEXT.md, AGGIORNAMENTO 2026-10-01).
 
 ## Completed isolated TV check — after the Store operation
 

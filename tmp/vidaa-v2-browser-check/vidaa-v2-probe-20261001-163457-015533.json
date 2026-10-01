@@ -1,0 +1,45 @@
+{
+  "kind": "vidaa-readiness-v2",
+  "readOnly": true,
+  "phase": "probe",
+  "timestamp": "2026-10-01T16:34:57.005Z",
+  "provenance": {
+    "collectionId": "vidaa-v2-61b28a09c0204395ab4d878271c7095f",
+    "buildId": "vidaa-v2-7ab097670f3748f6",
+    "fileSha256": {
+      "vidaa_install_v2.py": "3b93f677962774dc7939934c0316e1f677b421c787007b90192aaba2edb5f18b",
+      "web/vidaa-install-v2.js": "76807d03466518450d13216297df6b037d3a9c41b5239243bb08abad11e971fa",
+      "web/vidaa-install-v2.html": "a123996916a432d4e7f84b0b0703e0043318eb77ab392fa6423f4be2f407ff1e"
+    },
+    "gitHead": "2ac99012a98b9e46f74f9d0885853b7f6a63ddaf",
+    "mode": "isolated-vidaa-readiness-v2",
+    "readOnly": true,
+    "target": {
+      "appId": "nuviodebug",
+      "appName": "Nuvio TV"
+    }
+  },
+  "clientBuildId": "vidaa-v2-7ab097670f3748f6",
+  "buildMatch": true,
+  "accessContext": {
+    "origin": "http://127.0.0.1:56989",
+    "secureContext": true
+  },
+  "nativeApisInvoked": false,
+  "installationVerified": false,
+  "capabilities": {
+    "fetch": "function",
+    "Promise": "function",
+    "URL": "function",
+    "AbortController": "function",
+    "TextEncoder": "function",
+    "localStorage": "accessor",
+    "serviceWorker": "accessor",
+    "Hisense_GetModelName": "absent",
+    "Hisense_GetFirmWareVersion": "absent",
+    "Hisense_GetOSVersion": "absent"
+  },
+  "outcome": "BROWSER_DESCRIPTORS_RECORDED",
+  "evidenceSource": "current-page-property-descriptors",
+  "receivedAt": "2026-10-01T16:34:57.014533+00:00"
+}

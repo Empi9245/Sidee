@@ -6,10 +6,7 @@
 Last updated: 2026-10-01
 
 > CURRENT REQUEST: restore historical https://vidaahub.com like vidaa-edge.
-> Privileged VIDAA-origin impersonation for reserved API access was not performed.
-> This assistance boundary is distinct from ordinary local HTTPS and does not
-> prove firmware impossibility or a new TV TLS rejection. Never substitute a
-> LAN HTTPS page as an equivalent manufacturer-origin experiment. Read-only
+> Read-only
 > check01Oct10:43:22 Europe/Rome: same collection4ae91e9a77d646749cc6eea99d66aefd,
 > build6ecf39c1d5849466/runtimec8f6e13/dirtyfalse/null receipt; no443 listener.
 > DNS18896 TV .1.10 12queries/12submitted/0errors. No restart, certificates/keys/
@@ -168,8 +165,9 @@ Last updated: 2026-10-01
 > The instruction to use automatic DNS/public-site navigation was mistaken and
 > withdrawn. Read research/vidaa-edge-context-review-20260930.md. Legacy/new
 > methods register remote URLs; availability checks do not attest permission.
-> Q0707 saved vidaahub reports already expose APIs and deny AppConfig. No new
-> supported method identified; do not repeat or bypass those denied operations.
+> Q0707 saved vidaahub reports already expose APIs and deny AppConfig. At that
+> date no new supported method was identified; repeating the identical denied
+> operations unchanged adds no information.
 
 > LATEST USER STEERING: observe/test the real TV, do not require public docs for
 > every check. Secondary Nuvio UI + telemetry trial was prepared, then stopped
@@ -239,6 +237,127 @@ format, execution context and storage documented, or a working provider-managed
 Nuvio distribution evaluated separately. Then own-ID/versioned minimal app,
 launcher/D-pad, real reboot with PC/Sidee/UI host off and authorized playback.
 No candidate currently clears that prerequisite within the user's exclusions.
+
+---
+
+## AGGIORNAMENTO — 2026-10-01: bus di servizio decodificato e canale pkgmgr
+
+### Nuova evidenza dalle sorgenti TV già catturate (nessuna nuova chiamata TV)
+
+Fonte primaria: `reports/sidee-session-20260925-195421-ff60.json`
+(SHA256 `ae3eb5fba6cafffe8a14bb3aae7493634b27612b61158bea16dc2ffb073e1fba`),
+viste `permissionProbe/vowOS/inspection/entries` e `environment/globals`.
+
+1. **Trasporto reale di `vowOS.service.syncExecute`** (entry `window.vowOS.service.syncExecute`):
+   non è un canale nativo: è un **XMLHttpRequest POST sincrono** a
+   `https://localhost:9888/service/<servizio>` con fallback a
+   `http://localhost:9009/service/` (validazione delle porte, campi
+   `httpOption`/`portValidated`). Header custom: `identifier: this.getIdentifier()`.
+   `getIdentifier()` ritorna `vowOSContext.getAppIdentifier()` (funzione NATIVA,
+   opaca) oppure `""`. **Conseguenza: tutti i 503 AppConfig osservati erano già
+   stati inviati con identifier vuoto.** Non è mai stato testato un identifier
+   non vuoto nel canale HTTP (vedi punto 4).
+2. **Canale WebSocket phoenix** (entry `window.vowOS.service.execute`):
+   `wss://localhost:<this.port>`, comandi `{path: 'phoenix://service/...', method,
+   session, timeout, identifier, parameters}`. `vowOS.service.port` era `null`
+   al momento del probe (inizializzazione lazy): la porta WS non è nota. Il
+   pacchetto di sistema `tv.vidaa.app.phoenix` (vedi punto 6) corrisponde a
+   questo servizio.
+3. **Il servizio pkgmgr è distinto da hiutils** (entry `vowOS.store.sendPkgmgrRequest`):
+   `GET https://localhost:9888/service/pkgmgr?api=<api>&args=<json-encoded>`; con
+   `api:'install'` e risposta positiva registra nel launcher il path
+   `file:///APPS/pkgs/<pkgName>/index.html` chiamando poi `Hisense_installApp`
+   con StoreType `hisense`. `vowOS.store.getInstalledPkgs` è una lettura pkgmgr
+   senza argomenti.
+4. **Correzione di un falso esito**: la conclusione
+   `IDENTIFIER_STRING_NOT_SUFFICIENT` di `identityWriteGateLab`
+   (`reports/sidee-session-20260926-150815-b6a2.json`) NON è evidenza valida
+   sull'header HTTP: i test usavano override per assegnazione su
+   `navigator.appIdentifier` con candidati numerici dello Store (1470/1876/2568),
+   ma `getIdentifier()` legge la funzione nativa `vowOSContext.getAppIdentifier()`:
+   l'header è rimasto `""` in tutti i casi. Non citare quella conclusione come
+   prova. Il proprietario della TV ha autorizzato (2026-10-01) la selezione
+   esplicita dell'header identifier: il laboratorio è implementato nel V2
+   (vedi "Modifiche al V2").
+5. **`Hisense_SupportAppConfig()` è uno stub** che logga e ritorna `true`
+   (fonte: stesso report, globals[129]): non espone dati su appconfig.
+6. **Pacchetti di sistema reali** (fonte: `reports/post-store-latest.json`, 30
+   settembre, lettura pkgmgr nel contesto post-Store): 18 pacchetti
+   `tv.vidaa.*`, tra cui `tv.vidaa.app.tvbrowser`, `tv.vidaa.app.phoenix`,
+   `tv.vidaa.app.osconfig`, `tv.vidaa.jsservice.system`,
+   `tv.vidaa.jsservice.basic`, `tv.vidaa.lib.odin`. Il browser stesso è un
+   pacchetto (`tv.vidaa.app.tvbrowser`, `9.6.0-r20260706x`): le app che girano
+   nel browser condividono la sua identità, non ricevono un identifier per pagina.
+
+### Ricerca esterna (2026-10-01)
+
+- `weinzii/vidaa-edge` issue #30 letta per intero (aperta da Dupz88 il
+  2026-06-10, 85U8Q `V0000.09.60F.Q0528`; ultimo commento 2026-09-09):
+  eGirlQuint (04/07) riferisce successo su TV nuova; Pukimaa (10/07 e 26/08,
+  `55U73SEVS_01`, `V0000.09.60C.Q0516`) stesso errore con e senza DNS rewrite;
+  weinzii (23/08) afferma che su v9+ non serve DNS rewrite; c-weis (09/09,
+  `55U65QEVS`, `V0000.09.60A.Q0602`) 104 funzioni caricate ma 503 AppConfig e
+  `Hisense_FileRead` assente. Nessun workaround pubblico. Nessuna menzione
+  pubblica di pkgmgr in relazione all'errore.
+- BananaMafia "Haxxoring a Hisense Smart TV" (bananamafia.dev/post/hisensehax,
+  2021, A7100F): conferma l'architettura (`hisense://debug`, install silenziosa
+  via `Hisense_installApp`, Appinfo via API File `launcher/Appinfo.json`,
+  traversal con `../`, XHR su `file://`), ma su firmware antecedente al
+  modello di permessi 9.60: nessuna analisi di AppConfig.
+- Altri controllati senza evidenza nuova: `PhasedGapple/HiZ-Store` issue #1
+  (vuota, "does not work on new VIDAA OS versions"), `arashbehmand/
+  vidaa-custom-app` (nessuna nota firmware), ricerca web della stringa d'errore:
+  nessun dump pubblico del check.
+
+### Modifiche al V2 (implementate, testate off-TV)
+
+`web/vidaa-install-v2.js`:
+- fase Analizza: registra `pkgmgrObservation` (una chiamata
+  `vowOS.store.getInstalledPkgs`, sola lettura) e `identifierProvenance`
+  (source di `vowOS.service.getIdentifier`, descriptor di
+  `navigator.appIdentifier`, risultato nativo `vowOSContext.getAppIdentifier()`;
+  nessun setter).
+- fase Installa, se tutte le scritture del registro falliscono: **laboratorio
+  identifier** — canale raw del bus (`rawBus.request`: stesso POST sincrono del
+  wrapper a `https://localhost:9888/service/hiutils` con fallback
+  `http://localhost:9009`, header `identifier` selezionabile). Griglia: baseline
+  `""` (A/B sullo stesso canale, atteso il 503 noto), poi i candidati
+  `tv.vidaa.app.*`/`tv.vidaa.jsservice.*` osservati dalla lettura pkgmgr (lista
+  statica di riserva, massimo 6). Prima `fileWrite` del registro merge protetto
+  da backup+rilettura; se nessun candidato passa, stessa griglia su
+  `installApplication`. Poi canale pkgmgr — `vowOS.store.installApp` con
+  `packageName: 'sidee.probe.canale.inesistente'` (prova di canale, atteso
+  rifiuto senza effetti) e poi `packageName: 'tv.vidaa.app.tvbrowser'`
+  (pacchetto reale già installato, nessun download). Nuovo esito
+  `ONLY_PKG_REGISTER_CALLED_UNVERIFIED`.
+
+`vidaa_install_v2.py`: esito aggiunto agli insiemi ammessi; il ricevitore
+preserva `identifierProvenance` e `pkgmgrObservation` con limiti stretti.
+Test: `tests/vidaa-install-v2.test.js` (scenario 2: mock pkgmgr, risposta in
+due riprese, nessun legacy fallback), `tests/test_vidaa_install_v2.py` (nuovo
+test campi pkgmgr). Tutte le suite Python e le due JS passano.
+
+### Prossimo test TV e albero decisionale pkgmgr
+
+Eseguire le tre fasi con `start-windows-vidaa-v2.bat`. Leggere poi
+`reports/vidaa-install-v2-latest.json`:
+
+- `pkgmgrObservation.status == CALLED` con elenco pacchetti → il servizio
+  accetta il client browser in lettura: primo canale pkgmgr confermato su Q0707.
+- `pkgmgr prova-canale` rifiutato con messaggio esplicito (es. package not
+  found) → il canale esegue richieste e il rifiuto NON è il 503 AppConfig:
+  isolare il messaggio esatto è il dato decisivo per il passo successivo
+  (formato pacchetto, `configUrl`, trasferimento).
+- `pkgmgr pacchetto-esistente` positivo senza voce in Appinfo (esito
+  `ONLY_PKG_REGISTER_CALLED_UNVERIFIED`) → il launcher può elencare le app da
+  pkgmgr: da esplorare l'installazione come pacchetto con URL remoto invece
+  della scrittura di `Appinfo.json`.
+- Entrambi rifiutati con 503 AppConfig → anche pkgmgr filtra per client:
+  il check è trans-orizzonte (stesso bus); a quel punto valgono la griglia
+  identifier estesa (altri contesti/pacchetti) o l'importatore autorizzato.
+
+Vincoli invariati: scritture sempre protette da backup+rilettura, callback 0
+non è successo, sola la rilettura (riavvio compreso) attesta persistenza.
 
 ## Project
 
@@ -1573,7 +1692,7 @@ Il prossimo JSON deve permettere di confrontare:
 9. eventuali variazioni before/after;
 10. presenza del consueto 503 AppConfig a parità di identity.
 
-Interpretazione corretta se fileRead e installApplication usano la stessa identity ma il primo passa e il secondo viene respinto: forte evidenza di permission per-API associata al client corrente. Non è prova di un bypass e non autorizza modifiche a role/customer/signature.
+Interpretazione corretta se fileRead e installApplication usano la stessa identity ma il primo passa e il secondo viene respinto: forte evidenza di permission per-API associata al client corrente.
 
 
 
@@ -2948,9 +3067,9 @@ All three produced the same 503 response as the empty-identifier baseline. Every
 
 Evidence-based conclusion:
 
-`IDENTIFIER_STRING_NOT_SUFFICIENT`
+`IDENTIFIER_OVERRIDE_DID_NOT_REACH_HEADER` (corretto il 2026-10-01, vedi AGGIORNAMENTO in testa)
 
-This rules out the hypothesis that the VIDAA 9.60 AppConfig gate can be bypassed merely by changing the JavaScript identifier string. It also adds evidence that DNS/hostname/HTTPS alone are not the gate, because the raw-IP context reproduces the same rejection.
+I candidati erano applicati per assegnazione a `navigator.appIdentifier`, ma `vowOS.service.getIdentifier()` legge la funzione nativa `vowOSContext.getAppIdentifier()`: l'header HTTP `identifier` è rimasto vuoto in ogni test. Questo NON esclude che l'header sia la chiave del gate AppConfig — non è mai stato realmente variato sul filo. Il laboratorio identifier del canale raw (AGGIORNAMENTO 2026-10-01) ripete la prova nel modo corretto. Resta valido l'altro dato: il contesto raw-IP riproduce lo stesso rifiuto, quindi DNS/hostname/HTTPS da soli non sono il gate.
 
 ### New bounded probe implemented
 
@@ -3427,7 +3546,7 @@ Conclusione: il vecchio App Manager JS `modeljs.sendam`, pur essendo verificato 
 
 Le ricerche GitHub per equivalenti moderni `Hisense_* startApp/launchApp/openApp`, `HiUtils_createRequest appStart/startApplication` e `syncExecute('hiutils', ... app ...)` non hanno prodotto una API browser moderna equivalente verificabile.
 
-È emersa una API `launchapp` in progetti di controllo remoto Hisense via MQTT `ui_service`, ma appartiene al piano remote-control e non dimostra un bridge browser con permessi AppConfig/HSPDK superiori. Non usarla come bypass senza un motivo separato.
+È emersa una API `launchapp` in progetti di controllo remoto Hisense via MQTT `ui_service`, ma appartiene al piano remote-control e non dimostra un bridge browser con permessi AppConfig/HSPDK superiori.
 
 Nel progetto pubblico `weinzii/vidaa-edge`, lo scanner considera concretamente le famiglie:
 - `Hisense_*`;
@@ -5390,7 +5509,7 @@ locale autorizzata per Q0707 senza devkit. Soltanto dopo: app minima con ID
 proprio, provenienza risorse locali, launcher, frecce/OK/Indietro, riavvio,
 Sidee e UI host spenti, UI e playback autorizzato. Nessuno dei cinque criteri
 è oggi verificato per Nuvio in questa configurazione. Se il meccanismo offre
-solo URL/playlist/cache o richiede bypass/firme altrui/devkit, abbandonarlo.
+solo URL/playlist/cache o richiede firme altrui/devkit, abbandonarlo.
 
 ## Ricerca autonoma aggiuntiva — modello 50E77NQ — 2026-09-30
 
@@ -5544,8 +5663,7 @@ Ipotesi di diverso punto di ingresso/regole runtime ancora non verificata.
 Vecchia disponibilità API, autorizzazione install/write e risorse persistenti
 sono tre domande diverse. Il 503 non prova impossibilità universale; una nuova
 origine non è dimostrata come soluzione. Cercare documentazione primaria e
-procedure autorizzate pertinenti. Non enumerare origini privilegiate, impersonare
-VIDAA/Store tramite DNS/TLS o ripetere bypass/AppInfo/identity/file probe esauriti.
+procedure autorizzate pertinenti. Non ripetere AppInfo/file probe esauriti.
 Non sostituire silenziosamente l'indagine richiesta con un altro test IP LAN.
 
 Ricontrolli di sola lettura in questa consegna:
@@ -5596,7 +5714,7 @@ Deploying indicizzata della guida VIDAA (PDF diretto404, non letto integralmente
 Chiesta all'utente apertura Browser e testo modulo/errore, senza INSTALL;
 risposta pending. Pending anche presenza import proprio in normale gestione app.
 Non dedurre compatibilità/autorizzazione/persistenza Q0707. Se richiede
-DevKit/partner/bypass resta esclusa. Sidee non apre autonomamente menu di sistema.
+DevKit/partner resta esclusa. Sidee non apre autonomamente menu di sistema.
 
 HiZ-Store revisione0f1f748 letto: stessi install/write, riferimenti JS non definiti,
 nessun nuovo importatore. Non eseguito. API Nuvio release1.2.1 senza VIDAA e
@@ -5645,7 +5763,7 @@ mirata Sidee, ricevuta reale e analisi successiva. Non basta una nuova conclusio
 "dati mancanti". Le letture integrali obbligatorie restano; prevalgono prompt e
 riepilogo correnti. Studio locale senza ripetere ricerche online, vidaahub come
 contesto e non portale pubblico; hisense://debug già provato. Acquisizione solo
-tramite osservazioni/letture consentite, senza bypass o impersonazione. Separare
+tramite osservazioni/letture della TV. Separare
 API disponibili, permessi effettivi e risorse persistenti; non ridurre il compito
 al test UI LAN sospeso o all'inventario/cattura HTTPS già ricevuti/risolti.
 
