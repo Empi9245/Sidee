@@ -2634,56 +2634,6 @@
     document.addEventListener(type,recordRemoteInput,true);
   });
 
-  function controls(){return Array.prototype.slice.call(document.querySelectorAll("button,input,summary")).filter(el=>{if(!el||el.disabled||el.hidden)return false;const s=getComputedStyle(el);return s.display!=="none"&&s.visibility!=="hidden"&&el.getClientRects().length>0;});}
-  function center(el){const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};}
-  function nextControl(cur,key,list){const from=center(cur);let best=null,score=Infinity;list.forEach(el=>{if(el===cur)return;const to=center(el),dx=to.x-from.x,dy=to.y-from.y;let p=null,c=0;if(key==="ArrowUp"&&dy<-4){p=-dy;c=Math.abs(dx);}if(key==="ArrowDown"&&dy>4){p=dy;c=Math.abs(dx);}if(key==="ArrowLeft"&&dx<-4){p=-dx;c=Math.abs(dy);}if(key==="ArrowRight"&&dx>4){p=dx;c=Math.abs(dy);}if(p===null)return;const s=p*10+c;if(s<score){score=s;best=el;}});return best;}
-  function normalizeTvKey(e){
-    const rawKey=String(e&&e.key||"");
-    const rawName=String(e&&e.keyName||e&&e.detail&&e.detail.keyName||"");
-    const code=Number(e&&e.keyCode||e&&e.which||0);
-    const names=[rawKey,rawName,String(e&&e.code||"")].map(v=>v.toLowerCase());
-    const named={
-      arrowleft:"ArrowLeft",left:"ArrowLeft",dpadleft:"ArrowLeft",dpad_left:"ArrowLeft",
-      arrowright:"ArrowRight",right:"ArrowRight",dpadright:"ArrowRight",dpad_right:"ArrowRight",
-      arrowup:"ArrowUp",up:"ArrowUp",dpadup:"ArrowUp",dpad_up:"ArrowUp",
-      arrowdown:"ArrowDown",down:"ArrowDown",dpaddown:"ArrowDown",dpad_down:"ArrowDown",
-      enter:"Enter",ok:"Enter",select:"Enter",return:"Enter",dpadcenter:"Enter",dpad_center:"Enter"
-    };
-    for(const name of names){if(named[name])return named[name];}
-    return ({13:"Enter",23:"Enter",37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown"}[code])||rawKey;
-  }
-  function handleTvNavEvent(e,{fromKeyUp=false}={}){
-    const key=normalizeTvKey(e),code=Number(e&&e.keyCode||e&&e.which||0);
-    if(!["Enter","OK","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(key))return false;
-    const now=Date.now();
-    if(!fromKeyUp){
-      lastTvKeyDown={code:code,at:now};
-    }else if(lastTvKeyDown.code===code&&now-lastTvKeyDown.at<450){
-      return false;
-    }
-    const list=controls();
-    if(!list.length)return false;
-    const active=document.activeElement,hasActive=list.indexOf(active)>=0;
-    if(key==="Enter"||key==="OK"){
-      if(hasActive&&(active.tagName==="BUTTON"||active.tagName==="SUMMARY")){
-        e.preventDefault?.();active.click();return true;
-      }
-      if(!hasActive){
-        list[0].focus();e.preventDefault?.();return true;
-      }
-      return false;
-    }
-    if(active&&active.tagName==="INPUT"&&(key==="ArrowLeft"||key==="ArrowRight"))return false;
-    if(!hasActive){
-      list[0].focus();e.preventDefault?.();return true;
-    }
-    const to=nextControl(active,key,list);
-    if(to){to.focus();e.preventDefault?.();return true;}
-    return false;
-  }
-  window.addEventListener("keydown",e=>handleTvNavEvent(e),false);
-  window.addEventListener("keyup",e=>handleTvNavEvent(e,{fromKeyUp:true}),false);
-
   on("fullNetworkCaptureArmBtn","click",()=>fullNetworkCaptureAction("ARM"));
   on("fullNetworkCaptureStopBtn","click",()=>fullNetworkCaptureAction("STOP"));
   on("fullNetworkCaptureReanalyzeBtn","click",()=>fullNetworkCaptureAction("REANALYZE_LATEST"));
@@ -2743,23 +2693,7 @@
     await refreshStoreStaticMap();
     startRemoteDiagnosticPolling();
     state.report.runtimeSurfaceAutoProbe=runtimeSurfaceSnapshot();
-    const keyRoute=nativeKeyRoutingProbe();
-    set("remoteInputState",
-      keyRoute.success
-        ?"NATIVE KEY ROUTING ENABLED · try arrows and OK"
-        :"AUTO PROBE · press arrows and OK on the remote"
-    );
-    try{
-      document.body.tabIndex=-1;
-      window.focus?.();
-      document.body.focus?.({preventScroll:true});
-      const firstControl=controls()[0];
-      if(firstControl){
-        firstControl.focus?.({preventScroll:true});
-        setTimeout(()=>{try{firstControl.focus?.({preventScroll:true});}catch(e){}},250);
-        setTimeout(()=>{try{firstControl.focus?.({preventScroll:true});}catch(e){}},900);
-      }
-    }catch(e){}
+    set("remoteInputState","Browser pointer mode · no forced focus or key routing");
     await save("runtime-surface-auto-probe");
     try{await inspectLauncherBridge();}catch(e){log("Automatic launcher bridge probe failed",err(e));}
     try{await automaticRuntimeInstallProbeOnce();}catch(e){log("Automatic runtime install probe failed",err(e));}
