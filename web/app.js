@@ -2629,10 +2629,7 @@
     );
     scheduleRemoteInputSave();
   }
-  ["keydown","keyup","keypress"].forEach(type=>{
-    window.addEventListener(type,recordRemoteInput,true);
-    document.addEventListener(type,recordRemoteInput,true);
-  });
+  // Browser input is intentionally left untouched so VIDAA/Odin can keep pointer mode.
 
   on("fullNetworkCaptureArmBtn","click",()=>fullNetworkCaptureAction("ARM"));
   on("fullNetworkCaptureStopBtn","click",()=>fullNetworkCaptureAction("STOP"));
