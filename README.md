@@ -1,5 +1,13 @@
 # Sidee
 
+The collector buttons now initialize even when the TV browser defines a module
+shim; Node exports apply only outside a browser. Control/upload requests reject
+redirects and omit credentials, with an error shown in the page. Buttons prevent
+default navigation. HTTP requests from the owner's TV for root and script were
+observed on1Oct2026; no source receipt yet. This collector still serves HTTP80.
+Existing self-signed domain certificates are not proof of trusted VIDAA HTTPS;
+the normal Sidee HTTPS server also has unrelated workers and is not used here.
+
 LAN DNS diagnostics keep separate target query/reply counters for up to32 clients.
 `repliesSubmitted` means the local socket sent a reply, not that the TV received
 or used it. Only vidaahub target events are recorded; ordinary query names remain

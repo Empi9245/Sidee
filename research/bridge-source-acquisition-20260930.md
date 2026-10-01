@@ -437,3 +437,45 @@ al riavvio del resolver TV. Non assumere in anticipo che la cache sia la causa
 o che il problema sia risolto. Prima della conclusione leggere i nuovi contatori
 TV .1.10, gli accessi HTTP e la ricevuta; usare subito eventuali sorgenti ricevute.
 Nessun nuovo esito installante o criterio Nuvio acquisito alla preparazione.
+
+## 1 ottobre: richieste HTTP della TV e salto HTTPS riferito
+
+Avvio manuale utente del launcher. Stato di ieri HTTP19752 era un file residuo:
+lettura live /status conferma nuovoHTTP2848, collection
+bridge-c2f2b35c1a30469fbcfdd197f5602847, build6bbcea0ceaa98b5e,
+runtimeHEAD12363152bda6975445c53f5d782ef51ea1cc44f5/dirtyfalse, receipt null.
+Python processo python3.13.exe; percorso/cmdline non disponibili dalla sonda WMI.
+DNS18896/hashc61f8...d49231; Ethernet Private, AllowTCP80 Private Any indirizzi/
+programma/interfaccia letto, nessun cambio firewall. Listener TCP80 .1.5 PID2848,
+nessun443/8080 osservato. Non riusare i vecchi PID9552/6844 senza verifica.
+
+Durante il lavoro arrivate dalla TV .1.10 due connessioni/richieste GET / e JS,
+Host vidaahub.com, timestamp finale2026-10-01T07:30:07.410680Z. DNS9query/9send/
+0errori, ultima A rcode0/1answer, statusWriteErrors0. Accesso HTTP ora dimostrato;
+richiesta dello script non prova sua esecuzione o visualizzazione. Nessun /manifest
+o POST snapshot registrato. Utente prima pagina bianca, poi riferisce che clic
+Raccogli porta a HTTPS. Il collector non assegna location e server non emette
+Location/redirect; l'origine precisa del salto non è provata.
+
+TLS locale esaminato soltanto via certificato pubblico: .sidee-certs/vidaahub.com.crt,
+subject=issuerCNvidaahub.com, SANvidaahub.com/www, validità25Sep15:13:33Z-
+25Oct15:13:33Z2026. Generatore storico usa req -x509. È auto-firmato, non una
+catena pubblica fidata del dominio. Chiavi private non lette, nessun listenerTLS,
+SNI hook/capture o scriptSDK avviato. Il vecchio run_https usa SideeHandler normale
+e non può essere acceso come se fosse il collector isolato. Non impersonare
+l'origine HTTPS VIDAA o aggirare la fiducia TLS per ottenere permessi negati.
+
+Correzione consentita al client web ordinario:
+- exportCommonJS condizionato all'assenza di window, così un module shim presente
+  nel browser non salta la registrazione dei listener (causa TV non ancora provata);
+- currentScript null usa il proprio tag identificato senza leggere API native;
+- bottoni typebutton e preventDefault, niente navigazione o submit;
+- manifest/upload/retry redirect:error e credentials:omit, errore visibile;
+  letture delle sorgenti già usavano questi limiti e restano invariate.
+
+Test JS esteso: VM con window e module.exports, currentScript null, location
+immutabile e native getter che lanciano. Click/retry funzionano e riusano identico
+body dopo errore upload; redirect respinto mostra errore senza cambiare location.
+Fixture fonti/limiti/dinieghi passate, 2test HTTP receiver passati. Non sono prove
+del browser TV, di HTTPS o dell'importazione Nuvio. Preservare ricevuta e dati
+pre-fix prima dell'attivazione; registrare nuovo build/collection/PID live.

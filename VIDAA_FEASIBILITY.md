@@ -1,8 +1,14 @@
 # Nuvio sulla Hisense VIDAA 9: valutazione di fattibilità
 
-Verifica: 2026-09-30, Europe/Rome. TV: Hisense **50E77NQ** (modello confermato
+Verifica: 2026-10-01, Europe/Rome. TV: Hisense **50E77NQ** (modello confermato
 dall'utente durante la ricerca successiva), firmware `V0000.09.60A.Q0707`,
 OS `U09.60`, MTK9603, Odin/Chromium 111.
+
+Nuovo fatto: TV .1.10 ha richiesto pagina e JS via HTTP con Host vidaahub.
+Nessuna ricevuta sorgenti; utente riferisce salto a HTTPS al clic. Corretta
+inizializzazione UI/module shim e richieste senza redirect; test off-TV passati.
+HTTPS non attivo nel collector; cert locale auto-firmato non prova origine
+fidata VIDAA. Nessuna nuova esposizione API/permesso/storage o installazione.
 
 DNS primario TV .1.5 ora confermato. Corretto in Sidee il registro DNS che,
 se bloccato, impediva risposta; contatori target distinti per client/send ora

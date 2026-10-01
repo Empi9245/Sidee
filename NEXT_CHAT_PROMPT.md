@@ -1,4 +1,33 @@
-# Prompt per la prossima chat — 30 settembre 2026
+# Prompt per la prossima chat — aggiornato 1 ottobre 2026
+
+## Ultimo esito: HTTP arriva dalla TV, salto a HTTPS riferito al clic
+
+IP TV .1.10/DNS .1.5 confermati, non chiederli ancora. Nuovo avvio utente:
+DNS18896 e collector HTTP2848, collection bridge-c2f2b35c1a30469fbcfdd197f5602847,
+build bridge-6bbcea0ceaa98b5e/runtime HEAD1236315, receipt null.
+La TV inizialmente riferisce pagina bianca; poi contatori mostrano GET / e
+/bridge-source-check.js da .1.10 con Host vidaahub.com alle07:30:07Z.
+DNS target9/repliesSubmitted9/errori0, ultima A rcode0/answers1. È acquisito
+l'accesso HTTP, NON esecuzione JS/ricevuta sorgenti/prova installante.
+Utente riferisce salto a HTTPS quando clicca Raccogli. Il codice non ha una
+navigazione e il receiver non restituisce redirect; causa/destinazione esatta
+del salto restano non osservate. Nessun listener443 oggi. Cert locale pubblico
+vidaahub.com.crt auto-firmato, SAN root/www, valido25set-25ott2026; non una
+catena pubblica fidata per quel dominio. Nessuna chiave letta o TLS attivato.
+Non usare TLS impersonato o bypass di fiducia per ottenere API/permessi VIDAA;
+il vecchio run_https avvia il server normale e non è il collector isolato.
+
+Corretta UI standard: CommonJS export solo fuori dal browser; presenza di module
+nel browser non salta più i listener. document.currentScript null usa il tag
+proprio identificato; button type button/preventDefault; fetch manifest/snapshot
+e retry con redirect:error e credentials:omit. Nessuna modifica TLS/DNS/API TV.
+Test JS con browser simulato/module shim/currentScript null e native getter
+proibiti: click/retry senza navigazione, stessa ricevuta mantenuta, redirect
+respinto con errore visibile. Test receiver HTTP2 passati. Non sono prove TV.
+Attivare solo la nuova pagina dopo verifica receipt/provenienza e conservare
+evidenze pre-fix; leggere nuovo /status per PID/build reali, non vecchi PID sotto.
+HTTPS fidato del nome VIDAA rimane blocco distinto dalla raccolta web ordinaria.
+Le sezioni successive sono cronologia, superate ove incompatibili.
 
 ## Stato corrente: IP e DNS confermati, correzione DNS attiva
 

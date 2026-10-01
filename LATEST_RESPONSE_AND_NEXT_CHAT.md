@@ -1,5 +1,21 @@
 # Sidee / Nuvio — passaggio di consegne corrente
 
+## 1 ottobre: accesso HTTP TV acquisito, clic e HTTPS da distinguere
+
+Avvio reale utente: DNS18896, HTTP2848/collection bridge-c2f2b35c1a30469fbcfdd197f5602847,
+runtime HEAD1236315, receipt null. TV .1.10 chiede root e script con Host vidaahub
+alle07:30:07Z; DNS9query/9send/0errori. Sono richieste HTTP TV, non prova JS/
+raccolta. Utente riferisce salto a HTTPS al clic; codice/receiver non navigano
+né restituiscono redirect, causa effettiva non determinata. Nessun listener443.
+Cert locale vidaahub auto-firmato (25set-25ott2026), non catena pubblica fidata;
+non attivare il vecchio server normale o impersonazione TLS del contesto VIDAA.
+
+Corretti listener UI quando module shim esiste nel browser, currentScript null,
+button type/preventDefault e fetch di controllo/upload senza redirect/credenziali.
+Test JS VM (native access vietato), retry identico e redirect respinto passati;
+2test HTTP receiver passati. Attivazione pagina/provenienza reale da verificare
+in /status; preservare eventuale ricevuta. Nessuna nuova operazione TV/installante.
+
 ## Correzione DNS e prossimo tentativo dopo riavvio TV
 
 IP TV .1.10 e DNS primario .1.5 confermati dall'utente. Corretto lan_dns:

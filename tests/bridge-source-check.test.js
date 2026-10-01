@@ -1,4 +1,7 @@
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const vm = require("node:vm");
 const { collect, readSource } = require("../web/bridge-source-check.js");
 const provenance = { collectionId: "test", buildId: "fixture" };
 function body(text, status = 200) {
@@ -18,7 +21,54 @@ function root(scripts = [], timing = []) {
     Object.defineProperty(result, name, { get() { throw new Error("Native access forbidden: " + name); } });
   return result;
 }
+function browserClient(fetcher) {
+  const script = { src: "http://vidaahub.com:8082/bridge-source-check.js?v=fixture" };
+  const browser = root([script]);
+  Object.freeze(browser.location);
+  const elements = {};
+  for (const id of ["collect", "retry", "status", "origin"])
+    elements[id] = { textContent: "", hidden: true, addEventListener(name, callback) { this[name] = callback; } };
+  elements["bridge-source-script"] = script;
+  browser.document.currentScript = null;
+  browser.document.getElementById = id => elements[id];
+  browser.fetch = fetcher;
+  // A module shim in the TV browser must not select the Node export branch.
+  const moduleShim = { exports: {} };
+  const source = fs.readFileSync(path.join(__dirname, "../web/bridge-source-check.js"), "utf8");
+  vm.runInNewContext(source, { window: browser, document: browser.document,
+    location: browser.location, module: moduleShim, fetch: fetcher, URL,
+    TextEncoder, TextDecoder, AbortController, setTimeout, clearTimeout }, { timeout: 1000 });
+  assert.equal(typeof elements.collect.click, "function");
+  assert.deepEqual(moduleShim.exports, {});
+  return { browser, elements };
+}
 (async () => {
+  const uiCalls = [];
+  const ui = browserClient(async (url, options) => {
+    uiCalls.push({ url, options });
+    assert.equal(options.redirect, "error");
+    assert.equal(options.credentials, "omit");
+    if (url === "/manifest") return { ok: true, json: async () => provenance };
+    // A failed upload is retried with exactly the retained result.
+    if (uiCalls.length === 2) throw new TypeError("fixture upload failure");
+    return { ok: true, json: async () => ({ sha256: "fixture-receipt" }) };
+  });
+  let defaultsPrevented = 0;
+  const event = { preventDefault() { defaultsPrevented++; } };
+  await ui.elements.collect.click(event);
+  assert.equal(ui.elements.retry.hidden, false);
+  await ui.elements.retry.click(event);
+  assert.equal(defaultsPrevented, 2);
+  assert.equal(uiCalls[1].options.body, uiCalls[2].options.body);
+  assert.equal(ui.browser.location.href, "http://vidaahub.com:8082/");
+  assert.match(ui.elements.status.textContent, /Invio completato/);
+  const rejected = browserClient(async (_, options) => {
+    assert.equal(options.redirect, "error");
+    throw new TypeError("fixture redirect rejected");
+  });
+  await rejected.elements.collect.click(event);
+  assert.match(rejected.elements.status.textContent, /non riusciti/);
+  assert.equal(rejected.browser.location.href, "http://vidaahub.com:8082/");
   const calls = [];
   const report = await collect(root([{ src: "http://vidaahub.com:8082/bridge-source-check.js?v=fixture" }], [
     { initiatorType: "script", name: "https://tvmodules-vidaa.vidaahub.com/deviceapi/vidaatv.js" },

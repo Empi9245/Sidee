@@ -120,25 +120,28 @@
         "No SDK execution, native API call, identity, cookie, signing material, TV filesystem or installation.",
         "Source completeness is distinct from complete firmware coverage and authorization."] };
   }
-  if (typeof module !== "undefined" && module.exports) {
+  if (typeof window === "undefined" && typeof module !== "undefined" && module.exports) {
     module.exports = { collect, discover, readSource, PRIVATE_LITERAL }; return;
   }
   const button = document.getElementById("collect"), status = document.getElementById("status");
-  const executedBuild = new URL(document.currentScript.src, location.href).searchParams.get("v");
+  const executedScript = document.currentScript || document.getElementById("bridge-source-script");
+  const executedBuild = executedScript ? new URL(executedScript.src, location.href).searchParams.get("v") : null;
   let started = false, report = null;
   document.getElementById("origin").textContent = location.origin +
     (location.hostname === "vidaahub.com" ? " — contesto vidaahub" : " — contesto diverso da vidaahub; risultato separato");
-  button.addEventListener("click", async function () {
+  button.addEventListener("click", async function (event) {
+    event.preventDefault();
     if (started) return;
     started = true; button.disabled = true;
     status.textContent = "Raccolta singola in corso…";
     try {
-      const manifestResponse = await fetch("/manifest", { cache: "no-store" });
+      const manifestResponse = await fetch("/manifest", { cache: "no-store", redirect: "error", credentials: "omit" });
       if (!manifestResponse.ok) throw new Error("Manifest indisponibile");
       const manifest = await manifestResponse.json();
       if (executedBuild !== manifest.buildId) throw new Error("Versione della pagina non aggiornata; ricarica prima di raccogliere");
       report = await collect(window, window.fetch.bind(window), manifest);
-      const response = await fetch("/snapshot", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(report) });
+      const response = await fetch("/snapshot", { method: "POST", redirect: "error", credentials: "omit",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify(report) });
       if (!response.ok) throw new Error("Ricevitore HTTP " + response.status);
       const receipt = await response.json();
       status.textContent = "Raccolta salvata sul PC. Esito: " + report.outcome + ". Ricevuta: " + receipt.sha256;
@@ -148,10 +151,12 @@
       if (report) document.getElementById("retry").hidden = false;
     }
   });
-  document.getElementById("retry").addEventListener("click", async function () {
+  document.getElementById("retry").addEventListener("click", async function (event) {
+    event.preventDefault();
     if (!report) return;
     try {
-      const response = await fetch("/snapshot", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(report) });
+      const response = await fetch("/snapshot", { method: "POST", redirect: "error", credentials: "omit",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify(report) });
       if (!response.ok) throw new Error("HTTP " + response.status);
       status.textContent = "Invio completato. Ricevuta: " + (await response.json()).sha256;
       document.getElementById("retry").hidden = true;

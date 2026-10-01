@@ -3,7 +3,21 @@
 > Read this file before doing new VIDAA research or changing the installer.
 > Goal: avoid repeating already completed research, tests, and conclusions.
 
-Last updated: 2026-09-30
+Last updated: 2026-10-01
+
+> LATEST: owner started launcher today. DNS18896, HTTP2848, collection
+> bridge-c2f2b35c1a30469fbcfdd197f5602847, build6bbcea0ceaa98b5e/runtime1236315,
+> null receipt. TV .1.10 requested root+own script with Host vidaahub at07:30:07Z;
+> DNS9queries/9submitted/0errors. This proves HTTP request access, not JS execution
+> or a source report. Owner reports click changes to HTTPS. No navigation in
+> collector or redirect in receiver; exact external cause/destination unknown.
+> No listener443. Existing domain cert self-signed(25Sep-25Oct2026), not public
+> trusted domain chain; keys unread. No new TLS spoof/trust bypass/native probe.
+> Fixed UI: Node export only outside browser, currentScript null fallback to own
+> tag, type=button/preventDefault, redirect:error+credentials:omit for manifest/
+> upload/retry. VM browser/module shim/native-getter-forbidden click/retry/error
+> tests and2 HTTP tests pass; off-TV only. Check actual post-activation provenance
+> and preserve any receipt. Old TLS server is normal Sidee, not isolated mode.
 
 > CURRENT: owner confirms TV .1.10 and primary DNS .1.5. Do not ask again.
 > Fixed lan_dns failure where OSError persisting status prevented DNS reply;
