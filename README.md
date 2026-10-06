@@ -51,16 +51,12 @@ stay in your user profile and are never included in the download.
    Enter those 4 digits in the dashboard's **TV PIN** field and click
    **Confirm code**. Keep the TV on while connecting. If the code expires,
    click **Request code** again to start a new attempt.
-3. **Install Nuvio** — click **Install Nuvio** in the dashboard, wait for
+3. **Install Apps** — click **Install** in the dashboard, wait for
    confirmation, then open the tile from the TV launcher.
 
 The tile stays in the launcher **permanently**, even after unplugging and
 restarting the TV: the app is hosted online, so no computer needs to stay on.
 
-Nuvio uses the square app icon to preserve its proportions in the VIDAA
-launcher. If an existing tile still shows the stretched wordmark, install
-Nuvio again to update its icon. If the TV keeps the old image cached, remove
-the Nuvio tile from the launcher and install it again.
 
 > **Using your phone?** Scan the QR in the dashboard's **Use your phone**
 > section with your phone's camera. You can then enter the TV PIN while
@@ -108,10 +104,6 @@ registering web apps in the launcher, just as the phone app does when
 you install from the catalog. Sidee is a client for that channel:
 the same mechanism, with your app in place of one from the catalog.
 
-Protocol details are distributed in encoded form: the project's interface
-and user-facing logic are open source, while the channel parameters remain
-opaque as part of responsible disclosure practices toward the manufacturer.
-
 ## Security and privacy
 
 - **No telemetry**: pairing and TV control communicate with your TV on the
@@ -130,14 +122,6 @@ opaque as part of responsible disclosure practices toward the manufacturer.
 
 From the TV launcher: tile context menu → remove (added tiles
 can be removed just like Store apps).
-
-## Dashboard security
-
-The web interface is protected by a **unique key generated at each startup**:
-it is included in the URL printed in the console (and in the QR code if you
-open it from your phone on the same Wi-Fi). Without the key, you cannot even
-view the page. Installed URLs must use **HTTPS**, or **HTTP** for a server on
-your private network. The PIN is never logged, and tokens stay in your user profile.
 
 ## Why this project exists
 
