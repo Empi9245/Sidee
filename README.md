@@ -139,7 +139,7 @@ failed attempts.
 
 I had already spent a whole month trying to install my apps on the TV:
 guides, tricks, and methods that led nowhere. Then I gave up.
-When I picked it up again, the TV seemed built to say no — and for
+When I picked it up again, the TV seemed built to say no, and for
 a moment, I almost gave up again.
 
 The breakthrough came from understanding one simple thing: the official
@@ -148,7 +148,7 @@ permissions. From there, evenings of measurements and experiments became
 the three clicks on this page.
 
 I made it with heart, and kept it simple so you don't have to go through
-what I did. **If it saved you those weeks, buy me a coffee** — it's
+what I did. **If it saved you those weeks, buy me a coffee** it's
 the best way to tell me "keep going".
 
 ## Support the project
