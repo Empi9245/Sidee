@@ -150,8 +150,7 @@ jobs:
           if [[ "$SIDEE_REF" == refs/tags/v* ]]; then
             SIDEE_TAG="$SIDEE_REF_NAME"
           else
-            first_line="${SIDEE_COMMIT_MESSAGE%%
-\n'*}"
+            first_line="$(printf '%s\n' "$SIDEE_COMMIT_MESSAGE" | head -n 1)"
             SIDEE_TAG="${first_line#release: }"
             publish=true
           fi
