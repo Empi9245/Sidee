@@ -34,7 +34,9 @@ class TestPlatformPaths(unittest.TestCase):
     def setUp(self):
         folder = tempfile.TemporaryDirectory()
         self.addCleanup(folder.cleanup)
-        self.folder = Path(folder.name)
+        # macOS /var and Windows short TEMP names resolve to their canonical
+        # directory; the resource helper intentionally returns that directory.
+        self.folder = Path(folder.name).resolve()
         env = patch.dict(os.environ, {"SIDEE_STATE_DIR": ""})
         env.start()
         self.addCleanup(env.stop)

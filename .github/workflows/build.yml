@@ -36,7 +36,7 @@ jobs:
           python sidee.py --self-test
       - name: Run all source tests
         run: |
-          python -m unittest discover -s tests -v
+          python -u -X faulthandler -c "import faulthandler, unittest; faulthandler.dump_traceback_later(90, exit=True); result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.discover('tests')); faulthandler.cancel_dump_traceback_later(); raise SystemExit(not result.wasSuccessful())"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node --test tests/test_dashboard_selection.js
       - name: Start and stop the source dashboard
@@ -95,7 +95,7 @@ jobs:
           python sidee.py --self-test
       - name: Run all source tests
         run: |
-          python -m unittest discover -s tests -v
+          python -u -X faulthandler -c "import faulthandler, unittest; faulthandler.dump_traceback_later(90, exit=True); result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.discover('tests')); faulthandler.cancel_dump_traceback_later(); raise SystemExit(not result.wasSuccessful())"
           node --test tests/test_dashboard_selection.js
       - name: Start and stop the source dashboard
         run: python tools/smoke_test.py --source

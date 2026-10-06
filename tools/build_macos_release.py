@@ -84,11 +84,13 @@ def verify_app(app, architecture):
     if not any(path.name == "tk.tcl" for path in files):
         raise RuntimeError("The app is missing the Tk runtime scripts.")
     expected = "x86_64" if architecture == "x64" else "arm64"
-    seen = set()
-    native_files = 0
+    # Reject external links before invoking native tools on any fixture/file.
     for path in files:
         if path.is_symlink() and not path.resolve().is_relative_to(app.resolve()):
             raise RuntimeError(f"The app has a link to an external file: {path}")
+    seen = set()
+    native_files = 0
+    for path in files:
         if not path.is_file():
             continue
         resolved = path.resolve()

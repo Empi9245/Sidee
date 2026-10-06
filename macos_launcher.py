@@ -123,8 +123,18 @@ def run_gui() -> int:
 
 def main() -> int:
     if len(sys.argv) > 1 or os.environ.get("SIDEE_CI") == "1":
-        import sidee
-        return sidee.main()
+        try:
+            import sidee
+            return sidee.main()
+        except Exception:
+            # A windowed bootloader must not show an exception dialog in CI.
+            try:
+                path = _log_error()
+                if sys.stderr:
+                    print("Sidee startup failed. Details: " + str(path), file=sys.stderr)
+            except OSError:
+                pass
+            return 1
     return run_gui()
 
 

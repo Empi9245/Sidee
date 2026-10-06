@@ -59,6 +59,18 @@ class TestDashboardLifecycle(unittest.TestCase):
         gui.assert_not_called()
         serve.assert_called_once_with(open_browser=False, port=None, headless=True)
 
+    def test_headless_failure_never_opens_an_error_dialog(self):
+        with tempfile.TemporaryDirectory() as directory, \
+                patch("sys.argv", ["Sidee", "--self-test"]), \
+                patch.dict(os.environ, {"SIDEE_STATE_DIR": directory}), \
+                patch.object(sidee, "main", side_effect=OSError("startup fixture")), \
+                patch.object(macos_launcher, "run_gui") as gui, \
+                patch.object(macos_launcher, "_fallback_error") as dialog:
+            self.assertEqual(macos_launcher.main(), 1)
+            self.assertIn("startup fixture", (Path(directory) / "logs" / "sidee.log").read_text())
+        gui.assert_not_called()
+        dialog.assert_not_called()
+
     def test_pending_pairing_wakes_on_application_close(self):
         from core.pairing import PairingFlow
         flow = PairingFlow()
