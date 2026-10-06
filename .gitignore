@@ -1,0 +1,11 @@
+__pycache__/
+.venv/
+.runtime/
+*.pyc
+build/
+dist/
+*.egg-info/
+.sidee/
+.vidaa-tile/
+certs.bin.k
+session.json
