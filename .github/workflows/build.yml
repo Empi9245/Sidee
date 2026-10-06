@@ -126,7 +126,7 @@ jobs:
 
   release:
     name: Prepare verified release assets
-    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/v') || startsWith(github.event.head_commit.message, 'release: v'))
+    if: "${{ github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/v') || startsWith(github.event.head_commit.message, 'release: v')) }}"
     needs: [windows, macos]
     runs-on: ubuntu-latest
     permissions:
