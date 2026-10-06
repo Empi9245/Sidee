@@ -23,7 +23,7 @@ the PIN displayed on
 
 ### Windows
 
-1. [Download Sidee for Windows](https://github.com/Empi9245/Sidee/releases/download/v0.1.1/sidee-windows.zip)
+1. [Download Sidee for Windows](https://github.com/Empi9245/Sidee/releases/download/v0.1.2/sidee-windows.zip)
    and choose **Extract all**. Open the extracted folder.
 2. Double-click **`start-windows.bat`**.
 3. Wait for your dashboard to open in the browser. Everything else happens there.

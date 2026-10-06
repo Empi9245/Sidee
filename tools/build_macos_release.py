@@ -166,7 +166,7 @@ def package_app(app, architecture):
     return archive, dmg
 
 
-def build(architecture, version="0.1.1", app_only=False, package_only=False):
+def build(architecture, version="0.1.2", app_only=False, package_only=False):
     if sys.platform != "darwin":
         raise RuntimeError("macOS bundles must be built on macOS; use the GitHub Actions workflow.")
     architecture = normalized_architecture(architecture)
@@ -192,7 +192,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--architecture", choices=("arm64", "x64"),
                         default=normalized_architecture(platform.machine()))
-    parser.add_argument("--version", default=os.environ.get("SIDEE_BUILD_VERSION", "0.1.1"))
+    parser.add_argument("--version", default=os.environ.get("SIDEE_BUILD_VERSION", "0.1.2"))
     stages = parser.add_mutually_exclusive_group()
     stages.add_argument("--app-only", action="store_true",
                         help="Build the app before a future signing/notarization step.")

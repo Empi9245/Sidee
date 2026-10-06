@@ -102,10 +102,13 @@ jobs:
       - name: Build and verify the app, native architecture, ZIP and DMG
         env:
           SIDEE_REF_NAME: ${{ github.ref_name }}
+          SIDEE_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
-          version=0.1.1
+          version=0.1.2
           if [[ "$SIDEE_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             version="${SIDEE_REF_NAME#v}"
+          elif [[ "$SIDEE_COMMIT_MESSAGE" =~ ^release:\ v([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+            version="${BASH_REMATCH[1]}"
           fi
           python tools/build_macos_release.py --architecture '${{ matrix.architecture }}' --version "$version"
       - name: Check the bundled runtime without GUI or a TV
@@ -122,8 +125,8 @@ jobs:
           retention-days: 30
 
   release:
-    name: Prepare a draft release on version tags
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    name: Prepare verified release assets
+    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/v') || startsWith(github.event.head_commit.message, 'release: v'))
     needs: [windows, macos]
     runs-on: ubuntu-latest
     permissions:
@@ -138,17 +141,36 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           SIDEE_REPOSITORY: ${{ github.repository }}
-          SIDEE_TAG: ${{ github.ref_name }}
+          SIDEE_REF: ${{ github.ref }}
+          SIDEE_REF_NAME: ${{ github.ref_name }}
+          SIDEE_SHA: ${{ github.sha }}
+          SIDEE_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
+          publish=false
+          if [[ "$SIDEE_REF" == refs/tags/v* ]]; then
+            SIDEE_TAG="$SIDEE_REF_NAME"
+          else
+            first_line="${SIDEE_COMMIT_MESSAGE%%
+\n'*}"
+            SIDEE_TAG="${first_line#release: }"
+            publish=true
+          fi
           if ! [[ "$SIDEE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo 'Release tags must use vX.Y.Z.' >&2
+            echo 'Release versions must use vX.Y.Z.' >&2
             exit 1
           fi
           if ! gh release view "$SIDEE_TAG" --repo "$SIDEE_REPOSITORY" >/dev/null 2>&1; then
-            gh release create "$SIDEE_TAG" --repo "$SIDEE_REPOSITORY" --verify-tag --draft --title "Sidee $SIDEE_TAG" --notes 'Windows and native Apple Silicon/Intel macOS builds. The initial macOS apps are not Developer ID signed or notarized; see README for first launch and hardware testing limits.'
+            if [[ "$publish" == true ]]; then
+              gh release create "$SIDEE_TAG" --repo "$SIDEE_REPOSITORY" --target "$SIDEE_SHA" --draft --title "Sidee $SIDEE_TAG (Beta)" --generate-notes
+            else
+              gh release create "$SIDEE_TAG" --repo "$SIDEE_REPOSITORY" --verify-tag --draft --title "Sidee $SIDEE_TAG" --generate-notes
+            fi
           fi
           if [[ "$(gh release view "$SIDEE_TAG" --repo "$SIDEE_REPOSITORY" --json isDraft --jq .isDraft)" != 'true' ]]; then
             echo 'The release is already published; its assets will not be overwritten.' >&2
             exit 1
           fi
           gh release upload "$SIDEE_TAG" release-assets/* --repo "$SIDEE_REPOSITORY" --clobber
+          if [[ "$publish" == true ]]; then
+            gh release edit "$SIDEE_TAG" --repo "$SIDEE_REPOSITORY" --draft=false --prerelease
+          fi
