@@ -2,8 +2,9 @@
 
 # Sidee
 
-Add web apps as **permanent tiles** to your Hisense VIDAA TV launcher —
-with one click, directly from your computer's browser.
+Install **third-party web apps on Hisense VIDAA TVs** as permanent launcher tiles,
+including **Stremio, Nuvio and Jellyfin**. Sidee is a simple **VIDAA sideload**
+tool that works with one click from your computer's browser.
 
 Pairing and TV control run **locally** on your network, without an account
 or a cloud service. Windows first-time setup downloads Python and its connection
