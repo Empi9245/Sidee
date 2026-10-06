@@ -1,16 +1,21 @@
 """Installation confirmation with a TV that only answers explicit app-list requests."""
 import json
+import argparse
+import io
 import os
 import tempfile
 import time
 import unittest
-from contextlib import ExitStack
+from contextlib import ExitStack, redirect_stdout
 from unittest.mock import patch
 
+import sidee
 from core import client, protocol, webui
 
 
-NUVIO = {"appId": "nuviodebug", "name": "Nuvio"}
+NUVIO_URL = "https://nuviotvsmart.vercel.app/vidaa.html"
+NUVIO = {"appId": "nuviodebug", "name": "Nuvio", "url": NUVIO_URL}
+OLD_NUVIO = {**NUVIO, "url": "https://nuviotvsmart.vercel.app/"}
 EXISTING = {"appId": "existing", "name": "Existing app"}
 
 
@@ -116,6 +121,59 @@ class TestTileRegistration(unittest.TestCase):
         self.connection.replies = ["not-json", [NUVIO]]
         self.assertTrue(self.install()["ok"])
         self.assertEqual(self.connection.requests, 2)
+
+    def test_existing_id_with_old_address_is_unconfirmed(self):
+        self.connection.replies = [[OLD_NUVIO]]
+        result = self.install()
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["status"], "unconfirmed")
+        self.assertIn("current address", result["message"])
+        self.assertEqual(self.connection.requests, 2)
+
+    def test_delayed_address_update_is_confirmed_without_reinstall(self):
+        self.connection.replies = [[OLD_NUVIO], [NUVIO]]
+        self.assertTrue(self.install()["ok"])
+        self.assertEqual(self.connection.requests, 2)
+
+    def test_existing_id_without_address_is_unconfirmed(self):
+        self.connection.replies = [[{"appId": "nuviodebug", "name": "Nuvio"}]]
+        result = self.install()
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["status"], "unconfirmed")
+        self.assertEqual(self.connection.requests, 2)
+
+    def test_install_requests_the_vidaa_entry(self):
+        self.install()
+        payload = next(json.loads(p) for t, p in self.connection.published
+                       if t.endswith("actions/uievent"))
+        self.assertEqual(payload["app_info"]["URL"], NUVIO_URL)
+
+
+class TestTileAddressConfirmation(unittest.TestCase):
+    def test_supported_address_fields(self):
+        for field in ("url", "appUrl", "URL"):
+            with self.subTest(field=field):
+                self.assertTrue(client.tile_matches_request(
+                    {"appId": "NUVIODEBUG", field: NUVIO_URL}, "nuviodebug", NUVIO_URL))
+
+    def test_conflicting_addresses_are_not_confirmed(self):
+        self.assertFalse(client.tile_matches_request(
+            {**NUVIO, "appUrl": OLD_NUVIO["url"]}, "nuviodebug", NUVIO_URL))
+
+    def test_wrong_identity_or_missing_address_is_not_confirmed(self):
+        for tile in (None, "invalid", {"appId": "other", "url": NUVIO_URL},
+                     {"appId": "nuviodebug", "url": None},
+                     {"appId": "nuviodebug", "url": ""}):
+            with self.subTest(tile=tile):
+                self.assertFalse(client.tile_matches_request(tile, "nuviodebug", NUVIO_URL))
+
+    def test_cli_uses_the_same_address_confirmation(self):
+        args = argparse.Namespace(cmd="install", preset="nuvio")
+        for tile, expected in ((NUVIO, 0), (OLD_NUVIO, 1),
+                               ({"appId": "nuviodebug"}, 1)):
+            with self.subTest(tile=tile), patch.object(client.Session, "load"), \
+                 patch.object(client, "add_tile", return_value=[tile]), redirect_stdout(io.StringIO()):
+                self.assertEqual(sidee.cmd_cli(args), expected)
 
 
 if __name__ == "__main__":

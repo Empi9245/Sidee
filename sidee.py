@@ -41,13 +41,17 @@ def cmd_cli(a) -> int:
         if p.get("needs_server"):
             if not getattr(a, "server", None):
                 print(f"{p['name']} requires your server address: "
-                      f"--server 192.168.1.50:8096")
+                      f"--server YOUR_SERVER_IP:8096")
                 return 2
             p = dict(p)
-            p["url"] = presets.build_server_url(a.server)
+            try:
+                p["url"] = presets.build_server_url(a.server)
+            except ValueError as error:
+                print(str(error))
+                return 2
         s = client.Session.load()
         apps = client.add_tile(s, p["app_id"], p["name"], p["url"], p["image"])
-        ok = any(str(x.get("appId", "")).lower() == p["app_id"] for x in apps)
+        ok = any(client.tile_matches_request(x, p["app_id"], p["url"]) for x in apps)
         print(f"{'REGISTERED' if ok else 'NOT confirmed by the TV'}: "
               f"{p['name']} ({p['app_id']}) -> {p['url']}")
         return 0 if ok else 1

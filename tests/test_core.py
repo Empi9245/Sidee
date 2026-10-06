@@ -108,7 +108,7 @@ class TestPresets(unittest.TestCase):
         p = presets.get("nuvio")
         self.assertTrue(p)
         self.assertEqual(p["app_id"], "nuviodebug")
-        self.assertTrue(p["url"].startswith("https://"))
+        self.assertEqual(p["url"], "https://nuviotvsmart.vercel.app/vidaa.html")
         self.assertTrue(p["image"].startswith("https://"))
         self.assertTrue(os.path.isfile(os.path.join(ROOT, p["icon"])))
 
@@ -136,7 +136,7 @@ class TestPresets(unittest.TestCase):
         self.assertTrue(f("192.168.1.50"))
         self.assertTrue(f("10.0.0.3:8096"))
         self.assertTrue(f("172.16.5.4"))
-        self.assertTrue(f("localhost"))
+        self.assertFalse(f("localhost"))
         self.assertTrue(f("nas.casa.local"))
         self.assertFalse(f("172.32.1.1"))
         self.assertFalse(f("media.example.com"))

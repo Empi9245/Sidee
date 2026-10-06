@@ -18,7 +18,7 @@ library from their official sources. Pairing requires the PIN displayed on
 
 ## Start on Windows
 
-1. [Download Sidee for Windows](https://github.com/Empi9245/Sidee/releases/download/v0.1.0/sidee-windows.zip)
+1. [Download Sidee for Windows](https://github.com/Empi9245/Sidee/releases/download/v0.1.1/sidee-windows.zip)
    and choose **Extract all**. Open the extracted folder.
 2. Double-click **`start-windows.bat`**.
 3. Wait for your dashboard to open in the browser. Everything else happens there.
@@ -45,6 +45,8 @@ stay in your user profile and are never included in the download.
 
 1. **Find TV** — turn on the TV and connect it to the same network as
    your computer, then press **Find TV** in the dashboard.
+   Sidee uses the address returned by discovery, without a preset TV IP.
+   Saved pairings are reused only after that TV has been found and selected.
 2. **Request code** — click **Request code** to display a PIN on your TV.
    Enter those 4 digits in the dashboard's **TV PIN** field and click
    **Confirm code**. Keep the TV on while connecting. If the code expires,
@@ -81,11 +83,16 @@ From a repository checkout, build the distributable Windows ZIP with
 connection bundle, excluding local runtimes, saved sessions, and personal
 configuration. The resulting file is `dist/sidee-windows.zip`.
 
+To check source changes, run `python -m unittest discover -s tests`.
+Dashboard interaction tests use Node.js: `node --test tests/test_dashboard_selection.js`.
+
 Command-line commands (optional):
+
+Replace `TV_IP` with the address shown by **Find TV** on your own network.
 
 ```bash
 python sidee.py discover           # find TVs
-python sidee.py pair 192.168.1.10  # pair (prompts for the PIN)
+python sidee.py pair TV_IP        # pair (prompts for the PIN)
 python sidee.py install nuvio      # register the tile
 python sidee.py list               # list launcher tiles
 python sidee.py launch nuvio       # launch immediately

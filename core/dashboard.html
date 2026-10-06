@@ -263,7 +263,7 @@
           <div class="app-body">
             <div class="jellyfin-head"><img class="app-icon" src="/assets/jellyfin.png" alt="" width="50" height="50"><div><h3>Jellyfin</h3><small>Your personal media library</small></div></div>
             <p class="app-description">Your collection, on your TV.<br>Connect your Jellyfin server and settle in.</p>
-            <div class="field"><label for="jfsrv">Server address</label><input id="jfsrv" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="192.168.1.50:8096" aria-describedby="serverHelp serverError"><span class="help-text" id="serverHelp">A local address or your server's full URL.</span><span class="field-error" id="serverError" hidden></span></div>
+            <div class="field"><label for="jfsrv">Server address</label><input id="jfsrv" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="Your server's IP or URL" aria-describedby="serverHelp serverError"><span class="help-text" id="serverHelp">Use an address your TV can reach, rather than localhost.</span><span class="field-error" id="serverError" hidden></span></div>
             <button class="button secondary" id="btnInstallJf" disabled><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg><span>Install Jellyfin</span></button>
           </div>
         </article>
@@ -289,14 +289,15 @@
   <script>
     const $ = id => document.getElementById(id);
     const KEY = new URLSearchParams(location.search).get("key") || "";
-    const api = path => `${path}?key=${encodeURIComponent(KEY)}`;
+    const api = (path, query = {}) => `${path}?${new URLSearchParams({...query, key: KEY})}`;
     const KOFI = "KOFI_URL_PLACEHOLDER";
     if (KOFI) $("kofi").href = KOFI;
     else $("kofi").hidden = true;
     let tv = null, linked = false, expiryTimer = null, installed = new Set(), devices = [];
-    let installBusy = false;
+    let installBusy = false, findBusy = false;
     let statusRevision = 0;
     let pairingId = null, pairingTimer = null, pairBusy = false;
+    let phoneRevision = 0;
 
     function log(message, cls = "") {
       const line = document.createElement("span");
@@ -311,9 +312,9 @@
       $("notice").hidden = false;
     }
 
-    async function request(path, data) {
+    async function request(path, data, query = {}) {
       const options = data === undefined ? {} : {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(data)};
-      const response = await fetch(api(path), options);
+      const response = await fetch(api(path, query), options);
       if (!response.ok) throw new Error("Dashboard unavailable. Open the link printed by Sidee and try again.");
       return response.json();
     }
@@ -327,14 +328,15 @@
     }
 
     function updateInstallButtons() {
-      $("btnInstall").disabled = !linked || installBusy;
-      $("btnInstallJf").disabled = !linked || installBusy;
+      $("btnInstall").disabled = !linked || installBusy || findBusy;
+      $("btnInstallJf").disabled = !linked || installBusy || findBusy;
     }
 
     function updatePairControls() {
-      $("btnRequest").disabled = !tv || pairBusy || installBusy;
-      $("btnPair").disabled = !pairingId || pairBusy || installBusy;
-      $("pin").disabled = !pairingId || pairBusy || installBusy;
+      $("btnRequest").disabled = !tv || pairBusy || installBusy || findBusy;
+      $("btnPair").disabled = !pairingId || pairBusy || installBusy || findBusy;
+      $("pin").disabled = !pairingId || pairBusy || installBusy || findBusy;
+      $("tvselect").disabled = pairBusy || installBusy || findBusy;
     }
 
     function resetPairing(cancel = true) {
@@ -355,6 +357,7 @@
       linked = on;
       document.body.classList.toggle("is-linked", on);
       $("tvchip").textContent = on ? "Paired · " + name : "TV not connected";
+      if (!on) $("tvchip").removeAttribute("title");
       $("statusChip").classList.toggle("on", on);
       $("pairbadge").hidden = !on;
       $("setupMeta").hidden = on;
@@ -389,7 +392,26 @@
       $("stepPair").classList.toggle("current", !linked);
     }
 
+    function clearTV() {
+      resetPairing();
+      clearTimeout(expiryTimer);
+      statusRevision++;
+      tv = null;
+      devices = [];
+      installed.clear();
+      $("banner").hidden = true;
+      $("tvname").textContent = "Turn on your TV and connect it to the same network as this device.";
+      $("tvselect").replaceChildren();
+      $("deviceField").hidden = true;
+      $("tvchip").removeAttribute("title");
+      setLinked(false);
+    }
+
     $("btnFind").onclick = async () => {
+      const previousHost = tv && tv.host;
+      findBusy = true;
+      clearTV();
+      loadPhoneAccess();
       busy("btnFind", true, "Searching…");
       log("Looking for your TV on the local network…");
       try {
@@ -403,17 +425,30 @@
             return option;
           }));
           $("deviceField").hidden = devices.length < 2;
-          const selected = devices.find(device => tv && device.host === tv.host) || devices[0];
+          const selected = devices.find(device => device.host === previousHost) || devices[0];
           $("tvselect").value = selected.host;
           selectTV(selected);
-          log("Found " + selected.friendly_name + " at " + selected.host + ". Click Request code to connect.", "ok");
+          await syncStatus();
+          loadPhoneAccess();
+          log("Found " + selected.friendly_name + " at " + selected.host
+            + (linked ? ". Your saved connection is ready. Choose an app below." : ". Click Request code to connect."), "ok");
         } else log(result.error || "No TV found. Check that both devices are on the same network, then try again.", "err");
       } catch (error) { log(error.message || "The search was interrupted. Try again.", "err"); }
-      finally { busy("btnFind", false); }
+      finally {
+        findBusy = false;
+        busy("btnFind", false);
+        updatePairControls();
+        updateInstallButtons();
+      }
     };
-    $("tvselect").onchange = () => {
+    $("tvselect").onchange = async () => {
       const selected = devices.find(device => device.host === $("tvselect").value);
-      if (selected) selectTV(selected);
+      if (selected) {
+        selectTV(selected);
+        loadPhoneAccess();
+        try { await syncStatus(); }
+        catch (error) { setLinked(false); log(error.message, "err"); }
+      }
     };
     $("btnRequest").onclick = async () => {
       if (!tv || pairBusy || installBusy) return;
@@ -550,19 +585,20 @@
 
     function applyStatus(status) {
       clearTimeout(expiryTimer);
-      if (status.host && (!tv || status.host === tv.host)) {
-        selectTV({host: status.host, friendly_name: tv ? tv.friendly_name : "Your TV"});
+      if (!tv) {
+        setLinked(false);
+        return;
       }
       const ready = status.paired && status.state === "ok"
         && (!status.expires_at || Date.now() < status.expires_at * 1000)
         && tv && tv.host === status.host;
       setLinked(Boolean(ready), tv ? tv.friendly_name : status.host);
       if (ready) $("tvchip").title = status.host;
-      if (status.state === "expired" || (status.paired && !ready && tv && tv.host === status.host)) {
+      if (status.paired && !ready && tv.host === status.host) {
         $("tvchip").textContent = "Pairing needs renewal";
         resetPairing();
         log("Your TV connection has expired. Click Request code to reconnect.", "err");
-      } else if (status.message && status.state !== "needs_pairing") log(status.message, ready ? "ok" : "err");
+      } else if (status.host === tv.host && status.message && status.state !== "needs_pairing") log(status.message, ready ? "ok" : "err");
       if (ready && status.expires_at) {
         const revision = statusRevision;
         const delay = Math.min(status.expires_at * 1000 - Date.now(), 2147483647);
@@ -571,8 +607,12 @@
     }
     async function syncStatus() {
       const revision = statusRevision;
-      const status = await request("/api/status");
-      if (revision === statusRevision) applyStatus(status);
+      try {
+        const status = await request("/api/status");
+        if (revision === statusRevision) applyStatus(status);
+      } catch (error) {
+        if (revision === statusRevision) throw error;
+      }
     }
     function handleAuth(response) {
       if (!response.needs_pairing) return false;
@@ -584,8 +624,17 @@
       return true;
     }
     async function loadPhoneAccess() {
+      const selectedHost = tv ? tv.host : "";
+      const revision = ++phoneRevision;
+      $("phoneQr").hidden = true;
+      $("phoneQr").removeAttribute("src");
+      $("phoneLink").hidden = true;
+      $("phoneLink").removeAttribute("href");
+      $("phoneMessage").textContent = "Preparing your QR code…";
+      $("phoneMessage").hidden = false;
       try {
-        const result = await request("/api/phone");
+        const result = await request("/api/phone", undefined, selectedHost ? {tv_host: selectedHost} : {});
+        if (revision !== phoneRevision || (tv ? tv.host : "") !== selectedHost) return;
         if (!result.ok) throw new Error(result.error || "Couldn't prepare the phone QR code. Refresh this page to try again.");
         $("phoneQr").src = result.qr;
         $("phoneQr").hidden = false;
@@ -594,6 +643,10 @@
         $("phoneLink").hidden = false;
         $("phoneMessage").hidden = true;
       } catch (error) {
+        if (revision !== phoneRevision || (tv ? tv.host : "") !== selectedHost) return;
+        $("phoneQr").hidden = true;
+        $("phoneLink").hidden = true;
+        $("phoneMessage").hidden = false;
         $("phoneMessage").textContent = error.message || "Couldn't prepare the phone QR code. Refresh this page to try again.";
       }
     }

@@ -14,6 +14,7 @@ import subprocess
 import threading
 import tempfile
 import time
+import urllib.parse
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from functools import wraps
@@ -26,7 +27,7 @@ SSDP_MULTICAST = "239.255.255.250"
 SSDP_BROADCAST = "255.255.255.255"
 SSDP_PORT = 1900
 MQTT_PORT = 36669
-UPNP_PORTS = (18400, 38400)
+UPNP_PORTS = (18400, 38400, 80)
 
 
 # --- Client certificate (extracted from the official app, encoded blob) ---
@@ -323,17 +324,21 @@ def discover(timeout: float = 4.0) -> list[TvInfo]:
 
 def fetch_descriptor(host: str, location: str | None = None) -> TvInfo | None:
     """Download the UPnP descriptor and identify a VIDAA TV."""
-    for port in UPNP_PORTS:
-        loc = location or f"http://{host}:{port}/MediaServer/rendererdevicedesc.xml"
+    locations = [location] if location else [
+        f"http://{host}:{port}/MediaServer/rendererdevicedesc.xml" for port in UPNP_PORTS]
+    for loc in locations:
+        conn = None
         try:
-            u = re.match(r"http://([^:/]+):(\d+)(/.*)", loc)
-            if not u:
+            u = urllib.parse.urlsplit(loc)
+            if u.scheme != "http" or not u.hostname or u.username or u.password:
                 return None
-            conn = http.client.HTTPConnection(u.group(1), int(u.group(2)), timeout=3)
-            conn.request("GET", u.group(3))
+            conn = http.client.HTTPConnection(u.hostname, u.port or 80, timeout=3)
+            target = u.path or "/"
+            if u.query:
+                target += "?" + u.query
+            conn.request("GET", target)
             r = conn.getresponse()
             xml = r.read().decode("utf-8", "replace")
-            conn.close()
             if r.status != 200:
                 continue
             name = re.search(r"<friendlyName>([^<]+)<", xml)
@@ -345,8 +350,11 @@ def fetch_descriptor(host: str, location: str | None = None) -> TvInfo | None:
             return TvInfo(host=host, friendly_name=(name.group(1) if name else host),
                           model=desc.strip()[:120], is_vidaa=is_vidaa,
                           raw_description=xml)
-        except OSError:
+        except (OSError, ValueError, http.client.HTTPException):
             continue
+        finally:
+            if conn is not None:
+                conn.close()
     return None
 
 
@@ -635,6 +643,15 @@ def _mark_needs_pairing() -> None:
         s.save()
 
 
+def tile_matches_request(tile: object, app_id: str, url: str) -> bool:
+    """Confirm both the tile identity and the address reported by the TV."""
+    if not isinstance(tile, dict) or str(tile.get("appId", "")).lower() != app_id.lower():
+        return False
+    addresses = [tile[key].strip() for key in ("url", "appUrl", "URL")
+                 if isinstance(tile.get(key), str) and tile[key].strip()]
+    return bool(addresses) and all(address == url for address in addresses)
+
+
 def add_tile(session: Session, app_id: str, name: str, url: str,
              image: str = "") -> list[dict]:
     """Register a web app as a launcher tile. Return the updated app list."""
@@ -652,9 +669,7 @@ def add_tile(session: Session, app_id: str, name: str, url: str,
             sess.publish(topics["ui"] + "actions/applist", "0")
             raw = sess.wait_for("ui_service/data/applist", 8, since)
             apps = protocol.parse_applist_message(raw) if raw else []
-            if apps and any(isinstance(a, dict) and
-                            str(a.get("appId", "")).lower() == app_id.lower()
-                            for a in apps):
+            if apps and any(tile_matches_request(a, app_id, url) for a in apps):
                 return apps
             if attempt == 0:
                 time.sleep(2)  # allow the launcher to finish registering the tile

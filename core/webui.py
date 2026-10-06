@@ -49,10 +49,11 @@ def _status() -> dict:
             "expires_at": s.expires_at}
 
 
-def _phone_access(port: int) -> dict:
-    host = _local_ip()
+def _phone_access(port: int, tv_host: str | None = None) -> dict:
+    host = _local_ip(tv_host)
     address = ipaddress.IPv4Address(host)
-    if address.is_loopback or address.is_unspecified:
+    if (address.is_loopback or address.is_unspecified or address.is_multicast
+            or address.is_link_local):
         return {"ok": False, "error": "Connect this computer to your home network, "
                 "then refresh this page to get the phone QR code."}
     url = f"http://{host}:{port}/?key={ACCESS_KEY}"
@@ -107,7 +108,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
         elif path == "/api/status":
             self._json(_status())
         elif path == "/api/phone":
-            self._json(_phone_access(self.server.server_address[1]))
+            query = urllib.parse.parse_qs(parts.query, keep_blank_values=True)
+            tv_host = query.get("tv_host", [None])[0]
+            if tv_host is not None:
+                try:
+                    ipaddress.IPv4Address(tv_host)
+                except ValueError:
+                    self._json({"ok": False, "error": "The TV IP address is invalid. "
+                                "Find your TV again to update the phone QR code."})
+                    return
+            self._json(_phone_access(self.server.server_address[1], tv_host))
         elif path == "/api/discover":
             try:
                 tvs = [t.__dict__ | {"raw_description": ""}
@@ -179,13 +189,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
         found = [a for a in apps
                  if isinstance(a, dict) and
                  str(a.get("appId", "")).lower() == p["app_id"]]
+        confirmed = any(client.tile_matches_request(a, p["app_id"], p["url"])
+                        for a in found)
         dups = len(found)
-        return {"ok": bool(found),
-                "status": "installed" if found else "unconfirmed",
+        return {"ok": confirmed,
+                "status": "installed" if confirmed else "unconfirmed",
                 "error": None,
-                "message": None if found else
+                "message": None if confirmed else
                 p["name"] + " installation was requested, but the TV has not "
-                "confirmed it yet. Check Home on your TV before trying again.",
+                "confirmed its current address yet. Check Home on your TV "
+                "before trying again.",
                 "duplicates": max(0, dups - 1) if found else 0}
 
 
@@ -313,10 +326,19 @@ def serve(open_browser: bool = True) -> None:
         _forget_dashboard()
 
 
-def _local_ip() -> str:
+def _local_ip(tv_host: str | None = None) -> str:
+    """Choose a local interface without sending traffic or needing Internet.
+
+    The TV route takes precedence over a VPN's default route. Before a TV
+    has been selected, the local broadcast route selects a LAN interface.
+    """
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        s.connect(("8.8.8.8", 80))
+        if tv_host:
+            s.connect((tv_host, client.MQTT_PORT))
+        else:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            s.connect((client.SSDP_BROADCAST, client.SSDP_PORT))
         return s.getsockname()[0]
     except OSError:
         return "127.0.0.1"
