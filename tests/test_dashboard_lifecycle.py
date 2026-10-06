@@ -13,6 +13,12 @@ from tools.smoke_test import request, smoke
 
 
 class TestDashboardLifecycle(unittest.TestCase):
+    def test_startup_does_not_wait_for_hostname_dns(self):
+        with patch("socket.getfqdn", side_effect=AssertionError("reverse DNS used")):
+            dashboard = webui.Dashboard(port=0)
+            self.assertEqual(dashboard.server.server_name, "localhost")
+            dashboard.server.server_close()
+
     def test_headless_real_process_startup_and_shutdown(self):
         import sys
         root = Path(__file__).resolve().parent.parent

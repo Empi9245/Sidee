@@ -4,6 +4,7 @@ import json
 import os
 import sys
 import unittest
+from unittest.mock import patch
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
@@ -276,15 +277,12 @@ class TestSessionLifecycle(unittest.TestCase):
                 return 5  # rc=5: authentication rejected
             def stop(self):
                 pass
-        old = client.MqttSession
-        client.MqttSession = FakeSess
-        try:
+        with patch.object(client, "MqttSession", FakeSess), \
+                patch.object(client, "tv_timestamp", return_value=TS):
             s = self._make_session()
             with self.assertRaises(client.AuthError) as cm:
                 client.refresh(s)
             self.assertEqual(cm.exception.kind, "rejected")
-        finally:
-            client.MqttSession = old
 
     def test_ensure_ready_skips_refresh_when_valid(self):
         import time as _t

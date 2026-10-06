@@ -76,8 +76,10 @@ class TestDashboardBinding(unittest.TestCase):
 
     def test_new_download_does_not_share_the_running_legacy_server_port(self):
         self.assertTrue(http.server.ThreadingHTTPServer.allow_reuse_address)
-        legacy = http.server.ThreadingHTTPServer(("0.0.0.0", 0),
-                                                keyed_handler("legacy-copy"))
+        # This fixture tests socket ownership, not the runner's reverse DNS.
+        with patch("socket.getfqdn", return_value="localhost"):
+            legacy = http.server.ThreadingHTTPServer(("0.0.0.0", 0),
+                                                    keyed_handler("legacy-copy"))
         self._serve(legacy)
         legacy_port = legacy.server_address[1]
         with patch.object(webui, "_PORT", legacy_port), \

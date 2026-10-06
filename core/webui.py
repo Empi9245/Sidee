@@ -15,6 +15,7 @@ import re
 import secrets
 import signal
 import socket
+import socketserver
 import tempfile
 import threading
 import time
@@ -296,7 +297,11 @@ class DashboardServer(http.server.ThreadingHTTPServer):
 
     def server_bind(self):
         platform_support.configure_exclusive_tcp_socket(self.socket)
-        super().server_bind()
+        # HTTPServer's default bind performs reverse DNS for 0.0.0.0. That
+        # lookup can stall macOS startup on offline or filtered networks.
+        socketserver.TCPServer.server_bind(self)
+        self.server_name = "localhost"
+        self.server_port = self.server_address[1]
 
 
 def _bind_dashboard_server(port: int | None = None):
