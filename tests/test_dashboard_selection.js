@@ -22,7 +22,7 @@ class Element {
     this.textContent = id === "tvname" ? defaultHelp : "";
     this.value = "";
     this.hidden = true;
-    this.disabled = ["btnInstall", "btnInstallJf", "btnRequest", "btnPair", "pin"].includes(id);
+    this.disabled = ["btnInstall", "btnInstallStremio", "btnInstallJf", "btnRequest", "btnPair", "pin"].includes(id);
     this.classList = new Classes();
     this.dataset = {};
     this.attributes = {};
@@ -89,6 +89,7 @@ test("saved pairing does not preselect a TV before discovery", async () => {
   assert.equal(app.node("tvchip").textContent, "TV not connected");
   assert.equal(app.node("btnRequest").disabled, true);
   assert.equal(app.node("btnInstall").disabled, true);
+  assert.equal(app.node("btnInstallStremio").disabled, true);
 });
 
 test("expired saved pairing also leaves the initial TV selection empty", async () => {
@@ -111,6 +112,7 @@ test("matching saved pairing is reused only after discovery", async () => {
   assert.equal(app.node("btnInstall").disabled, true);
   await app.find();
   assert.equal(app.node("btnInstall").disabled, false);
+  assert.equal(app.node("btnInstallStremio").disabled, false);
   assert.match(app.node("tvchip").textContent, /Paired/);
 });
 

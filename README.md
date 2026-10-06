@@ -51,11 +51,17 @@ stay in your user profile and are never included in the download.
    Enter those 4 digits in the dashboard's **TV PIN** field and click
    **Confirm code**. Keep the TV on while connecting. If the code expires,
    click **Request code** again to start a new attempt.
-3. **Install Apps** — click **Install** in the dashboard, wait for
-   confirmation, then open the tile from the TV launcher.
+3. **Install Apps** — choose **Nuvio**, **Stremio**, or **Jellyfin** in the
+   dashboard, wait for confirmation, then open the tile from the TV launcher.
+   The Stremio option installs the full official **Stremio Web**
+   (`web.stremio.com`), not the limited VIDAA Stremio Lite app. You can
+   optionally paste the Remote HTTPS URL from Stremio Service/Desktop during
+   installation, or configure the streaming server later inside Stremio.
 
 The tile stays in the launcher **permanently**, even after unplugging and
-restarting the TV: the app is hosted online, so no computer needs to stay on.
+restarting the TV: the web app is hosted online, so Sidee does not need to
+stay running. If you use Stremio with Stremio Service/Desktop, that streaming
+server still needs to be running while you use server-backed playback.
 
 
 > **Using your phone?** Scan the QR in the dashboard's **Use your phone**
@@ -89,7 +95,9 @@ Replace `TV_IP` with the address shown by **Find TV** on your own network.
 ```bash
 python sidee.py discover           # find TVs
 python sidee.py pair TV_IP        # pair (prompts for the PIN)
-python sidee.py install nuvio      # register the tile
+python sidee.py install nuvio      # register the Nuvio tile
+python sidee.py install stremio    # full Stremio Web
+python sidee.py install stremio --server https://YOUR-STREMIO-REMOTE-URL
 python sidee.py list               # list launcher tiles
 python sidee.py launch nuvio       # launch immediately
 python sidee.py refresh            # refresh tokens (last ~30 days)

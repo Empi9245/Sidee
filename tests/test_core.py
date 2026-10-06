@@ -112,6 +112,26 @@ class TestPresets(unittest.TestCase):
         self.assertTrue(p["image"].startswith("https://"))
         self.assertTrue(os.path.isfile(os.path.join(ROOT, p["icon"])))
 
+    def test_stremio_preset_uses_full_web_app(self):
+        p = presets.get("stremio")
+        self.assertEqual(p["app_id"], "stremiodebug")
+        self.assertEqual(p["url"], "https://web.stremio.com/")
+        self.assertEqual(p["server_builder"], "stremio")
+        self.assertNotIn("lite", p["url"].lower())
+
+    def test_build_stremio_url(self):
+        f = presets.build_stremio_url
+        self.assertEqual(f(""), "https://web.stremio.com/")
+        url = f("https://stream.example.test:12470")
+        self.assertTrue(url.startswith(
+            "https://web.stremio.com/#/?streamingServerUrl="))
+        self.assertIn(
+            "https%3A%2F%2Fstream.example.test%3A12470", url)
+        with self.assertRaises(ValueError):
+            f("http://localhost:11470")
+        with self.assertRaises(ValueError):
+            f("192.168.1.20:11470")
+
     def test_jellyfin_preset_needs_server(self):
         p = presets.get("jellyfin")
         self.assertTrue(p["needs_server"])

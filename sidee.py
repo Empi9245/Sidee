@@ -49,6 +49,14 @@ def cmd_cli(a) -> int:
             except ValueError as error:
                 print(str(error))
                 return 2
+        elif p.get("server_builder") == "stremio":
+            p = dict(p)
+            try:
+                p["url"] = presets.build_stremio_url(
+                    getattr(a, "server", "") or "")
+            except ValueError as error:
+                print(str(error))
+                return 2
         s = client.Session.load()
         apps = client.add_tile(s, p["app_id"], p["name"], p["url"], p["image"])
         ok = any(client.tile_matches_request(x, p["app_id"], p["url"]) for x in apps)
@@ -74,7 +82,7 @@ def main() -> int:
     pr = sub.add_parser("pair"); pr.add_argument("host")
     sub.add_parser("refresh")
     ins = sub.add_parser("install"); ins.add_argument("preset")
-    ins.add_argument("--server", help="server address (for Jellyfin)")
+    ins.add_argument("--server", help="server address (for Jellyfin or Stremio)")
     sub.add_parser("list")
     la = sub.add_parser("launch"); la.add_argument("preset")
     a = p.parse_args()
