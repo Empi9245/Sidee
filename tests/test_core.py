@@ -112,21 +112,26 @@ class TestPresets(unittest.TestCase):
         self.assertTrue(p["image"].startswith("https://"))
         self.assertTrue(os.path.isfile(os.path.join(ROOT, p["icon"])))
 
-    def test_stremio_preset_uses_full_web_app(self):
+    def test_stremio_preset_uses_vidaa_tv_build(self):
         p = presets.get("stremio")
         self.assertEqual(p["app_id"], "stremiodebug")
-        self.assertEqual(p["url"], "https://web.stremio.com/")
+        self.assertEqual(
+            p["url"],
+            "https://noobygains.github.io/stremio-vidaa-tv/?install_source=sidee")
         self.assertEqual(p["server_builder"], "stremio")
         self.assertNotIn("lite", p["url"].lower())
 
     def test_build_stremio_url(self):
         f = presets.build_stremio_url
-        self.assertEqual(f(""), "https://web.stremio.com/")
-        url = f("https://stream.example.test:12470")
-        self.assertTrue(url.startswith(
-            "https://web.stremio.com/#/?streamingServerUrl="))
+        base = "https://noobygains.github.io/stremio-vidaa-tv/?install_source=sidee"
+        self.assertEqual(f(""), base)
+        remote = f("https://stream.example.test:12470")
+        self.assertTrue(remote.startswith(base + "&server="))
         self.assertIn(
-            "https%3A%2F%2Fstream.example.test%3A12470", url)
+            "https%3A%2F%2Fstream.example.test%3A12470", remote)
+        lan = f("http://192.168.1.50:11470")
+        self.assertIn(
+            "http%3A%2F%2F192.168.1.50%3A11470", lan)
         with self.assertRaises(ValueError):
             f("http://localhost:11470")
         with self.assertRaises(ValueError):

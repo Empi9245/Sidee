@@ -243,7 +243,7 @@
         </div>
         <div class="step" id="stepInstall">
           <div class="step-heading"><span class="step-number">3</span><h3>Choose what you love</h3></div>
-          <p>Once paired, choose Nuvio, full Stremio Web, or Jellyfin. Stremio can also be linked to your streaming server. Then open the app from Home on your TV.</p>
+          <p>Once paired, choose Nuvio, full Stremio for VIDAA, or Jellyfin. Stremio uses a TV-first interface with D-pad navigation and can also be linked to your streaming server. Then open the app from Home on your TV.</p>
           <div class="ready-note"><svg class="icon" id="readyIcon" aria-hidden="true"><use href="#i-lock"/></svg><span id="readyText">Pair your TV to unlock installation</span></div>
         </div>
       </div>
@@ -262,9 +262,9 @@
         </article>
         <article class="panel app stremio">
           <div class="app-body">
-            <div class="stremio-head"><img class="app-icon" src="https://web.stremio.com/images/icon_196x196.png" alt="" width="50" height="50"><div><h3>Stremio</h3><small>Full Stremio Web</small></div></div>
-            <p class="app-description">The full web app, not Stremio Lite.<br>Link Stremio Service/Desktop for the complete streaming experience.</p>
-            <div class="field"><label for="stsrv">Streaming server URL · optional</label><input id="stsrv" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="https://… remote server URL" aria-describedby="stServerHelp stServerError"><span class="help-text" id="stServerHelp">Paste the Remote HTTPS URL from Stremio Service/Desktop. Leave empty to configure it later inside Stremio.</span><span class="field-error" id="stServerError" hidden></span></div>
+            <div class="stremio-head"><img class="app-icon" src="https://noobygains.github.io/stremio-vidaa-tv/icon.png" alt="" width="50" height="50"><div><h3>Stremio</h3><small>Full Stremio · VIDAA TV build</small></div></div>
+            <p class="app-description">Full Stremio, not Stremio Lite.<br>TV interface built for D-pad focus and VIDAA viewport behaviour.</p>
+            <div class="field"><label for="stsrv">Streaming server URL · optional</label><input id="stsrv" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="https://… or http://192.168.…:11470" aria-describedby="stServerHelp stServerError"><span class="help-text" id="stServerHelp">Paste a Stremio server URL reachable by the TV (LAN HTTP or Remote HTTPS). Leave empty if you do not need a streaming server.</span><span class="field-error" id="stServerError" hidden></span></div>
             <button class="button secondary" id="btnInstallStremio" disabled><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg><span>Install Stremio</span></button>
           </div>
         </article>
@@ -287,8 +287,8 @@
         <p><b>The connection was refused?</b>If the TV just turned on, give it a minute, then try pairing again.</p>
         <p><b>Your PIN or saved connection expired?</b>Click Request code again, enter the new PIN shown on your TV, and click Confirm code.</p>
         <p><b>The tile hasn't appeared?</b>Check the favorites row in your launcher. You may need to restart the TV.</p>
-        <p><b>Can I close the installer?</b>After installation is confirmed, press Ctrl+C in its terminal. Nuvio and Stremio Web open online from the TV launcher, so Sidee can be off. Jellyfin still needs its server; Stremio needs Stremio Service/Desktop only when you use a linked streaming server.</p>
-        <p><b>Which Stremio is installed?</b>Sidee installs the full Stremio Web app at web.stremio.com, not the limited VIDAA Stremio Lite app. For full streaming support, paste the Remote HTTPS URL shown by Stremio Service/Desktop or configure it later in Stremio's Streaming settings.</p>
+        <p><b>Can I close the installer?</b>After installation is confirmed, press Ctrl+C in its terminal. Nuvio and the Stremio TV build open online from the TV launcher, so Sidee can be off. Jellyfin still needs its server; Stremio needs a streaming server only for playback that depends on one.</p>
+        <p><b>Which Stremio is installed?</b>Sidee installs the full community-maintained VIDAA TV build based on Stremio Theater with a modern Stremio core — not the limited VIDAA Stremio Lite app. It is designed for remote-control focus, D-pad navigation and VIDAA viewport quirks. You can optionally link a LAN or Remote HTTPS streaming server.</p>
         <p><b>Still seeing the old Nuvio icon?</b>Restart the installer and install Nuvio again. If the old image remains, remove its tile from the TV launcher and reinstall it.</p>
         <p><b>Want to remove an app?</b>Open the tile's menu in the TV launcher and choose Remove.</p>
       </div></details>

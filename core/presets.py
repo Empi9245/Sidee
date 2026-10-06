@@ -17,13 +17,15 @@ PRESETS: dict[str, dict] = {
     },
     "stremio": {
         "name": "Stremio",
+        # Keep the existing Sidee app id so reinstalling replaces the old
+        # web.stremio.com tile instead of leaving a duplicate behind.
         "app_id": "stremiodebug",
-        "url": "https://web.stremio.com/",
+        "url": "https://noobygains.github.io/stremio-vidaa-tv/?install_source=sidee",
         "server_builder": "stremio",
         "server_optional": True,
-        "server_placeholder": "Remote HTTPS URL (optional)",
-        "image": "https://web.stremio.com/images/icon_196x196.png",
-        "description": "Full Stremio Web, with your streaming server",
+        "server_placeholder": "Streaming server URL (optional)",
+        "image": "https://noobygains.github.io/stremio-vidaa-tv/icon.png",
+        "description": "Full Stremio TV for VIDAA with D-pad navigation",
     },
     "jellyfin": {
         "name": "Jellyfin",
@@ -83,15 +85,18 @@ def build_server_url(server: str) -> str:
 
 
 def build_stremio_url(server: str = "") -> str:
-    """Build full Stremio Web, optionally preselecting a streaming server.
+    """Build the VIDAA-optimised full Stremio TV URL.
 
-    The streamingServerUrl parameter is handled by Stremio Web itself.
-    Remote servers should normally use the HTTPS URL exposed by Stremio
-    Service/Desktop. Loopback addresses would point back to the TV.
+    This community TV build uses the Stremio Theater interface with a modern
+    stremio-core-web engine and VIDAA-specific focus, keyboard and viewport
+    fixes. Its server query parameter can point to a LAN Stremio server or
+    to the Remote HTTPS URL exposed by Stremio Service/Desktop. Loopback
+    addresses would point back to the TV.
     """
+    base = "https://noobygains.github.io/stremio-vidaa-tv/?install_source=sidee"
     server = server.strip().rstrip("/")
     if not server:
-        return "https://web.stremio.com/"
+        return base
     parsed = urlsplit(server)
     if parsed.scheme not in ("http", "https") or not parsed.hostname:
         raise ValueError(
@@ -107,5 +112,4 @@ def build_stremio_url(server: str = "") -> str:
             "Use the Stremio server address reachable by your TV; localhost points to the TV itself.")
     normalized = urlunsplit(
         (parsed.scheme, parsed.netloc, parsed.path or "", parsed.query, parsed.fragment))
-    return "https://web.stremio.com/#/?streamingServerUrl=" + quote(
-        normalized, safe="")
+    return base + "&server=" + quote(normalized, safe="")

@@ -53,10 +53,13 @@ stay in your user profile and are never included in the download.
    click **Request code** again to start a new attempt.
 3. **Install Apps** — choose **Nuvio**, **Stremio**, or **Jellyfin** in the
    dashboard, wait for confirmation, then open the tile from the TV launcher.
-   The Stremio option installs the full official **Stremio Web**
-   (`web.stremio.com`), not the limited VIDAA Stremio Lite app. You can
-   optionally paste the Remote HTTPS URL from Stremio Service/Desktop during
-   installation, or configure the streaming server later inside Stremio.
+   The Stremio option installs the full **VIDAA TV-adapted Stremio build**,
+   not the limited VIDAA Stremio Lite app. It uses the Stremio Theater TV
+   interface with a modern Stremio core plus VIDAA-specific D-pad, focus,
+   keyboard and viewport fixes. The build is community-maintained by
+   [NoobyGains/stremio-vidaa-tv](https://github.com/NoobyGains/stremio-vidaa-tv).
+   You can optionally paste a LAN streaming-server URL or the Remote HTTPS URL
+   from Stremio Service/Desktop during installation.
 
 The tile stays in the launcher **permanently**, even after unplugging and
 restarting the TV: the web app is hosted online, so Sidee does not need to
@@ -96,7 +99,7 @@ Replace `TV_IP` with the address shown by **Find TV** on your own network.
 python sidee.py discover           # find TVs
 python sidee.py pair TV_IP        # pair (prompts for the PIN)
 python sidee.py install nuvio      # register the Nuvio tile
-python sidee.py install stremio    # full Stremio Web
+python sidee.py install stremio    # full Stremio TV build for VIDAA
 python sidee.py install stremio --server https://YOUR-STREMIO-REMOTE-URL
 python sidee.py list               # list launcher tiles
 python sidee.py launch nuvio       # launch immediately
