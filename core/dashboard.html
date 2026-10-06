@@ -42,7 +42,7 @@
     .status.on { color: var(--positive); background: #f2f8f1; border-color: #d8e6d8; }
     .status.on .status-dot { background: var(--positive); }
     #tvchip { overflow-wrap: anywhere; }
-    main { padding-top: clamp(32px, 5vw, 58px); padding-bottom: max(28px, env(safe-area-inset-bottom)); }
+    main { padding-top: clamp(32px, 5vw, 58px); padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
     .intro { display: grid; gap: 24px; margin-bottom: 32px; }
     .eyebrow { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; font-weight: 650; letter-spacing: .13em; text-transform: uppercase; margin-bottom: 12px; }
     .eyebrow::before { content: ""; width: 18px; height: 4px; background: var(--accent); border-radius: 2px; }
@@ -153,10 +153,14 @@
     #notice { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: #f2f3ed; font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
     #notice.err { color: var(--negative); background: #fdf0ed; }
     #notice.ok { color: var(--positive); background: #eef5eb; }
-    footer { margin-top: 32px; padding-top: 22px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 18px; font-size: 12px; color: var(--muted); }
+    footer { margin-top: 32px; padding-top: 22px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
     .footer-brand { font-weight: 650; color: var(--ink); margin-bottom: 3px; }
-    .coffee { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 14px; background: #eceee5; border-radius: 12px; text-decoration: none; font-weight: 550; }
-    .coffee .icon { width: 16px; height: 16px; }
+    .coffee { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 60; display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 8px 14px 8px 9px; border: 1px solid rgba(255,255,255,.12); border-radius: 16px; background: var(--ink); color: #fff; box-shadow: 0 16px 38px -14px rgba(32,33,31,.42); text-decoration: none; transition: transform 180ms var(--ease), background 180ms, box-shadow 180ms; }
+    .coffee-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: var(--accent); color: var(--ink); flex-shrink: 0; }
+    .coffee-mark .icon { width: 17px; height: 17px; }
+    .coffee-copy { display: flex; flex-direction: column; gap: 2px; line-height: 1.05; }
+    .coffee-copy strong { font-size: 13px; font-weight: 680; letter-spacing: -.015em; }
+    .coffee-copy small { color: #c9cbc4; font-size: 10px; font-weight: 500; }
     @media (min-width: 760px) {
       .intro { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
       .privacy { margin-bottom: 4px; }
@@ -166,9 +170,15 @@
       .featured { grid-column: 1 / -1; }
       .utilities { grid-template-columns: 1fr 1fr; align-items: start; }
     }
+    @media (max-width: 520px) {
+      .coffee { right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); min-height: 50px; padding: 8px 12px 8px 8px; border-radius: 15px; }
+      .coffee-mark { width: 32px; height: 32px; border-radius: 10px; }
+      .coffee-copy small { display: none; }
+    }
     @media (hover: hover) {
       .button:hover:not(:disabled) { background: #f0da09; transform: translateY(-1px); }
-      .button.secondary:hover:not(:disabled), .coffee:hover { background: #e7eadf; }
+      .button.secondary:hover:not(:disabled) { background: #e7eadf; }
+      .coffee:hover { background: #2c2e2a; transform: translateY(-2px); box-shadow: 0 18px 42px -13px rgba(32,33,31,.5); }
       summary:hover { color: var(--accent-ink); }
     }
     @media (prefers-reduced-motion: no-preference) {
@@ -294,8 +304,12 @@
       </div></details>
       <details id="activity"><summary><svg class="icon" aria-hidden="true"><use href="#i-activity"/></svg>Connection activity<span class="activity-count" id="activityCount">Ready</span><svg class="icon chevron" aria-hidden="true"><use href="#i-chevron"/></svg></summary><div id="log" role="log" aria-label="Connection activity" aria-live="off"><span class="log-line">Ready when you are.</span></div></details>
     </div>
-    <footer><div><p class="footer-brand">Small tool. A lot of heart.</p><p>Made by Sidee, after months of trying and nearly giving up.</p></div><a class="coffee" id="kofi" href="#" target="_blank" rel="noopener noreferrer"><svg class="icon" aria-hidden="true"><use href="#i-coffee"/></svg>Buy me a coffee</a></footer>
+    <footer><div><p class="footer-brand">Small tool. A lot of heart.</p><p>Made by Sidee, after months of trying and nearly giving up.</p></div></footer>
   </main>
+  <a class="coffee" id="kofi" href="#" target="_blank" rel="noopener noreferrer" aria-label="Support Sidee on Ko-fi">
+    <span class="coffee-mark"><svg class="icon" aria-hidden="true"><use href="#i-coffee"/></svg></span>
+    <span class="coffee-copy"><strong>Support Sidee</strong><small>Keep it free · Ko-fi</small></span>
+  </a>
   <script>
     const $ = id => document.getElementById(id);
     const KEY = new URLSearchParams(location.search).get("key") || "";
