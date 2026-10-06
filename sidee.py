@@ -8,6 +8,7 @@ list | launch <preset>
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 
 from core import client, presets, webui
@@ -77,6 +78,12 @@ def cmd_cli(a) -> int:
 
 def main() -> int:
     p = argparse.ArgumentParser(prog="sidee", description=__doc__)
+    p.add_argument("--headless", action="store_true",
+                   help="run the dashboard without opening a browser")
+    p.add_argument("--port", type=int, default=None,
+                   help="dashboard port (0 selects a free port)")
+    p.add_argument("--self-test", action="store_true",
+                   help="check bundled imports, resources, TLS and Tcl without a GUI")
     sub = p.add_subparsers(dest="cmd")
     sub.add_parser("discover")
     pr = sub.add_parser("pair"); pr.add_argument("host")
@@ -87,10 +94,43 @@ def main() -> int:
     la = sub.add_parser("launch"); la.add_argument("preset")
     a = p.parse_args()
 
+    if a.port is not None and not 0 <= a.port <= 65535:
+        p.error("--port must be between 0 and 65535")
+    if a.self_test:
+        return self_test()
+
     if a.cmd is None:
-        webui.serve()
+        headless = a.headless or os.environ.get("SIDEE_CI") == "1"
+        if not headless and a.port is None:
+            webui.serve()
+        else:
+            webui.serve(open_browser=not headless, port=a.port, headless=headless)
         return 0
     return cmd_cli(a)
+
+
+def self_test() -> int:
+    """Validate the shipped runtime without connecting to a TV or opening a UI."""
+    from core import platform_support
+    from core.phone import qr_image
+    import ssl
+
+    root = platform_support.resource_root()
+    for name in ("core/dashboard.html", "core/tv-client.bundle",
+                 "assets/sidee-logo.png", "assets/nuvio-wordmark.png",
+                 "assets/jellyfin.png"):
+        if not (root / name).is_file():
+            raise FileNotFoundError(f"A required Sidee resource is missing: {name}")
+    # Constructor loads the shipped certificate into OpenSSL and immediately
+    # deletes its temporary PEM files. It does not open a network connection.
+    connection = client.MqttSession("127.0.0.1", "sidee-self-test", 1)
+    connection.stop()
+    assert ssl.OPENSSL_VERSION
+    assert qr_image("http://127.0.0.1/").startswith("data:image/svg+xml;base64,")
+    if sys.platform == "darwin":
+        import tkinter
+        assert tkinter.Tcl().eval("info patchlevel")
+    return 0
 
 
 if __name__ == "__main__":

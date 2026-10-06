@@ -1,0 +1,9 @@
+# Native macOS builds use the same pure-Python MQTT client as Windows.
+paho-mqtt==2.1.0
+PyInstaller==6.22.3
+# Pin the complete macOS/Python 3.13 build dependency tree as well.
+pyinstaller-hooks-contrib==2026.8
+altgraph==0.17.5
+macholib==1.16.4
+packaging==26.3
+setuptools==84.0.0

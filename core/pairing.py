@@ -123,3 +123,12 @@ class PairingFlow:
             if self.attempt and secrets.compare_digest(self.attempt.id, pairing_id):
                 self.attempt.cancel()
         return {"ok": True}
+
+    def close(self) -> None:
+        """Wake a pending PIN waiter when the application is closing."""
+        with self.lock:
+            attempt = self.attempt
+            if attempt:
+                attempt.cancel()
+        if attempt:
+            attempt.done.wait(timeout=1)

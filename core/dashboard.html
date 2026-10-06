@@ -282,12 +282,12 @@
     <div class="utilities">
       <details><summary><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg>A little help<svg class="icon chevron" aria-hidden="true"><use href="#i-chevron"/></svg></summary><div class="help-content">
         <p><b>First time connecting?</b>Click Find TV, then Request code. Enter the 4-digit PIN displayed on your TV in the TV PIN field above and click Confirm code. Installation becomes available as soon as the TV confirms the connection.</p>
-        <p><b>How do I open the installer again?</b>On Windows, double-click <code>start-windows.bat</code> in the extracted folder. The first launch prepares the app automatically and needs an Internet connection. Keep its window open while using this page. If the browser does not open, use the complete link printed beside “this computer”, including its key. To use your phone, scan the QR in the “Use your phone” section above.</p>
+        <p><b>How do I open the installer again?</b>On Windows, double-click <code>start-windows.bat</code> in the extracted folder. The first launch prepares the app automatically and needs an Internet connection. On macOS, open <code>Sidee.app</code> in Applications; Python is already included. Keep Sidee's window open while using this page. If the browser does not open, use “Open dashboard” on macOS or the complete link printed beside “this computer” on Windows, including its key. To use your phone, scan the QR in the “Use your phone” section above.</p>
         <p><b>Can't find your TV?</b>Keep the TV on and connect both devices to the same network. Guest Wi-Fi can prevent them from seeing each other. Restart the TV and try again.</p>
         <p><b>The connection was refused?</b>If the TV just turned on, give it a minute, then try pairing again.</p>
         <p><b>Your PIN or saved connection expired?</b>Click Request code again, enter the new PIN shown on your TV, and click Confirm code.</p>
         <p><b>The tile hasn't appeared?</b>Check the favorites row in your launcher. You may need to restart the TV.</p>
-        <p><b>Can I close the installer?</b>After installation is confirmed, press Ctrl+C in its terminal. Nuvio and the Stremio TV build open online from the TV launcher, so Sidee can be off. Jellyfin still needs its server; Stremio needs a streaming server only for playback that depends on one.</p>
+        <p><b>Can I close the installer?</b>After installation is confirmed, choose “Quit Sidee” on macOS or press Ctrl+C in the Windows launcher's window. Nuvio and the Stremio TV build open online from the TV launcher, so Sidee can be off. Jellyfin still needs its server; Stremio needs a streaming server only for playback that depends on one.</p>
         <p><b>Which Stremio is installed?</b>Sidee installs the full community-maintained VIDAA TV build based on Stremio Theater with a modern Stremio core — not the limited VIDAA Stremio Lite app. It is designed for remote-control focus, D-pad navigation and VIDAA viewport quirks. You can optionally link a LAN or Remote HTTPS streaming server.</p>
         <p><b>Still seeing the old Nuvio icon?</b>Restart the installer and install Nuvio again. If the old image remains, remove its tile from the TV launcher and reinstall it.</p>
         <p><b>Want to remove an app?</b>Open the tile's menu in the TV launcher and choose Remove.</p>
@@ -559,7 +559,7 @@
           $("bannerTitle").textContent = name + " is home.";
           $("bannerText").textContent = app === "stremio"
             ? "Press Home and open Stremio. Sidee can be closed; if you linked a streaming server, keep Stremio Service/Desktop running."
-            : "Press Home on your TV and select its tile. You can stop the installer with Ctrl+C; Nuvio needs Internet and Jellyfin needs its server.";
+            : "Press Home on your TV and select its tile. You can stop Sidee with Quit Sidee on macOS or Ctrl+C on Windows; Nuvio needs Internet and Jellyfin needs its server.";
           $("banner").hidden = false;
           $("banner").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "nearest"});
           log(name + " is installed. Take a look at your TV launcher.", "ok");

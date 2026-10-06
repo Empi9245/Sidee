@@ -8,12 +8,12 @@ from __future__ import annotations
 
 import http.server
 import http.client
-import errno
 import ipaddress
 import json
 import os
 import re
 import secrets
+import signal
 import socket
 import tempfile
 import threading
@@ -21,12 +21,12 @@ import time
 import urllib.parse
 import webbrowser
 
-from . import client, presets
+from . import client, presets, platform_support
 from .pairing import PairingFlow
 from .phone import qr_image
 
 _PORT = 8787
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = str(platform_support.resource_root(__file__))
 ACCESS_KEY = secrets.token_urlsafe(16)
 PAIRING = PairingFlow()
 # Enter your Ko-fi/Sponsors link here: it appears in the dashboard footer
@@ -152,6 +152,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
                                            str(data.get("pin", ""))))
             elif parts.path == "/api/pair/cancel":
                 self._json(PAIRING.cancel(str(data.get("pairing_id", ""))))
+            elif (parts.path == "/api/shutdown" and
+                  getattr(self.server, "headless", False) and
+                  ipaddress.ip_address(self.client_address[0]).is_loopback):
+                self._json({"ok": True})
+                self.server.stop_event.set()
             elif parts.path == "/api/install":
                 try:
                     result = self._install(data)
@@ -225,7 +230,7 @@ def _validate_preset(p: dict) -> None:
 
 
 def _dashboard_state_path() -> str:
-    return os.path.join(ROOT, ".runtime", "dashboard.json")
+    return str(platform_support.dashboard_state_path(ROOT))
 
 
 def _reopen_dashboard(open_browser: bool) -> bool:
@@ -286,47 +291,99 @@ def _forget_dashboard() -> None:
 class DashboardServer(http.server.ThreadingHTTPServer):
     # Windows SO_REUSEADDR can silently share the port with another process.
     # Each dashboard must exclusively own its address and access key.
-    allow_reuse_address = os.name != "nt"
+    allow_reuse_address = platform_support.allow_reuse_address()
     allow_reuse_port = False
 
     def server_bind(self):
-        if os.name == "nt":
-            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        platform_support.configure_exclusive_tcp_socket(self.socket)
         super().server_bind()
 
 
-def _bind_dashboard_server():
+def _bind_dashboard_server(port: int | None = None):
+    port = _PORT if port is None else port
     try:
-        return DashboardServer(("0.0.0.0", _PORT), Handler)
+        return DashboardServer(("0.0.0.0", port), Handler)
     except OSError as e:
-        if (e.errno != errno.EADDRINUSE and
-                getattr(e, "winerror", None) not in (10013, 10048)):
+        if not platform_support.address_in_use(e):
             raise
         return DashboardServer(("0.0.0.0", 0), Handler)
 
 
-def serve(open_browser: bool = True) -> None:
+class Dashboard:
+    """Own the dashboard socket and lifecycle, shared by both launchers."""
+
+    def __init__(self, port: int | None = None, headless: bool = False):
+        self.server = _bind_dashboard_server(port)
+        self.port = self.server.server_address[1]
+        self.url = f"http://127.0.0.1:{self.port}/?key={ACCESS_KEY}"
+        self.stop_event = threading.Event()
+        self.server.stop_event = self.stop_event
+        self.server.headless = headless
+        self.server.timeout = 0.2
+        self.thread = None
+        self.error = None
+
+    def start(self) -> None:
+        try:
+            _remember_dashboard(self.port)
+            self.thread = threading.Thread(target=self._run, daemon=True,
+                                           name="sidee-dashboard")
+            self.thread.start()
+        except BaseException:
+            self.server.server_close()
+            _forget_dashboard()
+            raise
+
+    def _run(self) -> None:
+        try:
+            while not self.stop_event.is_set():
+                self.server.handle_request()
+        except Exception as error:
+            self.error = error
+        finally:
+            self.stop_event.set()
+
+    def open(self) -> bool:
+        return webbrowser.open(self.url)
+
+    def close(self) -> None:
+        self.stop_event.set()
+        if self.thread:
+            self.thread.join(timeout=3)
+        self.server.server_close()
+        PAIRING.close()
+        _forget_dashboard()
+
+
+def serve(open_browser: bool = True, port: int | None = None,
+          headless: bool = False) -> None:
     if _reopen_dashboard(open_browser):
         return
-    srv = _bind_dashboard_server()
-    port = srv.server_address[1]
-    _remember_dashboard(port)
-    local = f"http://127.0.0.1:{port}/?key={ACCESS_KEY}"
-    lan = f"http://{_local_ip()}:{port}/?key={ACCESS_KEY}"
-    print(f"Sidee (this computer): {local}")
-    print(f"Sidee (from your phone, same network): {lan}")
-    print("Use your phone: scan the QR code shown in the dashboard.")
-    print("The key in the URL is the only way to access the dashboard: "
-          "do not share it outside your home. Ctrl+C to quit.")
-    if open_browser:
-        threading.Timer(0.5, lambda: webbrowser.open(local)).start()
+    dashboard = Dashboard(port, headless)
+    previous_signals = {}
     try:
-        srv.serve_forever()
+        dashboard.start()
+        # Signal handlers set an event; cleanup runs outside the handler.
+        if threading.current_thread() is threading.main_thread():
+            for number in (signal.SIGINT, signal.SIGTERM):
+                previous_signals[number] = signal.signal(
+                    number, lambda *_: dashboard.stop_event.set())
+        print(f"Sidee (this computer): {dashboard.url}", flush=True)
+        print(f"Sidee (from your phone, same network): "
+              f"http://{_local_ip()}:{dashboard.port}/?key={ACCESS_KEY}", flush=True)
+        print("Use your phone: scan the QR code shown in the dashboard.")
+        print("Keep the URL key private. Ctrl+C to quit.")
+        if open_browser:
+            dashboard.open()
+        dashboard.stop_event.wait()
+        if dashboard.error:
+            raise dashboard.error
     except KeyboardInterrupt:
         pass
     finally:
-        srv.server_close()
-        _forget_dashboard()
+        for number, handler in previous_signals.items():
+            signal.signal(number, handler)
+        dashboard.close()
 
 
 def _local_ip(tv_host: str | None = None) -> str:

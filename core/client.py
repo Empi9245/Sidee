@@ -3,14 +3,12 @@ from __future__ import annotations
 
 import hashlib
 import http.client
-import ipaddress
 import json
 import math
 import os
 import re
 import socket
 import ssl
-import subprocess
 import threading
 import tempfile
 import time
@@ -21,7 +19,7 @@ from functools import wraps
 
 import paho.mqtt.client as mqtt
 
-from . import protocol
+from . import platform_support, protocol
 
 SSDP_MULTICAST = "239.255.255.250"
 SSDP_BROADCAST = "255.255.255.255"
@@ -33,15 +31,7 @@ UPNP_PORTS = (18400, 38400, 80)
 # --- Client certificate (extracted from the official app, encoded blob) ---
 
 def _cert_dir() -> str:
-    home_dir = os.path.expanduser("~")
-    base = os.path.join(home_dir, ".sidee")
-    # Keep an existing TV pairing usable after the product rename.
-    legacy = os.path.join(home_dir, ".vidaa-tile")
-    if (not os.path.isfile(os.path.join(base, "session.json")) and
-            os.path.isfile(os.path.join(legacy, "session.json"))):
-        base = legacy
-    os.makedirs(base, mode=0o700, exist_ok=True)
-    return base
+    return str(platform_support.profile_dir())
 
 
 _CERT_BUNDLE = "certs.bin.k"
@@ -51,12 +41,12 @@ def _certificate_path() -> str:
     user_path = os.path.join(_cert_dir(), _CERT_BUNDLE)
     if os.path.isfile(user_path):
         return user_path
-    project_dir = os.path.dirname(os.path.dirname(__file__))
+    project_dir = platform_support.resource_root(__file__)
     for folder in (".sidee", ".vidaa-tile"):
         project_path = os.path.join(project_dir, folder, _CERT_BUNDLE)
         if os.path.isfile(project_path):
             return project_path
-    return os.path.join(os.path.dirname(__file__), "tv-client.bundle")
+    return str(project_dir / "core" / "tv-client.bundle")
 
 
 def _load_client_pem_key() -> tuple[bytes, bytes]:
@@ -232,36 +222,11 @@ class TvInfo:
 
 
 def _broadcasts_from_ipconfig(output: str) -> list[str]:
-    """Read IPv4 address/mask pairs without depending on localized labels."""
-    broadcasts = set()
-    host = None
-    for line in output.splitlines():
-        match = re.search(r"(?<![\d.])(\d{1,3}(?:\.\d{1,3}){3})(?![\d.])", line)
-        if "ipv4" in line.lower():
-            host = match.group(1) if match else None
-        elif host and match:
-            try:
-                network = ipaddress.IPv4Network(
-                    f"{host}/{match.group(1)}", strict=False)
-                if not network.is_loopback and network.prefixlen < 31:
-                    broadcasts.add(str(network.broadcast_address))
-            except ValueError:
-                pass
-            host = None
-    return sorted(broadcasts)
+    return platform_support.broadcasts_from_ipconfig(output)
 
 
 def _local_broadcasts() -> list[str]:
-    """Get directed broadcasts for Windows adapters, including their masks."""
-    if os.name != "nt":
-        return []
-    try:
-        result = subprocess.run(
-            ["ipconfig"], capture_output=True, text=True, errors="replace",
-            timeout=3, creationflags=subprocess.CREATE_NO_WINDOW)
-        return _broadcasts_from_ipconfig(result.stdout)
-    except (OSError, subprocess.TimeoutExpired):
-        return []
+    return platform_support.local_broadcasts()
 
 
 def _msearch(sock: socket.socket, target: str) -> None:
@@ -284,35 +249,37 @@ def discover(timeout: float = 4.0) -> list[TvInfo]:
     """Find VIDAA TVs on the LAN: broadcast M-SEARCH (the channel used
     by the official app) and multicast, then validate the descriptor."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    try:
-        sock.bind(("", 0))
-    except OSError:
-        pass
-    sock.settimeout(0.5)
-    # Global broadcast may use a virtual adapter; directed broadcasts use
-    # each adapter's actual subnet, as measured with the official mobile app.
-    targets = list(dict.fromkeys(_local_broadcasts()
-                                + [SSDP_BROADCAST, SSDP_MULTICAST]))
-    for target in targets:
-        _msearch(sock, target)
     locations: dict[str, str] = {}
-    end = time.time() + timeout
-    while time.time() < end:
+    try:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         try:
-            data, addr = sock.recvfrom(4096)
-        except socket.timeout:
-            for target in targets:
-                _msearch(sock, target)  # retransmit while waiting
-            continue
-        text = data.decode("utf-8", "replace")
-        if not text.upper().startswith("HTTP/1.1 200"):
-            continue
-        m = re.search(r"Location:\s*(\S+)", text, re.I)
-        if m:
-            locations[addr[0]] = m.group(1)
-    sock.close()
+            sock.bind(("", 0))
+        except OSError:
+            pass
+        sock.settimeout(0.5)
+        # Global broadcast may use a virtual adapter; directed broadcasts use
+        # each adapter's actual subnet, as measured with the official mobile app.
+        targets = list(dict.fromkeys(_local_broadcasts()
+                                    + [SSDP_BROADCAST, SSDP_MULTICAST]))
+        for target in targets:
+            _msearch(sock, target)
+        end = time.time() + timeout
+        while time.time() < end:
+            try:
+                data, addr = sock.recvfrom(4096)
+            except socket.timeout:
+                for target in targets:
+                    _msearch(sock, target)  # retransmit while waiting
+                continue
+            text = data.decode("utf-8", "replace")
+            if not text.upper().startswith("HTTP/1.1 200"):
+                continue
+            m = re.search(r"Location:\s*(\S+)", text, re.I)
+            if m:
+                locations[addr[0]] = m.group(1)
+    finally:
+        sock.close()
 
     found: dict[str, TvInfo] = {}
     for host, loc in locations.items():
@@ -361,19 +328,22 @@ def fetch_descriptor(host: str, location: str | None = None) -> TvInfo | None:
 def tv_timestamp(host: str) -> int:
     """TV clock from the UPnP descriptor's Date header."""
     for port in UPNP_PORTS:
+        conn = None
         try:
             conn = http.client.HTTPConnection(host, port, timeout=3)
             conn.request("GET", "/MediaServer/rendererdevicedesc.xml")
             r = conn.getresponse()
             r.read()
             date = r.headers.get("Date", "")
-            conn.close()
             if date:
                 import email.utils
                 dt = email.utils.parsedate_to_datetime(date)
                 return int(dt.timestamp())
-        except OSError:
+        except (OSError, ValueError, http.client.HTTPException):
             continue
+        finally:
+            if conn is not None:
+                conn.close()
     return int(time.time())
 
 
