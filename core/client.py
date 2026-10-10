@@ -24,6 +24,7 @@ from . import platform_support, protocol
 SSDP_MULTICAST = "239.255.255.250"
 SSDP_BROADCAST = "255.255.255.255"
 SSDP_PORT = 1900
+SSDP_MEDIA_RENDERER = "urn:schemas-upnp-org:device:MediaRenderer:1"
 MQTT_PORT = 36669
 UPNP_PORTS = (18400, 38400, 80)
 
@@ -245,10 +246,57 @@ def _msearch(sock: socket.socket, target: str) -> None:
         pass
 
 
+def _notify_listener() -> socket.socket | None:
+    """Non-blocking socket joined to the SSDP multicast group, or None."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    try:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if hasattr(socket, "SO_REUSEPORT"):
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        sock.bind(("", SSDP_PORT))
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP,
+                        socket.inet_aton(SSDP_MULTICAST) + socket.inet_aton("0.0.0.0"))
+        sock.setblocking(False)
+        return sock
+    except OSError:
+        sock.close()
+        return None
+
+
+def _ssdp_location(data: bytes) -> str | None:
+    """Location of an M-SEARCH reply or a MediaRenderer ssdp:alive NOTIFY."""
+    text = data.decode("utf-8", "replace")
+    head = text.upper()
+    if head.startswith("NOTIFY"):
+        # Only the device type the M-SEARCH asks for, so routers, printers
+        # and other UPnP devices don't trigger extra descriptor fetches.
+        nt = re.search(r"^NT:\s*(\S+)", text, re.I | re.M)
+        if "SSDP:ALIVE" not in head or not nt or nt.group(1) != SSDP_MEDIA_RENDERER:
+            return None
+    elif not head.startswith("HTTP/1.1 200"):
+        return None
+    m = re.search(r"Location:\s*(\S+)", text, re.I)
+    return m.group(1) if m else None
+
+
+def _drain_notify(sock: socket.socket, locations: dict[str, str]) -> None:
+    while True:
+        try:
+            data, addr = sock.recvfrom(4096)
+        except OSError:  # includes BlockingIOError: nothing queued
+            return
+        loc = _ssdp_location(data)
+        if loc:
+            locations[addr[0]] = loc
+
+
 def discover(timeout: float = 4.0) -> list[TvInfo]:
     """Find VIDAA TVs on the LAN: broadcast M-SEARCH (the channel used
-    by the official app) and multicast, then validate the descriptor."""
+    by the official app) and multicast, then validate the descriptor.
+    Some firmwares never answer M-SEARCH directly and only multicast
+    NOTIFY announcements, so the SSDP group is watched as well."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    notify = None
     locations: dict[str, str] = {}
     try:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -258,6 +306,7 @@ def discover(timeout: float = 4.0) -> list[TvInfo]:
         except OSError:
             pass
         sock.settimeout(0.5)
+        notify = _notify_listener()
         # Global broadcast may use a virtual adapter; directed broadcasts use
         # each adapter's actual subnet, as measured with the official mobile app.
         targets = list(dict.fromkeys(_local_broadcasts()
@@ -266,20 +315,23 @@ def discover(timeout: float = 4.0) -> list[TvInfo]:
             _msearch(sock, target)
         end = time.time() + timeout
         while time.time() < end:
+            if notify is not None:
+                _drain_notify(notify, locations)
             try:
                 data, addr = sock.recvfrom(4096)
             except socket.timeout:
                 for target in targets:
                     _msearch(sock, target)  # retransmit while waiting
                 continue
-            text = data.decode("utf-8", "replace")
-            if not text.upper().startswith("HTTP/1.1 200"):
-                continue
-            m = re.search(r"Location:\s*(\S+)", text, re.I)
-            if m:
-                locations[addr[0]] = m.group(1)
+            loc = _ssdp_location(data)
+            if loc:
+                locations[addr[0]] = loc
+        if notify is not None:
+            _drain_notify(notify, locations)
     finally:
         sock.close()
+        if notify is not None:
+            notify.close()
 
     found: dict[str, TvInfo] = {}
     for host, loc in locations.items():

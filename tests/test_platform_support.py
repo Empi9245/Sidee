@@ -187,11 +187,14 @@ class TestSocketLifecycle(unittest.TestCase):
     def test_discovery_closes_socket_after_receive_failure(self):
         connection = Mock()
         connection.recvfrom.side_effect = OSError("Network went away")
-        with patch.object(client.socket, "socket", return_value=connection), \
+        notify = Mock()
+        notify.recvfrom.side_effect = BlockingIOError()
+        with patch.object(client.socket, "socket", side_effect=[connection, notify]), \
                 patch.object(client, "_local_broadcasts", return_value=[]):
             with self.assertRaises(OSError):
                 client.discover(timeout=1)
         connection.close.assert_called_once()
+        notify.close.assert_called_once()
 
     def test_tv_clock_connections_are_closed_after_request_failure(self):
         connections = [Mock(), Mock(), Mock()]
