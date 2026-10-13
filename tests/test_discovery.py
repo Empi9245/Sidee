@@ -1,7 +1,7 @@
 """Regression tests for TV discovery over the local broadcast channel."""
 import socket
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from core import client
 
@@ -45,12 +45,38 @@ class DiscoverySocket:
         self.closed = True
 
 
+class NotifySocket:
+    """SSDP multicast listener that delivers queued announcements once."""
+
+    def __init__(self, announcements=()):
+        self.queue = list(announcements)
+        self.closed = False
+
+    def setsockopt(self, level, option, value):
+        pass
+
+    def bind(self, address):
+        pass
+
+    def setblocking(self, flag):
+        pass
+
+    def recvfrom(self, size):
+        if self.queue:
+            return self.queue.pop(0)
+        raise BlockingIOError()
+
+    def close(self):
+        self.closed = True
+
+
 class TestDiscovery(unittest.TestCase):
     def test_tv_found_when_it_only_answers_broadcast(self):
         connection = DiscoverySocket()
         tv = client.TvInfo("192.168.1.10", "Living room TV", is_vidaa=True)
         # Enough time for one reply, then end the discovery loop immediately.
-        with patch.object(client.socket, "socket", return_value=connection), \
+        with patch.object(client.socket, "socket",
+                          side_effect=[connection, NotifySocket()]), \
                 patch.object(client, "_local_broadcasts", return_value=["192.168.1.255"]), \
                 patch.object(client.time, "time", side_effect=[0, 0, 2]), \
                 patch.object(client, "fetch_descriptor", return_value=tv) as fetch:
@@ -60,6 +86,49 @@ class TestDiscovery(unittest.TestCase):
             "http://192.168.1.10:18400/MediaServer/rendererdevicedesc.xml",
         )
         self.assertTrue(connection.closed)
+
+    def test_tv_found_when_it_only_sends_notify_announcements(self):
+        connection = DiscoverySocket()
+        connection.recvfrom = Mock(side_effect=socket.timeout())  # no direct reply
+        notify = NotifySocket([
+            # A TV leaving the network is ignored.
+            (b"NOTIFY * HTTP/1.1\r\nNT: urn:schemas-upnp-org:device:MediaRenderer:1\r\n"
+             b"NTS: ssdp:byebye\r\nLocation: http://192.168.1.99:18400/gone.xml\r\n\r\n",
+             ("192.168.1.99", 1900)),
+            # Other UPnP devices (here a router) are ignored without a descriptor fetch.
+            (b"NOTIFY * HTTP/1.1\r\nNT: urn:schemas-upnp-org:device:InternetGatewayDevice:2\r\n"
+             b"NTS: ssdp:alive\r\nLocation: http://192.168.1.1:5000/rootDesc.xml\r\n\r\n",
+             ("192.168.1.1", 1900)),
+            (b"NOTIFY * HTTP/1.1\r\nServer: Platform 1.0 His/1.0 UPnP/1.0\r\n"
+             b"Location: http://192.168.1.10:18400/MediaServer/rendererdevicedesc.xml\r\n"
+             b"NT: urn:schemas-upnp-org:device:MediaRenderer:1\r\n"
+             b"NTS: ssdp:alive\r\n\r\n",
+             ("192.168.1.10", 1900)),
+        ])
+        tv = client.TvInfo("192.168.1.10", "Living room TV", is_vidaa=True)
+        with patch.object(client.socket, "socket", side_effect=[connection, notify]), \
+                patch.object(client, "_local_broadcasts", return_value=["192.168.1.255"]), \
+                patch.object(client.time, "time", side_effect=[0, 0, 2]), \
+                patch.object(client, "fetch_descriptor", return_value=tv) as fetch:
+            self.assertEqual(client.discover(timeout=1), [tv])
+        fetch.assert_called_once_with(
+            "192.168.1.10",
+            "http://192.168.1.10:18400/MediaServer/rendererdevicedesc.xml",
+        )
+        self.assertTrue(connection.closed)
+        self.assertTrue(notify.closed)
+
+    def test_discovery_continues_when_ssdp_port_is_unavailable(self):
+        connection = DiscoverySocket()
+        busy = Mock()
+        busy.bind.side_effect = OSError("Address already in use")
+        tv = client.TvInfo("192.168.1.10", "Living room TV", is_vidaa=True)
+        with patch.object(client.socket, "socket", side_effect=[connection, busy]), \
+                patch.object(client, "_local_broadcasts", return_value=["192.168.1.255"]), \
+                patch.object(client.time, "time", side_effect=[0, 0, 2]), \
+                patch.object(client, "fetch_descriptor", return_value=tv):
+            self.assertEqual(client.discover(timeout=1), [tv])
+        busy.close.assert_called_once()
 
     def test_localized_adapters_use_their_actual_subnet_masks(self):
         output = """Scheda Ethernet vEthernet:
