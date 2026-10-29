@@ -11,10 +11,16 @@ import argparse
 import os
 import sys
 
-from core import client, presets, webui
+from core import client, presets, webui, native_session
 
 
 def cmd_cli(a) -> int:
+    if a.cmd == "native":
+        try:
+            return 0 if native_session.install(a.target, api_base=a.api, gate_key=a.key) else 1
+        except (ValueError, OSError, client.AuthError, native_session.native_api.ApiError) as error:
+            print(str(error))
+            return 1
     if a.cmd == "discover":
         for t in client.discover():
             print(f"  {t.host}  {t.friendly_name}  vidaa={t.is_vidaa}")
@@ -85,6 +91,10 @@ def main() -> int:
     p.add_argument("--self-test", action="store_true",
                    help="check bundled imports, resources, TLS and Tcl without a GUI")
     sub = p.add_subparsers(dest="cmd")
+    native = sub.add_parser("native", help="install through the native service (preview)")
+    native.add_argument("target", help="catalog id or self-contained HTML file")
+    native.add_argument("--api", help="HTTPS service URL; HTTP only on loopback for tests")
+    native.add_argument("--key", help="activation key (not saved)")
     sub.add_parser("discover")
     pr = sub.add_parser("pair"); pr.add_argument("host")
     sub.add_parser("refresh")

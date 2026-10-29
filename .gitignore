@@ -1,4 +1,5 @@
 __pycache__/
+.pytest_cache/
 .venv/
 .runtime/
 *.pyc
@@ -9,3 +10,14 @@ dist/
 .vidaa-tile/
 certs.bin.k
 session.json
+
+.private/
+.wrangler/
+node_modules/
+core/presets_local.py
+
+# Local assistant context and private native service are never release content.
+.opencode/
+.zcode/
+.freebuff/
+sidee-native-core/

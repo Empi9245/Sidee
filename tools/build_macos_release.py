@@ -10,6 +10,11 @@ import subprocess
 import sys
 import tempfile
 
+if __package__:
+    from .public_release_guard import check_public_source, check_sources
+else:
+    from public_release_guard import check_public_source, check_sources
+
 ROOT = Path(__file__).resolve().parent.parent
 MACHO_MAGICS = {
     b"\xfe\xed\xfa\xce", b"\xce\xfa\xed\xfe",
@@ -39,8 +44,8 @@ def normalized_architecture(value):
 
 def validate_version(value):
     value = value.removeprefix("v")
-    if not re.fullmatch(r"\d+\.\d+\.\d+(?:\.\d+)?", value):
-        raise ValueError("The release version must use X.Y.Z or X.Y.Z.N (optionally prefixed with v).")
+    if not re.fullmatch(r"\d+\.\d+\.\d+", value):
+        raise ValueError("The bundle version must use X.Y.Z (optionally prefixed with v).")
     return value
 
 
@@ -78,6 +83,7 @@ def verify_app(app, architecture):
     for relative in RESOURCES:
         if not (resources / relative).is_file():
             raise RuntimeError(f"The app is missing {relative}.")
+    check_sources(resources.resolve(), [resources / relative for relative in RESOURCES])
     files = list(contents.rglob("*"))
     if not any(path.name == "init.tcl" for path in files):
         raise RuntimeError("The app is missing the Tcl runtime scripts.")
@@ -166,13 +172,14 @@ def package_app(app, architecture):
     return archive, dmg
 
 
-def build(architecture, version="0.1.4.2", app_only=False, package_only=False):
+def build(architecture, version="0.1.2", app_only=False, package_only=False):
     if sys.platform != "darwin":
         raise RuntimeError("macOS bundles must be built on macOS; use the GitHub Actions workflow.")
     architecture = normalized_architecture(architecture)
     if normalized_architecture(platform.machine()) != architecture:
         raise RuntimeError("Use a native runner for the requested architecture.")
     version = validate_version(version)
+    check_public_source(ROOT)
     app = ROOT / "dist" / "Sidee.app"
     if not package_only:
         make_icon()
@@ -192,7 +199,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--architecture", choices=("arm64", "x64"),
                         default=normalized_architecture(platform.machine()))
-    parser.add_argument("--version", default=os.environ.get("SIDEE_BUILD_VERSION", "0.1.4.2"))
+    parser.add_argument("--version", default=os.environ.get("SIDEE_BUILD_VERSION", "0.1.2"))
     stages = parser.add_mutually_exclusive_group()
     stages.add_argument("--app-only", action="store_true",
                         help="Build the app before a future signing/notarization step.")
