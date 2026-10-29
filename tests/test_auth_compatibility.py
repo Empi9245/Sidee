@@ -208,6 +208,44 @@ serialNumber=private-serial</modelDescription></device></root>''')
         self.assertNotIn("private", message.lower())
         self.assertNotIn("date/time", message)
 
+    def test_protocol_3290_prefers_modern_for_new_pairing(self):
+        self.accepted_profile = "modern"
+        self.token_reply = '{"accesstoken": "A", "refreshtoken": "R"}'
+        descriptor = client.TvInfo(
+            "192.168.1.10",
+            raw_description="brand=his\\ntransport_protocol=3290",
+        )
+        with patch.object(client, "fetch_descriptor", return_value=descriptor):
+            session = self.pair()
+        self.assertEqual([c.profile for c in self.connections], ["modern"])
+        self.assertEqual(session.auth_profile, "modern")
+
+    def test_protocol_below_3290_keeps_static_first(self):
+        descriptor = client.TvInfo(
+            "192.168.1.10",
+            raw_description="brand=his\\ntransport_protocol=3285",
+        )
+        with patch.object(client, "fetch_descriptor", return_value=descriptor):
+            session = self.pair()
+        self.assertEqual([c.profile for c in self.connections], ["static"])
+        self.assertEqual(session.auth_profile, "static")
+
+    def test_saved_profile_overrides_protocol_preference_on_repair(self):
+        first = self.pair()
+        self.assertEqual(first.auth_profile, "static")
+        self.connections.clear()
+
+        descriptor = client.TvInfo(
+            "192.168.1.10",
+            raw_description="brand=his\\ntransport_protocol=3290",
+        )
+        with patch.object(client, "fetch_descriptor", return_value=descriptor):
+            again = self.pair()
+
+        self.assertEqual([c.profile for c in self.connections], ["static"])
+        self.assertEqual(again.device_uuid, first.device_uuid)
+        self.assertEqual(again.auth_profile, "static")
+
     def test_new_pairing_tries_static_before_any_dynamic_rejection(self):
         # Model a broker that refuses every connection after a bad dynamic
         # login. A fresh static connection must reach the PIN without that

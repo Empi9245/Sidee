@@ -650,6 +650,19 @@ def pair(host: str, pin_provider, timeout: float = 60.0) -> Session:
         # Toshiba firmware. Fresh pairings try static first; a known working
         # profile still takes priority when pairing the same TV again.
         preferred = previous.auth_profile if reuse else "static"
+        if not reuse and info is not None and info.raw_description:
+            protocol_match = re.search(
+                r"transport_protocol\s*[=:]\s*(\d+)",
+                info.raw_description,
+                re.IGNORECASE,
+            )
+            if protocol_match and int(protocol_match.group(1)) >= 3290:
+                preferred = "modern"
+                log(
+                    "auth",
+                    f"Detected transport_protocol={protocol_match.group(1)}; "
+                    "trying modern authentication first",
+                )
         sess, auth_profile = _pairing_connection(host, device_uuid,
                                                 tv_timestamp(host), preferred,
                                                 brand=brand)
