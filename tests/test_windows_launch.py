@@ -9,16 +9,38 @@ from unittest.mock import Mock, patch
 import zipfile
 
 from core import client, webui
+from tools import build_windows_release
 from tools.build_windows_release import build
 
 
 class TestWindowsDownload(unittest.TestCase):
+    def test_private_presets_never_enter_the_download(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "source"
+            for name in build_windows_release.TOP_LEVEL:
+                target = root / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(build_windows_release.ROOT / name, target)
+            for name in ("core", "assets"):
+                shutil.copytree(build_windows_release.ROOT / name, root / name,
+                                ignore=shutil.ignore_patterns("__pycache__"))
+            (root / "core" / "presets_local.py").write_text(
+                'PRESETS = {"private": {"url": "https://private.invalid/secret"}}',
+                encoding="utf-8")
+            with patch.object(build_windows_release, "ROOT", root):
+                archive = build(Path(directory) / "download.zip")
+            with zipfile.ZipFile(archive) as downloaded:
+                self.assertNotIn("Sidee/core/presets_local.py", downloaded.namelist())
+                self.assertFalse(any(b"private.invalid/secret" in downloaded.read(name)
+                                     for name in downloaded.namelist()))
+
     def test_release_includes_launcher_and_connection_bundle_without_local_state(self):
         with tempfile.TemporaryDirectory() as directory:
             archive = build(Path(directory) / "download.zip")
             with zipfile.ZipFile(archive) as downloaded:
                 files = downloaded.namelist()
-                for name in ("start-windows.bat", "start-windows.ps1", "sidee.py",
+                for name in ("start-windows.bat", "start-windows.ps1", "start-unix.sh",
+                             "start-macos.command", "start-linux.sh", "start-android.sh", "sidee.py",
                              "core/tv-client.bundle", "core/dashboard.html",
                              "core/phone.py", "core/_qrcodegen.py"):
                     self.assertIn("Sidee/" + name, files)

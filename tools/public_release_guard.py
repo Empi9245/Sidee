@@ -19,7 +19,8 @@ CORE_MODULES = (
     "presets.py", "protocol.py", "webui.py",
 )
 TOP_LEVEL = ("README.md", "LICENSE", "requirements.txt", "sidee.py",
-             "start-windows.bat", "start-windows.ps1")
+             "start-windows.bat", "start-windows.ps1", "start-unix.sh",
+             "start-macos.command", "start-linux.sh", "start-android.sh")
 ASSETS = ("sidee-logo.png", "nuvio-wordmark.png", "jellyfin.png")
 PUBLIC_FILES = (*TOP_LEVEL, *("core/" + n for n in CORE_MODULES),
                 "core/dashboard.html", "core/tv-client.bundle",
@@ -55,7 +56,7 @@ TOKEN_FINGERPRINTS = frozenset((
     "f45d5cdaac7fad4b4ccb5eba515556ed763cc234acc37c1b72a37b656c0a673d",
 ))
 TEXT_SUFFIXES = frozenset((".py", ".js", ".ts", ".html", ".md", ".json", ".bundle", ".css", ".svg",
-                           ".toml", ".yml", ".yaml", ".txt", ".ps1", ".bat"))
+                           ".toml", ".yml", ".yaml", ".txt", ".ps1", ".bat", ".sh", ".command"))
 MAX_TEXT_BYTES = 2_000_000
 
 

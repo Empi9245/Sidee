@@ -44,8 +44,8 @@ def normalized_architecture(value):
 
 def validate_version(value):
     value = value.removeprefix("v")
-    if not re.fullmatch(r"\d+\.\d+\.\d+", value):
-        raise ValueError("The bundle version must use X.Y.Z (optionally prefixed with v).")
+    if not re.fullmatch(r"\d+\.\d+\.\d+(?:\.\d+)?", value):
+        raise ValueError("The bundle version must use X.Y.Z or X.Y.Z.N (optionally prefixed with v).")
     return value
 
 

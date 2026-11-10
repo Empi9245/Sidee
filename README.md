@@ -14,7 +14,8 @@ Sidee is built around three principles:
 
 ## Requirements
 
-- Windows 10/11, or macOS 15+ (Apple Silicon or Intel)
+- Windows 10/11, macOS 15+ (Apple Silicon or Intel), or Linux with Python 3.9+
+- Android 8+ with Termux and Python
 - A compatible VIDAA TV and a computer on the same home Wi-Fi/Ethernet network
 - Internet access for the initial Windows setup and any online experiences you choose to open on the TV
 
@@ -22,9 +23,16 @@ Compatibility varies by TV model and firmware. The primary tested firmware is U0
 
 ## Get started
 
+All four platform packages are published on the
+[Sidee download page](https://sidee-native-core.empi-tv.workers.dev/download).
+They contain the same reviewed app and a platform-specific launcher:
+`sidee-windows.zip`, `sidee-macos.zip`, `sidee-linux.zip`, and
+`sidee-android.zip`. The SHA-256 manifest is published at
+[`/download/checksums`](https://sidee-native-core.empi-tv.workers.dev/download/checksums).
+
 ### Windows
 
-1. [Download Sidee for Windows](https://github.com/Empi9245/Sidee/releases/download/v0.1.4.2/sidee-windows.zip) and extract the ZIP.
+1. [Download Sidee for Windows](https://sidee-native-core.empi-tv.workers.dev/download/sidee-windows.zip) and extract the ZIP.
 2. Double-click `start-windows.bat` in the extracted folder.
 3. Wait for the dashboard to open in your browser, then follow the on-screen steps.
 
@@ -43,6 +51,54 @@ The macOS download includes Sidee.app and its required runtime, so no separate P
 **Important:** The current macOS builds are not signed or notarized. macOS may prevent them from opening automatically. If you trust the downloaded package, follow [Apple's instructions](https://support.apple.com/en-us/102445) for opening an unverified app. If prompted, grant local network access so Sidee can discover your TV. The builds are checked in CI but still require broader testing on physical Macs.
 
 Sidee's control window must remain open while you use the dashboard; **Quit Sidee** stops the local dashboard service.
+
+### macOS source package
+
+[Download the macOS source package](https://sidee-native-core.empi-tv.workers.dev/download/sidee-macos.zip),
+extract it, and open `start-macos.command` (or run `sh start-macos.command` in
+Terminal). This package uses Python 3.9+ already installed on the Mac. The first
+launch creates `.runtime/venv` and installs the TV connection library there.
+macOS may block the unsigned `.command` the first time; right-click it and
+choose **Open** if you trust the package.
+
+### Linux
+
+[Download the Linux package](https://sidee-native-core.empi-tv.workers.dev/download/sidee-linux.zip),
+extract it, and run `./start-linux.sh`. Python 3.9+ is required. On Debian or
+Ubuntu install `python3` and `python3-venv`; on Fedora install `python3` and
+`python3-virtualenv`. The launcher creates `.runtime/venv` without changing the
+system Python. If the browser does not open automatically, open the complete
+link printed in the terminal.
+
+### Android (Termux)
+
+Android uses [Termux](https://termux.dev/), not a native APK. Install Termux
+from F-Droid or Google Play, then run `pkg update && pkg install python`.
+Download [the Android package](https://sidee-native-core.empi-tv.workers.dev/download/sidee-android.zip),
+extract it, and run:
+
+```bash
+cd Sidee
+sh start-android.sh
+```
+
+The launcher creates `.runtime/termux-venv`. Keep Termux open while using the
+dashboard and use the complete `http://127.0.0.1:...` link it prints. The phone
+and TV must be on the same home network.
+
+## Verify downloads
+
+The four packages are built from the same reviewed source tree. Each build
+writes a SHA-256 manifest; download it from
+[`/download/checksums`](https://sidee-native-core.empi-tv.workers.dev/download/checksums)
+and compare it with the downloaded ZIP, for example:
+
+```bash
+sha256sum -c SHA256SUMS
+```
+
+On macOS use `shasum -a 256 -c SHA256SUMS`. The manifest is also generated for
+the GitHub release assets.
 
 ## Connect your TV
 
@@ -102,7 +158,13 @@ Replace `TV_IP` with your TV's LAN address and `PRESET_ID` with an available bui
 
 Run Python tests with `python -m unittest discover -s tests` and dashboard interaction tests with `node --test tests/test_dashboard_selection.js`.
 
-Packaging information is in the [macOS build notes](docs/macos-build.md). Automated Windows and macOS builds are available through [GitHub Actions](https://github.com/Empi9245/Sidee/actions/workflows/build.yml).
+Build all four source packages with `python tools/build_platform_releases.py`;
+the command writes `dist/sidee-windows.zip`, `dist/sidee-macos.zip`,
+`dist/sidee-linux.zip`, `dist/sidee-android.zip`, and `dist/SHA256SUMS`.
+Packaging information is in the [macOS build notes](docs/macos-build.md). The
+[Build Sidee workflow](https://github.com/Empi9245/Sidee/actions/workflows/build.yml)
+runs Windows, native macOS, and Linux source-package jobs; the release job adds
+a combined `SHA256SUMS` to the draft assets.
 
 ## Why Sidee exists
 
