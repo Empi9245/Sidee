@@ -113,9 +113,10 @@ def check_sources(root, files):
     root = Path(root).resolve()
     for file in files:
         file = Path(file)
-        if file.is_symlink() or not file.resolve().is_relative_to(root):
+        resolved = file.resolve()
+        if file.is_symlink() or not resolved.is_relative_to(root):
             raise ReleaseBoundaryError("Release input is a link or outside the project")
-        name = file.relative_to(root).as_posix()
+        name = resolved.relative_to(root).as_posix()
         check_name(name)
         if not file.is_file():
             raise FileNotFoundError(f"Release file is missing: {name}")
