@@ -12,24 +12,23 @@ Sidee is built around three principles:
 - **Accessibility:** Make the process straightforward, even for first-time users.
 - **Privacy and security:** Keep TV discovery and pairing on the local network, with authorization through the PIN shown on the TV.
 
-## New installer and this client: which one do I need?
+## Which method, which package
 
-Sidee now has a **new installation method**: the Sidee Store installs **real
-apps** into the TV tile, one short code at a time. Both are the same site:
+This repository is the **original Sidee client**: it pairs with the TV on your
+own network (the PIN shown on screen) and writes the first **Sidee** tile. This
+is the package that has worked on every TV we tested, and it stays here,
+supported, exactly as it is.
+
+The **new method** is a separate story and lives on the site:
 
 - **Sidee Store (new):** https://sidee-native-core.empi-tv.workers.dev/store
-- **Download page:** https://sidee-native-core.empi-tv.workers.dev/download
+- **Site download page:** https://sidee-native-core.empi-tv.workers.dev/download
 
-This repository keeps the **original client**, and it stays here unchanged: it
-pairs with the TV on your own network (the PIN flow) and writes the first
-**Sidee** tile. That tile is the door the store opens: the new installer works
-through that tile, it does not replace the client.
-
-**Download one package only, from the download page.** The builds attached to
-the Releases page (`v0.1.0` … `v0.1.4.2`) are older snapshots kept for history:
-they cannot install the current Sidee tile. Installing both is what produces the
-confusion — the old one fails at pairing or opens an outdated dashboard.
-
+The new method installs **real apps** into the tile. It does not replace this
+client and this client is not part of it: if you only need the tile, this
+package is what you download. The site's download page always carries the
+current build of this same client; the older builds attached to Releases are
+kept for history.
 
 ## Requirements
 
