@@ -30,6 +30,10 @@ package is what you download. The site's download page always carries the
 current build of this same client; the older builds attached to Releases are
 kept for history.
 
+There is **one download only**: this client, for the tile. The new method has no
+package of its own — it runs on the site and inside the tile, and it is not
+something you install on your computer.
+
 ## Requirements
 
 - Windows 10/11, macOS 15+ (Apple Silicon or Intel), or Linux with Python 3.9+
