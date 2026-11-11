@@ -34,6 +34,21 @@ There is **one download only**: this client, for the tile. The new method has no
 package of its own — it runs on the site and inside the tile, and it is not
 something you install on your computer.
 
+What the desktop dashboard installs is one thing: the **Sidee** tile. The
+URL-based tiles this client has always supported are still inside the package,
+from the terminal:
+
+```bash
+python sidee.py install nuvio      # Nuvio, hosted on Vercel
+python sidee.py install stremio    # Stremio TV build
+python sidee.py install jellyfin   # your own Jellyfin server
+```
+
+Those register a web address in the launcher, so nothing is copied onto the TV.
+The new method on the site installs **real apps** inside the tile instead; it is
+still rolling out and is not yet verified on every TV model, which is why this
+client stays the supported path for the tile and for the URL tiles.
+
 ## Requirements
 
 - Windows 10/11, macOS 15+ (Apple Silicon or Intel), or Linux with Python 3.9+
