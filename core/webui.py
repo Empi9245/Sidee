@@ -6,6 +6,7 @@ at startup (in the URL and QR code); installation URLs must use
 https; the PIN and tokens are never logged."""
 from __future__ import annotations
 
+import hashlib
 import http.server
 import http.client
 import ipaddress
@@ -226,22 +227,65 @@ class Handler(http.server.BaseHTTPRequestHandler):
             p["url"] = presets.build_stremio_url(server)
         _validate_preset(p)
         s = client.Session.load()
+        diagnostics: dict = {}
         apps = client.add_tile(s, p["app_id"], p["name"], p["url"],
-                               p["image"])
+                               p["image"], diagnostics=diagnostics)
         found = [a for a in apps
                  if isinstance(a, dict) and
-                 str(a.get("appId", "")).lower() == p["app_id"]]
-        confirmed = any(client.tile_matches_request(a, p["app_id"], p["url"])
+                 p["app_id"].lower() in client.tile_ids(a)]
+        confirmed = any(client.tile_confirms_install(a, p["app_id"], p["url"])
                         for a in found)
         dups = len(found)
+        support = None
+        message = None
+        if not confirmed:
+            evidence = {
+                "app": p["name"],
+                "app_id": p["app_id"],
+                "auth_profile": s.auth_profile,
+                "tokenless": s.tokenless,
+                "listed": diagnostics.get("listed"),
+                "rounds": diagnostics.get("rounds"),
+                "resends": diagnostics.get("resends"),
+                "matching": diagnostics.get("matching"),
+                "ids_seen": diagnostics.get("ids_seen"),
+                "address_fields": diagnostics.get("address_fields"),
+            }
+            code = "SD-" + hashlib.sha256(
+                json.dumps(evidence, sort_keys=True, default=str).encode()).hexdigest()[:8].upper()
+            support = {"code": code, "log": _write_install_log(code, evidence)}
+            message = (p["name"] + " installation was requested, but the TV has "
+                       "not confirmed its current address yet. Check Home on your TV "
+                       "before trying again. Unplug the TV for 10 seconds, restart it "
+                       "and check Home; if the tile is still missing, reopen Sidee and "
+                       "press Install Sidee. Still failing? Post the exact model and "
+                       "firmware in Sidee Community with support code " + code + ".")
         return {"ok": confirmed,
                 "status": "installed" if confirmed else "unconfirmed",
                 "error": None,
-                "message": None if confirmed else
-                p["name"] + " installation was requested, but the TV has not "
-                "confirmed its current address yet. Check Home on your TV "
-                "before trying again.",
+                "message": message,
+                "support": support,
                 "duplicates": max(0, dups - 1) if found else 0}
+
+
+def _write_install_log(code: str, evidence: dict) -> str:
+    """Save a local, redacted failure report and return its path.
+
+    No tokens, no TV URL: only the attempt counts and the identity fields the TV
+    listed. Best-effort: a failure to write never hides the result.
+    """
+    try:
+        directory = os.path.join(os.path.expanduser("~"), ".sidee", "logs")
+        os.makedirs(directory, exist_ok=True)
+        path = os.path.join(directory, f"install-failure-{code}.json")
+        with open(path, "w", encoding="utf-8") as handle:
+            json.dump({"support": code, "at": time.time(), **evidence}, handle, indent=2)
+            handle.write("\n")
+        print(f"[install] support {code}: {path}", file=sys.stderr, flush=True)
+        return path
+    except OSError as error:
+        print(f"[install] could not save the support log: {error}", file=sys.stderr, flush=True)
+        return ""
 
 
 def _validate_preset(p: dict) -> None:

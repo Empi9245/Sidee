@@ -839,18 +839,67 @@ def _mark_needs_pairing() -> None:
         s.save()
 
 
+TILE_ID_KEYS = ("appId", "Id", "mediaId")
+
+
+def tile_ids(tile: object) -> list[str]:
+    """Identity fields a TV reports for a tile.
+
+    Newer firmwares use `appId`; older ones list only `Id` or `mediaId` (the
+    same values the install payload sends). Ignoring those made a registered
+    tile look missing and produced a false "not confirmed" error.
+    """
+    if not isinstance(tile, dict):
+        return []
+    values = []
+    for key in TILE_ID_KEYS:
+        value = tile.get(key)
+        if isinstance(value, str) and value.strip():
+            value = value.strip().lower()
+            if value not in values:
+                values.append(value)
+    return values
+
+
+def tile_addresses(tile: object) -> list[str]:
+    """Address fields a TV reports for a tile (many firmwares report none)."""
+    if not isinstance(tile, dict):
+        return []
+    return [tile[key].strip() for key in ("url", "appUrl", "URL")
+            if isinstance(tile.get(key), str) and tile[key].strip()]
+
+
 def tile_matches_request(tile: object, app_id: str, url: str) -> bool:
     """Confirm both the tile identity and the address reported by the TV."""
-    if not isinstance(tile, dict) or str(tile.get("appId", "")).lower() != app_id.lower():
+    if app_id.lower() not in tile_ids(tile):
         return False
-    addresses = [tile[key].strip() for key in ("url", "appUrl", "URL")
-                 if isinstance(tile.get(key), str) and tile[key].strip()]
+    addresses = tile_addresses(tile)
     return bool(addresses) and all(address == url for address in addresses)
 
 
+def tile_confirms_install(tile: object, app_id: str, url: str) -> bool:
+    """Confirm a registered tile, tolerating firmware that hides its URL.
+
+    Some VIDAA builds list an installed web app only by appId/Id/mediaId (no
+    url/appUrl/URL field). The address cannot be checked there, so the identity
+    is the strongest available proof; when the TV does report an address it must
+    still match.
+    """
+    if app_id.lower() not in tile_ids(tile):
+        return False
+    addresses = tile_addresses(tile)
+    return not addresses or all(address == url for address in addresses)
+
+
 def add_tile(session: Session, app_id: str, name: str, url: str,
-             image: str = "") -> list[dict]:
-    """Register a web app as a launcher tile. Return the updated app list."""
+             image: str = "", diagnostics: dict | None = None) -> list[dict]:
+    """Register a web app as a launcher tile. Return the updated app list.
+
+    A TV that has just booted may accept the MQTT connection before its
+    launcher is ready, and some firmwares do not report a tile's URL at all.
+    The install is repeated while polling, and an entry that carries the right
+    identity but no address is accepted after the repeat.
+    """
     def op(sess, topics):
         sess.subscribe([topics["applist_reply"]])
         time.sleep(0.3)
@@ -864,8 +913,24 @@ def add_tile(session: Session, app_id: str, name: str, url: str,
             since = len(sess.messages)
             sess.publish(topics["ui"] + "actions/applist", "0")
             raw = sess.wait_for("ui_service/data/applist", 8, since)
-            apps = protocol.parse_applist_message(raw) if raw else []
-            if apps and any(tile_matches_request(a, app_id, url) for a in apps):
+            parsed = protocol.parse_applist_message(raw) if raw else []
+            apps = parsed if isinstance(parsed, list) else []
+            found = [a for a in apps
+                     if isinstance(a, dict) and app_id.lower() in tile_ids(a)]
+            if diagnostics is not None:
+                diagnostics.update({
+                    "rounds": attempt + 1,
+                    "listed": len(apps),
+                    "matching": [tile_ids(a) for a in found][:6],
+                    "ids_seen": [ids[0] for a in apps if (ids := tile_ids(a))][:12],
+                    "address_fields": [sorted(tile_addresses(a)) for a in found][:6],
+                })
+            if any(tile_matches_request(a, app_id, url) for a in found):
+                return apps
+            # Firmware without URL reporting: the identity is the only proof.
+            # Wait for the second poll so a stale pre-install entry is not
+            # mistaken for this install.
+            if attempt == 1 and found and all(not tile_addresses(a) for a in found):
                 return apps
             if attempt == 0:
                 time.sleep(2)  # allow the launcher to finish registering the tile

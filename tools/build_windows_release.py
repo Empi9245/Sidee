@@ -14,6 +14,12 @@ EXECUTABLES = {"start-unix.sh", "start-macos.command", "start-linux.sh",
                "start-android.sh"}
 
 
+# Fixed timestamp so a build from a clean checkout is byte-identical: the ZIP
+# depends only on the reviewed file contents and their order, never on the
+# checkout time or the machine that built it.
+FIXED_TIME = (1980, 1, 1, 0, 0, 0)
+
+
 def build(destination=None):
     destination = Path(destination or ROOT / "dist" / "sidee-windows.zip")
     check_public_source(ROOT)
@@ -26,13 +32,11 @@ def build(destination=None):
         with zipfile.ZipFile(temporary, "w", zipfile.ZIP_DEFLATED) as archive:
             for source in files:
                 name = "Sidee/" + source.relative_to(ROOT).as_posix()
-                if source.name in EXECUTABLES:
-                    info = zipfile.ZipInfo.from_file(source, name)
-                    info.external_attr = (0o100755 << 16)
-                    info.compress_type = zipfile.ZIP_DEFLATED
-                    archive.writestr(info, source.read_bytes())
-                else:
-                    archive.write(source, name)
+                info = zipfile.ZipInfo(name, FIXED_TIME)
+                info.create_system = 3
+                info.external_attr = ((0o100755 if source.name in EXECUTABLES else 0o100644) << 16)
+                info.compress_type = zipfile.ZIP_DEFLATED
+                archive.writestr(info, source.read_bytes())
         check_zip(temporary)
         os.replace(temporary, destination)
     finally:

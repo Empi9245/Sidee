@@ -7,6 +7,7 @@ import tempfile
 import time
 import unittest
 from contextlib import ExitStack, redirect_stdout
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import sidee
@@ -69,6 +70,7 @@ class TestTileRegistration(unittest.TestCase):
         stack.enter_context(patch.object(client.Session, "path",
                                          return_value=os.path.join(directory.name, "session.json")))
         stack.enter_context(patch.object(client, "tv_timestamp", return_value=123))
+        stack.enter_context(patch.object(webui, "_write_install_log", return_value=""))
         stack.enter_context(patch.object(client.time, "sleep"))
         self.connection = TileConnection()
         stack.enter_context(patch.object(client, "MqttSession", return_value=self.connection))
@@ -135,11 +137,14 @@ class TestTileRegistration(unittest.TestCase):
         self.assertTrue(self.install()["ok"])
         self.assertEqual(self.connection.requests, 2)
 
-    def test_existing_id_without_address_is_unconfirmed(self):
+    def test_existing_id_without_address_is_confirmed_on_the_second_poll(self):
+        # Firmware that hides a tile's URL: the identity is the strongest proof.
+        # The second poll confirms it, so a stale pre-install entry is not
+        # mistaken for this install.
         self.connection.replies = [[{"appId": "nuviodebug", "name": "Nuvio"}]]
         result = self.install()
-        self.assertFalse(result["ok"])
-        self.assertEqual(result["status"], "unconfirmed")
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["status"], "installed")
         self.assertEqual(self.connection.requests, 2)
 
     def test_install_requests_the_vidaa_entry(self):
@@ -174,6 +179,47 @@ class TestTileAddressConfirmation(unittest.TestCase):
             with self.subTest(tile=tile), patch.object(client.Session, "load"), \
                  patch.object(client, "add_tile", return_value=[tile]), redirect_stdout(io.StringIO()):
                 self.assertEqual(sidee.cmd_cli(args), expected)
+
+
+class TileIdentityCompatibility(unittest.TestCase):
+    """Older firmwares list a tile only by Id/mediaId, not by appId."""
+
+    def test_older_firmware_identity_fields_confirm_the_tile(self):
+        for key in ("appId", "Id", "mediaId"):
+            self.assertTrue(client.tile_confirms_install(
+                {key: "2471", "URL": NUVIO_URL}, "2471", NUVIO_URL), key)
+
+    def test_identity_with_a_different_address_is_not_confirmed(self):
+        self.assertFalse(client.tile_confirms_install(
+            {"Id": "2471", "URL": OLD_NUVIO["url"]}, "2471", NUVIO_URL))
+
+    def test_absent_tile_is_not_confirmed(self):
+        self.assertFalse(client.tile_confirms_install(
+            {"Id": "other", "URL": NUVIO_URL}, "2471", NUVIO_URL))
+
+    def test_unconfirmed_install_returns_a_support_code_and_a_log(self):
+        handler = object.__new__(webui.Handler)
+        preset = {"name": "Sidee", "app_id": "2471",
+                  "url": "https://sidee.example/t", "image": ""}
+        saved = {}
+
+        def fake_log(code, evidence):
+            saved["code"], saved["evidence"] = code, evidence
+            return "/tmp/install-failure.json"
+
+        with patch.object(webui.presets, "get", return_value=preset), \
+                patch.object(client, "add_tile", return_value=[]) as add, \
+                patch.object(client.Session, "load",
+                             return_value=SimpleNamespace(auth_profile="token", tokenless=False)), \
+                patch.object(webui, "_write_install_log", side_effect=fake_log):
+            result = handler._install({"app": "sidee"})
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["status"], "unconfirmed")
+        self.assertRegex(result["support"]["code"], r"^SD-[A-F0-9]{8}$")
+        self.assertIn(result["support"]["code"], result["message"])
+        self.assertEqual(saved["code"], result["support"]["code"])
+        self.assertEqual(saved["evidence"]["app_id"], "2471")
+        self.assertIn("diagnostics", add.call_args.kwargs)
 
 
 if __name__ == "__main__":
