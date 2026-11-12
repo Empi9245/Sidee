@@ -222,5 +222,20 @@ class TileIdentityCompatibility(unittest.TestCase):
         self.assertIn("diagnostics", add.call_args.kwargs)
 
 
+class SupportLog(unittest.TestCase):
+    def test_the_log_is_written_and_carries_no_token(self):
+        with tempfile.TemporaryDirectory() as home, \
+                patch.object(webui.os.path, "expanduser", return_value=home):
+            path = webui._write_install_log("SD-DEADBEEF", {
+                "app": "Sidee", "app_id": "2471", "listed": 2,
+                "token": "must-not-be-logged",
+            })
+            self.assertTrue(os.path.exists(path))
+            with open(path, encoding="utf-8") as handle:
+                body = handle.read()
+            self.assertIn("SD-DEADBEEF", body)
+            self.assertNotIn("must-not-be-logged", body)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -17,6 +17,7 @@ import secrets
 import signal
 import socket
 import socketserver
+import sys
 import tempfile
 import threading
 import time
@@ -278,8 +279,11 @@ def _write_install_log(code: str, evidence: dict) -> str:
         directory = os.path.join(os.path.expanduser("~"), ".sidee", "logs")
         os.makedirs(directory, exist_ok=True)
         path = os.path.join(directory, f"install-failure-{code}.json")
+        blocked = ("token", "secret", "password", "pin", "url", "host", "payload")
+        safe = {key: value for key, value in evidence.items()
+                if not any(word in key.lower() for word in blocked)}
         with open(path, "w", encoding="utf-8") as handle:
-            json.dump({"support": code, "at": time.time(), **evidence}, handle, indent=2)
+            json.dump({"support": code, "at": time.time(), **safe}, handle, indent=2)
             handle.write("\n")
         print(f"[install] support {code}: {path}", file=sys.stderr, flush=True)
         return path
