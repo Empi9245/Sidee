@@ -244,7 +244,7 @@ def _descriptor_brand(description: str) -> str:
     Hisense, brand=tos on Toshiba-licensed firmware). Falls back to 'his'."""
     for line in description.splitlines():
         key, sep, value = line.partition("=")
-        if sep and key.strip() == "brand":
+        if sep and key.strip().lower() == "brand":
             value = value.strip().lower()
             if re.fullmatch(r"[a-z0-9]{1,8}", value):
                 return value

@@ -1,4 +1,4 @@
-# Toshiba VIDAA authentication compatibility
+# Brand-specific VIDAA authentication compatibility
 
 Reported target, 13 October 2026: Toshiba Z670, firmware
 `V0000.09.60N.Q0615`, extended version `X0003.W01.Y01.J01`, minor version
@@ -31,6 +31,32 @@ confirms that this model accepts Sidee's app-install action.
   authentication profiles while running an installation.
 - Accept VIDAA identifiers in a Toshiba UPnP descriptor without requiring the
   manufacturer to be Hisense. Toshiba branding alone does not identify VIDAA.
+
+## Any VIDAA brand, not just Toshiba
+
+The value is not an HTTP path or a hardcoded “Toshiba mode”. The TV advertises
+its own brand in the UPnP `modelDescription`, for example:
+
+```text
+transport_protocol=3290
+brand=tos
+```
+
+Sidee reads that value (case-insensitive key) and uses it in the MQTT client
+identity, username and password derivation. The same works for any badge that
+runs VIDAA and declares its own code: a Tesla-branded set that advertises
+`brand=tes` is tried with `tes`, not with a fixed `his`. If the descriptor has
+no `brand=` line, Sidee keeps the historical `his` fallback; that is the only
+case where the badge cannot be inferred, and a `rc=5` refusal is the expected
+symptom. The official app's headers are not required when the descriptor
+already carries the field: collect `manufacturer`, `modelName`,
+`modelDescription` (`brand=`, `transport_protocol=`) and the exact Sidee error
+before assuming a different algorithm.
+
+This brand fix only affects connecting to the TV and registering the Sidee
+tile. It does not change how the new method writes an app into the tile: a
+successful pairing is not proof that the tile can be installed. Those are two
+different failures and must be reported separately.
 
 ## Brand fix (0.1.4.2, 13 October 2026)
 

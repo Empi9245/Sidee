@@ -35,6 +35,8 @@ vidaa_support=1
 """
 
 HISENSE_DESCRIPTOR = TOSHIBA_DESCRIPTOR.replace("brand=tos", "brand=his")
+TESLA_DESCRIPTOR = TOSHIBA_DESCRIPTOR.replace("brand=tos", "brand=tes")
+TESLA_UPPER_DESCRIPTOR = TOSHIBA_DESCRIPTOR.replace("brand=tos", "Brand=TES")
 
 
 class TestCredentialBrand(unittest.TestCase):
@@ -91,6 +93,19 @@ class TestDescriptorBrand(unittest.TestCase):
     def test_missing_or_invalid_brand_falls_back(self):
         self.assertEqual(client._descriptor_brand("no brand line"), "his")
         self.assertEqual(client._descriptor_brand("brand=TOSHIBA!!"), "his")
+
+    def test_any_brand_running_vidaa_is_used_as_declared(self):
+        # The badge is not a gate: whatever the TV declares is the input to the
+        # credential algorithm. `tes` is only a synthetic example for a
+        # Tesla-branded VIDAA set; the real descriptor is authoritative.
+        self.assertEqual(client._descriptor_brand(TESLA_DESCRIPTOR), "tes")
+        self.assertEqual(client._descriptor_brand(TESLA_UPPER_DESCRIPTOR), "tes")
+        cid, user, pwd = protocol.session_credentials(
+            UUID, TS, auth_profile="modern", brand="tes")
+        self.assertTrue(cid.startswith(UUID + "$tes$"))
+        self.assertTrue(user.startswith("tes$"))
+        self.assertNotEqual(pwd, protocol.session_credentials(
+            UUID, TS, auth_profile="modern", brand="his")[2])
 
     def test_session_brand_roundtrip(self):
         import tempfile
