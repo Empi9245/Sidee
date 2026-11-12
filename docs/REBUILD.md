@@ -7,15 +7,15 @@ so a checkout of the same commit produces the same bytes on any machine.
 ```sh
 python tools/build_platform_releases.py
 sha256sum dist/sidee-windows.zip
-# da81f77e3215604f1c06019284f970d89bdf5a8839ad31243d12340572d25eed  dist/sidee-windows.zip
+# 35dd1fe3c74b75e3ffdcbdb4c9e1547fcb87def7c66379807bc4fde9a9a2db5e  dist/sidee-windows.zip
 ```
 
-Expected output for the packages published with commit `c385080` (fixed
+Expected output for the packages published with commit `5ec8f64` (fixed
 timestamps, `PUBLIC_FILES` order, content only):
 
 | File | SHA-256 |
 |---|---|
-| `sidee-windows.zip` | `da81f77e3215604f1c06019284f970d89bdf5a8839ad31243d12340572d25eed` |
+| `sidee-windows.zip` | `35dd1fe3c74b75e3ffdcbdb4c9e1547fcb87def7c66379807bc4fde9a9a2db5e` |
 | `sidee-macos.zip` | same bytes as Windows (same source tree) |
 | `sidee-linux.zip` | same bytes as Windows |
 | `sidee-android.zip` | same bytes as Windows |
