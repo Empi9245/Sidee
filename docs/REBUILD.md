@@ -1,8 +1,10 @@
 # Rebuilding the published packages
 
-The four source packages served from `/download/sidee-<platform>.zip` are built
-from this repository only. The build uses a fixed timestamp for every ZIP entry,
-so a checkout of the same commit produces the same bytes on any machine.
+The four source packages are built from this repository only and published
+through GitHub: as the `Sidee-source-platforms` workflow artifact, and as
+release assets when the release job attaches them. The build uses a fixed
+timestamp for every ZIP entry, so a checkout of the same commit produces the
+same bytes on any machine.
 
 ```sh
 python tools/build_platform_releases.py
@@ -23,20 +25,15 @@ timestamps, `PUBLIC_FILES` order, content only):
 `SHA256SUMS` is generated next to the archives. The APK has its own hash
 (`e6338cc3…`) and is not rebuilt by this command.
 
-To update the Worker's KV copy, from the Worker project:
+Attach the four ZIPs and `SHA256SUMS` to the GitHub release. Do not upload them
+to the new Sidee site: the original GitHub Sidee and the new online-store
+version are separate products.
+
+Verify the archives locally:
 
 ```sh
-npx wrangler kv key put --namespace-id=<namespace> --remote \
-  download:sidee-windows --path ../vidaa-tile/dist/sidee-windows.zip
-# repeat for macos, linux, android, then download:checksums
+sha256sum -c dist/SHA256SUMS
 ```
 
-Verify the live copy:
-
-```sh
-curl -s https://sidee-native-core.empi-tv.workers.dev/download/sidee-windows.zip \
-  | sha256sum
-```
-
-The served hash must equal the table above. A build from a clean clone of the
-commit is the release check; a dirty working tree is not evidence.
+A build from a clean clone of the commit is the release check; a dirty working
+tree is not evidence.

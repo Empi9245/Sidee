@@ -12,6 +12,20 @@ Sidee is built around three principles:
 - **Accessibility:** Make the process straightforward, even for first-time users.
 - **Privacy and security:** Keep TV discovery and pairing on the local network, with authorization through the PIN shown on the TV.
 
+## Original Sidee and the new Sidee
+
+This repository is the **original Sidee**: it discovers the TV on the local
+network, pairs with the PIN shown on screen, and uses the TV's MQTT/TLS control
+interface to install and manage launcher tiles. Its downloads stay on GitHub:
+Windows and macOS installers are attached to Releases; Linux and Android use
+the source-package artifact from the Build Sidee workflow.
+
+A **new, separate Sidee** installs only the Sidee tile and then sends you to the
+online store to install apps. It does not use the packages in this repository.
+This README links to the new store, not to the new site's package downloads. If
+you want the new version, start here:
+[sidee-native-core.empi-tv.workers.dev/store](https://sidee-native-core.empi-tv.workers.dev/store).
+
 ## Requirements
 
 - Windows 10/11, macOS 15+ (Apple Silicon or Intel), or Linux with Python 3.9+
@@ -23,16 +37,17 @@ Compatibility varies by TV model and firmware. The primary tested firmware is U0
 
 ## Get started
 
-All four platform packages are published on the
-[Sidee download page](https://sidee-native-core.empi-tv.workers.dev/download).
-They contain the same reviewed app and a platform-specific launcher:
-`sidee-windows.zip`, `sidee-macos.zip`, `sidee-linux.zip`, and
-`sidee-android.zip`. The SHA-256 manifest is published at
-[`/download/checksums`](https://sidee-native-core.empi-tv.workers.dev/download/checksums).
+Download the Windows or macOS package from
+[Sidee Releases](https://github.com/Empi9245/Sidee/releases). For Linux and
+Android, open the latest successful
+[Build Sidee workflow](https://github.com/Empi9245/Sidee/actions/workflows/build.yml)
+and download the `Sidee-source-platforms` artifact, or build the packages
+locally with `python tools/build_platform_releases.py`. These packages belong
+to this repository and are not distributed by the new Sidee site.
 
 ### Windows
 
-1. [Download Sidee for Windows](https://sidee-native-core.empi-tv.workers.dev/download/sidee-windows.zip) and extract the ZIP.
+1. Download `sidee-windows.zip` from [Sidee Releases](https://github.com/Empi9245/Sidee/releases) and extract it.
 2. Double-click `start-windows.bat` in the extracted folder.
 3. Wait for the dashboard to open in your browser, then follow the on-screen steps.
 
@@ -54,7 +69,8 @@ Sidee's control window must remain open while you use the dashboard; **Quit Side
 
 ### macOS source package
 
-[Download the macOS source package](https://sidee-native-core.empi-tv.workers.dev/download/sidee-macos.zip),
+Download `sidee-macos.zip` from the `Sidee-source-platforms` artifact in the
+latest successful [Build Sidee workflow](https://github.com/Empi9245/Sidee/actions/workflows/build.yml),
 extract it, and open `start-macos.command` (or run `sh start-macos.command` in
 Terminal). This package uses Python 3.9+ already installed on the Mac. The first
 launch creates `.runtime/venv` and installs the TV connection library there.
@@ -63,7 +79,8 @@ choose **Open** if you trust the package.
 
 ### Linux
 
-[Download the Linux package](https://sidee-native-core.empi-tv.workers.dev/download/sidee-linux.zip),
+Download `sidee-linux.zip` from the `Sidee-source-platforms` artifact in the
+latest successful [Build Sidee workflow](https://github.com/Empi9245/Sidee/actions/workflows/build.yml),
 extract it, and run `./start-linux.sh`. Python 3.9+ is required. On Debian or
 Ubuntu install `python3` and `python3-venv`; on Fedora install `python3` and
 `python3-virtualenv`. The launcher creates `.runtime/venv` without changing the
@@ -74,7 +91,8 @@ link printed in the terminal.
 
 Android uses [Termux](https://termux.dev/), not a native APK. Install Termux
 from F-Droid or Google Play, then run `pkg update && pkg install python`.
-Download [the Android package](https://sidee-native-core.empi-tv.workers.dev/download/sidee-android.zip),
+Download `sidee-android.zip` from the `Sidee-source-platforms` artifact in the
+latest successful [Build Sidee workflow](https://github.com/Empi9245/Sidee/actions/workflows/build.yml),
 extract it, and run:
 
 ```bash
@@ -88,16 +106,15 @@ and TV must be on the same home network.
 
 ## Verify downloads
 
-The four packages are built from the same reviewed source tree. Each build
-writes a SHA-256 manifest; download it from
-[`/download/checksums`](https://sidee-native-core.empi-tv.workers.dev/download/checksums)
-and compare it with the downloaded ZIP, for example:
+The source-package build generates a `SHA256SUMS` manifest, and the release
+assets include one when the release job attaches all packages. Compare it with
+the downloaded ZIP, for example:
 
 ```bash
 sha256sum -c SHA256SUMS
 ```
 
-On macOS use `shasum -a 256 -c SHA256SUMS`. The manifest is also generated for
+On macOS use `shasum -a 256 -c SHA256SUMS`. The manifest is generated with
 the GitHub release assets.
 
 ## Connect your TV
